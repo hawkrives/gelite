@@ -137,6 +137,29 @@ sidecar), `edb/graphql/` (free — it lowers to EdgeQL).
 `edb/server/sqlitecon/` replaces `pgcon/`, deliberately matching the existing
 interface so `dbview/` and `protocol/` are untouched.
 
+### CI workflows
+
+Seven of the seventeen workflows in `.github/workflows/` test subsystems this
+section deletes, and become dead on the same commit:
+
+- `tests.ha.yml` — high availability
+- `tests.pool.yml` — connection pool
+- `tests.managed-pg.yml`, `tests.pg-versions.yml` — Postgres itself
+- `tests.inplace.yml`, `tests.inplace7x.yml`, `tests.patches.yml` — the
+  in-place upgrade ladder (`patches.py`, `patches_6x.py`)
+
+`docs.yml` and `docs-preview-deploy.yml` post to upstream's Vercel deploy hook
+via a secret this fork does not have, so they are dead for a different reason.
+
+The remainder (`tests.yml`, `tests.reflection.yml`, the `build.*` pipeline)
+need rework rather than deletion, and Section 8's differential-oracle job has no
+workflow at all yet.
+
+**Actions is currently disabled on this fork**, which is the GitHub default for
+forks. Nothing runs on any pull request until it is enabled. This has to be
+settled before Milestone 0 begins producing code, or the Milestone 6 green gate
+has no automation behind it.
+
 ---
 
 ## 2. Storage mapping
