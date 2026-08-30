@@ -568,21 +568,34 @@ failure mode. Four silent-wrongness classes are already identified:
 Each produces a plausible wrong answer rather than an error, and none is
 reliably caught by assertions written against expected values.
 
-### Retiring the oracle
+### The oracle is permanent infrastructure
 
-The gate is **all non-deferred tests green**, with an explicit xfail list for
-ranges, `decimal`/`bigint`, and FTS — that list is the ledger of what v2 owes.
+**The Postgres oracle container is kept indefinitely.** It is not retired after
+the suite goes green.
 
-Once the suite is green it *is* the oracle for everything it covers (229k lines
-of encoded expected behavior). The oracle's remaining value is for what the
-suite does not cover, reachable only by generative differential testing. That is
-therefore the **last** use of Postgres and must happen before deletion, which is
-a one-way door.
+The reasoning: the container is stock upstream Gel, pinned — code this project
+never touches, never merges, and never fixes. Upstream being inactive, it will
+never drift. So its carrying cost is CI minutes, not maintenance, and there is no
+pressure to delete it.
 
-**Retire the oracle after: (a) non-deferred suite green, and (b) one generative
-differential pass.** Build the container once and archive the image — the usual
-forcing function for premature deletion is the container becoming unbuildable
-against dead dependencies years later, which archiving defuses.
+Against that, its value does not end at green. Once the suite passes it *is* the
+oracle for everything it covers (229k lines of encoded expected behavior), but
+what it covers is fixed, and every one of the four silent-wrongness classes lives
+in the gaps. A permanent oracle means generative differential testing stays
+available for as long as the project runs — for new features, for regressions in
+areas the suite is thin on, and for adjudicating "is this a bug or is this
+Gel's actual behavior?" questions that would otherwise need archaeology.
+
+Deleting it would be a one-way door bought for nearly no savings.
+
+**Operationally:** build the image once and archive it. The usual thing that
+forces deletion of a frozen reference container is that it stops building against
+dead dependencies years later; archiving the built image defuses that, and is the
+one piece of upkeep this decision requires.
+
+The release gate is unchanged: **all non-deferred tests green**, with an explicit
+xfail list for ranges, `decimal`/`bigint`, and FTS — that list is the ledger of
+what v2 owes.
 
 ### Other layers
 
@@ -654,7 +667,8 @@ alongside rather than after.
 
 **Milestone 6 — Green.** Non-deferred suite passing, xfail ledger published.
 
-**Milestone 7 — Generative differential pass, then retire the Postgres oracle.**
+**Milestone 7 — Generative differential pass.** The Postgres oracle stays in
+CI permanently after this; see Section 8.
 
 Phase 2 (thin native runtime) is out of scope for this design and gets its own
 spec.
