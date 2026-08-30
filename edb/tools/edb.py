@@ -84,7 +84,6 @@ from . import inittestdb  # noqa
 from . import test  # noqa
 from . import test_extension  # noqa
 from . import wipe  # noqa
-from . import gen_test_dumps  # noqa
 from . import gen_sql_introspection  # noqa
 from . import gen_rust_ast  # noqa
 from . import ast_inheritance_graph  # noqa
