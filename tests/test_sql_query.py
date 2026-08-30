@@ -40,7 +40,6 @@ except ImportError:
 
 
 class TestSQLQuery(tb.SQLQueryTestCase):
-    EXTENSIONS = ["pgvector", "ai"]
     SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'movies.esdl')
     SCHEMA_INVENTORY = os.path.join(
         os.path.dirname(__file__), 'schemas', 'inventory.esdl'
