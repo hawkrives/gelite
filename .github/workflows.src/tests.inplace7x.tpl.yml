@@ -3,8 +3,6 @@
 name: Tests of in-place upgrades to 7.x
 
 on:
-  schedule:
-    - cron: "0 3 * * *"
   workflow_dispatch:
     inputs: {}
   push:
