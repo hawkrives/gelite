@@ -510,7 +510,7 @@ class BaseAuthTestCase(tb.ExtAuthTestCase):
     def _verify_email_file(self, email):
         file_name_hash = hashlib.sha256(f"{SENDER}{email}".encode()).hexdigest()
         test_file = os.environ.get(
-            "EDGEDB_TEST_EMAIL_FILE",
+            "GELITE_TEST_EMAIL_FILE",
             f"/tmp/edb-test-email-{file_name_hash}.pickle",
         )
         if not os.path.exists(test_file):

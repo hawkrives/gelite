@@ -81,8 +81,8 @@ class CompilationRequest:
         session_config: typing.Mapping[str, config.SettingValue] | None = None,
         database_config: typing.Mapping[str, config.SettingValue] | None = None,
         system_config: typing.Mapping[str, config.SettingValue] | None = None,
-        role_name: str = defines.EDGEDB_SUPERUSER,
-        branch_name: str = defines.EDGEDB_SUPERUSER_DB,
+        role_name: str = defines.GELITE_SUPERUSER,
+        branch_name: str = defines.GELITE_SUPERUSER_DB,
         key_params: typing.Mapping[str, object] | None = None,
     ):
         ...

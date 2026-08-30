@@ -91,7 +91,7 @@ base64url encode the resulting string. This new string is called the
     * Value should be:
     * `${protocol}://${host}:${port}/branch/${branch}/ext/auth/
     */
-   const GEL_AUTH_BASE_URL = process.env.GEL_AUTH_BASE_URL;
+   const GELITE_AUTH_BASE_URL = process.env.GELITE_AUTH_BASE_URL;
    const SERVER_PORT = 3000;
 
    /**
@@ -182,7 +182,7 @@ Sign up
          return;
        }
 
-       const registerUrl = new URL("magic-link/register", GEL_AUTH_BASE_URL);
+       const registerUrl = new URL("magic-link/register", GELITE_AUTH_BASE_URL);
        const callbackUrl = new URL("auth/magic-link/callback", "http://localhost:${SERVER_PORT}");
        const registerResponse = await fetch(registerUrl.href, {
          method: "post",
@@ -250,7 +250,7 @@ authenticate.
          return;
        }
 
-       const emailUrl = new URL("magic-link/email", GEL_AUTH_BASE_URL);
+       const emailUrl = new URL("magic-link/email", GELITE_AUTH_BASE_URL);
        const callbackUrl = new URL("auth/magic-link/callback", "http://localhost:${SERVER_PORT}");
        const authenticateResponse = await fetch(emailUrl.href, {
          method: "post",
@@ -330,7 +330,7 @@ you will be redirected to ``callback_url`` with a PKCE ``code`` to exchange at
          return;
       }
 
-      const codeExchangeUrl = new URL("token", GEL_AUTH_BASE_URL);
+      const codeExchangeUrl = new URL("token", GELITE_AUTH_BASE_URL);
       codeExchangeUrl.searchParams.set("code", code);
       codeExchangeUrl.searchParams.set("verifier", verifier);
       const codeExchangeResponse = await fetch(codeExchangeUrl.href, {
@@ -404,7 +404,7 @@ We need to update two parts of the sign-up flow. First, we need to signal to the
             return;
           }
 
-          const registerUrl = new URL("magic-link/register", GEL_AUTH_BASE_URL);
+          const registerUrl = new URL("magic-link/register", GELITE_AUTH_BASE_URL);
           const callbackUrl = new URL("auth/magic-link/callback", "http://localhost:${SERVER_PORT}");
     +     callbackUrl.searchParams.set("isSignUp", "true");
           const registerResponse = await fetch(registerUrl.href, {
@@ -466,7 +466,7 @@ We need to update two parts of the sign-up flow. First, we need to signal to the
           return;
         }
 
-        const codeExchangeUrl = new URL("token", GEL_AUTH_BASE_URL);
+        const codeExchangeUrl = new URL("token", GELITE_AUTH_BASE_URL);
         codeExchangeUrl.searchParams.set("code", code);
         codeExchangeUrl.searchParams.set("verifier", verifier);
         const codeExchangeResponse = await fetch(codeExchangeUrl.href, {

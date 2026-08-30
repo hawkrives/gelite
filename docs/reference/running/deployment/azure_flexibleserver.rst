@@ -136,10 +136,10 @@ Start a Gel container.
        --dns-name-label geldb \
        --ports 5656 \
        --secure-environment-variables \
-         "GEL_SERVER_PASSWORD=$PASSWORD" \
-         "GEL_SERVER_BACKEND_DSN=$DSN" \
+         "GELITE_SERVER_PASSWORD=$PASSWORD" \
+         "GELITE_SERVER_BACKEND_DSN=$DSN" \
        --environment-variables \
-         GEL_SERVER_TLS_CERT_MODE=generate_self_signed
+         GELITE_SERVER_TLS_CERT_MODE=generate_self_signed
 
 Persist the SSL certificate. We have configured Gel to generate a self
 signed SSL certificate when it starts. However, if the container is restarted a
@@ -176,11 +176,11 @@ or reboots copy the certificate files and use their contents in the
        --dns-name-label geldb \
        --ports 5656 \
        --secure-environment-variables \
-         "GEL_SERVER_PASSWORD=$PASSWORD" \
-         "GEL_SERVER_BACKEND_DSN=$DSN" \
-         "GEL_SERVER_TLS_KEY=$key" \
+         "GELITE_SERVER_PASSWORD=$PASSWORD" \
+         "GELITE_SERVER_BACKEND_DSN=$DSN" \
+         "GELITE_SERVER_TLS_KEY=$key" \
        --environment-variables \
-         "GEL_SERVER_TLS_CERT=$cert"
+         "GELITE_SERVER_TLS_CERT=$cert"
 
 
 Connecting your application
@@ -213,11 +213,11 @@ Construct the DSN using these values:
 
 .. code-block:: bash
 
-    $ GEL_HOST=$(az container list \
+    $ GELITE_HOST=$(az container list \
         --resource-group $GROUP \
         --query "[?name=='gel-container-group'].ipAddress.fqdn | [0]" \
         --output tsv)
-    $ GEL_DSN="gel://admin:$PASSWORD@$GEL_HOST:5656"
+    $ GELITE_DSN="gel://admin:$PASSWORD@$GELITE_HOST:5656"
 
 Obtaining the TLS certificate
 -----------------------------
@@ -237,7 +237,7 @@ Alternatively, you can retrieve it using the Gel CLI:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure \
+    $ gel --dsn $GELITE_DSN --tls-security insecure \
         query "SELECT sys::get_tls_certificate()" > gel-tls-cert.pem
 
 Using in your application
@@ -247,11 +247,11 @@ Set these environment variables where you deploy your application:
 
 .. code-block:: bash
 
-    GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    GELITE_DSN="gel://admin:<password>@<hostname>:5656"
     # For self-signed certificates, either trust the cert:
-    GEL_TLS_CA_FILE="/path/to/gel-tls-cert.pem"
+    GELITE_TLS_CA_FILE="/path/to/gel-tls-cert.pem"
     # Or (for development only) disable TLS verification:
-    GEL_CLIENT_TLS_SECURITY=insecure
+    GELITE_CLIENT_TLS_SECURITY=insecure
 
 Gel's client libraries will automatically read these environment variables.
 
@@ -269,7 +269,7 @@ create an alias using :gelcmd:`instance link`.
 .. code-block:: bash
 
     $ printf $PASSWORD | gel instance link \
-        --dsn $GEL_DSN \
+        --dsn $GELITE_DSN \
         --password-from-stdin \
         --non-interactive \
         --trust-tls-cert \

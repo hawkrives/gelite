@@ -44,7 +44,7 @@ class TestServerAuth(tb.ConnectedTestCase):
     TRANSACTION_ISOLATION = False
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_01(self):
@@ -505,7 +505,7 @@ class TestServerAuth(tb.ConnectedTestCase):
         )
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_jwt_1(self):
@@ -642,7 +642,7 @@ class TestServerAuth(tb.ConnectedTestCase):
                     self.assertEqual(code, 401, f"Wrong result: {body}")
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_jwt_2(self):
@@ -729,7 +729,7 @@ class TestServerAuth(tb.ConnectedTestCase):
                 await sd.connect(secret_key=sk)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_multiple_methods(self):
@@ -828,7 +828,7 @@ class TestServerAuth(tb.ConnectedTestCase):
         "GitHub runner by default"
     )
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_mtls(self):

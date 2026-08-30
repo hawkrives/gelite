@@ -184,12 +184,12 @@ async def wipe_tenant(
     from edb.server import pgcon
 
     tpl_db = get_database_backend_name(
-        edbdef.EDGEDB_TEMPLATE_DB,
+        edbdef.GELITE_TEMPLATE_DB,
         tenant_id=tenant,
     )
 
     sup_role = get_role_backend_name(
-        edbdef.EDGEDB_SUPERUSER,
+        edbdef.GELITE_SUPERUSER,
         tenant_id=tenant,
     )
 
@@ -201,7 +201,7 @@ async def wipe_tenant(
     except pgcon.BackendCatalogNameError:
         click.secho(
             f'Instance tenant {tenant!r} does not have the '
-            f'{edbdef.EDGEDB_TEMPLATE_DB!r} database. Is it already clean?'
+            f'{edbdef.GELITE_TEMPLATE_DB!r} database. Is it already clean?'
         )
         return
 
@@ -261,7 +261,7 @@ async def wipe_tenant(
         stmts.append(f'DROP ROLE {qi(pg_role)}')
 
     super_group = get_role_backend_name(
-        edbdef.EDGEDB_SUPERGROUP, tenant_id=tenant)
+        edbdef.GELITE_SUPERGROUP, tenant_id=tenant)
     stmts.append(f'DROP ROLE {qi(super_group)}')
 
     for stmt in stmts:
@@ -279,12 +279,12 @@ async def _get_all_tenants(
         FROM pg_database
         WHERE datname LIKE $1
         """,
-        args=[f"%{edbdef.EDGEDB_TEMPLATE_DB}".encode("utf-8")],
+        args=[f"%{edbdef.GELITE_TEMPLATE_DB}".encode("utf-8")],
     )
 
     tenants = []
     for dbname in (db.decode("utf-8") for db in dbs):
-        if dbname == edbdef.EDGEDB_TEMPLATE_DB:
+        if dbname == edbdef.GELITE_TEMPLATE_DB:
             t = ""
         else:
             t, _, _ = dbname.partition('_')
@@ -315,7 +315,7 @@ async def _get_dbs_and_roles(
         json.loads(
             await pgconn.sql_fetch_val(get_databases_sql.encode("utf-8")),
         ),
-        key=lambda dname: edbdef.EDGEDB_TEMPLATE_DB in dname,
+        key=lambda dname: edbdef.GELITE_TEMPLATE_DB in dname,
     ))
 
     _, get_roles_sql = edbcompiler.compile_edgeql_script(

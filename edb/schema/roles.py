@@ -321,7 +321,7 @@ class DeleteRole(RoleCommand, inheriting.DeleteInheritingObject[Role]):
         context: sd.CommandContext,
     ) -> None:
         super()._validate_legal_command(schema, context)
-        if self.classname.name == s_def.EDGEDB_SUPERUSER:
+        if self.classname.name == s_def.GELITE_SUPERUSER:
             raise errors.ExecutionError(
                 f"role {self.classname.name!r} cannot be dropped"
             )

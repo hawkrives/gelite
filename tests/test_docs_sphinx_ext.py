@@ -1037,5 +1037,5 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-gelenv="true"]
                     / text()
             '''),
-             ['GEL_HOST', 'GEL_HOST=AB']
+             ['GELITE_HOST', 'GELITE_HOST=AB']
         )

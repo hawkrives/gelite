@@ -110,11 +110,11 @@ def init_worker(
         server_addr, backend_dsn = param_queue.get()
 
         if server_addr is not None:
-            os.environ['EDGEDB_TEST_CLUSTER_ADDR'] = json.dumps(server_addr)
+            os.environ['GELITE_TEST_CLUSTER_ADDR'] = json.dumps(server_addr)
         if backend_dsn:
-            os.environ['EDGEDB_TEST_BACKEND_DSN'] = backend_dsn
+            os.environ['GELITE_TEST_BACKEND_DSN'] = backend_dsn
 
-    os.environ['EDGEDB_TEST_PARALLEL'] = '1'
+    os.environ['GELITE_TEST_PARALLEL'] = '1'
     coverage_run = devmode.CoverageConfig.start_coverage_if_requested()
     py_hash_secret = cpython_state.get_py_hash_secret()
     status_queue.put(True)
@@ -434,10 +434,10 @@ class SequentialTestSuite(unittest.TestSuite):
         result = result_
 
         if self.server_conn:
-            os.environ['EDGEDB_TEST_CLUSTER_ADDR'] = \
+            os.environ['GELITE_TEST_CLUSTER_ADDR'] = \
                 json.dumps(self.server_conn)
         if self.backend_dsn:
-            os.environ['EDGEDB_TEST_BACKEND_DSN'] = self.backend_dsn
+            os.environ['GELITE_TEST_BACKEND_DSN'] = self.backend_dsn
 
         if self.worker_init:
             self.worker_init()
@@ -972,10 +972,8 @@ class ParallelTextTestRunner:
             tempdir = tempfile.TemporaryDirectory(prefix="edb-test-")
 
             if (
-                not os.environ.get("EDGEDB_SERVER_TLS_CERT_FILE")
-                and not os.environ.get("EDGEDB_SERVER_TLS_KEY_FILE")
-                and not os.environ.get("GEL_SERVER_TLS_CERT_FILE")
-                and not os.environ.get("GEL_SERVER_TLS_KEY_FILE")
+                not os.environ.get("GELITE_SERVER_TLS_CERT_FILE")
+                and not os.environ.get("GELITE_SERVER_TLS_KEY_FILE")
             ):
                 if self.verbosity >= 1:
                     self._echo(
@@ -986,12 +984,11 @@ class ParallelTextTestRunner:
                 key_file = pathlib.Path(tempdir.name) / "tlskey.pem"
                 tb.generate_tls_cert(cert_file, key_file, ["localhost"])
 
-                os.environ["GEL_SERVER_TLS_CERT_FILE"] = str(cert_file)
-                os.environ["GEL_SERVER_TLS_KEY_FILE"] = str(key_file)
+                os.environ["GELITE_SERVER_TLS_CERT_FILE"] = str(cert_file)
+                os.environ["GELITE_SERVER_TLS_KEY_FILE"] = str(key_file)
 
             if (
-                not os.environ.get("EDGEDB_SERVER_JWS_KEY_FILE")
-                and not os.environ.get("GEL_SERVER_JWS_KEY_FILE")
+                not os.environ.get("GELITE_SERVER_JWS_KEY_FILE")
             ):
                 jwk_file = pathlib.Path(tempdir.name) / "jwk.json"
                 if self.verbosity >= 1:
@@ -1001,7 +998,7 @@ class ParallelTextTestRunner:
                     )
                 tb.generate_jwk(jwk_file)
 
-                os.environ["GEL_SERVER_JWS_KEY_FILE"] = str(jwk_file)
+                os.environ["GELITE_SERVER_JWS_KEY_FILE"] = str(jwk_file)
 
         try:
             if setup:
@@ -1104,14 +1101,14 @@ class ParallelTextTestRunner:
                 assert cluster
                 if cluster.has_create_database():
                     os.environ.update({
-                        'EDGEDB_TEST_CASES_SET_UP': "skip"
+                        'GELITE_TEST_CASES_SET_UP': "skip"
                     })
                 else:
                     os.environ.update({
-                        'EDGEDB_TEST_CASES_SET_UP': "inplace"
+                        'GELITE_TEST_CASES_SET_UP': "inplace"
                     })
                 os.environ.update({
-                    'EDGEDB_TEST_HAS_CREATE_ROLE': str(
+                    'GELITE_TEST_HAS_CREATE_ROLE': str(
                         cluster.has_create_role()
                     )
                 })

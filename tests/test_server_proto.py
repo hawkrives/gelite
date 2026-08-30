@@ -3271,7 +3271,7 @@ class TestServerProtoDDL(tb.DDLTestCase):
 
             sleep = 3
             query = (
-                f"# EDGEDB_TEST_COMPILER_SLEEP = {sleep}\n"
+                f"# GELITE_TEST_COMPILER_SLEEP = {sleep}\n"
                 f"SELECT {typename}.prop1"
             )
             task = self.loop.create_task(con1.query(query))

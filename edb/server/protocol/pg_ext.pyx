@@ -760,9 +760,9 @@ cdef class PgConnection(frontend.FrontendConnection):
         if database == '__default__':
             database = self.tenant.default_database
         elif (
-            database == defines.EDGEDB_OLD_DEFAULT_DB
+            database == defines.GELITE_OLD_DEFAULT_DB
             and self.tenant.maybe_get_db(
-                dbname=defines.EDGEDB_OLD_DEFAULT_DB
+                dbname=defines.GELITE_OLD_DEFAULT_DB
             ) is None
         ):
             database = self.tenant.default_database

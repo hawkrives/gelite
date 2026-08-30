@@ -113,7 +113,7 @@ base64url encode the resulting string. This new string is called the
     * Value should be:
     * `${protocol}://${host}:${port}/branch/${branch}/ext/auth/
     */
-   const GEL_AUTH_BASE_URL = process.env.GEL_AUTH_BASE_URL;
+   const GELITE_AUTH_BASE_URL = process.env.GELITE_AUTH_BASE_URL;
    const SERVER_PORT = 3000;
 
    /**
@@ -216,7 +216,7 @@ the user to the Auth extension's URL. We'll show the proxy option here.
 
        const registerUrl = new URL(
          "webauthn/register/options",
-         GEL_AUTH_BASE_URL
+         GELITE_AUTH_BASE_URL
        );
        registerUrl.searchParams.set("email", email);
 
@@ -253,7 +253,7 @@ the user to the Auth extension's URL. We'll show the proxy option here.
 
        const authenticateUrl = new URL(
          "webauthn/authenticate/options",
-         GEL_AUTH_BASE_URL
+         GELITE_AUTH_BASE_URL
        );
        authenticateUrl.searchParams.set("email", email);
 
@@ -303,7 +303,7 @@ verification, and then associate the credential with the user's email address.
         return;
       }
 
-      const registerUrl = new URL("webauthn/register", GEL_AUTH_BASE_URL);
+      const registerUrl = new URL("webauthn/register", GELITE_AUTH_BASE_URL);
 
       const registerResponse = await fetch(registerUrl.href, {
         method: "post",
@@ -329,7 +329,7 @@ verification, and then associate the credential with the user's email address.
 
       const registerData = await registerResponse.json();
       if ("code" in registerData) {
-        const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+        const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
         tokenUrl.searchParams.set("code", registerData.code);
         tokenUrl.searchParams.set("verifier", verifier);
         const tokenResponse = await fetch(tokenUrl.href, {
@@ -387,7 +387,7 @@ for verification.
         return;
       }
 
-      const authenticateUrl = new URL("webauthn/authenticate", GEL_AUTH_BASE_URL);
+      const authenticateUrl = new URL("webauthn/authenticate", GELITE_AUTH_BASE_URL);
 
       const authenticateResponse = await fetch(authenticateUrl.href, {
         method: "post",
@@ -411,7 +411,7 @@ for verification.
 
       const authenticateData = await authenticateResponse.json();
       if ("code" in authenticateData) {
-        const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+        const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
         tokenUrl.searchParams.set("code", authenticateData.code);
         const tokenResponse = await fetch(tokenUrl.href, {
           method: "get",
@@ -499,7 +499,7 @@ handle the verification flow, we implement an endpoint:
        return;
      }
 
-     const verifyUrl = new URL("verify", GEL_AUTH_BASE_URL);
+     const verifyUrl = new URL("verify", GELITE_AUTH_BASE_URL);
      const verifyResponse = await fetch(verifyUrl.href, {
        method: "post",
        headers: {
@@ -521,7 +521,7 @@ handle the verification flow, we implement an endpoint:
 
      const { code } = await verifyResponse.json();
 
-     const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+     const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
      tokenUrl.searchParams.set("code", code);
      tokenUrl.searchParams.set("verifier", verifier);
      const tokenResponse = await fetch(tokenUrl.href, {

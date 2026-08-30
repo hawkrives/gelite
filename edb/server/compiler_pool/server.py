@@ -742,7 +742,7 @@ async def server_main(
 ):
     logsetup.setup_logging('i', 'stderr')
     if listen_port is None:
-        listen_port = defines.EDGEDB_REMOTE_COMPILER_PORT
+        listen_port = defines.GELITE_REMOTE_COMPILER_PORT
     if runstate_dir is None:
         temp_runstate_dir = tempfile.TemporaryDirectory(prefix='edbcompiler-')
         runstate_dir = temp_runstate_dir.name

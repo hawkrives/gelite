@@ -252,7 +252,7 @@ def print(*args):
 
 
 def init_debug_flags():
-    prefix = 'EDGEDB_DEBUG_'
+    prefix = 'GELITE_DEBUG_'
 
     for env_name, env_val in os.environ.items():
         if not env_name.startswith(prefix):

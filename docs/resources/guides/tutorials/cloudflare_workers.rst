@@ -190,8 +190,8 @@ set up the client:
 .. code-block:: typescript
 
    const client = gel.createHttpClient({
-     instanceName: env.GEL_INSTANCE,
-     secretKey: env.GEL_SECRET_KEY,
+     instanceName: env.GELITE_INSTANCE,
+     secretKey: env.GELITE_SECRET_KEY,
    });
 
 .. note:: Environment variables
@@ -207,8 +207,8 @@ Add the following to your :code:`wrangler.toml` file:
 .. code-block:: toml
 
     [vars]
-    GEL_INSTANCE = "your-gel-instance"
-    GEL_SECRET_KEY = "your-gel-secret-key"
+    GELITE_INSTANCE = "your-gel-instance"
+    GELITE_SECRET_KEY = "your-gel-secret-key"
 
 Next, you can run :code:`wrangler types` to generate the types for your
 environment variables.

@@ -1586,7 +1586,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_select_polymorphic_09(self):
         # Test simultaneous type intersection on source and target
@@ -7499,7 +7499,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     @tb.needs_factoring_weakly
     async def test_edgeql_select_expr_objects_04a(self):

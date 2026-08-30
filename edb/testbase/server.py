@@ -234,11 +234,11 @@ class TestCaseMeta(type(unittest.TestCase)):
     def add_method(mcls, methname, ns, meth):
         ns[methname] = mcls.wrap(meth)
 
-        # If EDGEDB_TEST_REPEATS is set, duplicate all the tests.
+        # If GELITE_TEST_REPEATS is set, duplicate all the tests.
         # This is valuable because it should exercise the function
         # cache.
         if (
-            os.environ.get('EDGEDB_TEST_REPEATS', None)
+            os.environ.get('GELITE_TEST_REPEATS', None)
             and methname.startswith('test_')
         ):
             new = methname.replace('test_', 'test_zREPEAT_', 1)
@@ -683,15 +683,15 @@ def _start_cluster(
     global _default_cluster
 
     if _default_cluster is None:
-        cluster_addr = os.environ.get('EDGEDB_TEST_CLUSTER_ADDR')
+        cluster_addr = os.environ.get('GELITE_TEST_CLUSTER_ADDR')
         if cluster_addr:
             conn_spec = json.loads(cluster_addr)
             _default_cluster = edgedb_cluster.RunningCluster(**conn_spec)
         else:
             # This branch is not usually used - `edb test` will call
-            # init_cluster() separately and set EDGEDB_TEST_CLUSTER_ADDR
-            data_dir = os.environ.get('EDGEDB_TEST_DATA_DIR')
-            backend_dsn = os.environ.get('EDGEDB_TEST_BACKEND_DSN')
+            # init_cluster() separately and set GELITE_TEST_CLUSTER_ADDR
+            data_dir = os.environ.get('GELITE_TEST_DATA_DIR')
+            backend_dsn = os.environ.get('GELITE_TEST_BACKEND_DSN')
             _default_cluster = loop.run_until_complete(
                 init_cluster(
                     data_dir=data_dir,
@@ -832,7 +832,7 @@ class ClusterTestCase(TestCaseWithHttpClient):
         cls.has_create_database = cls.cluster.has_create_database()
         cls.has_create_role = cls.cluster.has_create_role()
         cls.is_superuser = cls.has_create_database and cls.has_create_role
-        cls.backend_dsn = os.environ.get('EDGEDB_TEST_BACKEND_DSN')
+        cls.backend_dsn = os.environ.get('GELITE_TEST_BACKEND_DSN')
         if getattr(cls, 'BACKEND_SUPERUSER', False):
             if not cls.is_superuser:
                 raise unittest.SkipTest('skipped due to lack of superuser')
@@ -865,9 +865,9 @@ class ClusterTestCase(TestCaseWithHttpClient):
         if cluster is None:
             cluster = cls.cluster
         if database is None:
-            database = edgedb_defines.EDGEDB_SUPERUSER_DB
+            database = edgedb_defines.GELITE_SUPERUSER_DB
         if user is None:
-            user = edgedb_defines.EDGEDB_SUPERUSER
+            user = edgedb_defines.GELITE_SUPERUSER
         conargs = cluster.get_connect_args().copy()
         conargs.update(dict(user=user,
                             password=password,
@@ -900,7 +900,7 @@ class ClusterTestCase(TestCaseWithHttpClient):
     @classmethod
     def uses_database_copies(cls):
         return (
-            os.environ.get('EDGEDB_TEST_PARALLEL')
+            os.environ.get('GELITE_TEST_PARALLEL')
             and cls.get_parallelism_granularity() == 'database'
         )
 
@@ -1116,12 +1116,12 @@ class ConnectedTestCase(ClusterTestCase):
         ]
 
         env = os.environ.copy()
-        env['EDGEDB_HOST'] = conargs['host']
-        env['EDGEDB_PORT'] = str(conargs['port'])
+        env['GELITE_HOST'] = conargs['host']
+        env['GELITE_PORT'] = str(conargs['port'])
         if password := conargs.get('password'):
-            env['EDGEDB_PASSWORD'] = password
+            env['GELITE_PASSWORD'] = password
         if secret_key := conargs.get('secret_key'):
-            env['EDGEDB_SECRET_KEY'] = secret_key
+            env['GELITE_SECRET_KEY'] = secret_key
 
         proc = subprocess.Popen(
             cmd, stdin=sys.stdin, stdout=sys.stdout, env=env)
@@ -1381,23 +1381,23 @@ class DatabaseTestCase(ConnectedTestCase):
 
         cls.con = None
 
-        class_set_up = os.environ.get('EDGEDB_TEST_CASES_SET_UP', 'run')
+        class_set_up = os.environ.get('GELITE_TEST_CASES_SET_UP', 'run')
 
         # Only open an extra admin connection if necessary.
         if class_set_up == 'run':
             script = f'CREATE DATABASE {dbname};'
             admin_conn = await cls.connect(
-                database=edgedb_defines.EDGEDB_SUPERUSER_DB
+                database=edgedb_defines.GELITE_SUPERUSER_DB
             )
             await admin_conn.execute(script)
             await admin_conn.aclose()
 
         elif class_set_up == 'inplace':
-            dbname = edgedb_defines.EDGEDB_SUPERUSER_DB
+            dbname = edgedb_defines.GELITE_SUPERUSER_DB
 
         elif cls.uses_database_copies():
             admin_conn = await cls.connect(
-                database=edgedb_defines.EDGEDB_SUPERUSER_DB
+                database=edgedb_defines.GELITE_SUPERUSER_DB
             )
 
             base_db_name, _, _ = dbname.rpartition('_')
@@ -1437,7 +1437,7 @@ class DatabaseTestCase(ConnectedTestCase):
 
     @staticmethod
     def get_set_up():
-        return os.environ.get('EDGEDB_TEST_CASES_SET_UP', 'run')
+        return os.environ.get('GELITE_TEST_CASES_SET_UP', 'run')
 
     @classmethod
     async def teardown_and_disconnect(cls):
@@ -1462,7 +1462,7 @@ class DatabaseTestCase(ConnectedTestCase):
             elif class_set_up == 'run' or cls.uses_database_copies():
                 dbname = qlquote.quote_ident(cls.get_database_name())
                 admin_conn = await cls.connect(
-                    database=edgedb_defines.EDGEDB_SUPERUSER_DB
+                    database=edgedb_defines.GELITE_SUPERUSER_DB
                 )
                 try:
                     await drop_db(admin_conn, dbname)
@@ -1484,7 +1484,7 @@ class DatabaseTestCase(ConnectedTestCase):
     @classmethod
     def get_database_name(cls):
         if not getattr(cls, 'has_create_database', True):
-            return edgedb_defines.EDGEDB_SUPERUSER_DB
+            return edgedb_defines.GELITE_SUPERUSER_DB
 
         if cls.__name__.startswith('TestEdgeQL'):
             dbname = cls.__name__[len('TestEdgeQL'):]
@@ -2029,7 +2029,7 @@ async def _setup_database(
         dbname, setup_script, conn_args, stats, try_cached_db):
     start_time = time.monotonic()
     default_args = {
-        'user': edgedb_defines.EDGEDB_SUPERUSER,
+        'user': edgedb_defines.GELITE_SUPERUSER,
         'password': 'test',
     }
 
@@ -2037,12 +2037,12 @@ async def _setup_database(
 
     try:
         admin_conn = await tconn.async_connect_test_client(
-            database=edgedb_defines.EDGEDB_SUPERUSER_DB,
+            database=edgedb_defines.GELITE_SUPERUSER_DB,
             **default_args)
     except Exception as ex:
         raise RuntimeError(
             f'exception during creation of {dbname!r} test DB; '
-            f'could not connect to the {edgedb_defines.EDGEDB_SUPERUSER_DB} '
+            f'could not connect to the {edgedb_defines.GELITE_SUPERUSER_DB} '
             f'db; {type(ex).__name__}({ex})'
         ) from ex
 
@@ -2422,7 +2422,7 @@ class _EdgeDBServer:
         env = os.environ.copy()
         if self.env:
             env.update(self.env)
-        env.pop("EDGEDB_SERVER_MULTITENANT_CONFIG_FILE", None)
+        env.pop("GELITE_SERVER_MULTITENANT_CONFIG_FILE", None)
 
         stat_reader, stat_writer = await asyncio.open_connection(sock=status_r)
 
@@ -2582,7 +2582,7 @@ def start_edgedb_server(
             print('\n'.join(traceback.format_stack(limit=5)))
 
     password = None
-    if mt_conf := os.environ.get("EDGEDB_SERVER_MULTITENANT_CONFIG_FILE"):
+    if mt_conf := os.environ.get("GELITE_SERVER_MULTITENANT_CONFIG_FILE"):
         if multitenant_config is None and max_allowed_connections == 10:
             if not any(
                 (

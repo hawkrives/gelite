@@ -972,8 +972,8 @@ certain terms and concepts:
         extension used to be ``.esdl``.
 
     * - ``:gelenv:`BLAH```
-      - Renders to ``GEL_BLAH``, with a context tooltip explaining that this
-        environment variable used to be ``EDGEDB_BLAH``.
+      - Renders to ``GELITE_BLAH``, with a context tooltip explaining that this
+        environment variable used to be ``GELITE_BLAH``.
 
     * - ``|gel.toml|``
       - Renders to ``gel.toml``, with a context tooltip explaining that this

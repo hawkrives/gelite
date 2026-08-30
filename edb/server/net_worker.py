@@ -68,7 +68,7 @@ async def _http_task(tenant: edbtenant.Tenant, state: TenantState) -> None:
         # queries can cause things to wait on them.
         async with (asyncio.TaskGroup() as g,):
             for db in list(tenant.iter_dbs()):
-                if db.name == defines.EDGEDB_SYSTEM_DB:
+                if db.name == defines.GELITE_SYSTEM_DB:
                     # Don't run the net_worker for system database
                     continue
                 if not tenant.is_database_connectable(db.name):
@@ -346,7 +346,7 @@ async def _gc(tenant: edbtenant.Tenant, expires_in: statypes.Duration) -> None:
     try:
         async with asyncio.TaskGroup() as g:
             for db in tenant.iter_dbs():
-                if db.name == defines.EDGEDB_SYSTEM_DB:
+                if db.name == defines.GELITE_SYSTEM_DB:
                     continue
                 g.create_task(_delete_requests(db, expires_in))
     except Exception as ex:

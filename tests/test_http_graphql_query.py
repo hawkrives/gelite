@@ -2105,7 +2105,7 @@ class TestGraphQLFunctional(tb.GraphQLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     def test_graphql_functional_fragment_17(self):
         self.assert_graphql_query_result(r"""

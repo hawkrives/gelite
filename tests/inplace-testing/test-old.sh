@@ -31,7 +31,7 @@ TMPDIR=$(mktemp -d)
 edb server --bootstrap-only --data-dir $TMPDIR/bootstrap || (rm -rf $TMPDIR && false)
 
 # Setup the test database
-(cd / && GEL_SERVER_SECURITY=insecure_dev_mode $SERVER_INSTALL/bin/python3  -m edb.tools --no-devmode inittestdb --tests-dir $SERVER_INSTALL/share/tests -k test_dump --data-dir "$RDIR")
+(cd / && GELITE_SERVER_SECURITY=insecure_dev_mode $SERVER_INSTALL/bin/python3  -m edb.tools --no-devmode inittestdb --tests-dir $SERVER_INSTALL/share/tests -k test_dump --data-dir "$RDIR")
 
 
 if [ "$SAVE_TARBALLS" = 1 ]; then
@@ -40,7 +40,7 @@ fi
 
 
 PORT=$(( $RANDOM + 2000 ))
-GEL_SERVER_SECURITY=insecure_dev_mode $SERVER_INSTALL/bin/gel-server --testmode -D "$RDIR" -P $PORT &
+GELITE_SERVER_SECURITY=insecure_dev_mode $SERVER_INSTALL/bin/gel-server --testmode -D "$RDIR" -P $PORT &
 SPID=$!
 stop_server() {
     kill $SPID
@@ -68,7 +68,7 @@ if $GEL query 'create empty branch asdf'; then
 fi
 
 # Prepare the upgrades
-EDGEDB_PORT=$PORT EDGEDB_CLIENT_TLS_SECURITY=insecure python3 tests/inplace-testing/prep-upgrades.py > "${DIR}/upgrade.json"
+GELITE_PORT=$PORT GELITE_CLIENT_TLS_SECURITY=insecure python3 tests/inplace-testing/prep-upgrades.py > "${DIR}/upgrade.json"
 
 if [ "$SAVE_TARBALLS" = 1 ]; then
     tar cf "$DIR"-ready.tar "$DIR"
@@ -86,7 +86,7 @@ $GEL -b dump01 query 'select count(Z)' | grep 2
 
 if [ "$ROLLBACK" = 1 ]; then
     # Inject a failure into our first attempt to rollback
-    if EDGEDB_UPGRADE_ROLLBACK_ERROR_INJECTION=dumpbasics edb server --inplace-upgrade-rollback --backend-dsn="$DSN"; then
+    if GELITE_UPGRADE_ROLLBACK_ERROR_INJECTION=dumpbasics edb server --inplace-upgrade-rollback --backend-dsn="$DSN"; then
         echo Unexpected rollback success despite failure injection
         exit 4
     fi
@@ -121,7 +121,7 @@ if [ "$SAVE_TARBALLS" = 1 ]; then
 fi
 
 # Try to finalize the upgrade, but inject a failure
-if EDGEDB_UPGRADE_FINALIZE_ERROR_INJECTION=dumpbasics edb server --inplace-upgrade-finalize --data-dir "$DIR"; then
+if GELITE_UPGRADE_FINALIZE_ERROR_INJECTION=dumpbasics edb server --inplace-upgrade-finalize --data-dir "$DIR"; then
     echo Unexpected upgrade success despite failure injection
     exit 4
 fi

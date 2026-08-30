@@ -47,7 +47,7 @@ PGVECTOR_REPO = 'https://github.com/pgvector/pgvector.git'
 PGVECTOR_COMMIT = 'v0.7.4'
 
 SAFE_EXT_CFLAGS: list[str] = []
-if flag := os.environ.get('EDGEDB_OPT_CFLAG'):
+if flag := os.environ.get('GELITE_OPT_CFLAG'):
     SAFE_EXT_CFLAGS += [flag]
 else:
     SAFE_EXT_CFLAGS += ['-O2']
@@ -77,7 +77,7 @@ if platform.uname().system != 'Windows':
 
 
 def _is_langserver_build() -> bool:
-    return os.environ.get("EDGEDB_BUILD_PACKAGE", "") == "language-server"
+    return os.environ.get("GELITE_BUILD_PACKAGE", "") == "language-server"
 
 
 def _compile_build_meta(build_lib, version, pg_config, runstate_dir,
@@ -148,8 +148,8 @@ def _compile_build_meta(build_lib, version, pg_config, runstate_dir,
 
 def _get_env_with_openssl_flags():
     env = dict(os.environ)
-    cflags = env.get('EDGEDB_BUILD_OPENSSL_CFLAGS')
-    ldflags = env.get('EDGEDB_BUILD_OPENSSL_LDFLAGS')
+    cflags = env.get('GELITE_BUILD_OPENSSL_CFLAGS')
+    ldflags = env.get('GELITE_BUILD_OPENSSL_LDFLAGS')
 
     if not (cflags or ldflags) and platform.system() == 'Darwin':
         try:
@@ -255,7 +255,7 @@ def _compile_postgres(build_base, build_temp, *,
                 '--with-openssl',
                 '--with-uuid=' + uuidlib,
             ]
-            if os.environ.get('EDGEDB_DEBUG'):
+            if os.environ.get('GELITE_DEBUG'):
                 cmd += [
                     '--enable-tap-tests',
                     '--enable-debug',
@@ -394,8 +394,8 @@ def _compile_edb_stat_statements(pg_config, build_temp):
 
 def _get_env_with_protobuf_c_flags():
     env = dict(os.environ)
-    cflags = env.get('EDGEDB_BUILD_PROTOBUFC_CFLAGS')
-    ldflags = env.get('EDGEDB_BUILD_PROTOBUFC_LDFLAGS')
+    cflags = env.get('GELITE_BUILD_PROTOBUFC_CFLAGS')
+    ldflags = env.get('GELITE_BUILD_PROTOBUFC_LDFLAGS')
 
     if not (cflags or ldflags) and platform.system() == 'Darwin':
         try:
@@ -506,7 +506,7 @@ def _get_pg_source_stamp():
     )
     edbss = binascii.hexlify(edbss_hash).decode()
     stamp_list = [revision, PGVECTOR_COMMIT + '_v3', edbss]
-    if os.environ.get('EDGEDB_DEBUG'):
+    if os.environ.get('GELITE_DEBUG'):
         stamp_list += ['debug']
     source_stamp = '+'.join(stamp_list)
     return source_stamp.strip()
@@ -562,13 +562,13 @@ class build_metadata(setuptools.Command):
     def finalize_options(self):
         self.set_undefined_options("build_py", ("build_lib", "build_lib"))
         if self.pg_config is None:
-            self.pg_config = os.environ.get("EDGEDB_BUILD_PG_CONFIG")
+            self.pg_config = os.environ.get("GELITE_BUILD_PG_CONFIG")
         if self.runstatedir is None:
-            self.runstatedir = os.environ.get("EDGEDB_BUILD_RUNSTATEDIR")
+            self.runstatedir = os.environ.get("GELITE_BUILD_RUNSTATEDIR")
         if self.shared_dir is None:
-            self.shared_dir = os.environ.get("EDGEDB_BUILD_SHARED_DIR")
+            self.shared_dir = os.environ.get("GELITE_BUILD_SHARED_DIR")
         if self.version_suffix is None:
-            self.version_suffix = os.environ.get("EDGEDB_BUILD_VERSION_SUFFIX")
+            self.version_suffix = os.environ.get("GELITE_BUILD_VERSION_SUFFIX")
 
     def has_build_metadata(self) -> bool:
         return bool(
@@ -726,7 +726,7 @@ class build_postgres(setuptools.Command):
         pass
 
     def run(self, *args, **kwargs):
-        if os.environ.get("EDGEDB_BUILD_PACKAGE"):
+        if os.environ.get("GELITE_BUILD_PACKAGE"):
             return
         build = self.get_finalized_command('build')
         _compile_postgres(
@@ -777,7 +777,7 @@ class build_ext(setuptools_build_ext.build_ext):
 
         super(build_ext, self).initialize_options()
 
-        if os.environ.get('EDGEDB_DEBUG'):
+        if os.environ.get('GELITE_DEBUG'):
             self.cython_always = True
             self.cython_annotate = True
             self.cython_extra_directives = "linetrace=True"
@@ -867,7 +867,7 @@ class build_ui(setuptools.Command):
     def _build_ui(self, build_base: pathlib.Path) -> None:
         from edb import buildmeta
 
-        git_ref = os.environ.get("EDGEDB_UI_GIT_REV") or EDGEDBGUI_COMMIT
+        git_ref = os.environ.get("GELITE_UI_GIT_REV") or EDGEDBGUI_COMMIT
         git_rev = _get_git_rev(EDGEDBGUI_REPO, git_ref)
 
         ui_root = build_base / 'edgedb-studio'

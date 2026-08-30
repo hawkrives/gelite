@@ -20,7 +20,7 @@
 """
 Run with
 
-   $ env EDGEDB_TEST_DEBUG_POOL=1 edb test -k test_server_connpool
+   $ env GELITE_TEST_DEBUG_POOL=1 edb test -k test_server_connpool
 
 to get interactive HTML reports in the `./tmp` directory.
 
@@ -431,9 +431,9 @@ class SimulatedCase(unittest.TestCase, metaclass=SimulatedCaseMeta):
     full_qps: typing.Optional[int] = None  # set by the base test
 
     def setUp(self) -> None:
-        if not os.environ.get('EDGEDB_TEST_DEBUG_POOL'):
+        if not os.environ.get('GELITE_TEST_DEBUG_POOL'):
             raise unittest.SkipTest(
-                "Skipped because EDGEDB_TEST_DEBUG_POOL is not set"
+                "Skipped because GELITE_TEST_DEBUG_POOL is not set"
             )
 
     def make_fake_connect(
@@ -578,7 +578,7 @@ class SimulatedCase(unittest.TestCase, metaclass=SimulatedCaseMeta):
             return js_data
 
     async def simulate(self, testname, spec):
-        if os.environ.get('EDGEDB_TEST_DEBUG_POOL'):
+        if os.environ.get('GELITE_TEST_DEBUG_POOL'):
             js_data = await self.simulate_and_collect_stats(testname, spec)
             if not os.path.exists('tmp'):
                 os.mkdir('tmp')
@@ -636,7 +636,7 @@ class SimulatedCase(unittest.TestCase, metaclass=SimulatedCaseMeta):
     async def base_test(self) -> int:
         QUERY_DURATION = 0.01
         POOL_SIZE = 100
-        verbose = bool(os.environ.get('EDGEDB_TEST_DEBUG_POOL'))
+        verbose = bool(os.environ.get('GELITE_TEST_DEBUG_POOL'))
         qps = 100
         getters = 0
         sim = Simulation()
@@ -688,7 +688,7 @@ class SimulatedCase(unittest.TestCase, metaclass=SimulatedCaseMeta):
         return qps
 
     def simulate_all_and_collect_stats(self) -> int:
-        os.environ['EDGEDB_TEST_DEBUG_POOL'] = '1'
+        os.environ['GELITE_TEST_DEBUG_POOL'] = '1'
         specs = {}
         for methname in dir(self):
             if not methname.startswith('test_'):

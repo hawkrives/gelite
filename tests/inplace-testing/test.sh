@@ -71,7 +71,7 @@ if $GEL query 'create empty branch asdf'; then
 fi
 
 # Prepare the upgrades
-EDGEDB_PORT=$PORT EDGEDB_CLIENT_TLS_SECURITY=insecure python3 tests/inplace-testing/prep-upgrades.py > "${DIR}/upgrade.json"
+GELITE_PORT=$PORT GELITE_CLIENT_TLS_SECURITY=insecure python3 tests/inplace-testing/prep-upgrades.py > "${DIR}/upgrade.json"
 
 # Upgrade to the new version
 patch -f -p1 < tests/inplace-testing/upgrade.patch
@@ -92,7 +92,7 @@ $GEL -b select query 'select count(User)' | grep 2
 
 if [ "$ROLLBACK" = 1 ]; then
     # Inject a failure into our first attempt to rollback
-    if EDGEDB_UPGRADE_ROLLBACK_ERROR_INJECTION=main edb server --inplace-upgrade-rollback --backend-dsn="$DSN"; then
+    if GELITE_UPGRADE_ROLLBACK_ERROR_INJECTION=main edb server --inplace-upgrade-rollback --backend-dsn="$DSN"; then
         echo Unexpected rollback success despite failure injection
         exit 4
     fi
@@ -130,7 +130,7 @@ if [ "$SAVE_TARBALLS" = 1 ]; then
 fi
 
 # Try to finalize the upgrade, but inject a failure
-if EDGEDB_UPGRADE_FINALIZE_ERROR_INJECTION=main edb server --inplace-upgrade-finalize --data-dir "$DIR"; then
+if GELITE_UPGRADE_FINALIZE_ERROR_INJECTION=main edb server --inplace-upgrade-finalize --data-dir "$DIR"; then
     echo Unexpected upgrade success despite failure injection
     exit 4
 fi

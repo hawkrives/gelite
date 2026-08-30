@@ -438,7 +438,7 @@ def _validate_compiler_pool_host_port(ctx, param, value):
         return None
     address = value.split(":", 1)
     if len(address) == 1:
-        return address[0], defines.EDGEDB_REMOTE_COMPILER_PORT
+        return address[0], defines.GELITE_REMOTE_COMPILER_PORT
     else:
         try:
             return address[0], int(address[1])
@@ -598,25 +598,10 @@ class EnvvarResolver(click.Option):
         file_var = f'{self.envvar}_FILE'
         alt_var = f'{self.envvar}_ENV'
 
-        old_envvar = self.envvar.replace('GEL_', 'EDGEDB_')
-        old_file_var = f'{old_envvar}_FILE'
-        old_alt_var = f'{old_envvar}_ENV'
-
-        vars_set = []
-        for var, old_var in [
-            (self.envvar, old_envvar),
-            (file_var, old_file_var),
-            (alt_var, old_alt_var),
-        ]:
-            if var in os.environ and old_var in os.environ:
-                print(
-                    f"Warning: both {var} and {old_var} are specified. "
-                    f"{var} will take precedence."
-                )
-            if var in os.environ:
-                vars_set.append(var)
-            elif old_var in os.environ:
-                vars_set.append(old_var)
+        vars_set = [
+            var for var in (self.envvar, file_var, alt_var)
+            if var in os.environ
+        ]
 
         if len(vars_set) > 1:
             amt = "both" if len(vars_set) == 2 else "all"
@@ -625,9 +610,9 @@ class EnvvarResolver(click.Option):
                 f'but {amt} are set.'
             )
 
-        var_val = os.environ.get(self.envvar) or os.environ.get(old_envvar)
-        alt_var_val = os.environ.get(alt_var) or os.environ.get(old_alt_var)
-        file_var_val = os.environ.get(file_var) or os.environ.get(old_file_var)
+        var_val = os.environ.get(self.envvar)
+        alt_var_val = os.environ.get(alt_var)
+        file_var_val = os.environ.get(file_var)
 
         if alt_var_val:
             var_val = os.environ.get(alt_var_val)
@@ -650,14 +635,14 @@ class EnvvarResolver(click.Option):
 server_options = typeutils.chain_decorators([
     click.option(
         '-D', '--data-dir', type=PathPath(),
-        envvar="GEL_SERVER_DATADIR", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_DATADIR", cls=EnvvarResolver,
         help='database cluster directory'),
     click.option(
         '--postgres-dsn', type=str, hidden=True,
         help='[DEPRECATED] DSN of a remote Postgres cluster, if using one'),
     click.option(
         '--backend-dsn', type=str,
-        envvar="GEL_SERVER_BACKEND_DSN", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_BACKEND_DSN", cls=EnvvarResolver,
         help='DSN of a remote backend cluster, if using one. '
              'Also supports HA clusters, for example: stolon+consul+http://'
              'localhost:8500/test_cluster'),
@@ -672,7 +657,7 @@ server_options = typeutils.chain_decorators([
         '--tenant-id',
         type=str,
         callback=_validate_tenant_id,
-        envvar="GEL_SERVER_TENANT_ID",
+        envvar="GELITE_SERVER_TENANT_ID",
         cls=EnvvarResolver,
         help='Specifies the tenant ID of this server when hosting'
              ' multiple Gel instances on one Postgres cluster.'
@@ -688,7 +673,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '--multitenant-config-file', type=PathPath(), metavar="PATH",
-        envvar="GEL_SERVER_MULTITENANT_CONFIG_FILE",
+        envvar="GELITE_SERVER_MULTITENANT_CONFIG_FILE",
         cls=EnvvarResolver,
         hidden=True,
         help='Start the server in multi-tenant mode, with reloadable tenants '
@@ -702,7 +687,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '-l', '--log-level',
-        envvar="GEL_SERVER_LOG_LEVEL",
+        envvar="GELITE_SERVER_LOG_LEVEL",
         cls=EnvvarResolver,
         default='i',
         type=click.Choice(
@@ -724,21 +709,21 @@ server_options = typeutils.chain_decorators([
         help='[DEPRECATED] bootstrap the database cluster and exit'),
     click.option(
         '--bootstrap-only', is_flag=True,
-        envvar="GEL_SERVER_BOOTSTRAP_ONLY", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_BOOTSTRAP_ONLY", cls=EnvvarResolver,
         help='bootstrap the database cluster and exit'),
     click.option(
         '--inplace-upgrade-prepare', type=PathPath(),
-        envvar="GEL_SERVER_INPLACE_UPGRADE_PREPARE",
+        envvar="GELITE_SERVER_INPLACE_UPGRADE_PREPARE",
         cls=EnvvarResolver,
         help='try to do an in-place upgrade with the specified dump file'),
     click.option(
         '--inplace-upgrade-rollback', type=bool, is_flag=True,
-        envvar="GEL_SERVER_INPLACE_UPGRADE_ROLLBACK",
+        envvar="GELITE_SERVER_INPLACE_UPGRADE_ROLLBACK",
         cls=EnvvarResolver,
         help='rollback a prepared upgrade'),
     click.option(
         '--inplace-upgrade-finalize', type=bool, is_flag=True,
-        envvar="GEL_SERVER_INPLACE_UPGRADE_FINALIZE",
+        envvar="GELITE_SERVER_INPLACE_UPGRADE_FINALIZE",
         cls=EnvvarResolver,
         help='finalize an in-place upgrade'),
     click.option(
@@ -752,7 +737,7 @@ server_options = typeutils.chain_decorators([
         help='[DEPRECATED] the name of the default database owner'),
     click.option(
         '--bootstrap-command', metavar="QUERIES",
-        envvar="GEL_SERVER_BOOTSTRAP_COMMAND", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_BOOTSTRAP_COMMAND", cls=EnvvarResolver,
         help='run the commands when initializing the database. '
              'Queries are executed by default user within default '
              'database. May be used with or without `--bootstrap-only`.'),
@@ -774,12 +759,12 @@ server_options = typeutils.chain_decorators([
         default=False),
     click.option(
         '-I', '--bind-address', type=str, multiple=True,
-        envvar="GEL_SERVER_BIND_ADDRESS", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_BIND_ADDRESS", cls=EnvvarResolver,
         help='IP addresses to listen on, specify multiple times for more than '
              'one address to listen on'),
     click.option(
         '-P', '--port', type=PortType(), default=None,
-        envvar="GEL_SERVER_PORT", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_PORT", cls=EnvvarResolver,
         help='port to listen on'),
     click.option(
         '-b', '--background', is_flag=True, help='daemonize'),
@@ -792,19 +777,19 @@ server_options = typeutils.chain_decorators([
         '--daemon-group', type=int),
     click.option(
         '--runstate-dir', type=PathPath(), default=None,
-        envvar="GEL_SERVER_RUNSTATE_DIR",
+        envvar="GELITE_SERVER_RUNSTATE_DIR",
         cls=EnvvarResolver,
         help=f'directory where UNIX sockets and other temporary '
              f'runtime files will be placed ({_get_runstate_dir_default()} '
              f'by default)'),
     click.option(
         '--extensions-dir', type=PathPath(), default=(), multiple=True,
-        envvar="GEL_SERVER_EXTENSIONS_DIR",
+        envvar="GELITE_SERVER_EXTENSIONS_DIR",
         cls=EnvvarResolver,
         help=f'directory where third-party extension packages are loaded from'),
     click.option(
         '--max-backend-connections', type=int, metavar='NUM',
-        envvar="GEL_SERVER_MAX_BACKEND_CONNECTIONS",
+        envvar="GELITE_SERVER_MAX_BACKEND_CONNECTIONS",
         cls=EnvvarResolver,
         help=f'The maximum NUM of connections this Gel instance could make '
              f'to the backend PostgreSQL cluster. If not set, Gel will '
@@ -815,7 +800,7 @@ server_options = typeutils.chain_decorators([
         callback=_validate_max_backend_connections),
     click.option(
         '--compiler-pool-size', type=int, metavar='NUM',
-        envvar="GEL_SERVER_COMPILER_POOL_SIZE",
+        envvar="GELITE_SERVER_COMPILER_POOL_SIZE",
         cls=EnvvarResolver,
         callback=_validate_compiler_pool_size,
         help='Size of the compiler pool.  When --compiler-pool-mode=fixed or '
@@ -829,7 +814,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--compiler-worker-branch-limit', type=int, metavar='NUM',
         default=5,
-        envvar="GEL_SERVER_COMPILER_WORKER_BRANCH_LIMIT",
+        envvar="GELITE_SERVER_COMPILER_WORKER_BRANCH_LIMIT",
         cls=EnvvarResolver,
         help='The maximum NUM of branches each compiler worker could cache up '
              'to, default is 5.  If the worker serves multiple tenants (as in '
@@ -840,7 +825,7 @@ server_options = typeutils.chain_decorators([
         '--compiler-pool-mode',
         type=CompilerPoolModeChoice(),
         default=CompilerPoolMode.Default.value,
-        envvar="GEL_SERVER_COMPILER_POOL_MODE",
+        envvar="GELITE_SERVER_COMPILER_POOL_MODE",
         cls=EnvvarResolver,
         help='Choose a mode for the compiler pool to scale. "fixed" means the '
              'pool will not scale and sticks to --compiler-pool-size, while '
@@ -853,18 +838,18 @@ server_options = typeutils.chain_decorators([
         '--compiler-pool-addr',
         hidden=True,
         callback=_validate_compiler_pool_host_port,
-        envvar="GEL_SERVER_COMPILER_POOL_ADDR",
+        envvar="GELITE_SERVER_COMPILER_POOL_ADDR",
         cls=EnvvarResolver,
         help=f'Specify the host[:port] of the compiler pool to connect to, '
              f'only used if --compiler-pool-mode=remote. Default host is '
-             f'localhost, port is {defines.EDGEDB_REMOTE_COMPILER_PORT}',
+             f'localhost, port is {defines.GELITE_REMOTE_COMPILER_PORT}',
     ),
     click.option(
         "--compiler-pool-tenant-cache-size",
         hidden=True,
         type=int,
         default=20,
-        envvar="GEL_SERVER_COMPILER_POOL_TENANT_CACHE_SIZE",
+        envvar="GELITE_SERVER_COMPILER_POOL_TENANT_CACHE_SIZE",
         cls=EnvvarResolver,
         help="Maximum number of tenants for which each compiler worker can "
              "cache their schemas, "
@@ -874,7 +859,7 @@ server_options = typeutils.chain_decorators([
         '--echo-runtime-info', type=bool, default=False, is_flag=True,
         help='[DEPREATED, use --emit-server-status] '
              'echo runtime info to stdout; the format is JSON, prefixed by '
-             '"EDGEDB_SERVER_DATA:", ended with a new line'),
+             '"GELITE_SERVER_DATA:", ended with a new line'),
     click.option(
         '--emit-server-status',
         type=str, default=None, metavar='DEST', multiple=True,
@@ -898,7 +883,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--tls-cert-file',
         type=PathPath(),
-        envvar="GEL_SERVER_TLS_CERT_FILE",
+        envvar="GELITE_SERVER_TLS_CERT_FILE",
         cls=EnvvarResolver,
         help='Specifies a path to a file containing a server TLS certificate '
              'in PEM format, as well as possibly any number of CA '
@@ -910,7 +895,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--tls-key-file',
         type=PathPath(),
-        envvar="GEL_SERVER_TLS_KEY_FILE",
+        envvar="GELITE_SERVER_TLS_KEY_FILE",
         cls=EnvvarResolver,
         help='Specifies a path to a file containing the private key in PEM '
              'format.  If the file does not exist and the --tls-cert-mode '
@@ -918,7 +903,7 @@ server_options = typeutils.chain_decorators([
              'be automatically created in the specified path.'),
     click.option(
         '--tls-cert-mode',
-        envvar="GEL_SERVER_TLS_CERT_MODE", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_TLS_CERT_MODE", cls=EnvvarResolver,
         type=click.Choice(
             ['default'] + list(ServerTlsCertMode.__members__.values()),
             case_sensitive=True,
@@ -941,7 +926,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--tls-client-ca-file',
         type=PathPath(),
-        envvar='EDGEDB_SERVER_TLS_CLIENT_CA_FILE',
+        envvar='GELITE_SERVER_TLS_CLIENT_CA_FILE',
         cls=EnvvarResolver,
         help='Specifies a path to a file containing a TLS CA certificate to '
              'verify client certificates on demand. When set, the default '
@@ -957,7 +942,7 @@ server_options = typeutils.chain_decorators([
              'Use --tls-cert-mode=generate_self_signed instead.'),
     click.option(
         '--binary-endpoint-security',
-        envvar="GEL_SERVER_BINARY_ENDPOINT_SECURITY",
+        envvar="GELITE_SERVER_BINARY_ENDPOINT_SECURITY",
         cls=EnvvarResolver,
         type=click.Choice(
             ['default', 'tls', 'optional'],
@@ -970,7 +955,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '--http-endpoint-security',
-        envvar="GEL_SERVER_HTTP_ENDPOINT_SECURITY",
+        envvar="GELITE_SERVER_HTTP_ENDPOINT_SECURITY",
         cls=EnvvarResolver,
         type=click.Choice(
             ['default', 'tls', 'optional'],
@@ -983,7 +968,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '--security',
-        envvar="GEL_SERVER_SECURITY",
+        envvar="GELITE_SERVER_SECURITY",
         cls=EnvvarResolver,
         type=click.Choice(
             ['default', 'strict', 'insecure_dev_mode'],
@@ -1000,7 +985,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--jws-key-file',
         type=PathPath(),
-        envvar="GEL_SERVER_JWS_KEY_FILE",
+        envvar="GELITE_SERVER_JWS_KEY_FILE",
         cls=EnvvarResolver,
         hidden=True,
         help='Specifies a path to a file containing a public key in PEM '
@@ -1014,7 +999,7 @@ server_options = typeutils.chain_decorators([
         help='Deprecated: no longer in use.'),
     click.option(
         '--jose-key-mode',
-        envvar="GEL_SERVER_JOSE_KEY_MODE", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_JOSE_KEY_MODE", cls=EnvvarResolver,
         type=click.Choice(
             ['default'] + list(JOSEKeyMode.__members__.values()),
             case_sensitive=True,
@@ -1035,7 +1020,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--jwt-sub-allowlist-file',
         type=PathPath(),
-        envvar="GEL_SERVER_JWT_SUB_ALLOWLIST_FILE",
+        envvar="GELITE_SERVER_JWT_SUB_ALLOWLIST_FILE",
         cls=EnvvarResolver,
         hidden=True,
         help='A file where the server can obtain a list of all JWT subjects '
@@ -1046,7 +1031,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--jwt-revocation-list-file',
         type=PathPath(),
-        envvar="GEL_SERVER_JWT_REVOCATION_LIST_FILE",
+        envvar="GELITE_SERVER_JWT_REVOCATION_LIST_FILE",
         cls=EnvvarResolver,
         hidden=True,
         help='A file where the server can obtain a list of all JWT ids '
@@ -1056,7 +1041,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         "--default-auth-method",
-        envvar="GEL_SERVER_DEFAULT_AUTH_METHOD", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_DEFAULT_AUTH_METHOD", cls=EnvvarResolver,
         callback=_validate_default_auth_method,
         type=str,
         help=(
@@ -1068,7 +1053,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         "--readiness-state-file",
-        envvar="GEL_SERVER_READINESS_STATE_FILE",
+        envvar="GELITE_SERVER_READINESS_STATE_FILE",
         cls=EnvvarResolver,
         type=PathPath(),
         help=(
@@ -1083,13 +1068,13 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '--instance-name',
-        envvar="GEL_SERVER_INSTANCE_NAME",
+        envvar="GELITE_SERVER_INSTANCE_NAME",
         cls=EnvvarResolver,
         type=str, default=None, hidden=True,
         help='Server instance name.'),
     click.option(
         '--backend-capabilities',
-        envvar="GEL_SERVER_BACKEND_CAPABILITIES",
+        envvar="GELITE_SERVER_BACKEND_CAPABILITIES",
         cls=EnvvarResolver,
         type=BackendCapabilitySet(),
         help="A space-separated set of backend capabilities, which are "
@@ -1104,7 +1089,7 @@ server_options = typeutils.chain_decorators([
         help='Show the version and exit.'),
     click.option(
         '--admin-ui',
-        envvar="GEL_SERVER_ADMIN_UI",
+        envvar="GELITE_SERVER_ADMIN_UI",
         cls=EnvvarResolver,
         type=click.Choice(
             ['default', 'enabled', 'disabled'],
@@ -1114,7 +1099,7 @@ server_options = typeutils.chain_decorators([
         help='Enable admin UI.'),
     click.option(
         '--cors-always-allowed-origins',
-        envvar="GEL_SERVER_CORS_ALWAYS_ALLOWED_ORIGINS",
+        envvar="GELITE_SERVER_CORS_ALWAYS_ALLOWED_ORIGINS",
         cls=EnvvarResolver,
         hidden=True,
         help='A comma separated list of origins to always allow CORS requests '
@@ -1124,13 +1109,13 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         '--disable-dynamic-system-config', is_flag=True,
-        envvar="GEL_SERVER_DISABLE_DYNAMIC_SYSTEM_CONFIG",
+        envvar="GELITE_SERVER_DISABLE_DYNAMIC_SYSTEM_CONFIG",
         cls=EnvvarResolver,
         help="Disable dynamic configuration of system config values",
     ),
     click.option(
         "--reload-config-files",
-        envvar="GEL_SERVER_RELOAD_CONFIG_FILES", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_RELOAD_CONFIG_FILES", cls=EnvvarResolver,
         type=click.Choice(
             list(ReloadTrigger.__members__.values()), case_sensitive=True
         ),
@@ -1141,7 +1126,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         "--net-worker-mode",
-        envvar="GEL_SERVER_NET_WORKER_MODE", cls=EnvvarResolver,
+        envvar="GELITE_SERVER_NET_WORKER_MODE", cls=EnvvarResolver,
         type=click.Choice(
             list(NetWorkerMode.__members__.values()), case_sensitive=True
         ),
@@ -1151,7 +1136,7 @@ server_options = typeutils.chain_decorators([
     ),
     click.option(
         "--config-file", type=PathPath(), metavar="PATH",
-        envvar="GEL_SERVER_CONFIG_FILE",
+        envvar="GELITE_SERVER_CONFIG_FILE",
         cls=EnvvarResolver,
         help='Path to a TOML file to configure the server.',
         hidden=True,
@@ -1159,7 +1144,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--compiler-worker-max-rss',
         type=int,
-        envvar="GEL_SERVER_COMPILER_WORKER_MAX_RSS",
+        envvar="GELITE_SERVER_COMPILER_WORKER_MAX_RSS",
         cls=EnvvarResolver,
         help='Maximum allowed RSS (in bytes) per compiler worker process. Any '
              'worker exceeding this limit will be terminated and recreated. '
@@ -1173,7 +1158,7 @@ compiler_options = typeutils.chain_decorators([
     click.option(
         "--pool-size",
         type=int,
-        envvar="GEL_COMPILER_POOL_SIZE",
+        envvar="GELITE_COMPILER_POOL_SIZE",
         cls=EnvvarResolver,
         callback=_validate_compiler_pool_size,
         default=compute_default_compiler_pool_size(),
@@ -1183,7 +1168,7 @@ compiler_options = typeutils.chain_decorators([
     click.option(
         "--client-schema-cache-size",
         type=int,
-        envvar="GEL_COMPILER_POOL_TENANT_CACHE_SIZE",
+        envvar="GELITE_COMPILER_POOL_TENANT_CACHE_SIZE",
         cls=EnvvarResolver,
         default=20,
         help="Maximum number of clients for which each worker can cache their "
@@ -1193,34 +1178,34 @@ compiler_options = typeutils.chain_decorators([
     ),
     click.option(
         '-I', '--listen-addresses', type=str, multiple=True,
-        envvar="GEL_COMPILER_BIND_ADDRESS", cls=EnvvarResolver,
+        envvar="GELITE_COMPILER_BIND_ADDRESS", cls=EnvvarResolver,
         default=('localhost',),
         help='IP addresses to listen on, specify multiple times for more than '
              'one address to listen on. Default: localhost',
     ),
     click.option(
         '-P', '--listen-port', type=PortType(),
-        envvar="GEL_COMPILER_SERVER_PORT", cls=EnvvarResolver,
+        envvar="GELITE_COMPILER_SERVER_PORT", cls=EnvvarResolver,
         help=f'Port to listen on. '
-             f'Default: {defines.EDGEDB_REMOTE_COMPILER_PORT}',
+             f'Default: {defines.GELITE_REMOTE_COMPILER_PORT}',
     ),
     click.option(
         '--runstate-dir', type=PathPath(), default=None,
-        envvar="GEL_COMPILER_RUNSTATE_DIR",
+        envvar="GELITE_COMPILER_RUNSTATE_DIR",
         cls=EnvvarResolver,
         help="Directory to store UNIX domain socket file for IPC, a temporary "
              "directory will be used if not specified.",
     ),
     click.option(
         '--metrics-port', type=PortType(),
-        envvar="GEL_COMPILER_METRICS_PORT",
+        envvar="GELITE_COMPILER_METRICS_PORT",
         cls=EnvvarResolver,
         help=f'Port to listen on for metrics HTTP API.',
     ),
     click.option(
         '--worker-max-rss',
         type=int,
-        envvar="GEL_COMPILER_WORKER_MAX_RSS",
+        envvar="GELITE_COMPILER_WORKER_MAX_RSS",
         cls=EnvvarResolver,
         help='Maximum allowed RSS (in bytes) per worker process. Any worker '
              'exceeding this limit will be terminated and recreated. '
@@ -1321,36 +1306,36 @@ def parse_args(**kwargs: Any):
 
     del kwargs['generate_self_signed_cert']
 
-    if os.environ.get('EDGEDB_SERVER_ALLOW_INSECURE_BINARY_CLIENTS') == "1":
+    if os.environ.get('GELITE_SERVER_ALLOW_INSECURE_BINARY_CLIENTS') == "1":
         if kwargs['binary_endpoint_security'] == "tls":
             abort(
                 "The value of deprecated "
-                "EDGEDB_SERVER_ALLOW_INSECURE_BINARY_CLIENTS environment "
+                "GELITE_SERVER_ALLOW_INSECURE_BINARY_CLIENTS environment "
                 "variable disagrees with --binary-endpoint-security"
             )
         else:
             if kwargs['binary_endpoint_security'] == "default":
                 warnings.warn(
-                    "EDGEDB_SERVER_ALLOW_INSECURE_BINARY_CLIENTS is "
-                    "deprecated. Use EDGEDB_SERVER_BINARY_ENDPOINT_SECURITY "
+                    "GELITE_SERVER_ALLOW_INSECURE_BINARY_CLIENTS is "
+                    "deprecated. Use GELITE_SERVER_BINARY_ENDPOINT_SECURITY "
                     "instead.",
                     DeprecationWarning,
                     stacklevel=2,
                 )
             kwargs['binary_endpoint_security'] = 'optional'
 
-    if os.environ.get('EDGEDB_SERVER_ALLOW_INSECURE_HTTP_CLIENTS') == "1":
+    if os.environ.get('GELITE_SERVER_ALLOW_INSECURE_HTTP_CLIENTS') == "1":
         if kwargs['http_endpoint_security'] == "tls":
             abort(
                 "The value of deprecated "
-                "EDGEDB_SERVER_ALLOW_INSECURE_HTTP_CLIENTS environment "
+                "GELITE_SERVER_ALLOW_INSECURE_HTTP_CLIENTS environment "
                 "variable disagrees with --http-endpoint-security"
             )
         else:
             if kwargs['http_endpoint_security'] == "default":
                 warnings.warn(
-                    "EDGEDB_SERVER_ALLOW_INSECURE_BINARY_CLIENTS is "
-                    "deprecated. Use EDGEDB_SERVER_BINARY_ENDPOINT_SECURITY "
+                    "GELITE_SERVER_ALLOW_INSECURE_BINARY_CLIENTS is "
+                    "deprecated. Use GELITE_SERVER_BINARY_ENDPOINT_SECURITY "
                     "instead.",
                     DeprecationWarning,
                     stacklevel=2,
@@ -1459,7 +1444,7 @@ def parse_args(**kwargs: Any):
     if kwargs['compiler_pool_mode'] == CompilerPoolMode.Remote:
         if kwargs['compiler_pool_addr'] is None:
             kwargs['compiler_pool_addr'] = (
-                "localhost", defines.EDGEDB_REMOTE_COMPILER_PORT
+                "localhost", defines.GELITE_REMOTE_COMPILER_PORT
             )
         if kwargs['compiler_worker_max_rss'] is not None:
             abort('cannot set --compiler-worker-max-rss when using '
@@ -1646,11 +1631,11 @@ def parse_args(**kwargs: Any):
             database=(
                 kwargs['default_branch'] or
                 kwargs['default_database'] or
-                defines.EDGEDB_SUPERUSER_DB
+                defines.GELITE_SUPERUSER_DB
             ),
             user=(
                 kwargs['default_database_user'] or
-                defines.EDGEDB_SUPERUSER
+                defines.GELITE_SUPERUSER
             ),
         )
 
@@ -1708,20 +1693,12 @@ def parse_args(**kwargs: Any):
 
     for disallowed, replacement in (
         (
-            'EDGEDB_SERVER_CONFIG_cfg::listen_addresses',
-            'GEL_SERVER_BIND_ADDRESS',
+            'GELITE_SERVER_CONFIG_cfg::listen_addresses',
+            'GELITE_SERVER_BIND_ADDRESS',
         ),
         (
-            'EDGEDB_SERVER_CONFIG_cfg::listen_port',
-            'GEL_SERVER_PORT',
-        ),
-        (
-            'GEL_SERVER_CONFIG_cfg::listen_addresses',
-            'GEL_SERVER_BIND_ADDRESS',
-        ),
-        (
-            'GEL_SERVER_CONFIG_cfg::listen_port',
-            'GEL_SERVER_PORT',
+            'GELITE_SERVER_CONFIG_cfg::listen_port',
+            'GELITE_SERVER_PORT',
         ),
     ):
         if disallowed in os.environ:

@@ -652,7 +652,7 @@ cdef class FrontendConnection(AbstractFrontendConnection):
         if (
             '*' not in branches
             and database not in branches
-            and database != defines.EDGEDB_SYSTEM_DB
+            and database != defines.GELITE_SYSTEM_DB
         ):
             raise errors.AuthenticationError(
                 f"authentication failed: user does not have permission for "

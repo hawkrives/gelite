@@ -71,11 +71,11 @@ pub fn initialize_logging_in_thread(python_package: &'static str, level: LevelFi
     });
 }
 
-static EDGEDB_RUST_PYTHON_LOGGER_DEBUG: OnceLock<bool> = OnceLock::new();
+static GELITE_RUST_PYTHON_LOGGER_DEBUG: OnceLock<bool> = OnceLock::new();
 
 fn is_debug_enabled() -> bool {
-    *EDGEDB_RUST_PYTHON_LOGGER_DEBUG.get_or_init(|| {
-        std::env::var("EDGEDB_RUST_PYTHON_LOGGER_DEBUG")
+    *GELITE_RUST_PYTHON_LOGGER_DEBUG.get_or_init(|| {
+        std::env::var("GELITE_RUST_PYTHON_LOGGER_DEBUG")
             .map(|v| v == "1")
             .unwrap_or(false)
     })

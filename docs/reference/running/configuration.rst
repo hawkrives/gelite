@@ -238,7 +238,7 @@ Some environment variables (noted below) support ``_FILE`` and ``_ENV`` variants
 
    For |Gel| versions before 6.0 the prefix for all environment variables is ``EDGEDB_`` instead of ``GEL_``.
 
-GEL_DEBUG_HTTP_INJECT_CORS
+GELITE_DEBUG_HTTP_INJECT_CORS
 --------------------------
 
 Set to ``1`` to have Gel send appropriate CORS headers with HTTP responses.
@@ -250,7 +250,7 @@ Set to ``1`` to have Gel send appropriate CORS headers with HTTP responses.
 
 .. _ref_reference_envvar_admin_ui:
 
-GEL_SERVER_ADMIN_UI
+GELITE_SERVER_ADMIN_UI
 -------------------
 
 Set to ``enabled`` to enable the web-based admininstrative UI for the instance.
@@ -258,7 +258,7 @@ Set to ``enabled`` to enable the web-based admininstrative UI for the instance.
 Maps directly to the |gel-server| flag ``--admin-ui``.
 
 
-GEL_SERVER_ALLOW_INSECURE_BINARY_CLIENTS
+GELITE_SERVER_ALLOW_INSECURE_BINARY_CLIENTS
 ----------------------------------------
 
 .. warning:: Deprecated
@@ -273,7 +273,7 @@ non-TLS connections are allowed. Not set by default.
     Disabling TLS is not recommended in production.
 
 
-GEL_SERVER_ALLOW_INSECURE_HTTP_CLIENTS
+GELITE_SERVER_ALLOW_INSECURE_HTTP_CLIENTS
 --------------------------------------
 
 .. warning:: Deprecated
@@ -290,7 +290,7 @@ non-TLS connections are allowed. Not set by default.
 
 .. _ref_reference_docker_gel_server_backend_dsn:
 
-GEL_SERVER_BACKEND_DSN / _FILE / _ENV
+GELITE_SERVER_BACKEND_DSN / _FILE / _ENV
 -------------------------------------
 
 Specifies a PostgreSQL connection string in the `URI format`_.  If set, the
@@ -302,7 +302,7 @@ The ``_FILE`` and ``_ENV`` variants are also supported.
 .. _URI format:
    https://www.postgresql.org/docs/13/libpq-connect.html#id-1.7.3.8.3.6
 
-GEL_SERVER_MAX_BACKEND_CONNECTIONS
+GELITE_SERVER_MAX_BACKEND_CONNECTIONS
 ----------------------------------
 
 The maximum NUM of connections this Gel instance could make to the backend
@@ -310,7 +310,7 @@ PostgreSQL cluster. If not set, Gel will detect and calculate the NUM:
 RAM/100MiB for local Postgres, or pg_settings.max_connections for remote
 Postgres minus the NUM of ``--reserved-pg-connections``.
 
-GEL_SERVER_BINARY_ENDPOINT_SECURITY
+GELITE_SERVER_BINARY_ENDPOINT_SECURITY
 -----------------------------------
 
 Specifies the security mode of the server's binary endpoint. When set to
@@ -321,7 +321,7 @@ Specifies the security mode of the server's binary endpoint. When set to
     Disabling TLS is not recommended in production.
 
 
-GEL_SERVER_BIND_ADDRESS / _FILE / _ENV
+GELITE_SERVER_BIND_ADDRESS / _FILE / _ENV
 --------------------------------------
 
 Specifies the network interface on which Gel will listen. Maps directly to the |gel-server| flag ``--bind-address``.
@@ -329,7 +329,7 @@ Specifies the network interface on which Gel will listen. Maps directly to the |
 The ``_FILE`` and ``_ENV`` variants are also supported.
 
 
-GEL_SERVER_BOOTSTRAP_COMMAND
+GELITE_SERVER_BOOTSTRAP_COMMAND
 ----------------------------
 
 Useful to fine-tune initial user creation and other initial setup. Maps directly to the |gel-server| flag ``--bootstrap-command``.
@@ -344,7 +344,7 @@ The ``_FILE`` and ``_ENV`` variants are also supported.
 
     Note that for |EdgeDB| versions prior to 5.0, paths contain "edgedb" instead of "gel", so ``/gel-bootstrap.d/`` becomes ``/edgedb-bootstrap.d/``.
 
-GEL_SERVER_BOOTSTRAP_ONLY
+GELITE_SERVER_BOOTSTRAP_ONLY
 -------------------------
 
 When set, bootstrap the database cluster and exit. Not set by default.
@@ -352,7 +352,7 @@ When set, bootstrap the database cluster and exit. Not set by default.
 
 .. _ref_reference_docker_gel_server_datadir:
 
-GEL_SERVER_DATADIR
+GELITE_SERVER_DATADIR
 ------------------
 
 Specifies a path where the database files are located.  Default is
@@ -362,7 +362,7 @@ Specifies a path where the database files are located.  Default is
 Maps directly to the |gel-server| flag ``--data-dir``.
 
 
-GEL_SERVER_DEFAULT_AUTH_METHOD / _FILE / _ENV
+GELITE_SERVER_DEFAULT_AUTH_METHOD / _FILE / _ENV
 ---------------------------------------------
 
 Optionally specifies the authentication method used by the server instance.  Supported values are ``SCRAM`` (the default) and ``Trust``. When set to ``Trust``, the database will allow complete unauthenticated access for all who have access to the database port.
@@ -374,7 +374,7 @@ Use at your own risk and only for development and testing.
 The ``_FILE`` and ``_ENV`` variants are also supported.
 
 
-GEL_SERVER_HTTP_ENDPOINT_SECURITY
+GELITE_SERVER_HTTP_ENDPOINT_SECURITY
 ---------------------------------
 
 Specifies the security mode of the server's HTTP endpoint. When set to ``optional``, non-TLS connections are allowed. Default is ``tls``.
@@ -384,25 +384,25 @@ Specifies the security mode of the server's HTTP endpoint. When set to ``optiona
     Disabling TLS is not recommended in production.
 
 
-GEL_SERVER_INSTANCE_NAME
+GELITE_SERVER_INSTANCE_NAME
 ------------------------
 
 Specify the server instance name.
 
 
-GEL_SERVER_JWS_KEY_FILE
+GELITE_SERVER_JWS_KEY_FILE
 -----------------------
 
 Specifies a path to a file containing a public key in PEM format used to verify JWT signatures. The file could also contain a private key to sign JWT for local testing.
 
 
-GEL_SERVER_LOG_LEVEL
+GELITE_SERVER_LOG_LEVEL
 --------------------
 
 Set the logging level. Default is ``info``. Other possible values are ``debug``, ``warn``, ``error``, and ``silent``.
 
 
-GEL_SERVER_PORT / _FILE / _ENV
+GELITE_SERVER_PORT / _FILE / _ENV
 ------------------------------
 
 Specifies the network port on which Gel will listen. Default is ``5656``. Maps directly to the |gel-server| flag ``--port``.
@@ -410,13 +410,13 @@ Specifies the network port on which Gel will listen. Default is ``5656``. Maps d
 The ``_FILE`` and ``_ENV`` variants are also supported.
 
 
-GEL_SERVER_RUNSTATE_DIR
+GELITE_SERVER_RUNSTATE_DIR
 -----------------------
 
 Specifies a path where Gel will place its Unix socket and other transient files. Maps directly to the |gel-server| flag ``--runstate-dir``.
 
 
-GEL_SERVER_SECURITY
+GELITE_SERVER_SECURITY
 -------------------
 
 When set to ``insecure_dev_mode``, sets :gelenv:`SERVER_DEFAULT_AUTH_METHOD` to ``Trust``, and :gelenv:`SERVER_TLS_CERT_MODE` to ``generate_self_signed`` (unless an explicit TLS certificate is specified). Finally, if this option is set, the server will accept plaintext HTTP connections.  Maps directly to the |gel-server| flag ``--security``.
@@ -427,18 +427,18 @@ When set to ``insecure_dev_mode``, sets :gelenv:`SERVER_DEFAULT_AUTH_METHOD` to 
 
 
 
-GEL_SERVER_TLS_CERT_FILE
+GELITE_SERVER_TLS_CERT_FILE
 ------------------------
 
 The TLS certificate file, exclusive with :gelenv:`SERVER_TLS_CERT_MODE=generate_self_signed`. Maps directly to the |gel-server| flag ``--tls-cert-file``.
 
-GEL_SERVER_TLS_KEY_FILE
+GELITE_SERVER_TLS_KEY_FILE
 -----------------------
 
 The TLS private key file, exclusive with :gelenv:`SERVER_TLS_CERT_MODE=generate_self_signed`. Maps directly to the |gel-server| flag ``--tls-key-file``.
 
 
-GEL_SERVER_TLS_CERT_MODE / _FILE / _ENV
+GELITE_SERVER_TLS_CERT_MODE / _FILE / _ENV
 ---------------------------------------
 
 Specifies what to do when the TLS certificate and key are either not specified or are missing.
@@ -458,13 +458,13 @@ Docker image specific variables
 These variables are only used by the Docker image. Setting these variables outside that context will have no effect.
 
 
-GEL_DOCKER_ABORT_CODE
+GELITE_DOCKER_ABORT_CODE
 ---------------------
 
 If the process fails, the arguments are logged to stderr and the script is terminated with this exit code. Default is ``1``.
 
 
-GEL_DOCKER_APPLY_MIGRATIONS
+GELITE_DOCKER_APPLY_MIGRATIONS
 ---------------------------
 
 The container will attempt to apply migrations in ``dbschema/migrations`` unless this variable is set to ``never``.
@@ -472,13 +472,13 @@ The container will attempt to apply migrations in ``dbschema/migrations`` unless
 **Values**: ``always`` (default), ``never``
 
 
-GEL_DOCKER_BOOTSTRAP_TIMEOUT_SEC
+GELITE_DOCKER_BOOTSTRAP_TIMEOUT_SEC
 --------------------------------
 
 Sets the number of seconds to wait for instance bootstrapping to complete before timing out. Default is ``300``.
 
 
-GEL_DOCKER_LOG_LEVEL
+GELITE_DOCKER_LOG_LEVEL
 --------------------
 
 Change the logging level for the docker container.
@@ -486,7 +486,7 @@ Change the logging level for the docker container.
 **Values**: ``trace``, ``debug``, ``info`` (default), ``warn``, ``error``
 
 
-GEL_DOCKER_SHOW_GENERATED_CERT
+GELITE_DOCKER_SHOW_GENERATED_CERT
 ------------------------------
 
 Shows the generated TLS certificate in console output.
@@ -494,19 +494,19 @@ Shows the generated TLS certificate in console output.
 **Values**: ``always`` (default), ``never``
 
 
-GEL_SERVER_BINARY
+GELITE_SERVER_BINARY
 -----------------
 
 Sets the Gel server binary to run. Default is |gel-server|.
 
 
-GEL_SERVER_BOOTSTRAP_COMMAND_FILE
+GELITE_SERVER_BOOTSTRAP_COMMAND_FILE
 ---------------------------------
 
 Run the script when initializing the database. The script is run by the default user within the default |branch|. May be used with or without :gelenv:`SERVER_BOOTSTRAP_ONLY`.
 
 
-GEL_SERVER_COMPILER_POOL_MODE
+GELITE_SERVER_COMPILER_POOL_MODE
 -----------------------------
 
 Choose a mode for the compiler pool to scale. ``fixed`` means the pool will not scale and sticks to :gelenv:`SERVER_COMPILER_POOL_SIZE`, while ``on_demand`` means the pool will maintain at least 1 worker and automatically scale up (to :gelenv:`SERVER_COMPILER_POOL_SIZE` workers ) and down to the demand.
@@ -516,25 +516,25 @@ Choose a mode for the compiler pool to scale. ``fixed`` means the pool will not 
 Default is ``fixed`` in production mode and ``on_demand`` in development mode.
 
 
-GEL_SERVER_COMPILER_POOL_SIZE
+GELITE_SERVER_COMPILER_POOL_SIZE
 -----------------------------
 
 When :gelenv:`SERVER_COMPILER_POOL_MODE` is ``fixed``, this setting is the exact size of the compiler pool. When :gelenv:`SERVER_COMPILER_POOL_MODE` is ``on_demand``, this will serve as the maximum size of the compiler pool.
 
 
-GEL_SERVER_EMIT_SERVER_STATUS
+GELITE_SERVER_EMIT_SERVER_STATUS
 -----------------------------
 
 Instruct the server to emit changes in status to *DEST*, where *DEST* is a URI specifying a file (``file://<path>``), or a file descriptor (``fd://<fileno>``).  If the URI scheme is not specified, ``file://`` is assumed.
 
 
-GEL_SERVER_EXTRA_ARGS
+GELITE_SERVER_EXTRA_ARGS
 ---------------------
 
 Additional arguments to pass when starting the Gel server.
 
 
-GEL_SERVER_PASSWORD / _FILE / _ENV
+GELITE_SERVER_PASSWORD / _FILE / _ENV
 ----------------------------------
 
 The password for the default superuser account (or the user specified in :gelenv:`SERVER_USER`) will be set to this value. If no value is provided, a password will not be set, unless set via :gelenv:`SERVER_BOOTSTRAP_COMMAND`. (If a value for :gelenv:`SERVER_BOOTSTRAP_COMMAND` is provided, this variable will be ignored.)
@@ -542,7 +542,7 @@ The password for the default superuser account (or the user specified in :gelenv
 The ``_FILE`` and ``_ENV`` variants are also supported.
 
 
-GEL_SERVER_PASSWORD_HASH / _FILE / _ENV
+GELITE_SERVER_PASSWORD_HASH / _FILE / _ENV
 ---------------------------------------
 
 A variant of :gelenv:`SERVER_PASSWORD`, where the specified value is a hashed password verifier instead of plain text.
@@ -552,19 +552,19 @@ If :gelenv:`SERVER_BOOTSTRAP_COMMAND` is set, this variable will be ignored.
 The ``_FILE`` and ``_ENV`` variants are also supported.
 
 
-GEL_SERVER_TENANT_ID
+GELITE_SERVER_TENANT_ID
 --------------------
 
 Specifies the tenant ID of this server. When using multiple Gel instances with one Postgres cluster each Gel instance must have a unique tenant ID. Must be an alphanumeric ASCII string, maximum 10 characters long. Defaults to "E" if not set.
 
 
-GEL_SERVER_UID
+GELITE_SERVER_UID
 --------------
 
 Specifies the ID of the user which should run the server binary. Default is ``1``.
 
 
-GEL_SERVER_USER
+GELITE_SERVER_USER
 ---------------
 
 If set to anything other than the default username |admin|, the username specified will be created. The user defined here will be the one assigned the password set in :gelenv:`SERVER_PASSWORD` or the hash set in :gelenv:`SERVER_PASSWORD_HASH`.

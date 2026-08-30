@@ -18,8 +18,8 @@ Fly.io
 
    .. code-block:: bash
 
-    $ flyctl secrets set GEL_INSTANCE <GEL_INSTANCE>
-    $ flyctl secrets set GEL_SECRET_KEY <GEL_SECRET_KEY>
+    $ flyctl secrets set GELITE_INSTANCE <GELITE_INSTANCE>
+    $ flyctl secrets set GELITE_SECRET_KEY <GELITE_SECRET_KEY>
 
    `Read more about Fly.io runtime secrets
    <https://fly.io/docs/reference/secrets/>`_.
@@ -32,10 +32,10 @@ Fly.io
 
       # Build application
     -  RUN pnpm run build
-    +  RUN --mount=type=secret,id=GEL_INSTANCE \
-    +      --mount=type=secret,id=GEL_SECRET_KEY \
-    +      GEL_INSTANCE="$(cat /run/secrets/GEL_INSTANCE)" \
-    +      GEL_SECRET_KEY="$(cat /run/secrets/GEL_SECRET_KEY)" \
+    +  RUN --mount=type=secret,id=GELITE_INSTANCE \
+    +      --mount=type=secret,id=GELITE_SECRET_KEY \
+    +      GELITE_INSTANCE="$(cat /run/secrets/GELITE_INSTANCE)" \
+    +      GELITE_SECRET_KEY="$(cat /run/secrets/GELITE_SECRET_KEY)" \
     +      pnpm run build
 
    `Read more about Fly.io build secrets
@@ -52,5 +52,5 @@ Fly.io
 
    .. code-block:: bash
 
-    $ flyctl deploy --build-secret GEL_INSTANCE="<GEL_INSTANCE>" \
-        --build-secret GEL_SECRET_KEY="<GEL_SECRET_KEY>"
+    $ flyctl deploy --build-secret GELITE_INSTANCE="<GELITE_INSTANCE>" \
+        --build-secret GELITE_SECRET_KEY="<GELITE_SECRET_KEY>"

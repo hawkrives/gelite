@@ -1494,7 +1494,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_functions_re_match_01(self):
         await self.assert_query_result(
@@ -1582,7 +1582,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_functions_re_match_all_01(self):
         await self.assert_query_result(
@@ -4374,7 +4374,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_functions_min_01(self):
         await self.assert_query_result(

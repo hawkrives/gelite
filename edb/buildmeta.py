@@ -57,7 +57,7 @@ from edb.common import verutils
 # The merge conflict there is a nice reminder that you probably need
 # to write a patch in edb/pgsql/patches.py, and then you should preserve
 # the old value.
-EDGEDB_CATALOG_VERSION = 2025_11_03_00_00
+GELITE_CATALOG_VERSION = 2025_11_03_00_00
 GELITE_MAJOR_VERSION = 0
 
 
@@ -490,7 +490,7 @@ def get_version_from_scm(root: pathlib.Path) -> str:
     prekind = m.group('prekind') or ''
     preval = m.group('preval') or ''
 
-    if os.environ.get("EDGEDB_BUILD_IS_RELEASE"):
+    if os.environ.get("GELITE_BUILD_IS_RELEASE"):
         # Release build.
         ver = f'{major}.{minor}{microkind}{micro}{prekind}{preval}'
     else:
@@ -533,11 +533,11 @@ def get_version_from_scm(root: pathlib.Path) -> str:
     )
     rev_date = proc.stdout.strip()
 
-    catver = EDGEDB_CATALOG_VERSION
+    catver = GELITE_CATALOG_VERSION
 
     full_version = f'{ver}+d{rev_date}.g{commitish[:9]}.cv{catver}'
 
-    build_target = os.environ.get("EDGEDB_BUILD_TARGET")
+    build_target = os.environ.get("GELITE_BUILD_TARGET")
     if build_target:
         # Check that build target is encoded correctly
         _decode_build_target(build_target)
@@ -560,7 +560,7 @@ def get_version_from_scm(root: pathlib.Path) -> str:
                 ident.append("musl")
         build_target = base64.b32encode(
             "-".join(ident).encode()).decode().rstrip("=").lower()
-    build_date = os.environ.get("EDGEDB_BUILD_DATE")
+    build_date = os.environ.get("GELITE_BUILD_DATE")
     if build_date:
         # Validate
         _decode_build_date(build_date)
@@ -568,7 +568,7 @@ def get_version_from_scm(root: pathlib.Path) -> str:
         now = datetime.datetime.now(tz=datetime.timezone.utc)
         build_date = now.strftime(r"%Y%m%d%H%M")
     version_line = f'{full_version}.r{build_date}.t{build_target}'
-    if not os.environ.get("EDGEDB_BUILD_OFFICIAL"):
+    if not os.environ.get("GELITE_BUILD_OFFICIAL"):
         build_type = "local"
     else:
         build_type = "official"

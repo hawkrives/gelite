@@ -94,7 +94,7 @@ base64url encode the resulting string. This new string is called the
     * Value should be:
     * `${protocol}://${host}:${port}/branch/${branch}/ext/auth/
     */
-   const GEL_AUTH_BASE_URL = process.env.GEL_AUTH_BASE_URL;
+   const GELITE_AUTH_BASE_URL = process.env.GELITE_AUTH_BASE_URL;
    const SERVER_PORT = 3000;
 
    /**
@@ -199,7 +199,7 @@ an existing user.
          return;
        }
 
-       const registerUrl = new URL("register", GEL_AUTH_BASE_URL);
+       const registerUrl = new URL("register", GELITE_AUTH_BASE_URL);
        const registerResponse = await fetch(registerUrl.href, {
          method: "post",
          headers: {
@@ -225,7 +225,7 @@ an existing user.
 
        if ("code" in registerJson) {
          // No verification required, we can immediately get an auth token
-         const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+         const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
          tokenUrl.searchParams.set("code", registerJson.code);
          tokenUrl.searchParams.set("verifier", pkce.verifier);
          const tokenResponse = await fetch(tokenUrl.href, {
@@ -282,7 +282,7 @@ an existing user.
          return;
        }
 
-       const authenticateUrl = new URL("authenticate", GEL_AUTH_BASE_URL);
+       const authenticateUrl = new URL("authenticate", GELITE_AUTH_BASE_URL);
        const authenticateResponse = await fetch(authenticateUrl.href, {
          method: "post",
          headers: {
@@ -307,7 +307,7 @@ an existing user.
 
        if ("code" in authenticateJson) {
          // User is verified, we can get an auth token
-         const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+         const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
          tokenUrl.searchParams.set("code", authenticateJson.code);
          tokenUrl.searchParams.set("verifier", pkce.verifier);
          const tokenResponse = await fetch(tokenUrl.href, {
@@ -394,7 +394,7 @@ handle the verification flow, we implement an endpoint:
        return;
      }
 
-     const verifyUrl = new URL("verify", GEL_AUTH_BASE_URL);
+     const verifyUrl = new URL("verify", GELITE_AUTH_BASE_URL);
      const verifyResponse = await fetch(verifyUrl.href, {
        method: "post",
        headers: {
@@ -422,7 +422,7 @@ handle the verification flow, we implement an endpoint:
      if (verifier) {
        // Email verification flow is continuing from the original
        // user agent/browser, so we can immediately get an auth token
-       const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+       const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
        tokenUrl.searchParams.set("code", code);
        tokenUrl.searchParams.set("verifier", verifier);
        const tokenResponse = await fetch(tokenUrl.href, {
@@ -558,7 +558,7 @@ that updates the password and logs in the user.
        const provider = "builtin::local_emailpassword";
        const pkce = generatePKCE();
 
-       const sendResetUrl = new URL("send-reset-email", GEL_AUTH_BASE_URL);
+       const sendResetUrl = new URL("send-reset-email", GELITE_AUTH_BASE_URL);
        const sendResetResponse = await fetch(sendResetUrl.href, {
          method: "post",
          headers: {
@@ -646,7 +646,7 @@ that updates the password and logs in the user.
          );
          return;
        }
-       const resetUrl = new URL("reset-password", GEL_AUTH_BASE_URL);
+       const resetUrl = new URL("reset-password", GELITE_AUTH_BASE_URL);
        const resetResponse = await fetch(resetUrl.href, {
          method: "post",
          headers: {
@@ -665,7 +665,7 @@ that updates the password and logs in the user.
          return;
        }
        const { code } = await resetResponse.json();
-       const tokenUrl = new URL("token", GEL_AUTH_BASE_URL);
+       const tokenUrl = new URL("token", GELITE_AUTH_BASE_URL);
        tokenUrl.searchParams.set("code", code);
        tokenUrl.searchParams.set("verifier", verifier);
        const tokenResponse = await fetch(tokenUrl.href, {
