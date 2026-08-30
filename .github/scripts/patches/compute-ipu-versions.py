@@ -19,7 +19,7 @@ data = json.loads(request.urlopen(u).read())
 u = f'{base}/archive/.jsonindexes/x86_64-unknown-linux-gnu.testing.json'
 data_testing = json.loads(request.urlopen(u).read())
 
-version = edb.buildmeta.EDGEDB_MAJOR_VERSION - 1
+version = edb.buildmeta.GELITE_MAJOR_VERSION - 1
 
 versions = []
 prerelease_versions = []
