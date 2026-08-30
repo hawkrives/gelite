@@ -370,7 +370,8 @@ and auto-resets at transaction end. This restores Postgres semantics for foreign
 keys specifically. **It does not help `UNIQUE` or `CHECK` constraints**, which
 SQLite offers no way to defer.
 
-This is the highest-severity unknown in the design. See Milestone 2.
+This is the highest-severity unknown in the design. Milestone 2 probes it
+concurrently with the DML implementation rather than ahead of it.
 
 ### Risk: UNLESS CONFLICT
 
@@ -648,7 +649,7 @@ an extraction rather than a rewrite.
 
 | # | Risk | Severity | Mitigation |
 |---|---|---|---|
-| 1 | Constraint-check atomicity lost by script splitting (Section 4) | **High** | Milestone 2 probe gates the DML work. `defer_foreign_keys` covers FKs only. |
+| 1 | Constraint-check atomicity lost by script splitting (Section 4) | **High** | Milestone 2 probe runs concurrently with the DML work, which accepts rework risk for schedule. `defer_foreign_keys` covers FKs only. |
 | 2 | Silent wrong answers from lax casts and overflow (Section 5) | **High** | 52 explicit checked casts; dedicated sweep; differential oracle. |
 | 3 | JSONB semantics differ from PG `jsonb` (Section 2) | Medium | Canonicalize on write; comparison UDFs. |
 | 4 | Residual laterals more common than expected (Section 3) | Medium | Measured in Milestone 1, before the design depends on it. |
@@ -673,15 +674,24 @@ multi-property, `SELECT` only, end to end through the real server against a
 SQLite file. Validates the Section 2 type mapping and the Section 3 lateral
 decorrelation. **Measures how often residual laterals occur** (risk 4).
 
-**Milestone 2 — Constraint-atomicity probe. GATE.** Before any DML port,
-determine empirically where Gel relies on single-statement constraint-check
+**Milestone 2 — Constraint-atomicity probe. Runs alongside Milestone 3.**
+Determine empirically where Gel relies on single-statement constraint-check
 atomicity: link table delete-then-reinsert, exclusive constraints across
 rewrites, multi-statement policy enforcement. Output is a decision, not code —
 either the exposure is bounded and materialize-then-mutate proceeds as designed,
-or it is not and Section 4 is revised before implementation. **Section 4 does not
-begin until this reports.**
+or it is not and Section 4 needs revision.
 
-**Milestone 3 — DML and overlays.** Section 4, subject to Milestone 2's finding.
+This does not block Milestone 3. The two run concurrently, which trades a risk
+of rework for schedule: if the probe reports badly, some already-written DML
+lowering is discarded. That trade is deliberate, and it holds only while the
+probe stays genuinely concurrent — **if Milestone 3 reaches the link-table and
+exclusive-constraint work before the probe reports, the probe becomes the
+blocker after all**, because that is precisely the code whose correctness the
+probe determines. Sequence Milestone 3 to do the straightforward INSERT and
+DELETE paths first so the probe has time to land.
+
+**Milestone 3 — DML and overlays.** Section 4. Ordered so that the work most
+sensitive to Milestone 2's finding comes last.
 
 **Milestone 4 — Stdlib.** Section 5, with the cast/overflow sweep built
 alongside rather than after.
