@@ -4,13 +4,10 @@ on:
   push:
     branches:
       - master
-      - ci
-      - "release/*"
   pull_request:
     branches:
       - '**'
-  schedule:
-    - cron: "0 */3 * * *"
+  workflow_dispatch:
 
 jobs:
   build:

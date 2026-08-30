@@ -1,8 +1,6 @@
 name: Tests of in-place upgrades and patching
 
 on:
-  schedule:
-    - cron: "0 3 * * *"
   workflow_dispatch:
     inputs: {}
   push:
