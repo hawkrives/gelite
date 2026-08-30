@@ -359,6 +359,16 @@ class BaseCluster:
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
         )
+        if res.returncode:
+            # Both streams are captured above, so without this the reason
+            # the CLI failed is discarded and the caller only ever sees an
+            # exit code.
+            output = (res.stdout or b'').decode('utf-8', errors='replace')
+            print(
+                f'admin query failed (exit code {res.returncode}): '
+                f'{args[0]} {args[1]}\n{output}',
+                file=sys.stderr,
+            )
         return res.returncode
 
     async def set_test_config(self) -> None:
