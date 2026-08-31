@@ -19,14 +19,15 @@
 import asyncio
 import http
 import http.cookies
-import httptools
 import ssl
+
+from httptools.parser.url_parser import URL
 
 from edb.server import args as srvargs
 from edb.server import server
 
 class HttpRequest:
-    url: httptools.URL
+    url: URL
     version: bytes
     should_keep_alive: bool
     content_type: bytes
