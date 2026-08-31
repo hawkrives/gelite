@@ -302,7 +302,13 @@ class Iteration(BaseTransaction, _Executor):
             return self.__retry._retry(ex)
 
     def _make_start_query_inner(self):
-        return self._options.start_transaction_query()
+        # gel 3.1.0 made optimistic_isolation a required argument. It only
+        # affects IsolationLevel.PreferRepeatableRead, which nothing here
+        # uses, and gel's own retry loop starts every attempt with it off,
+        # so False reproduces the query this used to build.
+        return self._options.start_transaction_query(
+            optimistic_isolation=False
+        )
 
     def _get_query_cache(self) -> abstract.QueryCache:
         return self._connection._query_cache
