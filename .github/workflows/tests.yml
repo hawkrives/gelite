@@ -9,6 +9,14 @@ on:
       - '**'
   workflow_dispatch:
 
+# A 16-shard matrix per push is expensive enough that superseded runs
+# starve the current head of runners. Cancel the older run for a ref when
+# a new one starts, but only for pull requests: pushes to master are what
+# catch merge skew that per-PR runs cannot, so those are left to finish.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
