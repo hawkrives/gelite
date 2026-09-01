@@ -1523,6 +1523,32 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
+    async def _init_pg_cluster(self, path):
+        cluster = await pgcluster.get_local_pg_cluster(path, log_level='s')
+        cluster.update_connection_params(
+            user='postgres',
+            database='template1',
+        )
+        self.assertTrue(await cluster.ensure_initialized())
+        await cluster.start()
+        try:
+            runstate_dir = None if devmode.is_in_dev_mode() else path
+            async with tb.start_edgedb_server(
+                runstate_dir=runstate_dir,
+                backend_dsn=f'postgres:///?user=postgres&host={path}',
+                reset_auth=True,
+                auto_shutdown_after=1,
+            ) as sd:
+                connect_args = {
+                    k: v
+                    for k, v in sd.get_connect_args().items()
+                    if k in {"user", "password"}
+                }
+        except Exception:
+            await cluster.stop()
+            raise
+        return cluster, connect_args
+
     async def test_server_ops_multi_tenant(self):
         with (
             tempfile.TemporaryDirectory() as td1,

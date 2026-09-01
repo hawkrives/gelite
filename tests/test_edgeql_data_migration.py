@@ -12422,6 +12422,72 @@ class TestEdgeQLDataMigrationNonisolated(EdgeQLDataMigrationTestCase):
         ''')
         self.assertEqual(len(res), 1)
 
+    async def _test_schema_repair(
+        self, *,
+        schema,
+        setup_script=None,
+        breakage_script,
+        check_breakage=True,
+    ):
+        '''Helper for testing ADMINISTER schema_repair()
+
+        Takes a schema and an optional setup_script and runs them.
+
+        Then runs the breakage_script, which will be run with access
+        to the reflschema and which should break the schema in some
+        way.
+
+        We will then load back the broken schema, verify migrations
+        are broken, run schema_repair, and verify migrations work.
+        '''
+
+        await self.migrate(schema, module='default')
+        if setup_script:
+            await self.con.execute(setup_script)
+
+        # Use a transaction to make sure the configures get rolled back
+        async with self.con.transaction():
+            # Enable poking directly at the schema
+            await self.con.execute('''
+                configure session set __internal_query_reflschema := true;
+                configure session set __internal_no_apply_query_rewrites :=
+                    true;
+            ''')
+
+            # Break the schema
+            await self.con.execute(breakage_script)
+
+        # Do some random configure current database in order to force
+        # a reload of the schema from reflection.
+        await self.con.execute("""
+            configure current database reset __internal_sess_testvalue
+        """)
+
+        # Make sure we succesfully busted the schema.
+        async with self.assertRaisesRegexTx(
+            # Error could be the 'complete' assertion in this test
+            # suite or some failure in the server.
+            (AssertionError, edgedb.EdgeDBError),
+            '',
+        ):
+            await self.migrate(schema, module='default')
+
+        await self.con.execute('''
+            administer schema_repair()
+        ''')
+
+        # Make sure the schema is repaired
+        async with self._run_and_rollback():
+            await self.start_migration(schema, module='default')
+            await self.assert_describe_migration({
+                'complete': True
+            })
+
+        # Make sure objects still can be fetched
+        await self.con.query('''
+            select Object
+        ''')
+
     async def test_edgeql_migration_schema_repair_01(self):
         await self._test_schema_repair(
             schema='''
