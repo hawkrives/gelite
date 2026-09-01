@@ -25,17 +25,10 @@ jobs:
     steps:
     <%- call build() -%>
     - name: Compute cache keys and download the running times log
-      env:
-        GIST_TOKEN: ${{ secrets.CI_BOT_GIST_TOKEN }}
       run: |
         << calc_cache_key()|indent >>
 
-        curl \
-          -H "Accept: application/vnd.github.v3+json" \
-          -u edgedb-ci:$GIST_TOKEN \
-          https://api.github.com/gists/8b722a65397f7c4c0df72f5394efa04c \
-        | jq '.files."time_stats.csv".raw_url' \
-        | xargs curl > shared-artifacts/time_stats.csv
+        cp .github/time_stats.csv shared-artifacts/time_stats.csv
     <%- endcall %>
 
   cargo-test:
@@ -198,7 +191,7 @@ jobs:
 
       - name: Install Python deps
         run: |
-          python -m pip install requests click
+          python -m pip install click
 
       - uses: actions/checkout@v4
         with:
@@ -230,15 +223,9 @@ jobs:
 
       - name: Merge stats and verify tests completion
         shell: python
-        env:
-          GIST_TOKEN: ${{ secrets.CI_BOT_GIST_TOKEN }}
-          GIT_REF: ${{ github.ref }}
         run: |
           import csv
           import glob
-          import io
-          import os
-          import requests
 
           orig = {}
           new = {}
@@ -265,18 +252,3 @@ jobs:
                               all_tests.remove(name)
 
           assert not all_tests, "Tests not run! \n" + "\n".join(all_tests)
-
-          if os.environ["GIT_REF"] == "refs/heads/master":
-              buf = io.StringIO()
-              writer = csv.writer(buf)
-              orig.update(new)
-              for k, v in sorted(orig.items()):
-                  writer.writerow((k,) + v)
-
-              resp = requests.patch(
-                  "https://api.github.com/gists/8b722a65397f7c4c0df72f5394efa04c",
-                  headers={"Accept": "application/vnd.github.v3+json"},
-                  auth=("edgedb-ci", os.environ["GIST_TOKEN"]),
-                  json={"files": {"time_stats.csv": {"content": buf.getvalue()}}},
-              )
-              resp.raise_for_status()
