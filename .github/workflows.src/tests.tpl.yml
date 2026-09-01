@@ -73,6 +73,60 @@ jobs:
       run:
         cargo test --all-features
 
+  rust-clippy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+    << init() >>
+    << install_python_requirements() >>
+
+    - name: Download cache key
+      uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+      with:
+        name: shared-artifacts
+        path: shared-artifacts
+
+    - name: Generate environment variables
+      run: |
+        echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
+
+    # A separate key from cargo-test: clippy writes different artifacts into
+    # the target dir, and sharing one key makes the two jobs race to save it.
+    - name: Handle Rust clippy build cache
+      uses: actions/cache@v4
+      id: rust-cache
+      with:
+        path: ${{ env.BUILD_TEMP }}/rust/extensions
+        key: edb-rust-clippy-v1-${{ hashFiles('shared-artifacts/rust_cache_key.txt') }}
+
+    - name: Install Rust toolchain
+      uses: dsherret/rust-toolchain-file@v1
+
+    - name: Cargo clippy
+      env:
+        CARGO_TARGET_DIR: ${{ env.BUILD_TEMP }}/rust/extensions
+        CARGO_HOME: ${{ env.BUILD_TEMP }}/rust/extensions/cargo_home
+      run:
+        cargo clippy -- -Dclippy::all
+
+  rust-rustfmt:
+    runs-on: ubuntu-latest
+
+    # rustfmt only parses the sources, so this needs neither the build job
+    # nor the submodules - every workspace member lives in this repo.
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        submodules: false
+
+    - name: Install Rust toolchain
+      uses: dsherret/rust-toolchain-file@v1
+
+    - name: Cargo fmt
+      run:
+        cargo fmt --check
+
   python-test:
     needs: build
     runs-on: ubuntu-latest
@@ -90,9 +144,6 @@ jobs:
     <<- restore_cache() >>
 
     # Run the test
-
-    - name: Install Rust toolchain
-      uses: dsherret/rust-toolchain-file@v1
 
     - name: Test
       env:
@@ -136,7 +187,7 @@ jobs:
         retention-days: 1
 
   test-conclusion:
-    needs: [cargo-test, python-test, python-test-list]
+    needs: [cargo-test, rust-clippy, rust-rustfmt, python-test, python-test-list]
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
