@@ -498,49 +498,4 @@
         platforms: << docker_tgts|map(attribute="docker_arch")|join(",") >>
 <%- endif %>
 
-  workflow-notifications:
-    if: failure() && github.event_name != 'pull_request'
-    name: Notify in Slack on failures
-
-    needs:
-      - prep
-    <%- if publish_all %>
-      - collect
-    <%- else %>
-    <%- endif %>
-    <%- for tgt in targets.linux %>
-      - build-<< tgt.name >>
-    <%- if package.name != "edgedbpkg.edgedb_ls:EdgeDBLanguageServer" %>
-      - test-<< tgt.name >>
-    <%- endif %>
-    <%- for publish in publications %>
-      - publish<< publish.suffix>>-<< tgt.name >>
-      - check-published<< publish.suffix>>-<< tgt.name >>
-    <%- endfor %>
-    <%- endfor %>
-    <%- for tgt in targets.macos %>
-      - build-<< tgt.name >>
-    <%- if package.name != "edgedbpkg.edgedb_ls:EdgeDBLanguageServer" %>
-      - test-<< tgt.name >>
-    <%- endif %>
-    <%- for publish in publications %>
-      - publish<< publish.suffix>>-<< tgt.name >>
-    <%- endfor %>
-    <%- endfor %>
-    <%- if docker_tgts and publications %>
-      - publish-docker
-    <%- endif %>
-    runs-on: ubuntu-latest
-    permissions:
-      actions: 'read'
-    steps:
-      - name: Slack Workflow Notification
-        uses: Gamesight/slack-workflow-status@26a36836c887f260477432e4314ec3490a84f309
-        with:
-          repo_token: ${{secrets.GITHUB_TOKEN}}
-          slack_webhook_url: ${{secrets.ACTIONS_SLACK_WEBHOOK_URL}}
-          name: 'Workflow notifications'
-          icon_emoji: ':hammer:'
-          include_jobs: 'on-failure'
-
 <%- endmacro %>
