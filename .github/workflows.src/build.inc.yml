@@ -19,7 +19,7 @@
 <% endfor %>
 <% endif %>
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
 <% if subdist == "nightly" %>
     - name: Determine SCM revision
@@ -103,7 +103,7 @@
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
@@ -130,7 +130,7 @@
         # `dsherret/rust-toolchain-file`. So let's just run `brew update` early.
         brew update
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: << 'false' if tgt.runs_on and 'self-hosted' in tgt.runs_on else 'true' >>
       with:
         sparse-checkout: |
@@ -138,23 +138,23 @@
         sparse-checkout-cone-mode: false
 
     - name: Install Rust toolchain
-      uses: dsherret/rust-toolchain-file@v1
+      uses: dsherret/rust-toolchain-file@3551321aa44dd44a0393eb3b6bdfbc5d25ecf621  # v1
       if: << 'false' if tgt.runs_on and 'self-hosted' in tgt.runs_on else 'true' >>
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       if: << 'false' if tgt.runs_on and 'self-hosted' in tgt.runs_on else 'true' >>
       with:
         python-version: "3.12"
 
     - name: Set up NodeJS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
       if: << 'false' if tgt.runs_on and 'self-hosted' in tgt.runs_on else 'true' >>
       with:
         node-version: '20'
@@ -197,7 +197,7 @@
       run: |
         edgedb-pkg/integration/macos/build.sh
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
@@ -212,7 +212,7 @@
     runs-on: << tgt.runs_on if tgt.runs_on else "ubuntu-latest" >>
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
@@ -242,13 +242,13 @@
     runs-on: << tgt.runs_on if tgt.runs_on else "macos-latest" >>
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
@@ -293,7 +293,7 @@
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
@@ -317,14 +317,14 @@
     runs-on: << tgt.runs_on if tgt.runs_on else "ubuntu-latest" >>
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
 
     - name: Describe
       id: describe
-      uses: edgedb/edgedb-pkg/integration/actions/describe-artifact@master
+      uses: edgedb/edgedb-pkg/integration/actions/describe-artifact@4e8fac0d322d5ab889f94e9cb8a1ed501cdae330  # master
       with:
         target: << plat_id >>
 
@@ -359,12 +359,12 @@
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-<< tgt.name >>
         path: artifacts/<< plat_id >>
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
@@ -372,7 +372,7 @@
 
     - name: Describe
       id: describe
-      uses: edgedb/edgedb-pkg/integration/actions/describe-artifact@master
+      uses: edgedb/edgedb-pkg/integration/actions/describe-artifact@4e8fac0d322d5ab889f94e9cb8a1ed501cdae330  # master
       with:
         target: << plat_id >>
 
@@ -400,7 +400,7 @@
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: geldata/gel-docker
         ref: master

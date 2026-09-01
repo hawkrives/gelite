@@ -24,18 +24,18 @@ jobs:
     runs-on: ubuntu-latest
     concurrency: pool-test
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         fetch-depth: 0
         submodules: false
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         fetch-depth: 50
         submodules: true
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       id: setup-python
       with:
         python-version: '3.12.2'
@@ -52,13 +52,13 @@ jobs:
         echo "VIRTUAL_ENV=${venv}" >> $GITHUB_ENV
 
     - name: Set up uv cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       with:
         path: ~/.cache/uv
         key: uv-cache-${{ runner.os }}-py-${{ steps.setup-python.outputs.python-version }}-${{ hashFiles('pyproject.toml') }}
 
     - name: Cached requirements.txt
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: requirements-cache
       with:
         path: requirements.txt
@@ -101,7 +101,7 @@ jobs:
         echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 
     - name: Upload shared artifacts
-      uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+      uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: shared-artifacts
         path: shared-artifacts
@@ -110,7 +110,7 @@ jobs:
     # Restore binary cache
 
     - name: Handle cached Rust extensions
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: rust-cache
       with:
         path: build/rust_extensions
@@ -119,28 +119,28 @@ jobs:
           edb-rust-v4-
 
     - name: Handle cached Cython extensions
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: ext-cache
       with:
         path: build/extensions
         key: edb-ext-v6-${{ hashFiles('shared-artifacts/ext_cache_key.txt') }}
 
     - name: Handle cached PostgreSQL build
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: postgres-cache
       with:
         path: build/postgres/install
         key: edb-postgres-v3-${{ env.POSTGRES_GIT_REV }}-${{ hashFiles('shared-artifacts/lib_cache_key.txt') }}
 
     - name: Handle cached Stolon build
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: stolon-cache
       with:
         path: build/stolon/bin
         key: edb-stolon-v2-${{ env.STOLON_GIT_REV }}
 
     - name: Handle cached libpg_query build
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: libpg-query-cache
       with:
         path: edb/pgsql/parser/libpg_query/libpg_query.a
@@ -160,12 +160,12 @@ jobs:
 
     - name: Install Rust toolchain
       if: steps.rust-cache.outputs.cache-hit != 'true'
-      uses: dsherret/rust-toolchain-file@v1
+      uses: dsherret/rust-toolchain-file@3551321aa44dd44a0393eb3b6bdfbc5d25ecf621  # v1
 
     # Build Rust extensions
 
     - name: Handle Rust extensions build cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       if: steps.rust-cache.outputs.cache-hit != 'true'
       with:
         path: ${{ env.BUILD_TEMP }}/rust/extensions
@@ -200,7 +200,7 @@ jobs:
     # Build extensions
 
     - name: Handle Cython extensions build cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       if: steps.ext-cache.outputs.cache-hit != 'true'
       with:
         path: ${{ env.BUILD_TEMP }}/edb
@@ -224,7 +224,7 @@ jobs:
     # Build parsers
 
     - name: Handle compiled parsers cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: parsers-cache
       with:
         path: build/lib
@@ -263,11 +263,11 @@ jobs:
 
     - name: Set up Go
       if: steps.stolon-cache.outputs.cache-hit != 'true'
-      uses: actions/setup-go@v2
+      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
       with:
         go-version: 1.16
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: steps.stolon-cache.outputs.cache-hit != 'true'
       with:
         repository: edgedb/stolon
@@ -297,7 +297,7 @@ jobs:
     # Refresh the bootstrap cache
 
     - name: Handle bootstrap cache
-      uses: actions/cache@v4
+      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: bootstrap-cache
       with:
         path: build/cache
@@ -310,7 +310,7 @@ jobs:
       run: |
         edb server --bootstrap-only
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: startsWith(github.ref, 'refs/heads')
       with:
         repository: edgedb/edgedb-pool-simulation
@@ -326,7 +326,7 @@ jobs:
         mkdir -p pool-simulation/reports
         python tests/test_server_pool.py
 
-    - uses: EndBug/add-and-commit@v7.0.0
+    - uses: EndBug/add-and-commit@f68b41bfefb2ed558185ab6ab97b620866ebe369  # v11.1.1
       if: ${{ always() }}
       continue-on-error: true
       with:
