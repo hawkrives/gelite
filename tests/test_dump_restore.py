@@ -385,10 +385,18 @@ class TestDumpRestore(tb.QueryTestCase):
             'select LSource { one: { n } }',
         )
 
+    async def test_dump_restore_feature_multi_prop(self):
+        # A multi property has its own backing table, so the dump names a
+        # block for it - the same shape that #82 broke for multi links,
+        # and the one shape the corpus below does not contain.
+        await self._feature_round_trip(
+            'mpr',
+            'create type MP { create multi property tags -> str; };',
+            "insert MP { tags := {'a', 'b'} };",
+            'select MP { tags := (select S := .tags order by S) }',
+        )
+
     async def test_dump_restore_feature_multi_link(self):
-        # A multi link with no link property, to separate the two halves of
-        # the failing case below: if this passes and that one fails, the
-        # link property is the culprit rather than multi links.
         await self._feature_round_trip(
             'mlk',
             'create type PTarget { create required property n -> str; };'
