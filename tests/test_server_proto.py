@@ -1658,6 +1658,8 @@ class TestServerProto(tb.QueryTestCase):
             'CONFIGURE SESSION SET __internal_testmode := true')
         self.assertTrue(await self.is_testmode_on())
 
+    # Idempotent: Tmp11 is dropped in a finally.
+    @tb.retry_on_serialization
     async def test_server_proto_tx_11(self):
         # Test that SET ALIAS (and therefore CONFIGURE SESSION SET etc)
         # tracked by the server behaves exactly like DML tracked by Postgres
@@ -1691,60 +1693,68 @@ class TestServerProto(tb.QueryTestCase):
             };
         ''')
 
-        await self.con.query('START TRANSACTION')
-        await self.con.query('DECLARE SAVEPOINT c0')
-        await self.con.query('SET ALIAS f1 AS MODULE std')
-        await self.con.execute('''
-            INSERT Tmp11 {
-                tmp := 'test_server_proto_tx_11'
-            };
-        ''')
-        await self.con.query('DECLARE SAVEPOINT c1')
-        await self.con.query('COMMIT')
+        try:
+            await self.con.query('START TRANSACTION')
+            await self.con.query('DECLARE SAVEPOINT c0')
+            await self.con.query('SET ALIAS f1 AS MODULE std')
+            await self.con.execute('''
+                INSERT Tmp11 {
+                    tmp := 'test_server_proto_tx_11'
+                };
+            ''')
+            await self.con.query('DECLARE SAVEPOINT c1')
+            await self.con.query('COMMIT')
 
-        await self.con.query('START TRANSACTION')
-        await self.con.query('SET ALIAS f2 AS MODULE std')
-        await self.con.execute('''
-            INSERT Tmp11 {
-                tmp := 'test_server_proto_tx_11'
-            };
-        ''')
+            await self.con.query('START TRANSACTION')
+            await self.con.query('SET ALIAS f2 AS MODULE std')
+            await self.con.execute('''
+                INSERT Tmp11 {
+                    tmp := 'test_server_proto_tx_11'
+                };
+            ''')
 
-        await self.con.query('DECLARE SAVEPOINT a0')
-        await self.con.query('SET ALIAS f3 AS MODULE std')
-        await self.con.execute('''
-            INSERT Tmp11 {
-                tmp := 'test_server_proto_tx_11'
-            };
-        ''')
+            await self.con.query('DECLARE SAVEPOINT a0')
+            await self.con.query('SET ALIAS f3 AS MODULE std')
+            await self.con.execute('''
+                INSERT Tmp11 {
+                    tmp := 'test_server_proto_tx_11'
+                };
+            ''')
 
-        await self.con.query('DECLARE SAVEPOINT a1')
-        await self.con.query('SET ALIAS f4 AS MODULE std')
-        await self.con.execute('''
-            INSERT Tmp11 {
-                tmp := 'test_server_proto_tx_11'
-            };
-        ''')
-        with self.assertRaises(edgedb.DivisionByZeroError):
-            await self.con.query('SELECT 1 / 0')
+            await self.con.query('DECLARE SAVEPOINT a1')
+            await self.con.query('SET ALIAS f4 AS MODULE std')
+            await self.con.execute('''
+                INSERT Tmp11 {
+                    tmp := 'test_server_proto_tx_11'
+                };
+            ''')
+            with self.assertRaises(edgedb.DivisionByZeroError):
+                await self.con.query('SELECT 1 / 0')
 
-        await self.con.query('ROLLBACK TO SAVEPOINT a1')
-        await test_funcs(
-            count=3,
-            working=['f1', 'f2', 'f3'], not_working=['f4', 'f5'])
+            await self.con.query('ROLLBACK TO SAVEPOINT a1')
+            await test_funcs(
+                count=3,
+                working=['f1', 'f2', 'f3'], not_working=['f4', 'f5'])
 
-        await self.con.query('ROLLBACK TO SAVEPOINT a0')
-        await test_funcs(
-            count=2,
-            working=['f1', 'f2'], not_working=['f3', 'f4', 'f5'])
+            await self.con.query('ROLLBACK TO SAVEPOINT a0')
+            await test_funcs(
+                count=2,
+                working=['f1', 'f2'], not_working=['f3', 'f4', 'f5'])
 
-        await self.con.query('ROLLBACK')
-        await self.con.query('START TRANSACTION')
+            await self.con.query('ROLLBACK')
+            await self.con.query('START TRANSACTION')
 
-        await test_funcs(
-            count=1,
-            working=['f1'], not_working=['f2', 'f3', 'f4', 'f5'])
-        await self.con.query('COMMIT')
+            await test_funcs(
+                count=1,
+                working=['f1'], not_working=['f2', 'f3', 'f4', 'f5'])
+            await self.con.query('COMMIT')
+        finally:
+            # The test leaves an open transaction on some failure
+            # paths, and Tmp11 is committed by the CREATE above, so
+            # a retry would collide with it unless it is dropped
+            # here. Gel tolerates a ROLLBACK with none in progress.
+            await self.con.query('ROLLBACK')
+            await self.con.execute('DROP TYPE Tmp11;')
 
     async def test_server_proto_tx_12(self):
         # Test that savepoint's state isn't corrupted by repeated
