@@ -63,7 +63,6 @@ from edb.server import pgcon
 
 from edb.sqlite import common as pg_common
 from edb.sqlite import dbops
-from edb.sqlite import patches as pg_patches
 from edb.sqlite import metaschema
 from edb.sqlite import trampoline
 
@@ -423,11 +422,8 @@ async def _upgrade_one(
         schema_fixup += fixup
 
     if upgrade_patches:
-        version_key = pg_patches.get_version_key(len(pg_patches.PATCHES))
         sysqueries = json.loads(
-            await instdata.get_instdata(
-                ctx.conn, f'sysqueries{version_key}', 'json'
-            )
+            await instdata.get_instdata(ctx.conn, 'sysqueries', 'json')
         )
         schema_fixup += sysqueries['backend_id_fixup']
     if needs_config:
