@@ -115,7 +115,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = rand_core_06::OsRng;
+    let mut rng = rand_08::thread_rng(); // rand 0.8 Rng, as genetic_algorithm requires
     let evolve = Evolve::builder()
         .with_multithreading(true)
         .with_genotype(genotype)
