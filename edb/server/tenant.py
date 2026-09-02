@@ -1474,7 +1474,6 @@ class Tenant(ha_base.ClusterProtocol):
                         backend_ids=None,
                         extensions=extensions,
                         ext_config_settings=None,
-                        early=True,
                     )
 
         # Early introspection runs *before* we start accepting tasks.

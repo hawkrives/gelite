@@ -2020,7 +2020,6 @@ cdef class DatabaseIndex:
         backend_ids,
         extensions,
         ext_config_settings,
-        early=False,
         feature_used_metrics=None,
     ):
         cdef Database db
@@ -2035,7 +2034,6 @@ cdef class DatabaseIndex:
                 reflection_cache,
                 backend_ids,
                 db_config,
-                not early,
             )
         else:
             db = Database(
