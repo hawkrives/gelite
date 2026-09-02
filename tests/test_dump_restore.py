@@ -274,22 +274,82 @@ class TestDumpRestore(tb.QueryTestCase):
         # This is the case a round trip built only on populated fixtures
         # never reaches, and it is where an off-by-one in block handling
         # would show: there may be no DumpBlock at all.
+        #
+        # Compares the rendered schema on both sides rather than counting
+        # object types: an "empty" branch is not empty of
+        # `schema::ObjectType filter not .builtin` - it has two - so that
+        # count says nothing about whether the restore was faithful.
         source = f'dumprestore_src_{self.get_database_name()}'
         target = f'dumprestore_dst_{self.get_database_name()}'
         await self.con.execute(f'create empty branch {source}')
         try:
+            con_src = await self.connect(database=source)
+            try:
+                expected = await con_src.query_single('describe schema as sdl')
+            finally:
+                await con_src.aclose()
+
             header, blocks = await self._dump(source)
             await self.con.execute(f'create empty branch {target}')
             try:
                 await self._restore(target, header, blocks)
                 con2 = await self.connect(database=target)
                 try:
-                    count = await con2.query_single(
-                        'select count(schema::ObjectType filter not .builtin)'
+                    restored = await con2.query_single('describe schema as sdl')
+                finally:
+                    await con2.aclose()
+                self.assertEqual(expected, restored)
+            finally:
+                await tb.drop_db(self.con, target)
+        finally:
+            await tb.drop_db(self.con, source)
+
+    async def test_dump_restore_minimal_01(self):
+        # The narrowest possible round trip with user schema in it: one
+        # type, one property, one row, built by DDL rather than from the
+        # corpus.
+        #
+        # It exists to bisect. test_dump_restore_empty_01 proves the
+        # mechanism works with no user schema; the corpus-based tests
+        # exercise enums, collections, links and link properties all at
+        # once. If this passes while those fail, the fault is a specific
+        # schema feature rather than dump/restore itself, and the next
+        # round can name it.
+        source = f'dumprestore_min_src_{self.get_database_name()}'
+        target = f'dumprestore_min_dst_{self.get_database_name()}'
+        await self.con.execute(f'create empty branch {source}')
+        try:
+            con_src = await self.connect(database=source)
+            try:
+                await con_src.execute(
+                    'create type Thing { create property n -> str; };'
+                )
+                await con_src.execute("insert Thing { n := 'one' };")
+                expected_sdl = await con_src.query_single(
+                    'describe schema as sdl'
+                )
+                expected_rows = await con_src.query_json(
+                    'select Thing { n } order by .n'
+                )
+            finally:
+                await con_src.aclose()
+
+            header, blocks = await self._dump(source)
+            await self.con.execute(f'create empty branch {target}')
+            try:
+                await self._restore(target, header, blocks)
+                con2 = await self.connect(database=target)
+                try:
+                    self.assertEqual(
+                        expected_sdl,
+                        await con2.query_single('describe schema as sdl'),
+                    )
+                    self.assertEqual(
+                        expected_rows,
+                        await con2.query_json('select Thing { n } order by .n'),
                     )
                 finally:
                     await con2.aclose()
-                self.assertEqual(count, 0)
             finally:
                 await tb.drop_db(self.con, target)
         finally:
