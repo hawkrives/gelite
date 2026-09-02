@@ -174,4 +174,23 @@ global CardsWithText := (
 alias AliasArrayOfArrayOfScalar := [[1, 2, 3], [4, 5, 6]];
 global GlobalArrayOfArrayOfScalar := [[1, 2, 3], [4, 5, 6]];
 
+# These two bucket every Card by cost, including an empty bucket at 0, and
+# exist to exercise nested array_agg through an alias and through a global.
+# Upstream spelled the 0..max(Card.cost) sequence as
+# `range_unpack(range(0, max(Card.cost) + 1))`; ranges are deferred (#75),
+# so the sequence is written out. cards_setup.edgeql tops out at cost 5 -
+# adding a costlier card means extending this literal.
+alias AliasCardsByCost := array_agg((
+    for cost in array_unpack([0, 1, 2, 3, 4, 5])
+        select array_agg(
+            (select Card filter .cost = cost)
+        )
+));
+global GlobalCardsByCost := array_agg((
+    for cost in array_unpack([0, 1, 2, 3, 4, 5])
+        select array_agg(
+            (select Card filter .cost = cost)
+        )
+));
+
 permission GameAdmin;

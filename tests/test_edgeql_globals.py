@@ -24,7 +24,6 @@ import unittest
 import edgedb
 
 from edb.testbase import server as tb
-from edb.tools import test
 
 
 class TestEdgeQLGlobals(tb.QueryTestCase):
@@ -465,10 +464,6 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             [[[1, 2, 3], [4, 5, 6]]],
         )
 
-    @test.xfail(
-        'ranges are deferred (#75), so cards.esdl no longer defines\n'
-        'GlobalCardsByCost - it was built with range_unpack(range(...)).'
-    )
     async def test_edgeql_globals_17(self):
         await self.assert_query_result(
             r"""

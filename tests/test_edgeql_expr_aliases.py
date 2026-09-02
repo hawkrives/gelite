@@ -1300,10 +1300,6 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             ],
         )
 
-    @test.xfail(
-        'ranges are deferred (#75), so cards.esdl no longer defines\n'
-        'AliasCardsByCost - it was built with range_unpack(range(...)).'
-    )
     async def test_edgeql_aliases_array_of_array_02(self):
         await self.assert_query_result(
             r"""
