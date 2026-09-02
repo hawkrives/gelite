@@ -413,17 +413,9 @@ class Tenant:
         self._sys_pgcon_ready_evt = asyncio.Event()
         self._sys_pgcon_reconnect_evt = asyncio.Event()
 
-    async def get_patch_count(self, conn: pgcon.PGConnection) -> int:
-        """Get the number of applied patches."""
-        num_patches = await instdata.get_instdata(conn, 'num_patches', 'json')
-        res: int = json.loads(num_patches) if num_patches else 0
-        return res
-
     async def _check_metaschema_compatibility(
         self, con: pgcon.PGConnection
     ) -> None:
-        from edb.sqlite import patches as pg_patches
-
         # Check catalog version
         result = await instdata.get_instdata(
             con, 'instancedata', 'json', versioned=False
@@ -442,18 +434,6 @@ class Tenant:
                     'You need to either recreate the instance and upgrade '
                     'using dump/restore, or do an inplace upgrade.'
                 ),
-            )
-
-        # Check patch count
-        num_patches = await self.get_patch_count(con)
-        if num_patches < len(pg_patches.PATCHES):
-            raise errors.ConfigurationError(
-                'database instance incompatible with this version of Gel',
-                details=f"expected {len(pg_patches.PATCHES)} patches, "
-                f"but only {num_patches} applied",
-                hint="if you are adding an old backend to a multi-tenant "
-                "server, firstly run a new single-tenant server on "
-                "that backend to apply the patches.",
             )
 
     async def init(self, compat_check: bool = False) -> None:

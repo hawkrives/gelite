@@ -83,7 +83,6 @@ from edb.sqlite import dbops
 from edb.sqlite import delta as delta_cmds
 from edb.sqlite import metaschema
 from edb.sqlite import params
-from edb.sqlite import patches
 from edb.sqlite import trampoline
 from edb.sqlite.common import quote_ident as qi
 
@@ -988,7 +987,7 @@ def prepare_patch(
         reflection = s_refl.generate_structure(
             reflschema,
             make_funcs=False,
-            patch_level=patches.get_patch_level(num),
+            patch_level=0,
         )
 
         reflschema, plan, tplan = _process_delta_params(
@@ -1144,7 +1143,7 @@ def prepare_patch(
     unversioned = ('configspec',)
     # Just for the system database, we need to update the cached pickle
     # of everything.
-    version_key = patches.get_version_key(num + 1)
+    version_key = ''
     sys_updates: tuple[str, ...] = ()
 
     spatches: tuple[str, ...] = (patch,)
@@ -1530,7 +1529,7 @@ def _make_stdlib(
         classlayout=reflection.class_layout,
         local_intro_query=local_intro_sql,
         global_intro_query=global_intro_sql,
-        num_patches=len(patches.PATCHES),
+        num_patches=0,
     )
 
 
@@ -1961,7 +1960,7 @@ async def _init_stdlib(
     await metaschema.patch_pg_extensions(conn, backend_params)
 
     stdlib = stdlib._replace(stdschema=schema)
-    version_key = patches.get_version_key(stdlib.num_patches)
+    version_key = ''
 
     # stdschema and reflschema are combined in one pickle to preserve sharing
     await _store_static_bin_cache(
@@ -2754,7 +2753,7 @@ async def _bootstrap(
             sysqueries['backend_id_fixup'].encode('utf-8')
         )
 
-        version_key = patches.get_version_key(stdlib.num_patches)
+        version_key = ''
         await _store_static_json_cache(
             tpl_ctx,
             f'sysqueries{version_key}',
