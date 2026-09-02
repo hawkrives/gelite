@@ -11804,49 +11804,6 @@ class TestDescribe(BaseDescribeTest):
             explicit_modules=True,
         )
 
-    @test.xfail('''
-        describe command includes module pgvector
-
-        ... this *doesn't* happen when actually testing via the CLI, though?
-    ''')
-    def test_schema_describe_schema_03(self):
-        self._assert_describe(
-            """
-            using extension pgvector version '0.5';
-            module default {
-                scalar type v3 extending ext::pgvector::vector<3>;
-
-                type Foo {
-                    data: v3;
-                }
-            };
-            """,
-
-            'describe schema as ddl',
-
-            """
-            create extension vector version '0.5';
-            create module default if not exists;
-            create scalar type default::v3 extending ext::pgvector::vector<3>;
-            create type default::Foo {
-                create property data: default::v3;
-            };
-            """,
-
-            'describe schema as sdl',
-
-            r"""
-            using extension pgvector version '0.5';
-            module default {
-                scalar type v3 extending ext::pgvector::vector<3>;
-                type Foo {
-                    property data: default::v3;
-                };
-            };
-            """,
-            explicit_modules=True,
-        )
-
     def test_schema_describe_except_01(self):
         # Test that except works right
         self._assert_describe(

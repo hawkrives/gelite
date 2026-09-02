@@ -33,7 +33,6 @@ Standard Library
     sys
     cfg
     pg_unaccent
-    pgvector
     postgis
     deprecated
 
@@ -105,4 +104,3 @@ Utilities
 Extensions
 ----------
 
-- :ref:`ext::pgvector <ref_ext_pgvector>`

@@ -14,15 +14,12 @@ importantly, they can add new ways of interacting with the database.
 Built-in extensions
 ===================
 
-.. api-index:: pg_unaccent, pgvector
+.. api-index:: pg_unaccent
 
-There are a few built-in extensions available:
+There is one built-in extension available:
 
 - ``pg_unaccent``: enables ``ext::pg_unaccent``, which re-exports
   `unaccent <https://www.postgresql.org/docs/current/unaccent.html>`__,
-
-- ``pgvector``: enables ``ext::pgvector``, which re-exports
-  `pgvector <https://github.com/pgvector/pgvector/>`__,
 
 .. _ref_datamodel_using_extension:
 
@@ -148,12 +145,12 @@ the current :versionreplace:`database;5.0:branch`.
 Examples
 ^^^^^^^^
 
-Enable the ``pgvector`` extension for the
+Enable the ``pg_unaccent`` extension for the
 current :versionreplace:`database;5.0:branch`:
 
 .. code-block:: edgeql
 
-  create extension edgeql_http;
+  create extension pg_unaccent;
 
 
 drop extension
@@ -174,9 +171,9 @@ the current |branch|.
 Examples
 ^^^^^^^^
 
-Disable the ``pgvector`` extension for the
+Disable the ``pg_unaccent`` extension for the
 current :versionreplace:`database;5.0:branch`:
 
 .. code-block:: edgeql
 
-  drop extension edgeql_http;
+  drop extension pg_unaccent;

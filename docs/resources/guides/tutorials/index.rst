@@ -13,7 +13,6 @@ Using Gel with...
     rest_apis_with_fastapi
     rest_apis_with_flask
     jupyter_notebook
-    chatgpt_bot
     cloudflare_workers
     trpc
     Bun <https://bun.sh/guides/ecosystem/edgedb>

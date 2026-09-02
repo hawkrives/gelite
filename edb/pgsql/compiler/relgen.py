@@ -3677,8 +3677,7 @@ def _compile_call_args(
         # Support a mode where we try to compile arguments as pure
         # subqueries. This is occasionally valuable as it lets us
         # "push down" the subqueries from the top level, which is
-        # important for things like hitting pgvector indexes in an
-        # ORDER BY.
+        # important for hitting indexes in an ORDER BY.
         arg_typeref = ir_arg.expr.typeref
         make_subquery = (
             expr.prefer_subquery_args
