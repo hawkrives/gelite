@@ -9,6 +9,13 @@ on:
       - '**'
   workflow_dispatch:
 
+# Only ever reads the repository: no comments, no pushes, no releases.
+# Artifact upload and download inside a run use the job token rather than
+# this scope. update-test-timings.yml is the one that needs write, and
+# declares it separately.
+permissions:
+  contents: read
+
 # A 16-shard matrix per push is expensive enough that superseded runs
 # starve the current head of runners. Cancel the older run for a ref when
 # a new one starts, but only for pull requests: pushes to master are what
