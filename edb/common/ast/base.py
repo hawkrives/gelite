@@ -30,7 +30,7 @@ from typing import (
     cast,
     get_type_hints,
     TYPE_CHECKING,
-    AbstractSet  # NoQA
+    AbstractSet,  # NoQA
 )
 
 from edb.common import debug
@@ -162,11 +162,13 @@ class AST:
         except Exception:
             raise RuntimeError(
                 f'unable to resolve type annotations for '
-                f'{cls.__module__}.{cls.__qualname__}')
+                f'{cls.__module__}.{cls.__qualname__}'
+            )
 
         if annos:
-            annos = {k: v for k, v in annos.items()
-                     if k in dct['__annotations__']}
+            annos = {
+                k: v for k, v in annos.items() if k in dct['__annotations__']
+            }
 
             hidden = ()
             if '__ast_hidden__' in dct:
@@ -194,9 +196,9 @@ class AST:
                 f_hidden = f_name in hidden
                 f_meta = f_name in meta
 
-                fields.append(_Field(
-                    f_name, f_type, f_default, factory, f_hidden, f_meta
-                ))
+                fields.append(
+                    _Field(f_name, f_type, f_default, factory, f_hidden, f_meta)
+                )
 
             cls._direct_fields = fields
 
@@ -216,7 +218,8 @@ class AST:
 
         cls._fields = fields
         cls._field_factories = tuple(
-            (k, v.factory) for k, v in fields.items()
+            (k, v.factory)
+            for k, v in fields.items()
             if v.factory and not isinstance(getattr(cls, k, None), property)
         )
 
@@ -238,7 +241,8 @@ class AST:
         if type(self).__abstract_node__:
             raise ASTError(
                 f'cannot instantiate abstract AST node '
-                f'{self.__class__.__name__!r}')
+                f'{self.__class__.__name__!r}'
+            )
 
         # Make kwargs directly into our __dict__
         for field_name, factory in self._field_factories:
@@ -291,9 +295,15 @@ class AST:
     def check_field_type(self, field, value):
         def raise_error(field_type_name, value):
             raise TypeError(
-                '%s.%s.%s: expected %s but got %s' % (
-                    self.__class__.__module__, self.__class__.__name__,
-                    field.name, field_type_name, value.__class__.__name__))
+                '%s.%s.%s: expected %s but got %s'
+                % (
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                    field.name,
+                    field_type_name,
+                    value.__class__.__name__,
+                )
+            )
 
         _check_type(field.type, value, raise_error)
 
@@ -334,7 +344,8 @@ def serialize_to_markup(ast, *, ctx):
             node.add_child(label='span', node=markup.serialize(str(s), ctx=ctx))
 
     fields = iter_fields(
-        ast, include_meta=include_meta, exclude_unset=exclude_unset)
+        ast, include_meta=include_meta, exclude_unset=exclude_unset
+    )
     for fieldname, field in fields:
         if ast._fields[fieldname].hidden:
             continue
@@ -377,8 +388,9 @@ def iter_fields(node, *, include_meta=True, exclude_unset=False):
 
 
 def _is_optional(type_):
-    return (typing_inspect.is_union_type(type_) and
-            type(None) in typing_inspect.get_args(type_, evaluate=True))
+    return typing_inspect.is_union_type(type_) and type(
+        None
+    ) in typing_inspect.get_args(type_, evaluate=True)
 
 
 def _check_container_type(type_, value, raise_error, instance_type):

@@ -25,7 +25,6 @@ from . import objects as so
 
 
 class BaseSchemaVersion(so.Object):
-
     version = so.SchemaField(uuid.UUID)
 
 

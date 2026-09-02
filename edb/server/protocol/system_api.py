@@ -139,7 +139,7 @@ async def _ping(
             ping_compiler = tg.create_task(
                 tenant.server.get_compiler_pool().health_check()
             )
-    except *TimeoutError:
+    except* TimeoutError:
         if isinstance(ping_backend.exception(), TimeoutError):
             who = "the backend"
         else:

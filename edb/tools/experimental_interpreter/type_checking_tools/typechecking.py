@@ -26,7 +26,6 @@ def synthesize_type_for_val(val: e.Val) -> e.Tp:
 def check_shape_transform(
     ctx: e.TcCtx, s: e.ShapeExpr, tp: e.Tp
 ) -> tuple[e.Tp, e.ShapeExpr]:
-
     result_s_tp = e.ObjectTp({})
     result_l_tp = e.ObjectTp({})
     result_expr = e.ShapeExpr({})
@@ -101,9 +100,9 @@ def check_filter_body_is_exclusive(ctx: e.TcCtx, filter_ck: e.Expr) -> bool:
                                     ctx.schema, name
                                 )
                             case e.NamedNominalLinkTp(name=name, linkprop=_):
-                                assert isinstance(
-                                    name, e.QualifiedName
-                                ), "should have been resolved"
+                                assert isinstance(name, e.QualifiedName), (
+                                    "should have been resolved"
+                                )
                                 type_def = mops.resolve_type_def(
                                     ctx.schema, name
                                 )
@@ -161,9 +160,9 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
             module_entity = mops.try_resolve_module_entity(ctx, expr)
             match module_entity:
                 case e.ModuleEntityTypeDef(typedef=typedef):
-                    assert isinstance(
-                        typedef, e.ObjectTp
-                    ), "Cannot select Scalar type"
+                    assert isinstance(typedef, e.ObjectTp), (
+                        "Cannot select Scalar type"
+                    )
                     result_tp = e.NominalLinkTp(
                         subject=typedef, name=expr, linkprop=e.ObjectTp({})
                     )
@@ -178,9 +177,7 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
                     )
                     result_card = e.CardAny
                 case _:
-                    raise ValueError(
-                        "Unsupported Module Entity", module_entity
-                    )
+                    raise ValueError("Unsupported Module Entity", module_entity)
 
         case e.TypeCastExpr(tp=tp, arg=arg):
             tp_ck = check_type_valid(ctx, tp)
@@ -313,7 +310,8 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
             else:
                 assert isinstance(intersect_tp, e.RawName)  # type: ignore
                 intersect_tp_name, _ = mops.resolve_raw_name_and_type_def(
-                    ctx, intersect_tp  # type: ignore
+                    ctx,
+                    intersect_tp,  # type: ignore
                 )
             (subject_tp, subject_ck) = synthesize_type(ctx, subject)
             result_expr = e.IsTpExpr(subject_ck, intersect_tp_name)
@@ -324,7 +322,8 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
                 intersect_tp = intersect_tp.name
             assert isinstance(intersect_tp, e.RawName)  # type: ignore
             intersect_tp_name, _ = mops.resolve_raw_name_and_type_def(
-                ctx, intersect_tp  # type: ignore
+                ctx,
+                intersect_tp,  # type: ignore
             )
             (subject_tp, subject_ck) = synthesize_type(ctx, subject)
             result_expr = e.TpIntersectExpr(subject_ck, intersect_tp_name)
@@ -388,23 +387,19 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
 
             order_ck: dict[str, e.BindingExpr] = {}
             for order_label, o in order.items():
-                order_ctx, order_body, order_bound_var = (
-                    eops.tcctx_add_binding(
-                        ctx, o, e.ResultTp(subject_tp.tp, e.CardOne)
-                    )
+                order_ctx, order_body, order_bound_var = eops.tcctx_add_binding(
+                    ctx, o, e.ResultTp(subject_tp.tp, e.CardOne)
                 )
                 (_, o_ck) = synthesize_type(order_ctx, order_body)
                 order_ck = {
                     **order_ck,
-                    order_label: eops.abstract_over_expr(
-                        o_ck, order_bound_var
-                    ),
+                    order_label: eops.abstract_over_expr(o_ck, order_bound_var),
                 }
 
             assert eops.is_effect_free(filter), "Expecting effect-free filter"
-            assert all(
-                eops.is_effect_free(o) for o in order.values()
-            ), "Expecting effect-free order"
+            assert all(eops.is_effect_free(o) for o in order.values()), (
+                "Expecting effect-free order"
+            )
 
             (_, filter_ck) = check_type_no_card(
                 filter_ctx, filter_body, e.BoolTp()
@@ -464,9 +459,9 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
             result_tp, result_card = subject_tp
         case e.DeleteExpr(subject=subject):
             (subject_tp, subject_ck) = synthesize_type(ctx, subject)
-            assert eops.is_effect_free(
-                subject
-            ), "Expecting subject expr to be effect-free"
+            assert eops.is_effect_free(subject), (
+                "Expecting subject expr to be effect-free"
+            )
             result_expr = e.DeleteExpr(subject_ck)
             result_tp, result_card = subject_tp
         case e.IfElseExpr(
@@ -555,9 +550,7 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
             # TODO: change to use unions
             result_expr = e.ArrExpr([first_ck] + list(rest_cks))
             result_tp = e.ArrTp(first_tp.tp)
-            result_card = reduce(
-                operator.mul, rest_card, first_tp.mode
-            )  # type: ignore[arg-type]
+            result_card = reduce(operator.mul, rest_card, first_tp.mode)  # type: ignore[arg-type]
         case e.MultiSetExpr(expr=arr):
             if len(arr) == 0:
                 raise ValueError(
@@ -577,9 +570,7 @@ def synthesize_type(ctx: e.TcCtx, expr: e.Expr) -> tuple[e.ResultTp, e.Expr]:
                 result_tp = reduce(
                     tops.construct_tp_union, rest_tps, first_tp.tp
                 )
-                result_card = reduce(
-                    operator.add, rest_cards, first_tp.mode
-                )  # type: ignore[arg-type]
+                result_card = reduce(operator.add, rest_cards, first_tp.mode)  # type: ignore[arg-type]
         case _:
             raise ValueError("Not Implemented", expr)
 

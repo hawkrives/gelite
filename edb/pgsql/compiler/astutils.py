@@ -19,7 +19,6 @@
 
 """Context-agnostic SQL AST utilities."""
 
-
 from __future__ import annotations
 
 from typing import Optional, Iterator, Sequence, TYPE_CHECKING
@@ -38,9 +37,9 @@ if TYPE_CHECKING:
 
 def tuple_element_for_shape_el(
     shape_el: irast.Set,
-    value: Optional[pgast.BaseExpr]=None,
+    value: Optional[pgast.BaseExpr] = None,
     *,
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> pgast.TupleElementBase:
     from edb.ir import ast as irast
 
@@ -71,7 +70,6 @@ def tuple_getattr(
     tuple_typeref: irast.TypeRef,
     attr: str,
 ) -> pgast.BaseExpr:
-
     ttypes = []
     pgtypes = []
     for i, st in enumerate(tuple_typeref.subtypes):
@@ -113,17 +111,14 @@ def tuple_getattr(
                             ],
                             coldeflist=[
                                 pgast.ColumnDef(
-                                    name=str(i),
-                                    typename=pgast.TypeName(
-                                        name=t
-                                    )
+                                    name=str(i), typename=pgast.TypeName(name=t)
                                 )
                                 for i, t in enumerate(pgtypes)
-                            ]
+                            ],
                         )
                     ]
                 )
-            ]
+            ],
         )
 
     return set_expr
@@ -208,14 +203,16 @@ def array_get_inner_array(
                             pgast.ColumnDef(
                                 name='0',
                                 typename=pgast.TypeName(
-                                    name=pg_types.pg_type_from_ir_typeref(array_typeref)
-                                )
+                                    name=pg_types.pg_type_from_ir_typeref(
+                                        array_typeref
+                                    )
+                                ),
                             )
-                        ]
+                        ],
                     )
                 ]
             )
-        ]
+        ],
     )
 
 
@@ -226,10 +223,7 @@ def is_null_const(expr: pgast.BaseExpr) -> bool:
 
 
 def is_set_op_query(query: pgast.BaseExpr) -> TypeGuard[pgast.SelectStmt]:
-    return (
-        isinstance(query, pgast.SelectStmt)
-        and query.op is not None
-    )
+    return isinstance(query, pgast.SelectStmt) and query.op is not None
 
 
 def get_leftmost_query(query: pgast.Query) -> pgast.Query:
@@ -273,11 +267,7 @@ def new_binop(
     rexpr: pgast.BaseExpr,
     op: str,
 ) -> pgast.Expr:
-    return pgast.Expr(
-        name=op,
-        lexpr=lexpr,
-        rexpr=rexpr
-    )
+    return pgast.Expr(name=op, lexpr=lexpr, rexpr=rexpr)
 
 
 def extend_binop(
@@ -403,7 +393,6 @@ def get_column(
     is_packed_multi: bool = True,
     nullable: Optional[bool] = None,
 ) -> pgast.ColumnRef:
-
     if isinstance(colspec, pgast.ColumnRef):
         colname = colspec.name[-1]
     else:
@@ -447,19 +436,22 @@ def get_column(
 
         elif isinstance(rvar, pgast.JoinExpr):
             raise RuntimeError(
-                f'cannot find {colname!r} in unexpected {rvar!r} range var')
+                f'cannot find {colname!r} in unexpected {rvar!r} range var'
+            )
 
     name = [rvar.alias.aliasname, colname]
 
     return pgast.ColumnRef(
-        name=name, nullable=nullable, ser_safe=ser_safe,
-        is_packed_multi=is_packed_multi)
+        name=name,
+        nullable=nullable,
+        ser_safe=ser_safe,
+        is_packed_multi=is_packed_multi,
+    )
 
 
 def get_rvar_var(
     rvar: pgast.BaseRangeVar, var: pgast.OutputVar
 ) -> pgast.OutputVar:
-
     fieldref: pgast.OutputVar
 
     if isinstance(var, pgast.TupleVarBase):
@@ -469,8 +461,8 @@ def get_rvar_var(
             assert isinstance(el.name, pgast.OutputVar)
             val = get_rvar_var(rvar, el.name)
             elements.append(
-                pgast.TupleElement(
-                    path_id=el.path_id, name=el.name, val=val))
+                pgast.TupleElement(path_id=el.path_id, name=el.name, val=val)
+            )
 
         fieldref = pgast.TupleVar(
             elements,
@@ -497,7 +489,6 @@ def strip_output_var(
     optional: Optional[bool] = None,
     nullable: Optional[bool] = None,
 ) -> pgast.OutputVar:
-
     result: pgast.OutputVar
 
     if isinstance(var, pgast.TupleVarBase):
@@ -513,11 +504,12 @@ def strip_output_var(
                 val = strip_output_var(el_name)
             else:
                 raise AssertionError(
-                    f'unexpected tuple element class: {el_name!r}')
+                    f'unexpected tuple element class: {el_name!r}'
+                )
 
             elements.append(
-                pgast.TupleElement(
-                    path_id=el.path_id, name=el_name, val=val))
+                pgast.TupleElement(path_id=el.path_id, name=el_name, val=val)
+            )
 
         result = pgast.TupleVar(
             elements,
@@ -577,12 +569,10 @@ def _get_target_from_range(
     """
     if (
         not isinstance(rvar, pgast.RangeSubselect)
-
         # Check that the relation name matches the rvar
         or not isinstance(target, pgast.ColumnRef)
         or not target.name
         or target.name[0] != rvar.alias.aliasname
-
         # And that the rvar is a simple subquery with one target
         # and at most one from clause
         or not (subq := rvar.subquery)
@@ -590,7 +580,6 @@ def _get_target_from_range(
         or not isinstance(subq, pgast.SelectStmt)
         or not select_is_simple(subq)
         or len(subq.from_clause) > 1
-
         # And that the one target matches
         or not (inner_tgt := rvar.subquery.target_list[0])
         or inner_tgt.name != target.name[1]
@@ -628,8 +617,7 @@ def collapse_query(query: pgast.Query) -> pgast.BaseExpr:
     ):
         return query
 
-    val = _get_target_from_range(
-        query.target_list[0].val, query.from_clause[0])
+    val = _get_target_from_range(query.target_list[0].val, query.from_clause[0])
     if val:
         return val
     else:
@@ -642,9 +630,7 @@ def compile_typeref(expr: irast.TypeRef) -> pgast.BaseExpr:
     else:
         result = pgast.TypeCast(
             arg=pgast.StringConstant(val=str(expr.id)),
-            type_name=pgast.TypeName(
-                name=('uuid',)
-            )
+            type_name=pgast.TypeName(name=('uuid',)),
         )
 
     return result
@@ -661,9 +647,7 @@ def maybe_unpack_row(expr: pgast.Base) -> Sequence[pgast.BaseExpr]:
 
 
 def edgedb_func(
-    name: str,
-    *,
-    ctx: context.CompilerContextLevel
+    name: str, *, ctx: context.CompilerContextLevel
 ) -> tuple[str, ...]:
     return common.maybe_versioned_name(
         ('edgedb', name),

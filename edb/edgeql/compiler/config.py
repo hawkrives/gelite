@@ -19,7 +19,6 @@
 
 """CONFIGURE statement compilation functions."""
 
-
 from __future__ import annotations
 from typing import Optional, NamedTuple
 
@@ -72,13 +71,13 @@ def compile_ConfigSet(
     *,
     ctx: context.ContextLevel,
 ) -> irast.Set:
-
     info = _validate_op(expr, ctx=ctx)
     param_val = dispatch.compile(expr.expr, ctx=ctx)
     param_type = info.param_type
     val_type = setgen.get_set_type(param_val, ctx=ctx)
     compatible = s_types.is_type_compatible(
-        val_type, param_type, schema=ctx.env.schema)
+        val_type, param_type, schema=ctx.env.schema
+    )
     if not compatible:
         if not val_type.assignment_castable_to(param_type, ctx.env.schema):
             raise errors.ConfigurationError(
@@ -88,18 +87,20 @@ def compile_ConfigSet(
             )
         else:
             param_val = casts.compile_cast(
-                param_val, param_type, span=None, ctx=ctx)
+                param_val, param_type, span=None, ctx=ctx
+            )
 
     try:
         if expr.scope != qltypes.ConfigScope.GLOBAL:
             val = ireval.evaluate_to_python_val(
-                param_val, schema=ctx.env.schema)
+                param_val, schema=ctx.env.schema
+            )
         else:
             val = None
     except ireval.UnsupportedExpressionError as e:
         raise errors.QueryError(
             f'non-constant expression in CONFIGURE {expr.scope} SET',
-            span=expr.expr.span
+            span=expr.expr.span,
         ) from e
     else:
         if isinstance(val, statypes.ScalarType) and info.backend_setting:
@@ -112,7 +113,8 @@ def compile_ConfigSet(
 
     if info.ptr:
         _enforce_pointer_constraints(
-            info.ptr, param_val, ctx=ctx, for_obj=False)
+            info.ptr, param_val, ctx=ctx, for_obj=False
+        )
 
     config_set = irast.ConfigSet(
         name=info.param_name,
@@ -135,7 +137,6 @@ def compile_ConfigReset(
     *,
     ctx: context.ContextLevel,
 ) -> irast.Set:
-
     info = _validate_op(expr, ctx=ctx)
     filter_expr = expr.where
     select_ir = None
@@ -156,7 +157,8 @@ def compile_ConfigReset(
         body = qlast.Shape(
             expr=qlast.Path(steps=[param_type_ref]),
             elements=s_utils.get_config_type_shape(
-                ctx.env.schema, info.param_type, path=[param_type_ref]),
+                ctx.env.schema, info.param_type, path=[param_type_ref]
+            ),
         )
         # The body needs to have access to secrets, since they get put
         # into the shape and are necessary for compiling the deletion
@@ -176,7 +178,8 @@ def compile_ConfigReset(
             sctx.modaliases = ctx.modaliases.copy()
             sctx.modaliases[None] = 'cfg'
             select_ir = setgen.ensure_set(
-                dispatch.compile(select, ctx=sctx), ctx=sctx)
+                dispatch.compile(select, ctx=sctx), ctx=sctx
+            )
 
     config_reset = irast.ConfigReset(
         name=info.param_name,
@@ -195,11 +198,11 @@ def compile_ConfigReset(
 def compile_ConfigInsert(
     expr: qlast.ConfigInsert, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     info = _validate_op(expr, ctx=ctx)
 
     if expr.scope not in (
-        qltypes.ConfigScope.INSTANCE, qltypes.ConfigScope.DATABASE
+        qltypes.ConfigScope.INSTANCE,
+        qltypes.ConfigScope.DATABASE,
     ):
         raise errors.UnsupportedFeatureError(
             f'CONFIGURE {expr.scope} INSERT is not supported'
@@ -243,7 +246,6 @@ def compile_ConfigInsert(
 def _inject_tname(
     insert_stmt: qlast.InsertQuery, *, ctx: context.ContextLevel
 ) -> None:
-
     for el in insert_stmt.shape:
         if isinstance(el.compexpr, qlast.InsertQuery):
             _inject_tname(el.compexpr, ctx=ctx)
@@ -271,7 +273,6 @@ def _inject_tname(
 def _validate_config_object(
     expr: irast.Set, *, scope: str, ctx: context.ContextLevel
 ) -> None:
-
     for element, _ in expr.shape:
         assert isinstance(element.expr, irast.Pointer)
         if element.expr.ptrref.shortname.name == 'id':
@@ -282,11 +283,11 @@ def _validate_config_object(
             ctx=ctx,
         )
         if isinstance(ptr, s_pointers.Pointer):
-            _enforce_pointer_constraints(
-                ptr, element, ctx=ctx, for_obj=True)
+            _enforce_pointer_constraints(ptr, element, ctx=ctx, for_obj=True)
 
-        if (irtyputils.is_object(element.typeref)
-                and isinstance(element.expr, irast.InsertStmt)):
+        if irtyputils.is_object(element.typeref) and isinstance(
+            element.expr, irast.InsertStmt
+        ):
             _validate_config_object(element, scope=scope, ctx=ctx)
 
 
@@ -295,15 +296,15 @@ def _validate_global_op(
 ) -> SettingInfo:
     glob_name = s_utils.ast_ref_to_name(expr.name)
     glob = ctx.env.get_schema_object_and_track(
-        glob_name, expr.name,
-        modaliases=ctx.modaliases, type=s_globals.Global)
+        glob_name, expr.name, modaliases=ctx.modaliases, type=s_globals.Global
+    )
     assert isinstance(glob, s_globals.Global)
 
     fullname = glob.get_name(ctx.env.schema)
     if sn.UnqualName(fullname.module) in s_schema.STD_MODULES:
         raise errors.ConfigurationError(
             f"system global '{glob_name}' may not be explicitly specified",
-            span=expr.name.span
+            span=expr.name.span,
         )
 
     if isinstance(expr, (qlast.ConfigSet, qlast.ConfigReset)):
@@ -311,20 +312,22 @@ def _validate_global_op(
             raise errors.ConfigurationError(
                 f"global '{glob_name}' is computed from an expression and "
                 f"cannot be modified",
-                span=expr.name.span
+                span=expr.name.span,
             )
 
     param_type = glob.get_target(ctx.env.schema)
 
-    return SettingInfo(param_name=str(glob.get_name(ctx.env.schema)),
-                       param_type=param_type,
-                       cardinality=glob.get_cardinality(ctx.env.schema),
-                       required=glob.get_required(ctx.env.schema),
-                       requires_restart=False,
-                       backend_setting=None,
-                       is_system_config=False,
-                       affects_compilation=False,
-                       ptr=None)
+    return SettingInfo(
+        param_name=str(glob.get_name(ctx.env.schema)),
+        param_type=param_type,
+        cardinality=glob.get_cardinality(ctx.env.schema),
+        required=glob.get_required(ctx.env.schema),
+        requires_restart=False,
+        backend_setting=None,
+        is_system_config=False,
+        affects_compilation=False,
+        ptr=None,
+    )
 
 
 def _enforce_pointer_constraints(
@@ -347,8 +350,8 @@ def _enforce_pointer_constraints(
             sctx.anchors = ctx.anchors.copy()
             sctx.anchors['__subject__'] = expr
 
-            final_expr: Optional[s_expr.Expression] = (
-                constraint.get_finalexpr(ctx.env.schema)
+            final_expr: Optional[s_expr.Expression] = constraint.get_finalexpr(
+                ctx.env.schema
             )
             assert final_expr is not None and final_expr.parse() is not None
             ir = dispatch.compile(final_expr.parse(), ctx=sctx)
@@ -360,15 +363,12 @@ def _enforce_pointer_constraints(
                 name = ptr.get_verbosename(ctx.env.schema, with_parent=True)
             else:
                 name = repr(ptr.get_shortname(ctx.env.schema).name)
-            raise errors.ConfigurationError(
-                f'invalid setting value for {name}'
-            )
+            raise errors.ConfigurationError(f'invalid setting value for {name}')
 
 
 def _validate_op(
     expr: qlast.ConfigOp, *, ctx: context.ContextLevel
 ) -> SettingInfo:
-
     if expr.scope == qltypes.ConfigScope.GLOBAL:
         return _validate_global_op(expr, ctx=ctx)
 
@@ -377,13 +377,16 @@ def _validate_op(
     if expr.name.module:
         cfg_host_name = sn.name_from_string(expr.name.module)
         cfg_host_type = ctx.env.get_schema_type_and_track(
-            cfg_host_name, default=None)
+            cfg_host_name, default=None
+        )
         is_ext_config = bool(cfg_host_type)
 
     abstract_config = ctx.env.get_schema_type_and_track(
-        sn.QualName('cfg', 'AbstractConfig'))
+        sn.QualName('cfg', 'AbstractConfig')
+    )
     ext_config = ctx.env.get_schema_type_and_track(
-        sn.QualName('cfg', 'ExtensionConfig'))
+        sn.QualName('cfg', 'ExtensionConfig')
+    )
 
     if not cfg_host_type:
         cfg_host_type = abstract_config
@@ -411,30 +414,32 @@ def _validate_op(
     if cfg_type is None:
         if isinstance(expr, qlast.ConfigSet):
             raise errors.ConfigurationError(
-                f'unrecognized configuration parameter {name!r}',
-                span=expr.span
+                f'unrecognized configuration parameter {name!r}', span=expr.span
             )
 
         cfg_type = ctx.env.get_schema_type_and_track(
-            s_utils.ast_ref_to_name(expr.name), default=None)
+            s_utils.ast_ref_to_name(expr.name), default=None
+        )
         if not cfg_type and not expr.name.module:
             # expr.name is the name of the configuration type
             cfg_type = ctx.env.get_schema_type_and_track(
-                sn.QualName('cfg', name), default=None)
+                sn.QualName('cfg', name), default=None
+            )
         if not cfg_type:
             raise errors.ConfigurationError(
-                f'unrecognized configuration object {name!r}',
-                span=expr.span
+                f'unrecognized configuration object {name!r}', span=expr.span
             )
 
         assert isinstance(cfg_type, s_objtypes.ObjectType)
         ptr_candidate: Optional[s_pointers.Pointer] = None
 
         mro = [cfg_type] + list(
-            cfg_type.get_ancestors(ctx.env.schema).objects(ctx.env.schema))
+            cfg_type.get_ancestors(ctx.env.schema).objects(ctx.env.schema)
+        )
         for ct in mro:
             ptrs = ctx.env.schema.get_referrers(
-                ct, scls_type=s_links.Link, field_name='target')
+                ct, scls_type=s_links.Link, field_name='target'
+            )
 
             if ptrs:
                 pointer_link = next(iter(ptrs))
@@ -446,7 +451,8 @@ def _validate_op(
             ptr_candidate is None
             or (ptr_source := ptr_candidate.get_source(ctx.env.schema)) is None
             or not ptr_source.issubclass(
-                ctx.env.schema, (abstract_config, ext_config))
+                ctx.env.schema, (abstract_config, ext_config)
+            )
         ):
             raise errors.ConfigurationError(
                 f'{name!r} cannot be configured directly'
@@ -461,18 +467,19 @@ def _validate_op(
     assert isinstance(ptr, s_pointers.Pointer)
 
     sys_attr = ptr.get_annotations(ctx.env.schema).get(
-        ctx.env.schema, sn.QualName('cfg', 'system'), None)
+        ctx.env.schema, sn.QualName('cfg', 'system'), None
+    )
 
     system = (
-        sys_attr is not None
-        and sys_attr.get_value(ctx.env.schema) == 'true'
+        sys_attr is not None and sys_attr.get_value(ctx.env.schema) == 'true'
     )
 
     cardinality = ptr.get_cardinality(ctx.env.schema)
     assert cardinality is not None
 
     restart_attr = ptr.get_annotations(ctx.env.schema).get(
-        ctx.env.schema, sn.QualName('cfg', 'requires_restart'), None)
+        ctx.env.schema, sn.QualName('cfg', 'requires_restart'), None
+    )
 
     requires_restart = (
         restart_attr is not None
@@ -480,7 +487,8 @@ def _validate_op(
     )
 
     backend_attr = ptr.get_annotations(ctx.env.schema).get(
-        ctx.env.schema, sn.QualName('cfg', 'backend_setting'), None)
+        ctx.env.schema, sn.QualName('cfg', 'backend_setting'), None
+    )
 
     if backend_attr is not None:
         backend_setting = json.loads(backend_attr.get_value(ctx.env.schema))
@@ -488,7 +496,8 @@ def _validate_op(
         backend_setting = None
 
     system_attr = ptr.get_annotations(ctx.env.schema).get(
-        ctx.env.schema, sn.QualName('cfg', 'system'), None)
+        ctx.env.schema, sn.QualName('cfg', 'system'), None
+    )
 
     is_system_config = (
         system_attr is not None
@@ -496,25 +505,30 @@ def _validate_op(
     )
 
     compilation_attr = ptr.get_annotations(ctx.env.schema).get(
-        ctx.env.schema, sn.QualName('cfg', 'affects_compilation'), None)
+        ctx.env.schema, sn.QualName('cfg', 'affects_compilation'), None
+    )
 
     if compilation_attr is not None:
-        affects_compilation = (
-            json.loads(compilation_attr.get_value(ctx.env.schema)))
+        affects_compilation = json.loads(
+            compilation_attr.get_value(ctx.env.schema)
+        )
     else:
         affects_compilation = False
 
     if system and expr.scope is not qltypes.ConfigScope.INSTANCE:
         raise errors.ConfigurationError(
             f'{name!r} is a system-level configuration parameter; '
-            f'use "CONFIGURE INSTANCE"')
+            f'use "CONFIGURE INSTANCE"'
+        )
 
-    return SettingInfo(param_name=fullname,
-                       param_type=cfg_type,
-                       cardinality=cardinality,
-                       required=False,
-                       requires_restart=requires_restart,
-                       backend_setting=backend_setting,
-                       is_system_config=is_system_config,
-                       affects_compilation=affects_compilation,
-                       ptr=ptr)
+    return SettingInfo(
+        param_name=fullname,
+        param_type=cfg_type,
+        cardinality=cardinality,
+        required=False,
+        requires_restart=requires_restart,
+        backend_setting=backend_setting,
+        is_system_config=is_system_config,
+        affects_compilation=affects_compilation,
+        ptr=ptr,
+    )

@@ -30,7 +30,6 @@ functions as opposed to using 'print' built-in directly.  This gives us
 flexibility to redirect debug output if needed.
 """
 
-
 from __future__ import annotations
 
 import builtins
@@ -64,109 +63,116 @@ class FlagsMeta(type):
 
 
 class Flag:
-    def __init__(self, *, doc: str, default: bool=False):
+    def __init__(self, *, doc: str, default: bool = False):
         self.name = None
         self.doc = doc
         self.default = default
 
 
 class flags(metaclass=FlagsMeta):
-    pgsql_parser = Flag(
-        doc="Debug SQL parser.")
+    pgsql_parser = Flag(doc="Debug SQL parser.")
 
-    bootstrap = Flag(
-        doc="Debug server catalog bootstrap.")
+    bootstrap = Flag(doc="Debug server catalog bootstrap.")
 
     bootstrap_cache_yolo = Flag(
-        doc="Disable bootstrap cache consistency check.")
+        doc="Disable bootstrap cache consistency check."
+    )
 
-    edgeql_parser = Flag(
-        doc="Debug EdgeQL parser (rebuild grammar verbosly).")
+    edgeql_parser = Flag(doc="Debug EdgeQL parser (rebuild grammar verbosly).")
 
-    edgeql_compile = Flag(
-        doc="Dump EdgeQL/IR/SQL ASTs.")
+    edgeql_compile = Flag(doc="Dump EdgeQL/IR/SQL ASTs.")
 
     edgeql_compile_edgeql_text = Flag(
-        doc="Dump EdgeQL Text (subset of `edgeql_compile').")
+        doc="Dump EdgeQL Text (subset of `edgeql_compile')."
+    )
 
     edgeql_compile_edgeql_ast = Flag(
-        doc="Dump EdgeQL AST (subset of `edgeql_compile').")
+        doc="Dump EdgeQL AST (subset of `edgeql_compile')."
+    )
 
     edgeql_compile_scope = Flag(
-        doc="Dump EdgeQL scope tree (subset of `edgeql_compile').")
+        doc="Dump EdgeQL scope tree (subset of `edgeql_compile')."
+    )
 
-    edgeql_compile_ir = Flag(
-        doc="Dump EdgeQL IR (subset of `edgeql_compile').")
+    edgeql_compile_ir = Flag(doc="Dump EdgeQL IR (subset of `edgeql_compile').")
 
     edgeql_compile_sql_ast = Flag(
-        doc="Dump generated SQL AST (subset of `edgeql_compile').")
+        doc="Dump generated SQL AST (subset of `edgeql_compile')."
+    )
 
     edgeql_compile_sql_ast_meta = Flag(
-        doc="Whether to include the metadata fields when dumping the SQL AST.")
+        doc="Whether to include the metadata fields when dumping the SQL AST."
+    )
 
     edgeql_compile_sql_text = Flag(
-        doc="Dump generated SQL text (subset of `edgeql_compile').")
+        doc="Dump generated SQL text (subset of `edgeql_compile')."
+    )
 
     edgeql_compile_sql_reordered_text = Flag(
-        doc="Dump generated SQL-like text that might better reflect scoping.")
+        doc="Dump generated SQL-like text that might better reflect scoping."
+    )
 
-    edgeql_explain = Flag(
-        doc="Dump extra debug info when doing EXPLAIN")
+    edgeql_explain = Flag(doc="Dump extra debug info when doing EXPLAIN")
 
     edgeql_disable_normalization = Flag(
-        doc="Disable EdgeQL normalization (constant extraction etc)")
+        doc="Disable EdgeQL normalization (constant extraction etc)"
+    )
 
-    sdl_loading = Flag(
-        doc="Print applied DDL when loading SDL.")
+    sdl_loading = Flag(doc="Print applied DDL when loading SDL.")
 
     delta_plan = Flag(
-        doc="Print expanded delta command tree prior to processing.")
+        doc="Print expanded delta command tree prior to processing."
+    )
 
     delta_pgsql_plan = Flag(
-        doc="Print delta command tree annortated with DB ops.")
+        doc="Print delta command tree annortated with DB ops."
+    )
 
     delta_execute = Flag(
-        doc="Output SQL commands as executed during migration.")
+        doc="Output SQL commands as executed during migration."
+    )
 
     delta_execute_ddl = Flag(
-        doc="Output just the DDL commands as executed during migration.")
+        doc="Output just the DDL commands as executed during migration."
+    )
 
     delta_validate_reflection = Flag(
-        doc="Whether to do expensive validation of reflection correctness.")
+        doc="Whether to do expensive validation of reflection correctness."
+    )
 
-    server = Flag(
-        doc="Print server errors.")
+    server = Flag(doc="Print server errors.")
 
-    server_proto = Flag(
-        doc="Print server protocol querying messages.")
+    server_proto = Flag(doc="Print server protocol querying messages.")
 
     server_clobber_pg_conns = Flag(
-        doc="Discard Postgres connections when releasing them to the pool.")
+        doc="Discard Postgres connections when releasing them to the pool."
+    )
 
     edgeql_text_in_sql = Flag(
-        doc="Include the EdgeQL query text in the SQL sent to Postgres.")
+        doc="Include the EdgeQL query text in the SQL sent to Postgres."
+    )
 
-    print_locals = Flag(
-        doc="Include values of local variables in tracebacks.")
+    print_locals = Flag(doc="Include values of local variables in tracebacks.")
 
     disable_qcache = Flag(
-        doc="Disable server query cache. Parse/Execute will always recompile.")
+        doc="Disable server query cache. Parse/Execute will always recompile."
+    )
 
-    typecheck = Flag(
-        doc="Perform runtime type checking.")
+    typecheck = Flag(doc="Perform runtime type checking.")
 
-    pgserver = Flag(
-        doc="Show PostgreSQL server logs and log all statements.")
+    pgserver = Flag(doc="Show PostgreSQL server logs and log all statements.")
 
     log_metrics = Flag(
-        doc="Log verbose statistics on connections and compiler behavior.")
+        doc="Log verbose statistics on connections and compiler behavior."
+    )
 
     disable_docs_edgeql_validation = Flag(
-        doc="Disable validation of edgeql in docs (for site build)")
+        doc="Disable validation of edgeql in docs (for site build)"
+    )
 
     pydebug_listen = Flag(
         doc="Enable listening for Debug Adapter Protocol connections. "
-            "Requires pydebug to be installed."
+        "Requires pydebug to be installed."
     )
 
     sql_input = Flag(
@@ -175,7 +181,7 @@ class flags(metaclass=FlagsMeta):
 
     sql_output = Flag(
         doc="Enable logging of SQL requests, compiled to the internal SQL"
-            "(pg compiler output)."
+        "(pg compiler output)."
     )
 
     sql_text_in_sql = Flag(
@@ -204,21 +210,25 @@ def header(*args):
 
 def dump(*args, **kwargs):
     from . import markup as _markup
+
     _markup.dump(*args, **kwargs)
 
 
 def dumps(*args, **kwargs):
     from . import markup as _markup
+
     return _markup.dumps(*args, **kwargs)
 
 
 def dump_code(*args, **kwargs):
     from . import markup as _markup
+
     _markup.dump_code(*args, **kwargs)
 
 
 def dump_sql(sql, *args, **kwargs):
     import edb.pgsql.codegen
+
     dump_code(
         edb.pgsql.codegen.generate_source(sql, *args, **kwargs), lexer='SQL'
     )
@@ -226,6 +236,7 @@ def dump_sql(sql, *args, **kwargs):
 
 def dump_edgeql(eql, *args, **kwargs):
     import edb.edgeql.codegen
+
     dump_code(edb.edgeql.codegen.generate_source(eql, *args, **kwargs))
 
 
@@ -239,9 +250,11 @@ def set_trace(**kwargs):
     so try running the server wrapped with `rlwrap.`
     """
     from pdb import Pdb
+
     new_stdin = open("/dev/tty", "r")
     Pdb(stdin=new_stdin, stdout=sys.stdout).set_trace(
-        sys._getframe().f_back, **kwargs)
+        sys._getframe().f_back, **kwargs
+    )
 
 
 def print(*args):
@@ -255,7 +268,7 @@ def init_debug_flags():
         if not env_name.startswith(prefix):
             continue
 
-        name = env_name[len(prefix):].lower()
+        name = env_name[len(prefix) :].lower()
         if not hasattr(flags, name):
             warnings.warn(f'Unknown debug flag: {env_name!r}', stacklevel=2)
             continue

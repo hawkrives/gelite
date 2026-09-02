@@ -63,9 +63,7 @@ class TestSession(tb.QueryTestCase):
             """
                 SELECT User {name};
             """,
-            [{
-                'name': 'user'
-            }]
+            [{'name': 'user'}],
         )
 
     async def test_session_set_command_01(self):
@@ -75,36 +73,35 @@ class TestSession(tb.QueryTestCase):
             """
                 SELECT Entity {name};
             """,
-            [{
-                'name': 'entity'
-            }]
+            [{'name': 'entity'}],
         )
 
     async def test_session_set_command_02(self):
         await self.con.query('SET MODULE foo;')
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "object type or alias 'foo::User' does not exist"):
+            edgedb.QueryError, "object type or alias 'foo::User' does not exist"
+        ):
             await self.con.query('SELECT User {name};')
 
     async def test_session_set_command_03(self):
         await self.con.execute(
-            'SET MODULE foo; SET ALIAS bar AS MODULE default;')
+            'SET MODULE foo; SET ALIAS bar AS MODULE default;'
+        )
         await self.assert_query_result(
-            """SELECT (Entity.name, bar::User.name);""",
-            [['entity', 'user']]
+            """SELECT (Entity.name, bar::User.name);""", [['entity', 'user']]
         )
 
     async def test_session_set_command_05(self):
         await self.con.execute(
-            'SET MODULE default; SET ALIAS bar AS MODULE foo;')
+            'SET MODULE default; SET ALIAS bar AS MODULE foo;'
+        )
         # Check that local WITH overrides the session level setting.
         await self.assert_query_result(
             """
                 WITH MODULE foo, bar AS MODULE default
                 SELECT (Entity.name, bar::User.name);
             """,
-            [['entity', 'user']]
+            [['entity', 'user']],
         )
 
     async def test_session_set_command_06(self):
@@ -169,11 +166,13 @@ class TestSession(tb.QueryTestCase):
                 """
                     SELECT User {name, aaa, name_upper};
                 """,
-                [{
-                    'name': 'user',
-                    'aaa': 3,
-                    'name_upper': 'USER',
-                }]
+                [
+                    {
+                        'name': 'user',
+                        'aaa': 3,
+                        'name_upper': 'USER',
+                    }
+                ],
             )
         finally:
             await tx.rollback()
@@ -181,24 +180,21 @@ class TestSession(tb.QueryTestCase):
     async def test_session_warnings_01(self):
         # N.B: The testbase warning system always raises
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Test warning please ignore"
+            edgedb.QueryError, "Test warning please ignore"
         ):
             await self.con.query('''
                 select _warn_on_call()
             ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Test warning please ignore"
+            edgedb.QueryError, "Test warning please ignore"
         ):
             await self.con.execute('''
                 create function asdf() -> int64 using (_warn_on_call())
             ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Test warning please ignore"
+            edgedb.QueryError, "Test warning please ignore"
         ):
             await self.con.execute('''
                 start migration to {

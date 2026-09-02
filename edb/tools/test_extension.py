@@ -36,13 +36,12 @@ from edb.tools.edb import edbcommands
     "script_path",
     type=pathlib.Path,
 )
-@click.option('--localdev/--no-localdev',
-              help='whether to connect to _localdev instance by default',
-              default=True)
-def test_extension(
-    script_path: pathlib.Path,
-    localdev: bool
-) -> None:
+@click.option(
+    '--localdev/--no-localdev',
+    help='whether to connect to _localdev instance by default',
+    default=True,
+)
+def test_extension(script_path: pathlib.Path, localdev: bool) -> None:
     '''Installs an extension package into a dev environment and creates it.
 
     Removes the extension and package first if it already exists.'''
@@ -71,17 +70,23 @@ def test_extension(
     ''')
 
     # Delete the extension and the package if it already exists
-    ext = db.query('''
+    ext = db.query(
+        '''
         select schema::Extension filter .name = <str>$0;
-    ''', extension_name)
+    ''',
+        extension_name,
+    )
     if ext:
         print(f"Dropping existing extension {extension_name}")
         db.execute(f'''
             drop extension {extension_name};
         ''')
-    ext_package = db.query('''
+    ext_package = db.query(
+        '''
         select sys::ExtensionPackage {version} filter .name = <str>$0;
-    ''', extension_name)
+    ''',
+        extension_name,
+    )
     if ext_package:
         v = ext_package[0].version
         version = f'{v.major}.{v.minor}.{v.stage_no}'

@@ -42,7 +42,7 @@ LOG_LEVELS = {
     'CRITICAL': 'CRITICAL',
     'INFO': 'INFO',
     'DEBUG': 'DEBUG',
-    'SILENT': 'SILENT'
+    'SILENT': 'SILENT',
 }
 
 
@@ -67,7 +67,6 @@ class Dark256:
 
 
 class EdgeDBLogFormatter(logging.Formatter):
-
     default_time_format = '%Y-%m-%dT%H:%M:%S'
     default_msec_format = '%s.%03d'
 
@@ -109,8 +108,9 @@ class EdgeDBLogFormatter(logging.Formatter):
             record = copy.copy(record)
 
             level = record.levelname
-            level_style = getattr(self.__styles, level.lower(),
-                                  self.__styles.default)
+            level_style = getattr(
+                self.__styles, level.lower(), self.__styles.default
+            )
             record.levelname = level_style.apply(level)
             record.process = self.__styles.pid.apply(str(record.process))
             record.message = self.__styles.message.apply(record.getMessage())
@@ -125,7 +125,8 @@ class EdgeDBLogHandler(logging.StreamHandler):
 
         fmt = EdgeDBLogFormatter(
             '{levelname} {process} {tenant} {asctime} {name}: {message}',
-            style='{')
+            style='{',
+        )
 
         self.setFormatter(fmt)
 
@@ -150,11 +151,11 @@ def setup_logging(log_level, log_destination):
 
     if log_destination == 'syslog':
         fmt = logging.Formatter(
-            '{processName}[{process}]: {tenant}: {name}: {message}',
-            style='{')
+            '{processName}[{process}]: {tenant}: {name}: {message}', style='{'
+        )
         handler = logging.handlers.SysLogHandler(
-            '/dev/log',
-            facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+            '/dev/log', facility=logging.handlers.SysLogHandler.LOG_DAEMON
+        )
         handler.setFormatter(fmt)
 
     elif log_destination == 'stderr':
@@ -163,7 +164,8 @@ def setup_logging(log_level, log_destination):
     else:
         fmt = logging.Formatter(
             '{levelname} {process} {tenant} {asctime} {name}: {message}',
-            style='{')
+            style='{',
+        )
         handler = logging.FileHandler(log_destination)
         handler.setFormatter(fmt)
 
@@ -180,8 +182,9 @@ def setup_logging(log_level, log_destination):
     warnings.simplefilter('default', category=DeprecationWarning)
     # ... except for some third-party` modules.
     for ignored_module in IGNORE_DEPRECATIONS_IN:
-        warnings.filterwarnings('ignore', category=DeprecationWarning,
-                                module=ignored_module)
+        warnings.filterwarnings(
+            'ignore', category=DeprecationWarning, module=ignored_module
+        )
 
     if not debug.flags.log_metrics:
         log_metrics = logging.getLogger('edb.server.metrics')

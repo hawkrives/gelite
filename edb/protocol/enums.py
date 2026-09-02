@@ -27,16 +27,16 @@ class Cardinality(enum.Enum):
     # * the query is a command like CONFIGURE that
     #   does not return any data;
     # * the query is composed of multiple queries.
-    NO_RESULT = 0x6e
+    NO_RESULT = 0x6E
 
     # Cardinality is 1 or 0
-    AT_MOST_ONE = 0x6f
+    AT_MOST_ONE = 0x6F
 
     # Cardinality is 1
     ONE = 0x41
 
     # Cardinality is >= 0
-    MANY = 0x6d
+    MANY = 0x6D
 
     # Cardinality is >= 1
-    AT_LEAST_ONE = 0x4d
+    AT_LEAST_ONE = 0x4D

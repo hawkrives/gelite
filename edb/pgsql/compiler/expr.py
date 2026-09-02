@@ -50,9 +50,8 @@ from . import shapecomp
 
 @dispatch.compile.register(irast.Set)
 def compile_Set(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     if ctx.singleton_mode:
         return dispatch.compile(ir_set.expr, ctx=ctx)
 
@@ -62,24 +61,20 @@ def compile_Set(
 
     if is_toplevel:
         if isinstance(ir_set.expr, irast.ConfigCommand):
-            return config.top_output_as_config_op(
-                ir_set, ctx.rel, env=ctx.env)
+            return config.top_output_as_config_op(ir_set, ctx.rel, env=ctx.env)
         else:
             pathctx.get_path_serialized_output(
-                ctx.rel, ir_set.path_id, env=ctx.env)
+                ctx.rel, ir_set.path_id, env=ctx.env
+            )
             return output.top_output_as_value(ctx.rel, ir_set, env=ctx.env)
     else:
-        value = pathctx.get_path_value_var(
-            ctx.rel, ir_set.path_id, env=ctx.env)
+        value = pathctx.get_path_value_var(ctx.rel, ir_set.path_id, env=ctx.env)
 
         return output.output_as_value(value, env=ctx.env)
 
 
 @dispatch.visit.register(irast.Set)
-def visit_Set(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> None:
-
+def visit_Set(ir_set: irast.Set, *, ctx: context.CompilerContextLevel) -> None:
     if ctx.singleton_mode:
         dispatch.compile(ir_set.expr, ctx=ctx)
 
@@ -87,9 +82,8 @@ def visit_Set(
 
 
 def _compile_set_impl(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> None:
-
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> None:
     is_toplevel = ctx.toplevel_stmt is context.NO_STMT
 
     if isinstance(ir_set.expr, (irast.BaseConstant, irast.BaseParameter)):
@@ -99,10 +93,12 @@ def _compile_set_impl(
         value = dispatch.compile(ir_set.expr, ctx=ctx)
         if is_toplevel:
             ctx.rel = ctx.toplevel_stmt = pgast.SelectStmt()
-        pathctx.put_path_value_var_if_not_exists(
-            ctx.rel, ir_set.path_id, value)
-        if (output.in_serialization_ctx(ctx) and ir_set.shape
-                and not ctx.env.ignore_object_shapes):
+        pathctx.put_path_value_var_if_not_exists(ctx.rel, ir_set.path_id, value)
+        if (
+            output.in_serialization_ctx(ctx)
+            and ir_set.shape
+            and not ctx.env.ignore_object_shapes
+        ):
             _compile_shape(ir_set, ir_set.shape, ctx=ctx)
 
     elif ir_set.path_scope_id is not None and not is_toplevel:
@@ -122,7 +118,6 @@ def compile_QueryParameter(
     *,
     ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
-
     result: pgast.BaseExpr
 
     params = [p for p in ctx.env.query_params if p.name == expr.name]
@@ -155,7 +150,7 @@ def compile_QueryParameter(
         arg=result,
         type_name=pgast.TypeName(
             name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-        )
+        ),
     )
 
 
@@ -165,7 +160,6 @@ def compile_FunctionParameter(
     *,
     ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
-
     result: pgast.BaseExpr
 
     if ctx.env.named_param_prefix is not None:
@@ -183,20 +177,19 @@ def compile_FunctionParameter(
         arg=result,
         type_name=pgast.TypeName(
             name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-        )
+        ),
     )
 
 
 @dispatch.compile.register(irast.StringConstant)
 def compile_StringConstant(
-        expr: irast.StringConstant, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.StringConstant, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     return pgast.TypeCast(
         arg=pgast.StringConstant(val=expr.value),
         type_name=pgast.TypeName(
             name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-        )
+        ),
     )
 
 
@@ -204,7 +197,6 @@ def compile_StringConstant(
 def compile_BytesConstant(
     expr: irast.BytesConstant, *, ctx: context.CompilerContextLevel
 ) -> pgast.BaseExpr:
-
     return pgast.ByteaConstant(val=expr.value)
 
 
@@ -213,35 +205,32 @@ def compile_BytesConstant(
 @dispatch.compile.register(irast.BigintConstant)
 @dispatch.compile.register(irast.IntegerConstant)
 def compile_FloatConstant(
-        expr: irast.BaseConstant, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.BaseConstant, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     return pgast.TypeCast(
         arg=pgast.NumericConstant(val=expr.value),
         type_name=pgast.TypeName(
             name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-        )
+        ),
     )
 
 
 @dispatch.compile.register(irast.BooleanConstant)
 def compile_BooleanConstant(
-        expr: irast.BooleanConstant, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.BooleanConstant, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     return pgast.TypeCast(
         arg=pgast.BooleanConstant(val=expr.value.lower() == 'true'),
         type_name=pgast.TypeName(
             name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-        )
+        ),
     )
 
 
 @dispatch.compile.register(irast.TypeCast)
 def compile_TypeCast(
-        expr: irast.TypeCast, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.TypeCast, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     pg_expr = dispatch.compile(expr.expr, ctx=ctx)
 
     detail: Optional[pgast.StringConstant] = None
@@ -259,10 +248,7 @@ def compile_TypeCast(
 
         pg_type = pg_types.pg_type_from_ir_typeref(expr.to_type)
         res: pgast.BaseExpr = pgast.TypeCast(
-            arg=pg_expr,
-            type_name=pgast.TypeName(
-                name=pg_type
-            )
+            arg=pg_expr, type_name=pgast.TypeName(name=pg_type)
         )
 
     elif expr.sql_expr:
@@ -270,7 +256,8 @@ def compile_TypeCast(
         assert expr.cast_name
 
         func_name = common.get_cast_backend_name(
-            expr.cast_name, aspect="function",
+            expr.cast_name,
+            aspect="function",
             versioned=ctx.env.versioned_stdlib,
         )
 
@@ -304,8 +291,7 @@ def compile_TypeCast(
         if detail is not None:
             args.append(detail)
         res = pgast.FuncCall(
-            name=astutils.edgedb_func('raise_on_null', ctx=ctx),
-            args=args
+            name=astutils.edgedb_func('raise_on_null', ctx=ctx), args=args
         )
 
     return res
@@ -313,8 +299,8 @@ def compile_TypeCast(
 
 @dispatch.compile.register(irast.IndexIndirection)
 def compile_IndexIndirection(
-        expr: irast.IndexIndirection, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.IndexIndirection, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     # Handle Expr[Index], where Expr may be std::str, array<T> or
     # std::json. For strings we translate this into substr calls.
     # Arrays use the native index access. JSON is handled by using the
@@ -325,9 +311,7 @@ def compile_IndexIndirection(
     # line, column and filename are captured here to be used with the
     # error message
     span = pgast.StringConstant(
-        val=irutils.get_span_as_json(
-            expr.index, errors.InvalidValueError
-        )
+        val=irutils.get_span_as_json(expr.index, errors.InvalidValueError)
     )
 
     with ctx.new() as subctx:
@@ -336,8 +320,7 @@ def compile_IndexIndirection(
         index = dispatch.compile(expr.index, ctx=subctx)
 
     result: pgast.BaseExpr = pgast.FuncCall(
-        name=astutils.edgedb_func('_index', ctx=ctx),
-        args=[subj, index, span]
+        name=astutils.edgedb_func('_index', ctx=ctx), args=[subj, index, span]
     )
 
     if irtyputils.is_array(expr.typeref):
@@ -380,13 +363,15 @@ def compile_SliceIndirection(
         else:
             return pgast.FuncCall(
                 name=astutils.edgedb_func('_slice', ctx=ctx),
-                args=[subj, start, stop]
+                args=[subj, start, stop],
             )
 
 
 def _inline_array_slicing(
-    subj: pgast.BaseExpr, start: pgast.BaseExpr, stop: pgast.BaseExpr,
-    ctx: context.CompilerContextLevel
+    subj: pgast.BaseExpr,
+    start: pgast.BaseExpr,
+    stop: pgast.BaseExpr,
+    ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
     return pgast.Indirection(
         arg=subj,
@@ -394,23 +379,21 @@ def _inline_array_slicing(
             pgast.Slice(
                 lidx=pgast.FuncCall(
                     name=astutils.edgedb_func(
-                        '_normalize_array_slice_index', ctx=ctx),
+                        '_normalize_array_slice_index', ctx=ctx
+                    ),
                     args=[
                         start,
-                        pgast.FuncCall(
-                            name=("cardinality",), args=[subj]
-                        ),
+                        pgast.FuncCall(name=("cardinality",), args=[subj]),
                     ],
                 ),
                 ridx=astutils.new_binop(
                     lexpr=pgast.FuncCall(
                         name=astutils.edgedb_func(
-                            '_normalize_array_slice_index', ctx=ctx),
+                            '_normalize_array_slice_index', ctx=ctx
+                        ),
                         args=[
                             stop,
-                            pgast.FuncCall(
-                                name=("cardinality",), args=[subj]
-                            ),
+                            pgast.FuncCall(name=("cardinality",), args=[subj]),
                         ],
                     ),
                     op="-",
@@ -422,8 +405,7 @@ def _inline_array_slicing(
 
 
 def _compile_call_args(
-    expr: irast.Call, *,
-    ctx: context.CompilerContextLevel
+    expr: irast.Call, *, ctx: context.CompilerContextLevel
 ) -> tuple[list[pgast.BaseExpr], list[pgast.BaseExpr]]:
     args = []
     maybe_null = []
@@ -443,41 +425,50 @@ def _compile_call_args(
 
 
 def _wrap_call(
-    expr: pgast.BaseExpr, maybe_nulls: list[pgast.BaseExpr], *,
-    ctx: context.CompilerContextLevel
+    expr: pgast.BaseExpr,
+    maybe_nulls: list[pgast.BaseExpr],
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
     # If necessary, use CASE to filter out NULLs while calling a
     # non-strict function.
     if maybe_nulls:
         tests = [pgast.NullTest(arg=arg, negated=True) for arg in maybe_nulls]
         expr = pgast.CaseExpr(
-            args=[pgast.CaseWhen(
-                expr=astutils.extend_binop(None, *tests, op='AND'),
-                result=expr,
-            )]
+            args=[
+                pgast.CaseWhen(
+                    expr=astutils.extend_binop(None, *tests, op='AND'),
+                    result=expr,
+                )
+            ]
         )
     return expr
 
 
 @dispatch.compile.register(irast.OperatorCall)
 def compile_OperatorCall(
-        expr: irast.OperatorCall, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
-    if (str(expr.func_shortname) == 'std::IF'
-            and expr.args[0].cardinality.is_single()
-            and expr.args[2].cardinality.is_single()):
+    expr: irast.OperatorCall, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
+    if (
+        str(expr.func_shortname) == 'std::IF'
+        and expr.args[0].cardinality.is_single()
+        and expr.args[2].cardinality.is_single()
+    ):
         if_expr, condition, else_expr = (a.expr for a in expr.args.values())
         return pgast.CaseExpr(
             args=[
                 pgast.CaseWhen(
                     expr=dispatch.compile(condition, ctx=ctx),
-                    result=dispatch.compile(if_expr, ctx=ctx))
+                    result=dispatch.compile(if_expr, ctx=ctx),
+                )
             ],
-            defresult=dispatch.compile(else_expr, ctx=ctx))
-    elif (str(expr.func_shortname) == 'std::??'
-            and expr.args[0].cardinality.is_single()
-            and expr.args[1].cardinality.is_single()):
+            defresult=dispatch.compile(else_expr, ctx=ctx),
+        )
+    elif (
+        str(expr.func_shortname) == 'std::??'
+        and expr.args[0].cardinality.is_single()
+        and expr.args[1].cardinality.is_single()
+    ):
         l_expr, r_expr = (a.expr for a in expr.args.values())
         return pgast.CoalesceExpr(
             args=[
@@ -490,21 +481,26 @@ def compile_OperatorCall(
     elif irutils.returns_set_of(expr):
         raise errors.UnsupportedFeatureError(
             f"set returning operator '{expr.func_shortname}' is not supported "
-            f"in singleton expressions")
+            f"in singleton expressions"
+        )
     elif irutils.has_set_of_param(expr):
         raise errors.UnsupportedFeatureError(
             f"aggregate operator '{expr.func_shortname}' is not supported "
-            f"in singleton expressions")
+            f"in singleton expressions"
+        )
 
     args, maybe_null = _compile_call_args(expr, ctx=ctx)
     return _wrap_call(
-        compile_operator(expr, args, ctx=ctx), maybe_null, ctx=ctx)
+        compile_operator(expr, args, ctx=ctx), maybe_null, ctx=ctx
+    )
 
 
 def compile_operator(
-        expr: irast.OperatorCall,
-        args: Sequence[pgast.BaseExpr], *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.OperatorCall,
+    args: Sequence[pgast.BaseExpr],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     lexpr = rexpr = None
     result: Optional[pgast.BaseExpr] = None
 
@@ -518,12 +514,16 @@ def compile_operator(
         raise RuntimeError(f'unexpected operator kind: {expr.operator_kind!r}')
 
     str_func_name = str(expr.func_shortname)
-    if ((str_func_name in {'std::=', 'std::!='}
-            or str(expr.origin_name) in {'std::=', 'std::!='})
-            and expr.args[0].expr.typeref is not None
-            and irtyputils.is_object(expr.args[0].expr.typeref)
-            and expr.args[1].expr.typeref is not None
-            and irtyputils.is_object(expr.args[1].expr.typeref)):
+    if (
+        (
+            str_func_name in {'std::=', 'std::!='}
+            or str(expr.origin_name) in {'std::=', 'std::!='}
+        )
+        and expr.args[0].expr.typeref is not None
+        and irtyputils.is_object(expr.args[0].expr.typeref)
+        and expr.args[1].expr.typeref is not None
+        and irtyputils.is_object(expr.args[1].expr.typeref)
+    ):
         if str_func_name == 'std::=' or str(expr.origin_name) == 'std::=':
             sql_oper = '='
         else:
@@ -543,8 +543,7 @@ def compile_operator(
             lexpr, rexpr = _cast_operands(lexpr, rexpr, expr.sql_operator[1:])
 
     elif expr.origin_name is not None:
-        sql_oper = common.get_operator_backend_name(
-            expr.origin_name)[1]
+        sql_oper = common.get_operator_backend_name(expr.origin_name)[1]
 
     else:
         if expr.sql_function:
@@ -563,8 +562,10 @@ def compile_operator(
                 lexpr, rexpr = _cast_operands(lexpr, rexpr, cast_types)
         else:
             func_name = common.get_operator_backend_name(
-                expr.func_shortname, aspect='function',
-                versioned=ctx.env.versioned_stdlib)
+                expr.func_shortname,
+                aspect='function',
+                versioned=ctx.env.versioned_stdlib,
+            )
 
         args = []
         if lexpr is not None:
@@ -590,7 +591,7 @@ def compile_operator(
             arg=result,
             type_name=pgast.TypeName(
                 name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-            )
+            ),
         )
 
     return result
@@ -601,20 +602,17 @@ def _cast_operands(
     rexpr: Optional[pgast.BaseExpr],
     sql_types: Sequence[str],
 ) -> tuple[Optional[pgast.BaseExpr], Optional[pgast.BaseExpr]]:
-
     if lexpr is not None:
         lexpr = pgast.TypeCast(
-            arg=lexpr,
-            type_name=pgast.TypeName(
-                name=(sql_types[0],)
-            )
+            arg=lexpr, type_name=pgast.TypeName(name=(sql_types[0],))
         )
 
     if rexpr is not None:
         rexpr_qry = None
 
-        if (isinstance(rexpr, pgast.SubLink)
-                and isinstance(rexpr.expr, pgast.SelectStmt)):
+        if isinstance(rexpr, pgast.SubLink) and isinstance(
+            rexpr.expr, pgast.SelectStmt
+        ):
             rexpr_qry = rexpr.expr
         elif isinstance(rexpr, pgast.SelectStmt):
             rexpr_qry = rexpr
@@ -626,25 +624,19 @@ def _cast_operands(
                 name=rexpr_qry.target_list[0].name,
                 val=pgast.TypeCast(
                     arg=rexpr_qry.target_list[0].val,
-                    type_name=pgast.TypeName(
-                        name=(sql_types[1],)
-                    )
-                )
+                    type_name=pgast.TypeName(name=(sql_types[1],)),
+                ),
             )
         else:
             rexpr = pgast.TypeCast(
-                arg=rexpr,
-                type_name=pgast.TypeName(
-                    name=(sql_types[1],)
-                )
+                arg=rexpr, type_name=pgast.TypeName(name=(sql_types[1],))
             )
 
     return lexpr, rexpr
 
 
 def get_func_call_backend_name(
-    expr: irast.FunctionCall, *,
-    ctx: context.CompilerContextLevel
+    expr: irast.FunctionCall, *, ctx: context.CompilerContextLevel
 ) -> tuple[str, ...]:
     if expr.func_sql_function:
         # The name might contain a "." if it's one of our
@@ -658,16 +650,17 @@ def get_func_call_backend_name(
         )
     else:
         func_name = common.get_function_backend_name(
-            expr.func_shortname, expr.backend_name,
-            versioned=ctx.env.versioned_stdlib)
+            expr.func_shortname,
+            expr.backend_name,
+            versioned=ctx.env.versioned_stdlib,
+        )
     return func_name
 
 
 @dispatch.compile.register(irast.TypeCheckOp)
 def compile_TypeCheckOp(
-        expr: irast.TypeCheckOp, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.TypeCheckOp, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     with ctx.new() as newctx:
         newctx.expr_exposed = False
         left = dispatch.compile(expr.left, ctx=newctx)
@@ -676,9 +669,7 @@ def compile_TypeCheckOp(
         result: pgast.BaseExpr
 
         if expr.result is not None:
-            result = pgast.BooleanConstant(
-                val=(expr.result and not negated)
-            )
+            result = pgast.BooleanConstant(val=(expr.result and not negated))
         else:
             right: pgast.BaseExpr
 
@@ -694,7 +685,8 @@ def compile_TypeCheckOp(
 
             result = pgast.FuncCall(
                 name=astutils.edgedb_func('issubclass', ctx=ctx),
-                args=[left, right])
+                args=[left, right],
+            )
 
             if negated:
                 result = astutils.new_unop('NOT', result)
@@ -704,25 +696,26 @@ def compile_TypeCheckOp(
 
 @dispatch.compile.register(irast.ConstantSet)
 def compile_ConstantSet(
-        expr: irast.ConstantSet, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.ConstantSet, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     raise errors.UnsupportedFeatureError(
         "Constant sets not allowed in singleton mode",
-        hint="Are you passing a set into a variadic function?")
+        hint="Are you passing a set into a variadic function?",
+    )
 
 
 @dispatch.compile.register(irast.Array)
 def compile_Array(
-        expr: irast.Array, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.Array, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     elements = [dispatch.compile(e, ctx=ctx) for e in expr.elements]
     return relgen.build_array_expr(expr, elements, ctx=ctx)
 
 
 @dispatch.compile.register(irast.Tuple)
 def compile_Tuple(
-        expr: irast.Tuple, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.Tuple, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     ttype = expr.typeref
     ttypes = {}
     for i, st in enumerate(ttype.subtypes):
@@ -748,23 +741,22 @@ def compile_Tuple(
 
 @dispatch.compile.register(irast.TypeRef)
 def compile_TypeRef(
-        expr: irast.TypeRef, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.TypeRef, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     return astutils.compile_typeref(expr)
 
 
 @dispatch.compile.register(irast.TypeIntrospection)
 def compile_TypeIntrospection(
-        expr: irast.TypeIntrospection, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: irast.TypeIntrospection, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     return astutils.compile_typeref(expr.output_typeref)
 
 
 @dispatch.compile.register(irast.FunctionCall)
 def compile_FunctionCall(
-        expr: irast.FunctionCall, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    expr: irast.FunctionCall, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     fname = str(expr.func_shortname)
     if sfunc := relgen._SIMPLE_SPECIAL_FUNCTIONS.get(fname):
         return sfunc(expr, ctx=ctx)
@@ -778,11 +770,13 @@ def compile_FunctionCall(
         pass
     elif irutils.returns_set_of(expr):
         raise errors.UnsupportedFeatureError(
-            'set returning functions are not supported in simple expressions')
+            'set returning functions are not supported in simple expressions'
+        )
     elif irutils.has_set_of_param(expr):
         raise errors.UnsupportedFeatureError(
             f"aggregate function '{expr.func_shortname}' is not supported "
-            f"in singleton expressions")
+            f"in singleton expressions"
+        )
 
     args, maybe_null = _compile_call_args(expr, ctx=ctx)
 
@@ -791,7 +785,7 @@ def compile_FunctionCall(
             arg=pgast.ArrayExpr(elements=[]),
             type_name=pgast.TypeName(
                 name=pg_types.pg_type_from_ir_typeref(expr.variadic_param_type)
-            )
+            ),
         )
 
         args.append(pgast.VariadicArgument(expr=var))
@@ -810,31 +804,36 @@ def compile_FunctionCall(
             arg=result,
             type_name=pgast.TypeName(
                 name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-            )
+            ),
         )
 
     return result
 
 
 def _tuple_to_row_expr(
-        tuple_set: irast.Set, *,
-        ctx: context.CompilerContextLevel,
+    tuple_set: irast.Set,
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> pgast.ImplicitRowExpr | pgast.RowExpr:
     tuple_val = dispatch.compile(tuple_set, ctx=ctx)
     if not isinstance(tuple_val, (pgast.RowExpr, pgast.ImplicitRowExpr)):
-        raise RuntimeError('tuple compilation unexpectedly did '
-                           'not return a RowExpr or ImplicitRowExpr')
+        raise RuntimeError(
+            'tuple compilation unexpectedly did '
+            'not return a RowExpr or ImplicitRowExpr'
+        )
     return tuple_val
 
 
 def _compile_set(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> None:
-
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> None:
     relgen.get_set_rvar(ir_set, ctx=ctx)
 
-    if (output.in_serialization_ctx(ctx) and ir_set.shape
-            and not ctx.env.ignore_object_shapes):
+    if (
+        output.in_serialization_ctx(ctx)
+        and ir_set.shape
+        and not ctx.env.ignore_object_shapes
+    ):
         _compile_shape(ir_set, ir_set.shape, ctx=ctx)
     elif ir_set.shape and ir_set in ctx.shapes_needed_by_dml:
         # If this shape is needed for DML purposes (because it is
@@ -852,11 +851,11 @@ def _compile_set(
 
 
 def _compile_shape(
-        ir_set: irast.Set,
-        shape: Sequence[tuple[irast.SetE[irast.Pointer], qlast.ShapeOp]],
-        *,
-        ctx: context.CompilerContextLevel) -> pgast.TupleVar:
-
+    ir_set: irast.Set,
+    shape: Sequence[tuple[irast.SetE[irast.Pointer], qlast.ShapeOp]],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> pgast.TupleVar:
     result = shapecomp.compile_shape(ir_set, shape, ctx=ctx)
 
     for element in result.elements:
@@ -880,12 +879,11 @@ def _compile_shape(
     ser_elements = []
     for el in result.elements:
         ser_val = pathctx.get_path_serialized_or_value_var(
-            ctx.rel, el.path_id, env=ctx.env)
-        ser_elements.append(pgast.TupleElement(
-            path_id=el.path_id,
-            name=el.name,
-            val=ser_val
-        ))
+            ctx.rel, el.path_id, env=ctx.env
+        )
+        ser_elements.append(
+            pgast.TupleElement(path_id=el.path_id, name=el.name, val=ser_val)
+        )
         # Don't let the elements themselves leak out, since they may
         # be wrapped in arrays.
         pathctx.put_path_id_mask(ctx.rel, el.path_id)
@@ -931,7 +929,8 @@ def compile_Pointer(
 
     if ptrref.source_ptr is None and isinstance(source.expr, irast.Pointer):
         raise errors.UnsupportedFeatureError(
-            'unexpectedly long path in simple expr')
+            'unexpectedly long path in simple expr'
+        )
 
     # In most cases, we don't need to reference the rvar (since there
     # will be only one in scope), but sometimes we do (for example NEW
@@ -943,12 +942,12 @@ def compile_Pointer(
         rvar_name = [src.alias.aliasname]
 
     # compile column name
-    ptr_stor_info = pg_types.get_ptrref_storage_info(
-        ptrref, resolve_type=False)
+    ptr_stor_info = pg_types.get_ptrref_storage_info(ptrref, resolve_type=False)
 
     colref = pgast.ColumnRef(
         name=rvar_name + [ptr_stor_info.column_name],
-        nullable=rptr.dir_cardinality.can_be_zero())
+        nullable=rptr.dir_cardinality.can_be_zero(),
+    )
 
     return colref
 

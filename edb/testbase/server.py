@@ -81,6 +81,7 @@ from edb.testbase import connection as tconn
 
 if TYPE_CHECKING:
     import asyncpg
+
     DatabaseName = str
     SetupScript = str
 
@@ -143,15 +144,15 @@ class CustomSNI_HTTPSConnection(http.client.HTTPSConnection):
         else:
             server_hostname = self.host
 
-        self.sock = self._context.wrap_socket(self.sock,
-                                              server_hostname=server_hostname)
+        self.sock = self._context.wrap_socket(
+            self.sock, server_hostname=server_hostname
+        )
 
     def true_close(self):
         self.close()
 
 
 class StubbornHttpConnection(CustomSNI_HTTPSConnection):
-
     def close(self):
         # Don't actually close the connection.  This allows us to
         # test keep-alive and "Connection: close" headers.
@@ -236,9 +237,12 @@ class TestCaseMeta(type(unittest.TestCase)):
                     # than hunting them down every time, simply
                     # retry the test.
                     self.loop.run_until_complete(
-                        __meth__(self, *args, **kwargs))
-                except (edgedb.TransactionSerializationError,
-                        edgedb.TransactionDeadlockError):
+                        __meth__(self, *args, **kwargs)
+                    )
+                except (
+                    edgedb.TransactionSerializationError,
+                    edgedb.TransactionDeadlockError,
+                ):
                     isolated = getattr(self, 'TRANSACTION_ISOLATION', False)
                     if (
                         try_no == 10
@@ -251,7 +255,8 @@ class TestCaseMeta(type(unittest.TestCase)):
                             isolated
                             or getattr(self, 'RETRY_ON_SERIALIZATION', False)
                             or getattr(
-                                __meth__, '__retry_on_serialization__', False)
+                                __meth__, '__retry_on_serialization__', False
+                            )
                         )
                     ):
                         raise
@@ -261,11 +266,15 @@ class TestCaseMeta(type(unittest.TestCase)):
                         else:
                             self.loop.run_until_complete(
                                 _discard_open_transaction(
-                                    getattr(self, 'con', None)))
-                        self.loop.run_until_complete(asyncio.sleep(
-                            min((2 ** try_no) * 0.1, 10)
-                            + random.randrange(100) * 0.001
-                        ))
+                                    getattr(self, 'con', None)
+                                )
+                            )
+                        self.loop.run_until_complete(
+                            asyncio.sleep(
+                                min((2**try_no) * 0.1, 10)
+                                + random.randrange(100) * 0.001
+                            )
+                        )
                         if isolated:
                             self.xact = self.con.transaction()
                             self.loop.run_until_complete(self.xact.start())
@@ -283,9 +292,8 @@ class TestCaseMeta(type(unittest.TestCase)):
         # If GELITE_TEST_REPEATS is set, duplicate all the tests.
         # This is valuable because it should exercise the function
         # cache.
-        if (
-            os.environ.get('GELITE_TEST_REPEATS', None)
-            and methname.startswith('test_')
+        if os.environ.get('GELITE_TEST_REPEATS', None) and methname.startswith(
+            'test_'
         ):
             new = methname.replace('test_', 'test_zREPEAT_', 1)
             ns[new] = mcls.wrap(meth, is_repeat=True)
@@ -302,7 +310,8 @@ class TestCaseMeta(type(unittest.TestCase)):
 
             if name in mcls._database_names:
                 raise TypeError(
-                    f'{name} wants duplicate database name: {dbname}')
+                    f'{name} wants duplicate database name: {dbname}'
+                )
 
             mcls._database_names.add(name)
 
@@ -354,7 +363,8 @@ class TestCase(unittest.TestCase, metaclass=TestCaseMeta):
                             raise self.failureException(
                                 f'{exception.__name__} context attribute '
                                 f'{attr_name!r} is {val} (expected '
-                                f'{expected_val!r})') from e
+                                f'{expected_val!r})'
+                            ) from e
                 raise
 
     @staticmethod
@@ -362,8 +372,8 @@ class TestCase(unittest.TestCase, metaclass=TestCaseMeta):
         *,
         ignore: type[Exception] | tuple[type[Exception]] | None = None,
         ignore_regexp: str | None = None,
-        delay: float=0.5,
-        timeout: float=5
+        delay: float = 0.5,
+        timeout: float = 5,
     ):
         """Retry a block of code a few times ignoring the specified errors.
 
@@ -389,8 +399,8 @@ class TestCase(unittest.TestCase, metaclass=TestCaseMeta):
         *,
         wait_for: type[Exception] | tuple[type[Exception]] | None = None,
         wait_for_regexp: str | None = None,
-        delay: float=0.5,
-        timeout: float=5
+        delay: float = 0.5,
+        timeout: float = 5,
     ):
         """Retry a block of code a few times until the specified error happens.
 
@@ -419,6 +429,7 @@ class TestCase(unittest.TestCase, metaclass=TestCaseMeta):
             res = func(*args, **kwargs)
             if inspect.isawaitable(res):
                 self.loop.run_until_complete(res)
+
         super().addCleanup(cleanup)
 
     def __getstate__(self):
@@ -447,8 +458,9 @@ class TestCase(unittest.TestCase, metaclass=TestCaseMeta):
 
     @contextlib.contextmanager
     def assertChange(
-        self, measure_fn: typing.Callable[[], int | float],
-        expected_change: int | float
+        self,
+        measure_fn: typing.Callable[[], int | float],
+        expected_change: int | float,
     ):
         before = measure_fn()
         try:
@@ -638,7 +650,8 @@ class TestCaseWithHttpClient(TestCase):
                 state_typedesc_id=b"\0" * 16,
                 arguments=b"",
                 state_data=b"",
-            ).dump() + protocol.Sync().dump(),
+            ).dump()
+            + protocol.Sync().dump(),
             headers=headers,
         )
         content = memoryview(content)
@@ -647,9 +660,9 @@ class TestCaseWithHttpClient(TestCase):
         while content:
             mtype = content[0]
             (msize,) = uint32_unpack(content[1:5])
-            msg = protocol.ServerMessage.parse(mtype, content[5: msize + 1])
+            msg = protocol.ServerMessage.parse(mtype, content[5 : msize + 1])
             msgs.append(msg)
-            content = content[msize + 1:]
+            content = content[msize + 1 :]
         return msgs, headers, status
 
 
@@ -668,7 +681,8 @@ async def init_cluster(
 ) -> edgedb_cluster.BaseCluster:
     if data_dir is not None and backend_dsn is not None:
         raise ValueError(
-            "data_dir and backend_dsn cannot be set at the same time")
+            "data_dir and backend_dsn cannot be set at the same time"
+        )
     if init_settings is None:
         init_settings = {}
 
@@ -783,10 +797,7 @@ def _call_system_api(
         con = CustomSNI_HTTPSConnection(host, port, context=sslctx, **kwargs)
     con.connect()
     try:
-        con.request(
-            'GET',
-            f'http://{host}:{port}{path}'
-        )
+        con.request('GET', f'http://{host}:{port}{path}')
         resp = con.getresponse()
         if resp.status != 200:
             err = resp.read().decode()
@@ -817,9 +828,7 @@ def _extract_background_errors(metrics: str) -> str | None:
     for label, total in parse_metrics(metrics).items():
         if label.startswith('edgedb_server_background_errors_total'):
             if total:
-                non_zero.append(
-                    f'non-zero {label!r} metric: {total}'
-                )
+                non_zero.append(f'non-zero {label!r} metric: {total}')
 
     if non_zero:
         return '\n'.join(non_zero)
@@ -832,7 +841,6 @@ async def drop_db(conn, dbname):
 
 
 class ClusterTestCase(TestCaseWithHttpClient):
-
     BASE_TEST_CLASS = True
     backend_dsn: Optional[str] = None
 
@@ -885,7 +893,8 @@ class ClusterTestCase(TestCaseWithHttpClient):
             loop=cls.loop,
             cleanup_atexit=True,
             http_endpoint_security=(
-                edgedb_args.ServerEndpointSecurityMode.Optional),
+                edgedb_args.ServerEndpointSecurityMode.Optional
+            ),
         )
         cls.has_create_database = cls.cluster.has_create_database()
         cls.has_create_role = cls.cluster.has_create_role()
@@ -927,10 +936,14 @@ class ClusterTestCase(TestCaseWithHttpClient):
         if user is None:
             user = edgedb_defines.GELITE_SUPERUSER
         conargs = cluster.get_connect_args().copy()
-        conargs.update(dict(user=user,
-                            password=password,
-                            database=database,
-                            secret_key=secret_key))
+        conargs.update(
+            dict(
+                user=user,
+                password=password,
+                database=database,
+                secret_key=secret_key,
+            )
+        )
         return conargs
 
     @classmethod
@@ -966,14 +979,11 @@ class ClusterTestCase(TestCaseWithHttpClient):
         metrics = self.fetch_metrics()
         errors = _extract_background_errors(metrics)
         if errors:
-            raise AssertionError(
-                f'{self._testMethodName!r}:\n\n{errors}'
-            )
+            raise AssertionError(f'{self._testMethodName!r}:\n\n{errors}')
 
     @contextlib.asynccontextmanager
     async def assertRaisesRegexTx(self, exception, regex, msg=None, **kwargs):
-        """A version of assertRaisesRegex with automatic transaction recovery
-        """
+        """A version of assertRaisesRegex with automatic transaction recovery"""
 
         with super().assertRaisesRegex(exception, regex, msg=msg, **kwargs):
             try:
@@ -1036,7 +1046,6 @@ def ignore_warnings(warning_message=None):
 
 
 class ConnectedTestCase(ClusterTestCase):
-
     BASE_TEST_CLASS = True
     NO_FACTOR = True
     WARN_FACTOR = False
@@ -1084,7 +1093,9 @@ class ConnectedTestCase(ClusterTestCase):
         if self.INTERNAL_TESTMODE:
             self.loop.run_until_complete(
                 self.con.execute(
-                    'CONFIGURE SESSION SET __internal_testmode := true;'))
+                    'CONFIGURE SESSION SET __internal_testmode := true;'
+                )
+            )
 
         if not self.ENABLE_RECOMPILATION:
             self.loop.run_until_complete(
@@ -1096,12 +1107,16 @@ class ConnectedTestCase(ClusterTestCase):
         if self.NO_FACTOR:
             self.loop.run_until_complete(
                 self.con.execute(
-                    'CONFIGURE SESSION SET simple_scoping := true;'))
+                    'CONFIGURE SESSION SET simple_scoping := true;'
+                )
+            )
 
         if self.WARN_FACTOR:
             self.loop.run_until_complete(
                 self.con.execute(
-                    'CONFIGURE SESSION SET warn_old_scoping := true;'))
+                    'CONFIGURE SESSION SET warn_old_scoping := true;'
+                )
+            )
 
         if self.TRANSACTION_ISOLATION:
             self.xact = self.con.transaction()
@@ -1125,15 +1140,16 @@ class ConnectedTestCase(ClusterTestCase):
                     del self.xact
 
                 if self.con.is_in_transaction():
-                    self.loop.run_until_complete(
-                        self.con.query('ROLLBACK'))
+                    self.loop.run_until_complete(self.con.query('ROLLBACK'))
                     raise AssertionError(
                         'test connection is still in transaction '
-                        '*after* the test')
+                        '*after* the test'
+                    )
 
                 if not self.TRANSACTION_ISOLATION:
                     self.loop.run_until_complete(
-                        self.con.execute('RESET ALIAS *;'))
+                        self.con.execute('RESET ALIAS *;')
+                    )
 
             finally:
                 super().tearDown()
@@ -1167,10 +1183,15 @@ class ConnectedTestCase(ClusterTestCase):
         conargs = self.get_connect_args()
 
         cmd = [
-            'python', '-m', 'edb.cli',
-            '--database', self.con.dbname,
-            '--user', conargs['user'],
-            '--tls-ca-file', conargs['tls_ca_file'],
+            'python',
+            '-m',
+            'edb.cli',
+            '--database',
+            self.con.dbname,
+            '--user',
+            conargs['user'],
+            '--tls-ca-file',
+            conargs['tls_ca_file'],
         ]
 
         env = os.environ.copy()
@@ -1182,7 +1203,8 @@ class ConnectedTestCase(ClusterTestCase):
             env['GELITE_SECRET_KEY'] = secret_key
 
         proc = subprocess.Popen(
-            cmd, stdin=sys.stdin, stdout=sys.stdout, env=env)
+            cmd, stdin=sys.stdin, stdout=sys.stdout, env=env
+        )
         while proc.returncode is None:
             try:
                 proc.wait()
@@ -1206,11 +1228,16 @@ class ConnectedTestCase(ClusterTestCase):
         async for tx in self.con.retrying_transaction():
             yield cm(tx)
 
-    def assert_data_shape(self, data, shape,
-                          message=None, rel_tol=None, abs_tol=None):
+    def assert_data_shape(
+        self, data, shape, message=None, rel_tol=None, abs_tol=None
+    ):
         assert_data_shape.assert_data_shape(
-            data, shape, self.fail,
-            message=message, rel_tol=rel_tol, abs_tol=abs_tol,
+            data,
+            shape,
+            self.fail,
+            message=message,
+            rel_tol=rel_tol,
+            abs_tol=abs_tol,
         )
 
     async def assert_query_result(
@@ -1240,10 +1267,8 @@ class ConnectedTestCase(ClusterTestCase):
                 await tx.start()
                 try:
                     res = await self.con._fetchall_json(
-                        query,
-                        *fetch_args,
-                        __limit__=implicit_limit,
-                        **fetch_kw)
+                        query, *fetch_args, __limit__=implicit_limit, **fetch_kw
+                    )
                 finally:
                     await tx.rollback()
 
@@ -1251,8 +1276,12 @@ class ConnectedTestCase(ClusterTestCase):
                 if sort is not None:
                     assert_data_shape.sort_results(res, sort)
                 assert_data_shape.assert_data_shape(
-                    res, exp_result_json, self.fail,
-                    message=msg, rel_tol=rel_tol, abs_tol=abs_tol,
+                    res,
+                    exp_result_json,
+                    self.fail,
+                    message=msg,
+                    rel_tol=rel_tol,
+                    abs_tol=abs_tol,
                 )
             except Exception:
                 self.add_fail_notes(serialization='json')
@@ -1278,10 +1307,11 @@ class ConnectedTestCase(ClusterTestCase):
                 __typeids__=typeids,
                 __limit__=implicit_limit,
                 __language__=(
-                    tconn.InputLanguage.SQL if language == "sql"
+                    tconn.InputLanguage.SQL
+                    if language == "sql"
                     else tconn.InputLanguage.EDGEQL
                 ),
-                **fetch_kw
+                **fetch_kw,
             )
             res = serutils.serialize(res)
             if sort is not None:
@@ -1298,7 +1328,8 @@ class ConnectedTestCase(ClusterTestCase):
             self.add_fail_notes(
                 serialization='binary',
                 __typenames__=typenames,
-                __typeids__=typeids)
+                __typeids__=typeids,
+            )
             if msg:
                 self.add_fail_notes(msg=msg)
             raise
@@ -1335,9 +1366,8 @@ class ConnectedTestCase(ClusterTestCase):
 
     async def assert_index_use(self, query, *args, index_type):
         def look(obj):
-            if (
-                isinstance(obj, dict)
-                and "IndexScan" in obj.get('plan_type', '')
+            if isinstance(obj, dict) and "IndexScan" in obj.get(
+                'plan_type', ''
             ):
                 return any(
                     prop['title'] == 'index_name'
@@ -1378,8 +1408,7 @@ class ConnectedTestCase(ClusterTestCase):
         try:
             import asyncpg
         except ImportError:
-            raise unittest.SkipTest(
-                'SQL test skipped: asyncpg not installed')
+            raise unittest.SkipTest('SQL test skipped: asyncpg not installed')
 
         pgdsn = cls.get_backend_sql_dsn(dbname=dbname)
         return await asyncpg.connect(pgdsn)
@@ -1422,7 +1451,6 @@ class ConnectedTestCase(ClusterTestCase):
 
 
 class DatabaseTestCase(ConnectedTestCase):
-
     SETUP: Optional[str | pathlib.Path | list[str] | list[pathlib.Path]] = None
     TEARDOWN: Optional[str] = None
     SCHEMA: Optional[str | pathlib.Path] = None
@@ -1471,7 +1499,8 @@ class DatabaseTestCase(ConnectedTestCase):
                 )
             else:
                 create_command = (
-                    f'CREATE EMPTY BRANCH {qlquote.quote_ident(dbname)}')
+                    f'CREATE EMPTY BRANCH {qlquote.quote_ident(dbname)}'
+                )
 
             # The retry here allows the test to survive a concurrent testing
             # Gel server (e.g. async with tb.start_edgedb_server()) whose
@@ -1545,9 +1574,9 @@ class DatabaseTestCase(ConnectedTestCase):
             return edgedb_defines.GELITE_SUPERUSER_DB
 
         if cls.__name__.startswith('TestEdgeQL'):
-            dbname = cls.__name__[len('TestEdgeQL'):]
+            dbname = cls.__name__[len('TestEdgeQL') :]
         elif cls.__name__.startswith('Test'):
-            dbname = cls.__name__[len('Test'):]
+            dbname = cls.__name__[len('Test') :]
         else:
             dbname = cls.__name__
 
@@ -1592,7 +1621,8 @@ class DatabaseTestCase(ConnectedTestCase):
             if m:
                 module_name = (
                     (m.group(1) or cls.DEFAULT_MODULE)
-                    .lower().replace('_', '::')
+                    .lower()
+                    .replace('_', '::')
                 )
 
                 schema_fn = getattr(cls, name)
@@ -1626,7 +1656,8 @@ class DatabaseTestCase(ConnectedTestCase):
 
                 is_path = (
                     isinstance(scr, pathlib.Path)
-                    or '\n' not in scr and os.path.exists(scr)
+                    or '\n' not in scr
+                    and os.path.exists(scr)
                 )
 
                 if is_path:
@@ -1688,7 +1719,6 @@ class Error:
 
 
 class BaseQueryTestCase(DatabaseTestCase):
-
     BASE_TEST_CLASS = True
 
 
@@ -1700,12 +1730,10 @@ class DDLTestCase(BaseQueryTestCase):
 
 
 class QueryTestCase(BaseQueryTestCase):
-
     BASE_TEST_CLASS = True
 
 
 class SQLQueryTestCase(BaseQueryTestCase):
-
     BASE_TEST_CLASS = True
 
     scon: asyncpg.Connection
@@ -1718,9 +1746,7 @@ class SQLQueryTestCase(BaseQueryTestCase):
             raise unittest.SkipTest('SQL tests skipped: asyncpg not installed')
 
         super().setUpClass()
-        cls.scon = cls.loop.run_until_complete(
-            cls.create_sql_connection()
-        )
+        cls.scon = cls.loop.run_until_complete(cls.create_sql_connection())
 
     @classmethod
     def create_sql_connection(
@@ -1730,6 +1756,7 @@ class SQLQueryTestCase(BaseQueryTestCase):
         password: str = None,
     ) -> asyncio.Future[asyncpg.Connection]:
         import asyncpg
+
         conargs = cls.get_connect_args()
 
         tls_context = ssl.create_default_context(
@@ -1795,7 +1822,7 @@ class SQLQueryTestCase(BaseQueryTestCase):
 
 
 def get_test_cases_setup(
-    cases: Iterable[unittest.TestCase]
+    cases: Iterable[unittest.TestCase],
 ) -> list[tuple[unittest.TestCase, DatabaseName, SetupScript]]:
     result: list[tuple[unittest.TestCase, DatabaseName, SetupScript]] = []
 
@@ -1840,7 +1867,8 @@ async def setup_test_cases(
             if skip_empty_databases and not setup_script:
                 continue
             await _setup_database(
-                dbname, setup_script, conn, stats, try_cached_db)
+                dbname, setup_script, conn, stats, try_cached_db
+            )
             if verbose:
                 print(f' -> {dbname}: OK', flush=True)
     else:
@@ -1861,14 +1889,22 @@ async def setup_test_cases(
                 if skip_empty_databases and not setup_script:
                     continue
 
-                g.create_task(controller(
-                    _setup_database, dbname, setup_script, conn, stats,
-                    try_cached_db))
+                g.create_task(
+                    controller(
+                        _setup_database,
+                        dbname,
+                        setup_script,
+                        conn,
+                        stats,
+                        try_cached_db,
+                    )
+                )
     return stats
 
 
 async def _setup_database(
-        dbname, setup_script, conn_args, stats, try_cached_db):
+    dbname, setup_script, conn_args, stats, try_cached_db
+):
     start_time = time.monotonic()
     default_args = {
         'user': edgedb_defines.GELITE_SUPERUSER,
@@ -1879,8 +1915,8 @@ async def _setup_database(
 
     try:
         admin_conn = await tconn.async_connect_test_client(
-            database=edgedb_defines.GELITE_SUPERUSER_DB,
-            **default_args)
+            database=edgedb_defines.GELITE_SUPERUSER_DB, **default_args
+        )
     except Exception as ex:
         raise RuntimeError(
             f'exception during creation of {dbname!r} test DB; '
@@ -1899,8 +1935,8 @@ async def _setup_database(
         if try_cached_db:
             elapsed = time.monotonic() - start_time
             stats.append(
-                ('setup::' + dbname,
-                 {'running-time': elapsed, 'cached': True}))
+                ('setup::' + dbname, {'running-time': elapsed, 'cached': True})
+            )
             return
     except Exception as ex:
         raise RuntimeError(
@@ -1929,7 +1965,8 @@ async def _setup_database(
 
     elapsed = time.monotonic() - start_time
     stats.append(
-        ('setup::' + dbname, {'running-time': elapsed, 'cached': False}))
+        ('setup::' + dbname, {'running-time': elapsed, 'cached': False})
+    )
 
 
 _lock_cnt = 0
@@ -1942,7 +1979,6 @@ def gen_lock_key():
 
 
 class _EdgeDBServerData(NamedTuple):
-
     host: str
     port: int
     password: str
@@ -1988,7 +2024,7 @@ class _EdgeDBServerData(NamedTuple):
             port=conn_args['port'],
             user=conn_args['user'],
             password=conn_args['password'],
-            ssl='require'
+            ssl='require',
         )
 
     async def connect_test_protocol(self, **kwargs):
@@ -1999,7 +2035,6 @@ class _EdgeDBServerData(NamedTuple):
 
 
 class _EdgeDBServer:
-
     proc: Optional[asyncio.Process]
 
     def __init__(
@@ -2023,15 +2058,18 @@ class _EdgeDBServer:
             edgedb_args.ServerAuthMethod | edgedb_args.ServerAuthMethods
         ] = None,
         binary_endpoint_security: Optional[
-            edgedb_args.ServerEndpointSecurityMode] = None,
+            edgedb_args.ServerEndpointSecurityMode
+        ] = None,
         http_endpoint_security: Optional[
-            edgedb_args.ServerEndpointSecurityMode] = None,  # see __aexit__
+            edgedb_args.ServerEndpointSecurityMode
+        ] = None,  # see __aexit__
         ignore_other_tenants: bool = False,
         readiness_state_file: Optional[str] = None,
         tls_cert_file: Optional[os.PathLike] = None,
         tls_key_file: Optional[os.PathLike] = None,
         tls_cert_mode: edgedb_args.ServerTlsCertMode = (
-            edgedb_args.ServerTlsCertMode.SelfSigned),
+            edgedb_args.ServerTlsCertMode.SelfSigned
+        ),
         tls_client_ca_file: Optional[os.PathLike] = None,
         jws_key_file: Optional[os.PathLike] = None,
         jwt_sub_allowlist_file: Optional[os.PathLike] = None,
@@ -2107,7 +2145,8 @@ class _EdgeDBServer:
                 except TimeoutError:
                     self.proc.kill()
                     raise AssertionError(
-                        'server did not auto-shutdown in 5 minutes')
+                        'server did not auto-shutdown in 5 minutes'
+                    )
             else:
                 await self.kill_process(self.proc)
 
@@ -2122,13 +2161,21 @@ class _EdgeDBServer:
         status_r, status_w = socket.socketpair()
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
-            '--emit-server-status', f'fd://{status_w.fileno()}',
-            '--compiler-pool-size', str(self.compiler_pool_size),
-            '--tls-cert-mode', str(self.tls_cert_mode),
-            '--jose-key-mode', 'generate',
+            '--emit-server-status',
+            f'fd://{status_w.fileno()}',
+            '--compiler-pool-size',
+            str(self.compiler_pool_size),
+            '--tls-cert-mode',
+            str(self.tls_cert_mode),
+            '--jose-key-mode',
+            'generate',
         ]
 
         if self.compiler_pool_mode is not None:
@@ -2141,21 +2188,25 @@ class _EdgeDBServer:
 
         cmd.extend(['--log-level', 'd' if self.debug else 's'])
         if self.max_allowed_connections is not None:
-            cmd.extend([
-                '--max-backend-connections', str(self.max_allowed_connections),
-            ])
+            cmd.extend(
+                [
+                    '--max-backend-connections',
+                    str(self.max_allowed_connections),
+                ]
+            )
         if self.backend_dsn is not None:
-            cmd.extend([
-                '--backend-dsn', self.backend_dsn,
-            ])
+            cmd.extend(
+                [
+                    '--backend-dsn',
+                    self.backend_dsn,
+                ]
+            )
         elif self.adjacent_to is not None:
             settings = self.adjacent_to.get_settings()
             pgdsn = settings.get('pgdsn')
             if pgdsn is None:
                 raise RuntimeError('test requires devmode to access pgdsn')
-            cmd += [
-                '--backend-dsn', pgdsn.decode('utf-8')
-            ]
+            cmd += ['--backend-dsn', pgdsn.decode('utf-8')]
         elif self.data_dir:
             cmd += ['--data-dir', self.data_dir]
         else:
@@ -2200,12 +2251,16 @@ class _EdgeDBServer:
             cmd += ['--default-auth-method', str(self.default_auth_method)]
 
         if self.binary_endpoint_security:
-            cmd += ['--binary-endpoint-security',
-                    str(self.binary_endpoint_security)]
+            cmd += [
+                '--binary-endpoint-security',
+                str(self.binary_endpoint_security),
+            ]
 
         if self.http_endpoint_security:
-            cmd += ['--http-endpoint-security',
-                    str(self.http_endpoint_security)]
+            cmd += [
+                '--http-endpoint-security',
+                str(self.http_endpoint_security),
+            ]
 
         if self.ignore_other_tenants:
             cmd += ['--ignore-other-tenants']
@@ -2229,8 +2284,7 @@ class _EdgeDBServer:
             cmd += ['--jwt-sub-allowlist-file', self.jwt_sub_allowlist_file]
 
         if self.jwt_revocation_list_file:
-            cmd += ['--jwt-revocation-list-file',
-                    self.jwt_revocation_list_file]
+            cmd += ['--jwt-revocation-list-file', self.jwt_revocation_list_file]
 
         if self.config_file:
             cmd += ['--config-file', self.config_file]
@@ -2274,8 +2328,8 @@ class _EdgeDBServer:
             # Tee the log temporarily to a tempfile that exists as long as the
             # test is running. This helps debug hanging tests.
             with tempfile.NamedTemporaryFile(
-                mode='w+t',
-                prefix='edgedb-test-log-') as temp_file:
+                mode='w+t', prefix='edgedb-test-log-'
+            ) as temp_file:
                 if self.debug:
                     print(f"Logging to {temp_file.name}")
                 while True:
@@ -2347,9 +2401,9 @@ class _EdgeDBServer:
                 errors = _extract_background_errors(metrics)
                 if errors:
                     raise AssertionError(
-                        'server terminated with unexpected ' +
-                        'background errors\n\n' +
-                        errors
+                        'server terminated with unexpected '
+                        + 'background errors\n\n'
+                        + errors
                     )
         finally:
             await self._shutdown(exc)
@@ -2358,33 +2412,37 @@ class _EdgeDBServer:
 def start_edgedb_server(
     *,
     bind_addrs: tuple[str, ...] = ('localhost',),
-    auto_shutdown_after: Optional[int]=None,
-    bootstrap_command: Optional[str]=None,
-    max_allowed_connections: Optional[int]=5,
-    compiler_pool_size: int=2,
+    auto_shutdown_after: Optional[int] = None,
+    bootstrap_command: Optional[str] = None,
+    max_allowed_connections: Optional[int] = 5,
+    compiler_pool_size: int = 2,
     compiler_pool_mode: Optional[edgedb_args.CompilerPoolMode] = None,
-    adjacent_to: Optional[tconn.Connection]=None,
-    debug: bool=debug.flags.server,
+    adjacent_to: Optional[tconn.Connection] = None,
+    debug: bool = debug.flags.server,
     backend_dsn: Optional[str] = None,
     runstate_dir: Optional[str] = None,
     data_dir: Optional[str] = None,
     reset_auth: Optional[bool] = None,
     tenant_id: Optional[str] = None,
     security: edgedb_args.ServerSecurityMode = (
-        edgedb_args.ServerSecurityMode.Strict),
+        edgedb_args.ServerSecurityMode.Strict
+    ),
     default_auth_method: Optional[
         edgedb_args.ServerAuthMethod | edgedb_args.ServerAuthMethods
     ] = None,
     binary_endpoint_security: Optional[
-        edgedb_args.ServerEndpointSecurityMode] = None,
+        edgedb_args.ServerEndpointSecurityMode
+    ] = None,
     http_endpoint_security: Optional[
-        edgedb_args.ServerEndpointSecurityMode] = None,
+        edgedb_args.ServerEndpointSecurityMode
+    ] = None,
     ignore_other_tenants: bool = False,
     readiness_state_file: Optional[str] = None,
     tls_cert_file: Optional[os.PathLike] = None,
     tls_key_file: Optional[os.PathLike] = None,
     tls_cert_mode: edgedb_args.ServerTlsCertMode = (
-        edgedb_args.ServerTlsCertMode.SelfSigned),
+        edgedb_args.ServerTlsCertMode.SelfSigned
+    ),
     tls_client_ca_file: Optional[os.PathLike] = None,
     jws_key_file: Optional[os.PathLike] = None,
     jwt_sub_allowlist_file: Optional[os.PathLike] = None,
@@ -2397,10 +2455,13 @@ def start_edgedb_server(
     if (not devmode.is_in_dev_mode() or adjacent_to) and not runstate_dir:
         if backend_dsn or adjacent_to:
             import traceback
+
             # We don't want to implicitly "fix the issue" for the test author
-            print('WARNING: starting a Gel server with the default '
-                  'runstate_dir; the test is likely to fail or hang. '
-                  'Consider specifying the runstate_dir parameter.')
+            print(
+                'WARNING: starting a Gel server with the default '
+                'runstate_dir; the test is likely to fail or hang. '
+                'Consider specifying the runstate_dir parameter.'
+            )
             print('\n'.join(traceback.format_stack(limit=5)))
 
     password = None
@@ -2502,7 +2563,8 @@ def get_cases_by_shard(cases, selected_shard, total_shards, verbosity, stats):
         if setup_script_getter and combined:
             tests_per_setup = []
             est_per_setup = setup_est = stats.get(
-                'setup::' + case.get_database_name(), (new_setup_est, 0),
+                'setup::' + case.get_database_name(),
+                (new_setup_est, 0),
             )[0]
             for test_name, test in combined.items():
                 total_tests += len(test)
@@ -2605,11 +2667,13 @@ def get_cases_by_shard(cases, selected_shard, total_shards, verbosity, stats):
             tests_with_est.clear()  # should always be empty already here
 
     if verbosity >= 1:
-        print(f'Running {selected_tests}/{total_tests} tests for shard '
-              f'#{selected_shard + 1} out of {total_shards} shards, '
-              f'estimate: {int(selected_est / 60)}m {int(selected_est % 60)}s'
-              f' / {int(total_est / 60)}m {int(total_est % 60)}s, '
-              f'{len(setups)}/{setup_count} databases to setup.')
+        print(
+            f'Running {selected_tests}/{total_tests} tests for shard '
+            f'#{selected_shard + 1} out of {total_shards} shards, '
+            f'estimate: {int(selected_est / 60)}m {int(selected_est % 60)}s'
+            f' / {int(total_est / 60)}m {int(total_est % 60)}s, '
+            f'{len(setups)}/{setup_count} databases to setup.'
+        )
     return _merge_results(cases)
 
 
@@ -2635,6 +2699,7 @@ def _needs_factoring(weakly):
                 await f(self, *args, **kwargs)
 
         return g
+
     return decorator
 
 

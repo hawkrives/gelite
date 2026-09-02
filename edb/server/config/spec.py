@@ -50,7 +50,6 @@ SETTING_TYPES = {
 
 @dataclasses.dataclass(frozen=True, eq=True)
 class Setting:
-
     name: str
     type: type | types.ConfigTypeSpec
     default: Any
@@ -84,14 +83,16 @@ class Setting:
                 f'type is expected to be either one of '
                 f'{{str, int, bool, float}} '
                 f'or an edb.server.config.types.ConfigType ',
-                f'or edb.ir.statypes.ScalarType subclass')
+                f'or edb.ir.statypes.ScalarType subclass',
+            )
 
         if self.set_of:
             if not isinstance(self.default, frozenset):
                 raise ValueError(
                     f'invalid config setting {self.name!r}: "SET OF" settings '
                     f'must have frozenset() as a default value, got '
-                    f'{self.default!r}')
+                    f'{self.default!r}'
+                )
 
             if self.default:
                 # SET OF settings shouldn't have non-empty defaults,
@@ -103,7 +104,8 @@ class Setting:
                 # * etc.
                 raise ValueError(
                     f'invalid config setting {self.name!r}: "SET OF" settings '
-                    f'should not have defaults')
+                    f'should not have defaults'
+                )
 
         else:
             if (
@@ -113,12 +115,12 @@ class Setting:
                     (self.default and not isinstance(self.default, self.type))
                     or (self.default is None and self.required)
                 )
-
             ):
                 raise ValueError(
                     f'invalid config setting {self.name!r}: '
                     f'the default {self.default!r} '
-                    f'is not instance of {self.type}')
+                    f'is not instance of {self.type}'
+                )
 
         if self.report and not self.system:
             raise ValueError('only instance settings can be reported')
@@ -213,8 +215,8 @@ class ChainedSpec(Spec):
 
 def load_spec_from_schema(
     schema: s_schema.Schema,
-    only_exts: bool=False,
-    validate: bool=True,
+    only_exts: bool = False,
+    validate: bool = True,
 ) -> Spec:
     settings = []
     if not only_exts:
@@ -280,7 +282,8 @@ def _load_spec_from_type(
         pytype: type | types.ConfigTypeSpec
         if isinstance(ptype, s_objtypes.ObjectType):
             pytype = staeval.object_type_to_spec(
-                ptype, schema,
+                ptype,
+                schema,
                 spec_class=types.ConfigTypeSpec,
             )
         elif isinstance(ptype, s_scalars.ScalarType):
@@ -303,13 +306,15 @@ def _load_spec_from_type(
         ptr_card = p.get_cardinality(schema)
         set_of = ptr_card.is_multi()
         backend_setting = attributes.get(
-            sn.QualName('cfg', 'backend_setting'), None)
+            sn.QualName('cfg', 'backend_setting'), None
+        )
         required = p.get_required(schema)
 
         deflt_expr = p.get_default(schema)
         if deflt_expr is not None:
             deflt = qlcompiler.evaluate_to_python_val(
-                deflt_expr.text, schema=schema)
+                deflt_expr.text, schema=schema
+            )
             if set_of and not isinstance(deflt, frozenset):
                 deflt = frozenset((deflt,))
         else:
@@ -336,12 +341,13 @@ def _load_spec_from_type(
             internal=attributes.get(sn.QualName('cfg', 'internal'), False),
             system=attributes.get(sn.QualName('cfg', 'system'), False),
             requires_restart=attributes.get(
-                sn.QualName('cfg', 'requires_restart'), False),
+                sn.QualName('cfg', 'requires_restart'), False
+            ),
             backend_setting=backend_setting,
-            report=attributes.get(
-                sn.QualName('cfg', 'report'), None),
+            report=attributes.get(sn.QualName('cfg', 'report'), None),
             affects_compilation=attributes.get(
-                sn.QualName('cfg', 'affects_compilation'), False),
+                sn.QualName('cfg', 'affects_compilation'), False
+            ),
             default=deflt,
             enum_values=(
                 ptype.get_enum_values(schema)
@@ -351,7 +357,6 @@ def _load_spec_from_type(
             required=required,
             secret=p.get_secret(schema),
             protected=p.get_protected(schema),
-
             session_restricted=session_restricted,
             session_permission=(
                 session_cfg_permissions if session_restricted else None

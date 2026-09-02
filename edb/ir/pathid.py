@@ -67,14 +67,21 @@ class PathId:
         path_id = PathId.from_type(Movie).extend('reviews').extend('author')
     """
 
-    __slots__ = ('_path', '_norm_path', '_namespace', '_prefix',
-                 '_is_ptr', '_is_linkprop', '_hash')
+    __slots__ = (
+        '_path',
+        '_norm_path',
+        '_namespace',
+        '_prefix',
+        '_is_ptr',
+        '_is_linkprop',
+        '_hash',
+    )
 
     #: Actual path information.
     _path: tuple[
         irast.TypeRef
         | tuple[irast.BasePointerRef, s_pointers.PointerDirection],
-        ...
+        ...,
     ]
 
     #: Normalized path data, used for PathId hashing and comparisons.
@@ -82,7 +89,7 @@ class PathId:
         uuid.UUID
         | s_name.Name
         | tuple[s_name.QualName, s_pointers.PointerDirection, bool],
-        ...
+        ...,
     ]
 
     #: A set of namespace identifiers which this PathId belongs to.
@@ -130,10 +137,9 @@ class PathId:
     def __getstate__(self) -> Any:
         # We need to omit the cached _hash when we pickle because it won't
         # be correct in a different process.
-        return tuple([
-            getattr(self, k) if k != '_hash' else -1
-            for k in PathId.__slots__
-        ])
+        return tuple(
+            [getattr(self, k) if k != '_hash' else -1 for k in PathId.__slots__]
+        )
 
     def __setstate__(self, state: Any) -> None:
         for k, v in zip(PathId.__slots__, state):
@@ -172,15 +178,13 @@ class PathId:
             A ``PathId`` instance of type *t*.
         """
         if not isinstance(t, s_types.Type):
-            raise ValueError(
-                f'invalid PathId: bad source: {t!r}')
+            raise ValueError(f'invalid PathId: bad source: {t!r}')
 
         cache = env.type_ref_cache if env is not None else None
         typeref = typeutils.type_to_typeref(
             schema, t, cache=cache, typename=typename
         )
-        return cls.from_typeref(typeref, namespace=namespace,
-                                typename=typename)
+        return cls.from_typeref(typeref, namespace=namespace, typename=typename)
 
     @classmethod
     def from_pointer(
@@ -227,8 +231,10 @@ class PathId:
         ptrref_cache = env.ptr_ref_cache if env is not None else None
 
         ptrref = typeutils.ptrref_from_ptrcls(
-            schema=schema, ptrcls=pointer,
-            cache=ptrref_cache, typeref_cache=typeref_cache,
+            schema=schema,
+            ptrcls=pointer,
+            cache=ptrref_cache,
+            typeref_cache=typeref_cache,
         )
         return prefix.extend(ptrref=ptrref)
 
@@ -297,13 +303,15 @@ class PathId:
 
     def __hash__(self) -> int:
         if self._hash == -1:
-            self._hash = hash((
-                self.__class__,
-                self._norm_path,
-                self._namespace,
-                self._prefix,
-                self._is_ptr,
-            ))
+            self._hash = hash(
+                (
+                    self.__class__,
+                    self._norm_path,
+                    self._namespace,
+                    self._prefix,
+                    self._is_ptr,
+                )
+            )
         return self._hash
 
     def __eq__(self, other: Any) -> bool:
@@ -311,10 +319,10 @@ class PathId:
             return NotImplemented
 
         return (
-            self._norm_path == other._norm_path and
-            self._namespace == other._namespace and
-            self._prefix == other._prefix and
-            self._is_ptr == other._is_ptr
+            self._norm_path == other._norm_path
+            and self._namespace == other._namespace
+            and self._prefix == other._prefix
+            and self._is_ptr == other._is_ptr
         )
 
     def __len__(self) -> int:
@@ -330,7 +338,8 @@ class PathId:
         *,
         ptrref: irast.BasePointerRef,
         direction: s_pointers.PointerDirection = (
-            s_pointers.PointerDirection.Outbound),
+            s_pointers.PointerDirection.Outbound
+        ),
         ns: AbstractSet[Namespace] = frozenset(),
     ) -> PathId:
         """Return a new ``PathId`` that is a *path step* from this ``PathId``.
@@ -370,8 +379,7 @@ class PathId:
 
         is_linkprop = ptrref.source_ptr is not None
         if is_linkprop and not self._is_ptr:
-            raise ValueError(
-                'link property path extension on a non-link path')
+            raise ValueError('link property path extension on a non-link path')
 
         result = self.__class__()
         result._path = self._path + ((ptrref, direction), target_ref)
@@ -384,7 +392,7 @@ class PathId:
         else:
             material_type = target_ref
 
-        result._norm_path = (self._norm_path + (lnk, material_type.id))
+        result._norm_path = self._norm_path + (lnk, material_type.id)
 
         if ns:
             if self._namespace:
@@ -405,14 +413,14 @@ class PathId:
         self,
         namespace: AbstractSet[Namespace],
     ) -> PathId:
-        """Return a copy of this ``PathId`` with namespace set to *namespace*.
-        """
+        """Return a copy of this ``PathId`` with namespace set to *namespace*."""
         result = self.__class__(self)
         result._namespace = frozenset(namespace)
 
         if result._prefix is not None:
             result._prefix = result._get_minimal_prefix(
-                result._prefix.replace_namespace(namespace))
+                result._prefix.replace_namespace(namespace)
+            )
 
         return result
 
@@ -420,10 +428,10 @@ class PathId:
         self,
         namespace: AbstractSet[Namespace],
         *,
-        deep: bool=False,
+        deep: bool = False,
     ) -> PathId:
         """Return a copy of this ``PathId`` that has *namespace* added to its
-           namespace.
+        namespace.
         """
         new_namespace = self._namespace | frozenset(namespace)
 
@@ -442,14 +450,15 @@ class PathId:
 
     def strip_namespace(self, namespace: AbstractSet[Namespace]) -> PathId:
         """Return a copy of this ``PathId`` with a given portion of the
-           namespace id removed."""
+        namespace id removed."""
         if self._namespace and namespace:
             stripped_ns = self._namespace - set(namespace)
             result = self.replace_namespace(stripped_ns)
 
             if result._prefix is not None:
                 result._prefix = result._get_minimal_prefix(
-                    result._prefix.strip_namespace(namespace))
+                    result._prefix.strip_namespace(namespace)
+                )
 
             return result
         else:
@@ -520,8 +529,7 @@ class PathId:
 
         path = self._path
 
-        start_name = s_name.shortname_from_fullname(
-            path[0].name_hint)  # type: ignore
+        start_name = s_name.shortname_from_fullname(path[0].name_hint)  # type: ignore
         result += f'{start_name.name}'
 
         for i in range(1, len(path) - 1, 2):
@@ -551,8 +559,8 @@ class PathId:
     def rptr(self) -> Optional[irast.BasePointerRef]:
         """Return the descriptor of a pointer for the last path step, if any.
 
-           If this PathId represents a non-path expression, ``rptr()``
-           will return ``None``.
+        If this PathId represents a non-path expression, ``rptr()``
+        will return ``None``.
         """
         if len(self._path) > 1:
             return self._path[-2][0]  # type: ignore
@@ -562,8 +570,8 @@ class PathId:
     def rptr_dir(self) -> Optional[s_pointers.PointerDirection]:
         """Return the direction of a pointer for the last path step, if any.
 
-           If this PathId represents a non-path expression, ``rptr_dir()``
-           will return ``None``.
+        If this PathId represents a non-path expression, ``rptr_dir()``
+        will return ``None``.
         """
         if len(self._path) > 1:
             return self._path[-2][1]  # type: ignore
@@ -573,8 +581,8 @@ class PathId:
     def rptr_name(self) -> Optional[s_name.QualName]:
         """Return the name of a pointer for the last path step, if any.
 
-           If this PathId represents a non-path expression, ``rptr_name()``
-           will return ``None``.
+        If this PathId represents a non-path expression, ``rptr_name()``
+        will return ``None``.
         """
         rptr = self.rptr()
         if rptr is not None:
@@ -584,11 +592,11 @@ class PathId:
 
     def src_path(self) -> Optional[PathId]:
         """Return a ``PathId`` instance representing an immediate path prefix
-           of this ``PathId``, i.e
-           ``PathId('Foo.bar.baz').src_path() == PathId('Foo.bar')``.
+        of this ``PathId``, i.e
+        ``PathId('Foo.bar.baz').src_path() == PathId('Foo.bar')``.
 
-           If this PathId represents a non-path expression, ``src_path()``
-           will return ``None``.
+        If this PathId represents a non-path expression, ``src_path()``
+        will return ``None``.
         """
         if len(self._path) > 1:
             return self._get_prefix(-2)
@@ -597,13 +605,13 @@ class PathId:
 
     def ptr_path(self) -> PathId:
         """Return a new ``PathId`` instance that is a "pointer prefix" of this
-           ``PathId``.
+        ``PathId``.
 
-           A pointer prefix is the common path prefix shared by paths to
-           link properties of the same link, i.e
+        A pointer prefix is the common path prefix shared by paths to
+        link properties of the same link, i.e
 
-               common_path_id(Foo.bar@prop1, Foo.bar@prop2)
-                   == PathId(Foo.bar).ptr_path()
+            common_path_id(Foo.bar@prop1, Foo.bar@prop2)
+                == PathId(Foo.bar).ptr_path()
         """
         if self._is_ptr:
             return self
@@ -614,9 +622,9 @@ class PathId:
 
     def tgt_path(self) -> PathId:
         """If this is a pointer prefix, return the ``PathId`` representing
-           the path to the target of the pointer.
+        the path to the target of the pointer.
 
-           This is the inverse of :meth:`~PathId.ptr_path`.
+        This is the inverse of :meth:`~PathId.ptr_path`.
         """
         if not self._is_ptr:
             return self
@@ -628,12 +636,12 @@ class PathId:
     def iter_prefixes(self, include_ptr: bool = False) -> Iterator[PathId]:
         """Return an iterator over all prefixes of this ``PathId``.
 
-           The order of prefixes is from longest to shortest, i.e
-           ``PathId(A.b.c.d).iter_prefixes()`` will yield
-           [PathId(A.b.c.d), PathId(A.b.c), PathId(A.b), PathId(A)].
+        The order of prefixes is from longest to shortest, i.e
+        ``PathId(A.b.c.d).iter_prefixes()`` will yield
+        [PathId(A.b.c.d), PathId(A.b.c), PathId(A.b), PathId(A)].
 
-           If *include_ptr* is ``True``, then pointer prefixes for each
-           step are also included.
+        If *include_ptr* is ``True``, then pointer prefixes for each
+        step are also included.
         """
         if self._prefix is not None:
             yield from self._prefix.iter_prefixes(include_ptr=include_ptr)
@@ -657,7 +665,8 @@ class PathId:
         """Return true if this ``PathId`` has *path_id* as a prefix."""
         base = self._get_prefix(len(path_id))
         return base == path_id or (
-            permissive_ptr_path and base.tgt_path() == path_id)
+            permissive_ptr_path and base.tgt_path() == path_id
+        )
 
     @property
     def target(self) -> irast.TypeRef:
@@ -675,49 +684,48 @@ class PathId:
 
     def is_objtype_path(self) -> bool:
         """Return True if this PathId represents an expression of object
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_object(self.target)
 
     def is_scalar_path(self) -> bool:
         """Return True if this PathId represents an expression of scalar
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_scalar(self.target)
 
     def is_view_path(self) -> bool:
-        """Return True if this PathId represents an expression that is a view.
-        """
+        """Return True if this PathId represents an expression that is a view."""
         return not self.is_ptr_path() and typeutils.is_view(self.target)
 
     def is_tuple_path(self) -> bool:
         """Return True if this PathId represents an expression of an tuple
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_tuple(self.target)
 
     def is_tuple_indirection_path(self) -> bool:
         """Return True if this PathId represents a tuple element indirection
-           expression.
+        expression.
         """
         src_path = self.src_path()
         return src_path is not None and src_path.is_tuple_path()
 
     def is_array_path(self) -> bool:
         """Return True if this PathId represents an expression of an array
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_array(self.target)
 
     def is_range_path(self) -> bool:
         """Return True if this PathId represents an expression of a range
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_range(self.target)
 
     def is_collection_path(self) -> bool:
         """Return True if this PathId represents an expression of a collection
-           type.
+        type.
         """
         return not self.is_ptr_path() and typeutils.is_collection(self.target)
 
@@ -730,12 +738,12 @@ class PathId:
 
     def is_linkprop_path(self) -> bool:
         """Return True if this PathId represents a link property path
-           expression, i.e ``Foo.bar@prop``."""
+        expression, i.e ``Foo.bar@prop``."""
         return self._is_linkprop
 
     def is_type_intersection_path(self) -> bool:
         """Return True if this PathId represents a type intersection
-           expression, i.e ``Foo[IS Bar]``."""
+        expression, i.e ``Foo[IS Bar]``."""
         rptr_name = self.rptr_name()
         if rptr_name is None:
             return False

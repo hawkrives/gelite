@@ -241,7 +241,8 @@ def _compile_and_apply_ddl_stmt(
     if not is_transactional:
         if not isinstance(stmt, qlast.DatabaseCommand):
             raise AssertionError(
-                f"unexpected non-transaction DDL command type: {stmt}")
+                f"unexpected non-transaction DDL command type: {stmt}"
+            )
         sql_stmts = block.get_statements()
         sql = sql_stmts[0].encode("utf-8")
         db_op_trailer = tuple(stmt.encode("utf-8") for stmt in sql_stmts[1:])
@@ -274,8 +275,7 @@ def _compile_and_apply_ddl_stmt(
                                 ])
                         )
                     )::text
-                )"""
-            )
+                )""")
 
             block.add_command(pg_dbops.Query(text=new_types_sql).code())
 
@@ -329,7 +329,8 @@ def _compile_and_apply_ddl_stmt(
         warnings=tuple(delta.warnings),
         feature_used_metrics=(
             produce_feature_used_metrics(ctx.compiler_state, new_user_schema)
-            if new_user_schema else None
+            if new_user_schema
+            else None
         ),
     )
 
@@ -353,7 +354,8 @@ def _get_delta_context_args(ctx: compiler.CompileContext) -> dict[str, Any]:
         testmode=ctx.is_testmode(),
         store_migration_sdl=(
             compiler._get_config_val(ctx, 'store_migration_sdl')
-        ) == 'AlwaysStore',
+        )
+        == 'AlwaysStore',
         schema_object_ids=ctx.schema_object_ids,
         compat_ver=ctx.compat_ver,
     )
@@ -415,6 +417,7 @@ def _process_delta(
 
     if not ctx.bootstrap_mode and not all_migration_tweaks:
         from edb.pgsql import metaschema
+
         refresh = metaschema.generate_sql_information_schema_refresh(
             ctx.compiler_state.backend_runtime_params.instance_params.version
         )
@@ -665,7 +668,8 @@ def _describe_current_migration(
             description = ''
 
         desc_ql = edgeql.parse_query(
-            f'SELECT {qlquote.quote_literal(description)}')
+            f'SELECT {qlquote.quote_literal(description)}'
+        )
         return compiler._compile_ql_query(
             ctx,
             desc_ql,
@@ -784,20 +788,18 @@ def _describe_current_migration(
             if not complete:
                 extra['debug_diff'] = debug.dumps(diff)
 
-        desc = (
-            json.dumps(
-                {
-                    'parent': (
-                        str(mstate.parent_migration.get_name(schema))
-                        if mstate.parent_migration is not None
-                        else 'initial'
-                    ),
-                    'complete': complete,
-                    'confirmed': confirmed,
-                    'proposed': proposed_desc,
-                    **extra,
-                }
-            )
+        desc = json.dumps(
+            {
+                'parent': (
+                    str(mstate.parent_migration.get_name(schema))
+                    if mstate.parent_migration is not None
+                    else 'initial'
+                ),
+                'complete': complete,
+                'confirmed': confirmed,
+                'proposed': proposed_desc,
+                **extra,
+            }
         )
 
         desc_ql = edgeql.parse_query(
@@ -811,7 +813,7 @@ def _describe_current_migration(
         )
 
     raise AssertionError(
-        f'DESCRIBE CURRENT MIGRATION AS {ql.language}' f' is not implemented'
+        f'DESCRIBE CURRENT MIGRATION AS {ql.language} is not implemented'
     )
 
 
@@ -1268,44 +1270,35 @@ def produce_feature_used_metrics(
     # TODO(perf): Should we optimize peeking into the innards directly
     # so we can skip creating the proxies?
     for obj in user_schema.get_objects(
-        type=s_obj.Object, exclude_extensions=True,
+        type=s_obj.Object,
+        exclude_extensions=True,
     ):
         typ = type(obj)
-        if (key := _FEATURE_NAMES.get(typ)):
+        if key := _FEATURE_NAMES.get(typ):
             _track(key)
 
         if isinstance(obj, s_globals.Global) and obj.get_expr(user_schema):
             _track('computed_global')
-        elif (
-            isinstance(obj, s_properties.Property)
-        ):
+        elif isinstance(obj, s_properties.Property):
             if obj.get_expr(user_schema):
                 _track('computed_property')
             elif obj.get_cardinality(schema).is_multi():
                 _track('multi_property')
 
-            if (
-                obj.is_link_property(schema)
-                and not obj.is_special_pointer(schema)
+            if obj.is_link_property(schema) and not obj.is_special_pointer(
+                schema
             ):
                 _track('link_property')
-        elif (
-            isinstance(obj, s_links.Link)
-            and obj.get_expr(user_schema)
-        ):
+        elif isinstance(obj, s_links.Link) and obj.get_expr(user_schema):
             _track('computed_link')
-        elif (
-            isinstance(obj, s_indexes.Index)
-            and s_indexes.is_fts_index(schema, obj)
+        elif isinstance(obj, s_indexes.Index) and s_indexes.is_fts_index(
+            schema, obj
         ):
             _track('fts')
-        elif (
-            isinstance(obj, s_constraints.Constraint)
-            and not (
-                (subject := obj.get_subject(schema))
-                and isinstance(subject, s_properties.Property)
-                and subject.is_special_pointer(schema)
-            )
+        elif isinstance(obj, s_constraints.Constraint) and not (
+            (subject := obj.get_subject(schema))
+            and isinstance(subject, s_properties.Property)
+            and subject.is_special_pointer(schema)
         ):
             _track('constraint')
             exclusive_constr = schema.get(
@@ -1318,15 +1311,11 @@ def produce_feature_used_metrics(
             and len(obj.get_bases(schema).objects(schema)) > 1
         ):
             _track('multiple_inheritance')
-        elif (
-            isinstance(obj, s_objtypes.ObjectType)
-            and obj.is_material_object_type(schema)
-        ):
+        elif isinstance(
+            obj, s_objtypes.ObjectType
+        ) and obj.is_material_object_type(schema):
             _track('object_type')
-        elif (
-            isinstance(obj, s_scalars.ScalarType)
-            and obj.is_enum(schema)
-        ):
+        elif isinstance(obj, s_scalars.ScalarType) and obj.is_enum(schema):
             _track('enum')
 
     return features
@@ -1351,9 +1340,11 @@ def repair_schema(
     )
 
     context_args = _get_delta_context_args(ctx)
-    context_args.update(dict(
-        testmode=True,
-    ))
+    context_args.update(
+        dict(
+            testmode=True,
+        )
+    )
 
     text = s_ddl.ddl_text_from_schema(schema)
     reloaded_schema, _ = s_ddl.apply_ddl_script_ex(
@@ -1381,10 +1372,10 @@ def repair_schema(
 
     # Update the schema version also
     context = _new_delta_context(ctx, context_args)
-    ver = schema.get_global(
-        s_ver.SchemaVersion, '__schema_version__')
+    ver = schema.get_global(s_ver.SchemaVersion, '__schema_version__')
     reloaded_schema = ver.set_field_value(
-        reloaded_schema, 'version', ver.get_version(schema))
+        reloaded_schema, 'version', ver.get_version(schema)
+    )
     ver_cmd = ver.init_delta_command(schema, s_delta.AlterObject)
     ver_cmd.set_attribute_value('version', uuidgen.uuid1mc())
     reloaded_schema = ver_cmd.apply(reloaded_schema, context)
@@ -1570,16 +1561,11 @@ def administer_reindex(
     ir: irast.Statement = qlcompiler.compile_ast_to_ir(
         arg,
         schema=schema,
-        options=qlcompiler.CompilerOptions(
-            modaliases=modaliases
-        ),
+        options=qlcompiler.CompilerOptions(modaliases=modaliases),
     )
     expr = irutils.unwrap_set(ir.expr)
     if ptr:
-        if (
-            not expr.expr
-            or not isinstance(expr.expr, irast.Pointer)
-        ):
+        if not expr.expr or not isinstance(expr.expr, irast.Pointer):
             raise errors.QueryError(
                 'invalid pointer argument to reindex()',
                 span=arg.span,
@@ -1591,10 +1577,9 @@ def administer_reindex(
         source = expr
     schema, obj = irtypeutils.ir_typeref_to_type(schema, source.typeref)
 
-    if (
-        not isinstance(obj, s_objtypes.ObjectType)
-        or not obj.is_material_object_type(schema)
-    ):
+    if not isinstance(
+        obj, s_objtypes.ObjectType
+    ) or not obj.is_material_object_type(schema):
         raise errors.QueryError(
             'argument to reindex() must be a regular object type',
             span=arg.span,
@@ -1608,10 +1593,14 @@ def administer_reindex(
     commands = []
     if not rptr:
         # On a type, we just reindex the type and its descendants
-        tables.update({obj} | {
-            desc for desc in obj.descendants(schema)
-            if desc.is_material_object_type(schema)
-        })
+        tables.update(
+            {obj}
+            | {
+                desc
+                for desc in obj.descendants(schema)
+                if desc.is_material_object_type(schema)
+            }
+        )
     else:
         # On a pointer, we reindex any indexes and constraints, as well as
         # any link indexes (which might be table indexes on a link table)
@@ -1621,28 +1610,33 @@ def administer_reindex(
                 span=arg.span,
             )
         schema, ptrcls = irtypeutils.ptrcls_from_ptrref(
-            rptr.ptrref, schema=schema)
+            rptr.ptrref, schema=schema
+        )
 
         indexes = set(schema.get_referrers(ptrcls, scls_type=s_indexes.Index))
 
         exclusive = schema.get('std::exclusive', type=s_constraints.Constraint)
         constrs = {
-            c for c in
-            schema.get_referrers(ptrcls, scls_type=s_constraints.Constraint)
+            c
+            for c in schema.get_referrers(
+                ptrcls, scls_type=s_constraints.Constraint
+            )
             if c.issubclass(schema, exclusive)
         }
 
         pindexes.update(indexes | constrs)
-        pindexes.update({
-            desc for pindex in pindexes for desc in pindex.descendants(schema)
-        })
+        pindexes.update(
+            {desc for pindex in pindexes for desc in pindex.descendants(schema)}
+        )
 
         # For links, collect any single link indexes and any link table indexes
         if not ptrcls.is_property():
             ptrclses = {ptrcls} | {
-                desc for desc in ptrcls.descendants(schema)
+                desc
+                for desc in ptrcls.descendants(schema)
                 if isinstance(
-                    (src := desc.get_source(schema)), s_objtypes.ObjectType)
+                    (src := desc.get_source(schema)), s_objtypes.ObjectType
+                )
                 and src.is_material_object_type(schema)
             }
 
@@ -1653,8 +1647,7 @@ def administer_reindex(
                 tables.update(ptrclses)
 
     commands = [
-        f'REINDEX TABLE '
-        f'{pg_common.get_backend_name(schema, table)};'
+        f'REINDEX TABLE {pg_common.get_backend_name(schema, table)};'
         for table in tables
     ] + [
         f'REINDEX INDEX '
@@ -1704,9 +1697,7 @@ def _identify_administer_tables_and_cols(
         ir: irast.Statement = qlcompiler.compile_ast_to_ir(
             arg,
             schema=schema,
-            options=qlcompiler.CompilerOptions(
-                modaliases=modaliases
-            ),
+            options=qlcompiler.CompilerOptions(modaliases=modaliases),
         )
         expr = ir.expr
         if ptr:
@@ -1726,10 +1717,9 @@ def _identify_administer_tables_and_cols(
             source = expr
         schema, obj = irtypeutils.ir_typeref_to_type(schema, source.typeref)
 
-        if (
-            not isinstance(obj, s_objtypes.ObjectType)
-            or not obj.is_material_object_type(schema)
-        ):
+        if not isinstance(
+            obj, s_objtypes.ObjectType
+        ) or not obj.is_material_object_type(schema):
             raise errors.QueryError(
                 'argument to vacuum() must be an object type '
                 'or a link or property reference',
@@ -1742,10 +1732,14 @@ def _identify_administer_tables_and_cols(
     for arg, (rptr, obj) in zip(call.args, args):
         if not rptr:
             # On a type, we just vacuum the type and its descendants
-            tables.update({obj} | {
-                desc for desc in obj.descendants(schema)
-                if desc.is_material_object_type(schema)
-            })
+            tables.update(
+                {obj}
+                | {
+                    desc
+                    for desc in obj.descendants(schema)
+                    if desc.is_material_object_type(schema)
+                }
+            )
         else:
             # On a pointer, we must go over the pointer and its descendants
             # so that we may retrieve any link talbes if necessary.
@@ -1755,7 +1749,8 @@ def _identify_administer_tables_and_cols(
                     span=arg.span,
                 )
             schema, ptrcls = irtypeutils.ptrcls_from_ptrref(
-                rptr.ptrref, schema=schema)
+                rptr.ptrref, schema=schema
+            )
 
             card = ptrcls.get_cardinality(schema)
             if not (
@@ -1777,17 +1772,16 @@ def _identify_administer_tables_and_cols(
                     )
 
             ptrclses = {ptrcls} | {
-                desc for desc in ptrcls.descendants(schema)
+                desc
+                for desc in ptrcls.descendants(schema)
                 if isinstance(
-                    (src := desc.get_source(schema)), s_objtypes.ObjectType)
+                    (src := desc.get_source(schema)), s_objtypes.ObjectType
+                )
                 and src.is_material_object_type(schema)
             }
             tables.update(ptrclses)
 
-    return [
-        pg_common.get_backend_name(schema, table)
-        for table in tables
-    ]
+    return [pg_common.get_backend_name(schema, table) for table in tables]
 
 
 def administer_vacuum(
@@ -1818,8 +1812,7 @@ def administer_vacuum(
     }
     command = "VACUUM"
     options = ",".join(
-        f"{option_map[k.lower()]} {v.upper()}"
-        for k, v in kwargs.items()
+        f"{option_map[k.lower()]} {v.upper()}" for k, v in kwargs.items()
     )
     if options:
         command += f" ({options})"
@@ -1857,24 +1850,18 @@ def administer_prepare_upgrade(
     ctx: compiler.CompileContext,
     ql: qlast.AdministerStmt,
 ) -> dbstate.BaseQuery:
-
     user_schema = ctx.state.current_tx().get_user_schema()
     global_schema = ctx.state.current_tx().get_global_schema()
 
     schema = s_schema.ChainedSchema(
-        ctx.compiler_state.std_schema,
-        user_schema,
-        global_schema
+        ctx.compiler_state.std_schema, user_schema, global_schema
     )
 
-    schema_ddl = s_ddl.ddl_text_from_schema(
-        schema, include_migrations=True)
+    schema_ddl = s_ddl.ddl_text_from_schema(schema, include_migrations=True)
     ids, _ = compiler.get_obj_ids(schema, include_extras=True)
     json_ids = [(name, cls, str(id)) for name, cls, id in ids]
 
-    obj = dict(
-        ddl=schema_ddl, ids=json_ids
-    )
+    obj = dict(ddl=schema_ddl, ids=json_ids)
 
     desc_ql = edgeql.parse_query(
         f'SELECT to_json({qlquote.quote_literal(json.dumps(obj))})'
@@ -1911,7 +1898,7 @@ def _get_index(
             expr=qlast.Constant(
                 kind=qlast.ConstantKind.STRING,
                 value=id_string,
-            )
+            ),
         ):
             pass
         case _:
@@ -1929,9 +1916,7 @@ def _get_index(
     global_schema = ctx.state.current_tx().get_global_schema()
 
     schema = s_schema.ChainedSchema(
-        ctx.compiler_state.std_schema,
-        user_schema,
-        global_schema
+        ctx.compiler_state.std_schema, user_schema, global_schema
     )
 
     index = schema.get_by_id(id, type=s_indexes.Index)

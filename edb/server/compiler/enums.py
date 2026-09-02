@@ -35,28 +35,27 @@ TypeTag = ir.TypeTag
 
 
 class Capability(enum.IntFlag):
-
     # Capability flags that are part of the protocol.
     # Can be picked up with the PROTO_CAPS mask.
-    MODIFICATIONS     = 1 << 0    # noqa
-    SESSION_CONFIG    = 1 << 1    # noqa
-    TRANSACTION       = 1 << 2    # noqa
-    DDL               = 1 << 3    # noqa
-    PERSISTENT_CONFIG = 1 << 4    # noqa
+    MODIFICATIONS = 1 << 0  # noqa
+    SESSION_CONFIG = 1 << 1  # noqa
+    TRANSACTION = 1 << 2  # noqa
+    DDL = 1 << 3  # noqa
+    PERSISTENT_CONFIG = 1 << 4  # noqa
 
     # Internal only capability flags.
-    GLOBAL_DDL        = 1 << 57   # noqa
-    SQL_SESSION_CONFIG= 1 << 58   # noqa
-    BRANCH_CONFIG     = 1 << 59   # noqa
-    INSTANCE_CONFIG   = 1 << 60   # noqa
-    DESCRIBE          = 1 << 61   # noqa
-    ANALYZE           = 1 << 62   # noqa
-    ADMINISTER        = 1 << 63   # noqa
+    GLOBAL_DDL = 1 << 57  # noqa
+    SQL_SESSION_CONFIG = 1 << 58  # noqa
+    BRANCH_CONFIG = 1 << 59  # noqa
+    INSTANCE_CONFIG = 1 << 60  # noqa
+    DESCRIBE = 1 << 61  # noqa
+    ANALYZE = 1 << 62  # noqa
+    ADMINISTER = 1 << 63  # noqa
 
-    PROTO_CAPS        = (1 << 32) - 1  # noqa
-    ALL               = (1 << 64) - 1  # noqa
-    WRITE             = (MODIFICATIONS | DDL | PERSISTENT_CONFIG)  # noqa
-    NONE              = 0  # noqa
+    PROTO_CAPS = (1 << 32) - 1  # noqa
+    ALL = (1 << 64) - 1  # noqa
+    WRITE = MODIFICATIONS | DDL | PERSISTENT_CONFIG  # noqa
+    NONE = 0  # noqa
 
     def make_error(
         self,
@@ -69,10 +68,10 @@ class Capability(enum.IntFlag):
                 continue
             if self & item:
                 return error_constructor(
-                    f"cannot execute {CAPABILITY_TITLES[item]}: {reason}")
+                    f"cannot execute {CAPABILITY_TITLES[item]}: {reason}"
+                )
         raise AssertionError(
-            f"extra capability not found in"
-            f" {self} allowed {allowed}"
+            f"extra capability not found in {self} allowed {allowed}"
         )
 
 

@@ -55,7 +55,6 @@ class ConfigTypeSpec(statypes.CompositeTypeSpec):
 
 
 class ConfigType:
-
     @classmethod
     def from_pyvalue(cls, v, *, tspec, spec, allow_missing=False):
         """Subclasses override this to allow creation from Python scalars."""
@@ -83,9 +82,11 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
                 object.__setattr__(self, f.name, kwargs[f.name])
             elif f.default is not statypes.MISSING:
                 object.__setattr__(self, f.name, f.default)
-        object.__setattr__(self, '_compare_keys', tuple(
-            f.name for f in tspec.fields.values() if f.unique
-        ))
+        object.__setattr__(
+            self,
+            '_compare_keys',
+            tuple(f.name for f in tspec.fields.values() if f.unique),
+        )
 
     def __setattr__(self, k, v) -> None:
         raise TypeError(f"{self._tspec.name} is immutable")
@@ -97,9 +98,8 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
         ):
             return NotImplemented
         compare_keys = self._compare_keys
-        return (
-            tuple(getattr(self, k) for k in compare_keys)
-            == tuple(getattr(rhs, k) for k in compare_keys)
+        return tuple(getattr(self, k) for k in compare_keys) == tuple(
+            getattr(rhs, k) for k in compare_keys
         )
 
     def __hash__(self) -> int:
@@ -162,25 +162,25 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
                     raise RuntimeError(
                         f'invalid type annotation on '
                         f'{tspec.name}.{fieldname}: '
-                        f'{f_type!r} is not supported')
+                        f'{f_type!r} is not supported'
+                    )
 
                 eltype = typing_inspect.get_args(f_type, evaluate=True)[0]
                 if isinstance(value, eltype):
                     value = container((value,))
-                elif (typeutils.is_container(value)
-                        and all(isinstance(v, eltype) for v in value)):
+                elif typeutils.is_container(value) and all(
+                    isinstance(v, eltype) for v in value
+                ):
                     value = container(value)
                 else:
                     raise cls._err(
                         tspec,
                         f'invalid {fieldname!r} field value: expecting '
                         f'{eltype.__name__} or a list thereof, but got '
-                        f'{type(value).__name__}'
+                        f'{type(value).__name__}',
                     )
 
-            elif (isinstance(f_type, ConfigTypeSpec)
-                    and isinstance(value, dict)):
-
+            elif isinstance(f_type, ConfigTypeSpec) and isinstance(value, dict):
                 tname = value.get('_tname', None)
                 if tname is not None:
                     actual_f_type = spec.get_type_by_name(tname)
@@ -190,19 +190,16 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
 
                 value = cls.from_pyvalue(value, tspec=actual_f_type, spec=spec)
 
-            elif (
-                _issubclass(f_type, statypes.Duration)
-                and isinstance(value, str)
+            elif _issubclass(f_type, statypes.Duration) and isinstance(
+                value, str
             ):
                 value = statypes.Duration.from_iso8601(value)
-            elif (
-                _issubclass(f_type, statypes.ConfigMemory)
-                and isinstance(value, str | int)
+            elif _issubclass(f_type, statypes.ConfigMemory) and isinstance(
+                value, str | int
             ):
                 value = statypes.ConfigMemory(value)
-            elif (
-                _issubclass(f_type, statypes.EnumScalarType)
-                and isinstance(value, str)
+            elif _issubclass(f_type, statypes.EnumScalarType) and isinstance(
+                value, str
             ):
                 value = f_type(value)
 
@@ -210,7 +207,7 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
                 raise cls._err(
                     tspec,
                     f'invalid {fieldname!r} field value: expecting '
-                    f'{f_type.__name__}, but got {type(value).__name__}'
+                    f'{f_type.__name__}, but got {type(value).__name__}',
                 )
 
             items[fieldname] = value
@@ -250,13 +247,14 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
             value = getattr(self, f.name)
             if redacted and f.secret and value is not None:
                 value = {'redacted': True}
-            elif (isinstance(f_type, statypes.CompositeTypeSpec)
-                    and value is not None):
+            elif (
+                isinstance(f_type, statypes.CompositeTypeSpec)
+                and value is not None
+            ):
                 value = value.to_json_value(redacted=redacted)
             elif typing_inspect.is_generic_type(f_type):
                 value = list(value) if value is not None else []
-            elif (_issubclass(f_type, statypes.ScalarType) and
-                  value is not None):
+            elif _issubclass(f_type, statypes.ScalarType) and value is not None:
                 value = value.to_json()
 
             dct[f.name] = value
@@ -268,7 +266,8 @@ class CompositeConfigType(ConfigType, statypes.CompositeType):
         cls, tspec: statypes.CompositeTypeSpec, msg: str
     ) -> errors.ConfigurationError:
         return errors.ConfigurationError(
-            f'invalid {tspec.name.lower()!r} value: {msg}')
+            f'invalid {tspec.name.lower()!r} value: {msg}'
+        )
 
 
 class QueryCacheMode(enum.StrEnum):

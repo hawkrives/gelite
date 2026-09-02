@@ -81,9 +81,7 @@ def object_tp_is_essentially_optional(tp: e.ObjectTp) -> bool:
     return all(mode_is_optional(md_tp.mode) for md_tp in tp.val.values())
 
 
-def dereference_var_tp(
-    dbschema: e.DBSchema, qn: e.QualifiedName
-) -> e.ObjectTp:
+def dereference_var_tp(dbschema: e.DBSchema, qn: e.QualifiedName) -> e.ObjectTp:
     resolved = mops.resolve_type_name(dbschema, qn)
     assert isinstance(resolved, e.ObjectTp)
     return resolved
@@ -185,7 +183,6 @@ def type_subtyping_walk(
                 e.NominalLinkTp(name=n_1, subject=s_1, linkprop=lp_1),
                 e.NominalLinkTp(name=n_2, subject=s_2, linkprop=lp_2),
             ):
-
                 if is_nominal_subtype_in_schema(ctx, n_1, n_2):
                     return recurse(ctx, s_1, s_2) and recurse(ctx, lp_1, lp_2)
                 else:
@@ -500,11 +497,9 @@ def can_project_label_from_tp(
 def tp_project(
     ctx: e.TcCtx | e.DBSchema, tp: e.ResultTp, label: e.Label
 ) -> e.ResultTp:
-
     def post_process_result_base_tp(
         result_base_tp: e.Tp, result_mode: e.CMMode
     ) -> e.ResultTp:
-
         if isinstance(result_base_tp, e.UncheckedTypeName):
             raise ValueError("Must not return UncheckedTypeName")
         return e.ResultTp(result_base_tp, result_mode)
@@ -531,9 +526,7 @@ def tp_project(
         case e.IntersectTp(_, _):
             tps = collect_tp_intersection(tp.tp)
             projectable_tps = [
-                itp
-                for itp in tps
-                if can_project_label_from_tp(ctx, itp, label)
+                itp for itp in tps if can_project_label_from_tp(ctx, itp, label)
             ]
             if len(projectable_tps) == 0:
                 raise edgedb.InvalidReferenceError(
@@ -545,8 +538,7 @@ def tp_project(
                     for itp in projectable_tps
                 ]
                 if all(
-                    r_tp.mode == projected_tps[0].mode
-                    for r_tp in projected_tps
+                    r_tp.mode == projected_tps[0].mode for r_tp in projected_tps
                 ):
                     return e.ResultTp(
                         construct_tps_union(
@@ -574,8 +566,7 @@ def tp_project(
                     )
                 case _:
                     raise ValueError(
-                        "Cannot tp_project a linkprop "
-                        "from a non linkprop type",
+                        "Cannot tp_project a linkprop from a non linkprop type",
                         pp.show(tp.tp),
                     )
         case e.StrLabel(label=lbl):
@@ -674,9 +665,7 @@ def combine_tp_with_subject_tp(ctx: e.TcCtx, o1: e.Tp, o2: e.ObjectTp) -> e.Tp:
             )
 
 
-def combine_tp_with_linkprop_tp(
-    ctx: e.TcCtx, o1: e.Tp, o2: e.ObjectTp
-) -> e.Tp:
+def combine_tp_with_linkprop_tp(ctx: e.TcCtx, o1: e.Tp, o2: e.ObjectTp) -> e.Tp:
     match o1:
         case e.NominalLinkTp(
             name=name, subject=subject_tp, linkprop=linkprop_tp

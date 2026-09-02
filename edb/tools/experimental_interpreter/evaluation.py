@@ -118,9 +118,7 @@ def eval_order_by(
                 else (
                     True
                     if spec == OrderDescending
-                    else eval_error(
-                        cast(Sequence[Val], orders), "unknown spec"
-                    )
+                    else eval_error(cast(Sequence[Val], orders), "unknown spec")
                 )
             ),
         )
@@ -198,9 +196,7 @@ def singular_proj(
                 if label_str == "id":
                     return e.ResultMultiSetVal([e.UuidVal(id)])
                 elif label_str == "__type__":
-                    print_warning(
-                        "Introspection is not properly supported yet"
-                    )
+                    print_warning("Introspection is not properly supported yet")
                     return e.ResultMultiSetVal(
                         [
                             e.RefVal(
@@ -363,9 +359,9 @@ def eval_expr(ctx: EvalEnv, db: EdgeDatabase, expr: Expr) -> MultiSetVal:
             inner_val = eval_expr(ctx, db, inner)
             return do_conditional_dedup(inner_val)
         case InsertExpr(tname, arg):
-            assert isinstance(
-                tname, e.QualifiedName
-            ), "Should be updated during tcking"
+            assert isinstance(tname, e.QualifiedName), (
+                "Should be updated during tcking"
+            )
             id = db.insert(tname, {})
             argv = {k: eval_expr(ctx, db, v) for (k, v) in arg.items()}
             arg_object = ObjectVal(
@@ -438,7 +434,6 @@ def eval_expr(ctx: EvalEnv, db: EdgeDatabase, expr: Expr) -> MultiSetVal:
             else:
                 raise ValueError("Variable not found", name)
         case e.QualifiedName(names=names):
-
             all_ids: Sequence[Val] = [
                 RefVal(id, e.QualifiedName(names=names), ObjectVal({}))
                 for id in db.storage.query_ids_for_a_type(
@@ -468,20 +463,21 @@ def eval_expr(ctx: EvalEnv, db: EdgeDatabase, expr: Expr) -> MultiSetVal:
             all_ids = [
                 RefVal(id, name, ObjectVal({}))
                 for id in db.storage.query_ids_for_a_type(
-                    name, filter_val  # type: ignore
+                    name,
+                    filter_val,  # type: ignore
                 )
             ]
             return e.ResultMultiSetVal(all_ids)
 
         case FunAppExpr(fun=fname, args=args, overloading_index=idx):
-            assert (
-                idx is not None
-            ), "overloading index must be set in type checking"
+            assert idx is not None, (
+                "overloading index must be set in type checking"
+            )
             argsv = eval_expr_list(ctx, db, args)
             # argsv = map_assume_link_target(argsv)
-            assert isinstance(
-                fname, e.QualifiedName
-            ), "Should resolve in type checking"
+            assert isinstance(fname, e.QualifiedName), (
+                "Should resolve in type checking"
+            )
             looked_up_fun = mops.resolve_func_name(db.get_schema(), fname)[idx]
             # db.get_schema().fun_defs[fname]
             f_modifier = looked_up_fun.tp.args_mod
@@ -532,16 +528,15 @@ def eval_expr(ctx: EvalEnv, db: EdgeDatabase, expr: Expr) -> MultiSetVal:
             else:
                 raise ValueError("Not implemented yet", looked_up_fun)
             return e.ResultMultiSetVal(after_fun_vals)
-        case e.TupleProjExpr(subject=subject, label=label) | ObjectProjExpr(
-            subject=subject, label=label
+        case (
+            e.TupleProjExpr(subject=subject, label=label)
+            | ObjectProjExpr(subject=subject, label=label)
         ):
             subjectv = eval_expr(ctx, db, subject)
             projected = [
                 p
                 for v in subjectv.getVals()
-                for p in singular_proj(
-                    ctx, db, v, StrLabel(label)
-                ).getRawVals()
+                for p in singular_proj(ctx, db, v, StrLabel(label)).getRawVals()
             ]
             return e.ResultMultiSetVal(projected)
         case BackLinkExpr(subject=subject, label=label):
@@ -643,9 +638,7 @@ def eval_expr(ctx: EvalEnv, db: EdgeDatabase, expr: Expr) -> MultiSetVal:
                     apply_shape(ctx, db, shape, v) for v in subjectv.getVals()
                 ]  # type: ignore[misc]
                 for u in cast(Sequence[RefVal], updated):
-                    full_tp = tops.dereference_var_tp(
-                        db.get_schema(), u.tpname
-                    )
+                    full_tp = tops.dereference_var_tp(db.get_schema(), u.tpname)
                     cut_tp = {
                         k: v
                         for (k, v) in full_tp.val.items()
@@ -807,7 +800,6 @@ def eval_expr_toplevel(
     variables: Optional[dict[str, Val] | tuple[Val, ...]] = None,
     logs: Optional[Any] = None,
 ) -> MultiSetVal:
-
     # on exception, this is not none
     # assert eval_logs_wrapper.logs is None
     if logs is not None:

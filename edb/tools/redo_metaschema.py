@@ -31,6 +31,7 @@ def run():
     """
 
     from edb.common import devmode
+
     devmode.enable_dev_mode()
 
     from edb.pgsql import dbops, metaschema

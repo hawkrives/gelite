@@ -31,13 +31,11 @@ CP2 = typing.TypeVar('CP2', contravariant=True)
 
 
 class Connector(typing.Protocol[CP1]):
-
     def __call__(self, dbname: str) -> typing.Awaitable[CP1]:
         pass
 
 
 class Disconnector(typing.Protocol[CP2]):
-
     def __call__(self, conn: CP2) -> typing.Awaitable[None]:
         pass
 
@@ -74,7 +72,6 @@ class Snapshot:
 
 
 class StatsCollector(typing.Protocol):
-
     def __call__(self, stats: Snapshot) -> None:
         pass
 

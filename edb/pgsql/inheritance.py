@@ -68,7 +68,8 @@ def get_inheritance_view(
     descendants = [
         child
         for child in obj.descendants(schema)
-        if types.has_table(child, schema) and child not in exclude_children
+        if types.has_table(child, schema)
+        and child not in exclude_children
         # XXX: Exclude sys/cfg tables from non sys/cfg views. This
         # probably isn't *really* what we want to do, but until we
         # figure that out, do *something* so that DDL isn't

@@ -451,9 +451,9 @@ class QueryUnitGroup:
     unit_converted_param_indexes: Optional[dict[int, list[int]]] = None
 
     warnings: Optional[list[errors.EdgeDBError]] = None
-    unsafe_isolation_dangers: (
-        Optional[list[errors.UnsafeIsolationLevelError]]
-    ) = None
+    unsafe_isolation_dangers: Optional[
+        list[errors.UnsafeIsolationLevelError]
+    ] = None
 
     # Cacheable QueryUnit is serialized in the compiler, so that the I/O server
     # doesn't need to serialize it again for persistence.
@@ -564,7 +564,8 @@ class QueryUnitGroup:
             if self.unsafe_isolation_dangers is None:
                 self.unsafe_isolation_dangers = []
             self.unsafe_isolation_dangers.extend(
-                query_unit.unsafe_isolation_dangers)
+                query_unit.unsafe_isolation_dangers
+            )
 
         if not serialize or query_unit.cache_sql is None:
             self._units.append(query_unit)
@@ -617,7 +618,8 @@ class SQLQueryUnit:
     """Translation source map."""
 
     eql_format_query: Optional[str] = dataclasses.field(
-        repr=False, default=None)
+        repr=False, default=None
+    )
     """Translated query text returning data in single-column format."""
 
     orig_query: str = dataclasses.field(repr=False)
@@ -908,7 +910,6 @@ class TransactionState(NamedTuple):
 
 
 class Transaction:
-
     # Fields that affects the state key are listed here. The key is used
     # to determine if we can reuse a previously-pickled state, so remember
     # to update get_state_key() below when adding new fields affecting the

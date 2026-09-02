@@ -18,9 +18,7 @@ def refine_candidate_tp(tp: e.Tp) -> e.Tp:
         case e.UnionTp(l, r):
             return e.UnionTp(refine_candidate_tp(l), refine_candidate_tp(r))
         case e.IntersectTp(l, r):
-            return e.IntersectTp(
-                refine_candidate_tp(l), refine_candidate_tp(r)
-            )
+            return e.IntersectTp(refine_candidate_tp(l), refine_candidate_tp(r))
         case _:
             return tp
 
@@ -32,9 +30,7 @@ def try_match_and_get_arg_mods(
     Returns None if the expr does not match the fun_def.
     """
     match expr:
-        case e.FunAppExpr(
-            fun=_, args=args, overloading_index=_, kwargs=kwargs
-        ):
+        case e.FunAppExpr(fun=_, args=args, overloading_index=_, kwargs=kwargs):
             # positional
             if len(args) == len(fun_def.tp.args_mod):
                 return fun_def.tp.args_mod

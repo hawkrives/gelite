@@ -17,9 +17,11 @@ def main(argv):
     datas = {}
     for db in dbs:
         con = edgedb.create_client(database=db)
-        output = json.loads(con.query_single('''
+        output = json.loads(
+            con.query_single('''
             administer prepare_upgrade()
-        '''))
+        ''')
+        )
         datas[db] = output
 
     print(json.dumps(datas))

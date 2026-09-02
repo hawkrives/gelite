@@ -74,11 +74,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 rd := <cal::relative_duration>'3 years 2 months 14 days'
             SELECT (dt + rd, rd + dt, dt - rd)
             """,
-            [(
-                '2003-03-15T00:00:00+00:00',
-                '2003-03-15T00:00:00+00:00',
-                '1996-10-18T00:00:00+00:00',
-            )],
+            [
+                (
+                    '2003-03-15T00:00:00+00:00',
+                    '2003-03-15T00:00:00+00:00',
+                    '1996-10-18T00:00:00+00:00',
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -88,11 +90,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 rd := <cal::relative_duration>'3 years 2 months 14 days'
             SELECT (dt + rd, rd + dt, dt - rd)
             """,
-            [(
-                '2003-03-15T00:00:00',
-                '2003-03-15T00:00:00',
-                '1996-10-18T00:00:00',
-            )],
+            [
+                (
+                    '2003-03-15T00:00:00',
+                    '2003-03-15T00:00:00',
+                    '1996-10-18T00:00:00',
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -102,9 +106,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 rd := <cal::relative_duration>'3 years 2 months 14 days'
             SELECT (d + rd, rd + d, d - rd)
             """,
-            [('2003-03-15T00:00:00',
-              '2003-03-15T00:00:00',
-              '1996-10-18T00:00:00')],
+            [
+                (
+                    '2003-03-15T00:00:00',
+                    '2003-03-15T00:00:00',
+                    '1996-10-18T00:00:00',
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -129,23 +137,36 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 -rd,
             )
             """,
-            [(
-                True, True,
-                False, False,
-                False, True,
-                False, True,
-                'PT6H4M2S', 'PT0S',
-                'PT-3H-2M-1S',
-            )],
-            [(
-                True, True,
-                False, False,
-                False, True,
-                False, True,
-                edgedb.RelativeDuration(microseconds=21_842_000_000),
-                edgedb.RelativeDuration(),
-                edgedb.RelativeDuration(microseconds=-10_921_000_000),
-            )],
+            [
+                (
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    True,
+                    'PT6H4M2S',
+                    'PT0S',
+                    'PT-3H-2M-1S',
+                )
+            ],
+            [
+                (
+                    True,
+                    True,
+                    False,
+                    False,
+                    False,
+                    True,
+                    False,
+                    True,
+                    edgedb.RelativeDuration(microseconds=21_842_000_000),
+                    edgedb.RelativeDuration(),
+                    edgedb.RelativeDuration(microseconds=-10_921_000_000),
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -186,8 +207,11 @@ class TestEdgeQLDT(tb.QueryTestCase):
             )
             """,
             ['P1Y2M3DT4H5M6.000007S'],
-            [edgedb.RelativeDuration(months=14, days=3,
-                                     microseconds=14706000007)],
+            [
+                edgedb.RelativeDuration(
+                    months=14, days=3, microseconds=14706000007
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -201,10 +225,12 @@ class TestEdgeQLDT(tb.QueryTestCase):
             )
             """,
             [['P5Y', 'P1Y']],
-            [(
-                edgedb.RelativeDuration(months=60),
-                edgedb.RelativeDuration(months=12),
-            )]
+            [
+                (
+                    edgedb.RelativeDuration(months=60),
+                    edgedb.RelativeDuration(months=12),
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -215,15 +241,18 @@ class TestEdgeQLDT(tb.QueryTestCase):
             SELECT (<duration>rd, <cal::relative_duration>d)
             """,
             [['PT1S', 'PT5S']],
-            [(
-                timedelta(seconds=1),
-                edgedb.RelativeDuration(microseconds=5_000_000),
-            )]
+            [
+                (
+                    timedelta(seconds=1),
+                    edgedb.RelativeDuration(microseconds=5_000_000),
+                )
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid value for scalar type 'std::duration'"):
+            edgedb.InvalidValueError,
+            "invalid value for scalar type 'std::duration'",
+        ):
             await self.con.query(r"""
                 WITH rd := <cal::relative_duration>'1y'
                 SELECT <duration>rd
@@ -265,11 +294,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 rd := <cal::date_duration>'3 years 2 months 14 days'
             SELECT (dt + rd, rd + dt, dt - rd)
             """,
-            [(
-                '2003-03-15T00:00:00+00:00',
-                '2003-03-15T00:00:00+00:00',
-                '1996-10-18T00:00:00+00:00',
-            )],
+            [
+                (
+                    '2003-03-15T00:00:00+00:00',
+                    '2003-03-15T00:00:00+00:00',
+                    '1996-10-18T00:00:00+00:00',
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -279,11 +310,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 rd := <cal::date_duration>'3 years 2 months 14 days'
             SELECT (dt + rd, rd + dt, dt - rd)
             """,
-            [(
-                '2003-03-15T00:00:00',
-                '2003-03-15T00:00:00',
-                '1996-10-18T00:00:00',
-            )],
+            [
+                (
+                    '2003-03-15T00:00:00',
+                    '2003-03-15T00:00:00',
+                    '1996-10-18T00:00:00',
+                )
+            ],
         )
 
         await self.assert_query_result(
@@ -340,16 +373,18 @@ class TestEdgeQLDT(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::cal::date_duration: '1s'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::cal::date_duration: '1s'",
+        ):
             async with self.con.transaction():
                 await self.con.query(r"""
                     SELECT <str><cal::date_duration>'1s'
                     """)
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::cal::date_duration: '1s'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::cal::date_duration: '1s'",
+        ):
             async with self.con.transaction():
                 await self.con.query(r"""
                     SELECT <str><cal::date_duration><json>'1s'
@@ -385,9 +420,9 @@ class TestEdgeQLDT(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "operator '-' cannot be applied.*duration.*datetime"):
-
+            edgedb.QueryError,
+            "operator '-' cannot be applied.*duration.*datetime",
+        ):
             await self.con.query("""
                 SELECT <duration>'1 hour' - <datetime>'2017-10-10T00:00:00+00';
             """)
@@ -453,33 +488,37 @@ class TestEdgeQLDT(tb.QueryTestCase):
 
     async def test_edgeql_dt_duration_01_err(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::duration: '7 days'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::duration: '7 days'",
+        ):
             await self.con.execute("SELECT <duration>'7 days';")
 
     async def test_edgeql_dt_duration_02_err(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::duration: '13 months'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::duration: '13 months'",
+        ):
             await self.con.execute("SELECT <duration>'13 months';")
 
     async def test_edgeql_dt_duration_03_err(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::duration: '17 years'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::duration: '17 years'",
+        ):
             await self.con.execute("SELECT <duration>'17 years';")
 
     async def test_edgeql_dt_duration_04_err(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                "invalid input syntax for type std::duration: "
-                "'100 centuries'"):
+            edgedb.InvalidValueError,
+            "invalid input syntax for type std::duration: '100 centuries'",
+        ):
             await self.con.execute("SELECT <duration>'100 centuries';")
 
     async def test_edgeql_dt_duration_05_err(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid input syntax for type std::duration: "100 cats"'):
+            edgedb.InvalidValueError,
+            'invalid input syntax for type std::duration: "100 cats"',
+        ):
             await self.con.execute("SELECT <duration>'100 cats';")
 
     async def test_edgeql_dt_duration_06_interval_style(self):
@@ -993,17 +1032,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
         try:
             await self.assert_query_result(
                 r'''SELECT Obj { seq_prop } ORDER BY Obj.seq_prop;''',
-                [
-                    {'seq_prop': 1}, {'seq_prop': 2}
-                ],
+                [{'seq_prop': 1}, {'seq_prop': 2}],
             )
         except AssertionError:
             if self.is_repeat:
                 await self.assert_query_result(
                     r'''SELECT Obj { seq_prop } ORDER BY Obj.seq_prop;''',
-                    [
-                        {'seq_prop': 3}, {'seq_prop': 4}
-                    ],
+                    [{'seq_prop': 3}, {'seq_prop': 4}],
                 )
             else:
                 raise
@@ -1031,40 +1066,33 @@ class TestEdgeQLDT(tb.QueryTestCase):
             r'''
                 SELECT <enum_t>'foo' = <enum_t>'bar'
             ''',
-            [
-                False
-            ],
+            [False],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT <enum_t>'foo' = <enum_t>'foo'
             ''',
-            [
-                True
-            ],
+            [True],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT <enum_t>'foo' < <enum_t>'bar'
             ''',
-            [
-                True
-            ],
+            [True],
         )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid input value for enum \'default::enum_t\': "bad"'):
-            await self.con.execute(
-                'SELECT <enum_t>"bad";'
-            )
+            edgedb.InvalidValueError,
+            'invalid input value for enum \'default::enum_t\': "bad"',
+        ):
+            await self.con.execute('SELECT <enum_t>"bad";')
 
     async def test_edgeql_dt_bigint_01(self):
         with self.assertRaisesRegex(
             edgedb.InvalidValueError,
-            'invalid input syntax for type std::bigint'
+            'invalid input syntax for type std::bigint',
         ):
             await self.con.execute(
                 r'''
@@ -1152,10 +1180,11 @@ class TestEdgeQLDT(tb.QueryTestCase):
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "invalid target for property 'x' of object type "
-                "'default::Foo': 'tuple<b: std::int64, a: std::int64>' "
-                "\\(expecting 'tuple<a: std::int64, b: std::int64>'"):
+            edgedb.QueryError,
+            "invalid target for property 'x' of object type "
+            "'default::Foo': 'tuple<b: std::int64, a: std::int64>' "
+            "\\(expecting 'tuple<a: std::int64, b: std::int64>'",
+        ):
             await self.con.execute("INSERT Foo { x := (b := 1, a := 2) };")
 
     async def test_edgeql_named_tuple_typing_02(self):
@@ -1167,13 +1196,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
 
     async def test_edgeql_named_tuple_typing_03(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "named tuple has duplicate field 'a'"):
+            edgedb.QueryError, "named tuple has duplicate field 'a'"
+        ):
             await self.con.execute("SELECT (a := 1, a := 2);")
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "named tuple has duplicate field 'a'"):
+            edgedb.QueryError, "named tuple has duplicate field 'a'"
+        ):
             await self.con.execute("""
                 CREATE TYPE Foo {
                     CREATE PROPERTY x -> tuple<a: int64, a: str>;
@@ -1182,34 +1211,39 @@ class TestEdgeQLDT(tb.QueryTestCase):
 
     async def test_edgeql_memory_01(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                "invalid value for scalar type 'cfg::memory'"):
+            edgedb.InvalidValueError,
+            "invalid value for scalar type 'cfg::memory'",
+        ):
             await self.con.execute("SELECT <cfg::memory>-1")
 
         self.assertEqual(
             await self.con.query_single("SELECT <int64><cfg::memory>'1KiB'"),
-            1024)
+            1024,
+        )
 
         self.assertEqual(
-            await self.con.query_single("SELECT <int64><cfg::memory>1025"),
-            1025)
+            await self.con.query_single("SELECT <int64><cfg::memory>1025"), 1025
+        )
 
         self.assertEqual(
             await self.con.query_single("SELECT <str><cfg::memory>1025"),
-            '1025B')
+            '1025B',
+        )
 
         self.assertEqual(
             await self.con.query_single(
-                "SELECT <str><cfg::memory>2272753910888172544"),
-            '2219486241101731KiB')
+                "SELECT <str><cfg::memory>2272753910888172544"
+            ),
+            '2219486241101731KiB',
+        )
 
         self.assertEqual(
-            await self.con.query_single("SELECT <str><cfg::memory>0"),
-            '0B')
+            await self.con.query_single("SELECT <str><cfg::memory>0"), '0B'
+        )
 
         self.assertEqual(
-            await self.con.query_single("SELECT <str><cfg::memory>'0B'"),
-            '0B')
+            await self.con.query_single("SELECT <str><cfg::memory>'0B'"), '0B'
+        )
 
     async def test_edgeql_staeval_duration_01(self):
         valid = [
@@ -1267,13 +1301,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
             '''
             SELECT <array<duration>><array<str>>$0
             ''',
-            valid
+            valid,
         )
         vs = await self.con.query_single(
             '''
             SELECT <array<str>><array<duration>><array<str>>$0
             ''',
-            valid
+            valid,
         )
 
         for text, value, svalue in zip(valid, v, vs):
@@ -1283,39 +1317,37 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 parsed = statypes.Duration(text)
             except Exception:
                 raise AssertionError(
-                    f'could not parse a valid std::duration: {text!r}')
+                    f'could not parse a valid std::duration: {text!r}'
+                )
 
-            self.assertEqual(
-                ref_value,
-                parsed.to_microseconds(),
-                text)
+            self.assertEqual(ref_value, parsed.to_microseconds(), text)
 
-            self.assertEqual(
-                svalue,
-                parsed.to_iso8601(),
-                text)
+            self.assertEqual(svalue, parsed.to_iso8601(), text)
 
             self.assertEqual(
                 statypes.Duration.from_iso8601(svalue).to_microseconds(),
                 parsed.to_microseconds(),
-                text)
+                text,
+            )
 
             self.assertEqual(
                 statypes.Duration(svalue).to_microseconds(),
                 parsed.to_microseconds(),
-                text)
+                text,
+            )
 
         for text in invalid:
             async with self.assertRaisesRegexTx(
-                    edgedb.InvalidValueError,
-                    r'(invalid input syntax)|(interval field value out)'):
+                edgedb.InvalidValueError,
+                r'(invalid input syntax)|(interval field value out)',
+            ):
                 await self.con.query_single(
-                    '''SELECT <duration><str>$0''',
-                    text
+                    '''SELECT <duration><str>$0''', text
                 )
 
             with self.assertRaises(
-                    (errors.InvalidValueError, errors.NumericOutOfRangeError)):
+                (errors.InvalidValueError, errors.NumericOutOfRangeError)
+            ):
                 statypes.Duration(text)
 
     async def test_edgeql_staeval_memory_01(self):
@@ -1345,13 +1377,13 @@ class TestEdgeQLDT(tb.QueryTestCase):
             '''
             SELECT  <array<int64>><array<cfg::memory>><array<str>>$0
             ''',
-            valid
+            valid,
         )
         vs = await self.con.query_single(
             '''
             SELECT <array<str>><array<cfg::memory>><array<str>>$0
             ''',
-            valid
+            valid,
         )
 
         for text, ref_value, svalue in zip(valid, v, vs):
@@ -1359,30 +1391,26 @@ class TestEdgeQLDT(tb.QueryTestCase):
                 parsed = statypes.ConfigMemory(text)
             except Exception:
                 raise AssertionError(
-                    f'could not parse a valid cfg::memory: {text!r}')
+                    f'could not parse a valid cfg::memory: {text!r}'
+                )
 
-            self.assertEqual(
-                ref_value,
-                parsed.to_nbytes(),
-                text)
+            self.assertEqual(ref_value, parsed.to_nbytes(), text)
 
-            self.assertEqual(
-                svalue,
-                parsed.to_str(),
-                text)
+            self.assertEqual(svalue, parsed.to_str(), text)
 
             self.assertEqual(
                 statypes.ConfigMemory(svalue).to_nbytes(),
                 parsed.to_nbytes(),
-                text)
+                text,
+            )
 
         for text in invalid:
             async with self.assertRaisesRegexTx(
-                    edgedb.InvalidValueError,
-                    r'(unsupported memory size)|(unable to parse memory)'):
+                edgedb.InvalidValueError,
+                r'(unsupported memory size)|(unable to parse memory)',
+            ):
                 await self.con.query_single(
-                    '''SELECT <int64><cfg::memory><str>$0''',
-                    text
+                    '''SELECT <int64><cfg::memory><str>$0''', text
                 )
 
             with self.assertRaises(errors.InvalidValueError):

@@ -237,7 +237,6 @@ class Environment:
 
 
 class ResolverContextLevel(compiler.ContextLevel):
-
     # Compilation environment common for all context levels.
     env: Environment
 

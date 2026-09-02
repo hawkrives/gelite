@@ -52,7 +52,6 @@ class BranchCommand(
     sd.ExternalObjectCommand[Branch],
     context_class=BranchCommandContext,
 ):
-
     def _validate_name(
         self,
         schema: s_schema.Schema,
@@ -69,11 +68,9 @@ class BranchCommand(
 
 
 class CreateBranch(BranchCommand, sd.CreateExternalObject[Branch]):
-
     astnode = qlast.CreateDatabase
     template = struct.Field(str, default=None)
-    branch_type = struct.Field(
-        qlast.BranchType, default=qlast.BranchType.EMPTY)
+    branch_type = struct.Field(qlast.BranchType, default=qlast.BranchType.EMPTY)
 
     @classmethod
     def _cmd_tree_from_ast(

@@ -51,7 +51,6 @@ class CycleError(Exception):
 
 
 class DepGraphEntry[K, V, T]:
-
     #: The graph node
     item: V
     #: An optional set of dependencies for the graph node as lookup keys.
@@ -93,7 +92,6 @@ def sort_ex[K, V, T](
     *,
     allow_unresolved: bool = False,
 ) -> Iterator[tuple[K, DepGraphEntry[K, V, T]]]:
-
     adj: dict[K, OrderedSet[K]] = defaultdict(OrderedSet)
     weak_adj: dict[K, OrderedSet[K]] = defaultdict(OrderedSet)
     loop_control: dict[K, OrderedSet[K]] = defaultdict(OrderedSet)
@@ -106,7 +104,9 @@ def sort_ex[K, V, T](
                 elif not allow_unresolved:
                     raise UnresolvedReferenceError(
                         'reference to an undefined item {} in {}'.format(
-                            dep, item_name))
+                            dep, item_name
+                        )
+                    )
 
         if item.merge is not None:
             for merge in item.merge:
@@ -115,7 +115,9 @@ def sort_ex[K, V, T](
                 elif not allow_unresolved:
                     raise UnresolvedReferenceError(
                         'reference to an undefined item {} in {}'.format(
-                            merge, item_name))
+                            merge, item_name
+                        )
+                    )
 
         if item.deps:
             for dep in item.deps:
@@ -124,7 +126,9 @@ def sort_ex[K, V, T](
                 elif not allow_unresolved:
                     raise UnresolvedReferenceError(
                         'reference to an undefined item {} in {}'.format(
-                            dep, item_name))
+                            dep, item_name
+                        )
+                    )
 
         if item.loop_control:
             for ctrl in item.loop_control:
@@ -133,7 +137,9 @@ def sort_ex[K, V, T](
                 elif not allow_unresolved:
                     raise UnresolvedReferenceError(
                         'reference to an undefined item {} in {}'.format(
-                            ctrl, item_name))
+                            ctrl, item_name
+                        )
+                    )
 
     visiting: OrderedSet[K] = OrderedSet()
     visiting_weak: MutableSet[K] = set()
@@ -151,8 +157,7 @@ def sort_ex[K, V, T](
             vis_list = tuple(visiting - {item})
             cycle_item = item if len(vis_list) == 0 else vis_list[-1]
             raise CycleError(
-                f"dependency cycle between {cycle_item!r} "
-                f"and {item!r}",
+                f"dependency cycle between {cycle_item!r} and {item!r}",
                 path=vis_list,
                 item=item,
             )
@@ -205,14 +210,12 @@ def sort[K, V, T](
 if TYPE_CHECKING:
 
     class MergeFunction[V](Protocol):
-
         def __call__(
             self,
             item: V,
             parent: V,
             **kwargs: Any,
-        ) -> V:
-            ...
+        ) -> V: ...
 
 
 def normalize[K, V, T](

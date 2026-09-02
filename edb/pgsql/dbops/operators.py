@@ -60,7 +60,8 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
             left_type_desc = qt(self.args[0])
             left_type = f"', LEFTARG = {left_type_desc}'"
             oper_cond.append(
-                f'o.oprleft = {ql(qt(self.operator_args[0]))}::regtype')
+                f'o.oprleft = {ql(qt(self.operator_args[0]))}::regtype'
+            )
         else:
             left_type_desc = 'NONE'
             left_type = "''"
@@ -70,7 +71,8 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
             right_type_desc = qt(self.args[1])
             right_type = f"', RIGHTARG = {right_type_desc}'"
             oper_cond.append(
-                f'o.oprright = {ql(qt(self.operator_args[1]))}::regtype')
+                f'o.oprright = {ql(qt(self.operator_args[1]))}::regtype'
+            )
         else:
             right_type_desc = 'NONE'
             right_type = "''"
@@ -83,12 +85,16 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
 
         if self.commutator:
             commutator_name = f'{qi(self.commutator[0])}.{self.commutator[1]}'
-            commutator_decl = textwrap.indent(textwrap.dedent(f'''\
+            commutator_decl = textwrap.indent(
+                textwrap.dedent(f'''\
                 ', COMMUTATOR = OPERATOR({commutator_name})'
-            '''), ' ' * 8).strip()
+            '''),
+                ' ' * 8,
+            ).strip()
             commutator_cond = 'TRUE'
         else:
-            commutator_decl = textwrap.indent(textwrap.dedent(f'''\
+            commutator_decl = textwrap.indent(
+                textwrap.dedent(f'''\
                 ', COMMUTATOR = ' || (
                     SELECT edgedb.raise(
                         NULL::text,
@@ -99,17 +105,23 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
                         )
                     )
                 )
-            '''), ' ' * 8).strip()
+            '''),
+                ' ' * 8,
+            ).strip()
             commutator_cond = 'FALSE'
 
         if self.negator:
             negator_name = f'{qi(self.negator[0])}.{self.negator[1]}'
-            negator_decl = textwrap.indent(textwrap.dedent(f'''\
+            negator_decl = textwrap.indent(
+                textwrap.dedent(f'''\
                 ', NEGATOR = OPERATOR({negator_name})'
-            '''), ' ' * 8).strip()
+            '''),
+                ' ' * 8,
+            ).strip()
             negator_cond = 'TRUE'
         else:
-            negator_decl = textwrap.indent(textwrap.dedent(f'''\
+            negator_decl = textwrap.indent(
+                textwrap.dedent(f'''\
                 ', NEGATOR = ' || (
                     SELECT edgedb.raise(
                         NULL::text,
@@ -120,11 +132,14 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
                         )
                     )
                 )
-            '''), ' ' * 8).strip()
+            '''),
+                ' ' * 8,
+            ).strip()
             negator_cond = 'FALSE'
 
         def _get_op_field(field, oid):
-            return textwrap.indent(textwrap.dedent(f'''\
+            return textwrap.indent(
+                textwrap.dedent(f'''\
                 (CASE WHEN {oid} != 0 THEN
                  ', {field} = ' || (
                     SELECT
@@ -139,7 +154,9 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
                  )
                  ELSE ''
                  END)
-            '''), ' ' * 8).strip()
+            '''),
+                ' ' * 8,
+            ).strip()
 
         code = textwrap.dedent('''\
             SELECT
@@ -176,48 +193,53 @@ class CreateOperatorAlias(ddl.SchemaObjectOperation):
                 || {merges}
                 || ')'
                 ;
-        ''').format_map({
-            'name': oper_name,
-            'oper': oper_var,
-            'procedure': (ql(self.procedure) if self.procedure
-                          else f'{oper_var}.oprcode::text'),
-            'oper_schema': ql(self.operator[0]),
-            'oper_name': ql(self.operator[1]),
-            'oper_cond': ' AND '.join(oper_cond),
-            'oper_desc': ql(oper_desc),
-            'left_type': left_type,
-            'right_type': right_type,
-            'commutator': (
-                f"(CASE WHEN {oper_var}.oprcom != 0 OR {commutator_cond} THEN "
-                f"{commutator_decl} "
-                f"ELSE '' END)"
-            ),
-            'negator': (
-                f"(CASE WHEN {oper_var}.oprnegate != 0 OR {negator_cond} THEN "
-                f"{negator_decl} "
-                f"ELSE '' END)"
-            ),
-            'restrict': (
-                f"(CASE WHEN {oper_var}.oprrest != 0 THEN "
-                f"', RESTRICT = ' || {oper_var}.oprrest::text "
-                f"ELSE '' END)"
-            ),
-            'join': (
-                f"(CASE WHEN {oper_var}.oprjoin != 0 THEN "
-                f"', JOIN = ' || {oper_var}.oprjoin::text "
-                f"ELSE '' END)"
-            ),
-            'hashes': (
-                f"(CASE WHEN {oper_var}.oprcanhash THEN "
-                f"', HASHES ' "
-                f"ELSE '' END)"
-            ),
-            'merges': (
-                f"(CASE WHEN {oper_var}.oprcanmerge THEN "
-                f"', MERGES ' "
-                f"ELSE '' END)"
-            ),
-        })
+        ''').format_map(
+            {
+                'name': oper_name,
+                'oper': oper_var,
+                'procedure': (
+                    ql(self.procedure)
+                    if self.procedure
+                    else f'{oper_var}.oprcode::text'
+                ),
+                'oper_schema': ql(self.operator[0]),
+                'oper_name': ql(self.operator[1]),
+                'oper_cond': ' AND '.join(oper_cond),
+                'oper_desc': ql(oper_desc),
+                'left_type': left_type,
+                'right_type': right_type,
+                'commutator': (
+                    f"(CASE WHEN {oper_var}.oprcom != 0 OR {commutator_cond} THEN "
+                    f"{commutator_decl} "
+                    f"ELSE '' END)"
+                ),
+                'negator': (
+                    f"(CASE WHEN {oper_var}.oprnegate != 0 OR {negator_cond} THEN "
+                    f"{negator_decl} "
+                    f"ELSE '' END)"
+                ),
+                'restrict': (
+                    f"(CASE WHEN {oper_var}.oprrest != 0 THEN "
+                    f"', RESTRICT = ' || {oper_var}.oprrest::text "
+                    f"ELSE '' END)"
+                ),
+                'join': (
+                    f"(CASE WHEN {oper_var}.oprjoin != 0 THEN "
+                    f"', JOIN = ' || {oper_var}.oprjoin::text "
+                    f"ELSE '' END)"
+                ),
+                'hashes': (
+                    f"(CASE WHEN {oper_var}.oprcanhash THEN "
+                    f"', HASHES ' "
+                    f"ELSE '' END)"
+                ),
+                'merges': (
+                    f"(CASE WHEN {oper_var}.oprcanmerge THEN "
+                    f"', MERGES ' "
+                    f"ELSE '' END)"
+                ),
+            }
+        )
         return code.strip()
 
 

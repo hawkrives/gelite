@@ -132,7 +132,8 @@ class Scheduler[_T](abc.ABC):
 
     @abc.abstractmethod
     async def get_params(
-        self, context: Context,
+        self,
+        context: Context,
     ) -> Optional[Sequence[Params[_T]]]:
         """Get parameters for the requests to run."""
         raise NotImplementedError
@@ -149,8 +150,7 @@ class Scheduler[_T](abc.ABC):
 
         error_count = 0
         deferred_costs: dict[str, int] = {
-            limit_name: 0
-            for limit_name in self.service.limits
+            limit_name: 0 for limit_name in self.service.limits
         }
         success_count = 0
 
@@ -160,7 +160,8 @@ class Scheduler[_T](abc.ABC):
         elif len(request_params) > 0:
             try:
                 execution_report = await execute_no_sleep(
-                    request_params, service=self.service,
+                    request_params,
+                    service=self.service,
                 )
 
             except Exception:
@@ -251,7 +252,7 @@ class Service:
         success_count: int,
         deferred_costs: dict[str, int],
         error_count: int,
-        naptime: float
+        naptime: float,
     ) -> Timer:
         """When should the service should be processed again."""
 
@@ -275,11 +276,9 @@ class Service:
                         # If delay_factor is very high, it may take quite a long
                         # time for it to return to 1. A maximum delay prevents
                         # this service from never getting checked.
-                        limit_delays[limit_names] = (
-                            min(
-                                base_delay * service_limit.delay_factor,
-                                self.delay_max,
-                            )
+                        limit_delays[limit_names] = min(
+                            base_delay * service_limit.delay_factor,
+                            self.delay_max,
                         )
             delay = _get_maximum_delay(limit_delays)
 
@@ -294,8 +293,7 @@ class Service:
             urgent = False
 
         elif any(
-            deferred_cost > 0
-            for deferred_cost in deferred_costs.values()
+            deferred_cost > 0 for deferred_cost in deferred_costs.values()
         ):
             # There is some deferred work, apply the delay and run immediately.
             urgent = True
@@ -473,8 +471,8 @@ async def execute_no_sleep[_T](
             # If no other information is available, for the first attempt assume
             # there is no limit.
             Limits(total='unlimited')
-            if service_limit is None else
-            copy.copy(service_limit)
+            if service_limit is None
+            else copy.copy(service_limit)
         )
         for limit_name, service_limit in service.limits.items()
     }
@@ -491,8 +489,7 @@ async def execute_no_sleep[_T](
     excess_request_indexes: list[int]
 
     initial_pending_cost = {
-        limit_name: 0
-        for limit_name in service.limits.keys()
+        limit_name: 0 for limit_name in service.limits.keys()
     }
     for request_index in range(len(params)):
         for limit_name, cost in params[request_index].costs().items():
@@ -506,16 +503,11 @@ async def execute_no_sleep[_T](
                 for limit_name, limit in service.limits.items()
                 if limit is not None and isinstance(limit.total, int)
             )
-
             # Always include at least 1 request
             and request_index != 0
         ):
-            pending_request_indexes = (
-                list(range(request_index))
-            )
-            excess_request_indexes = (
-                list(range(request_index, len(params)))
-            )
+            pending_request_indexes = list(range(request_index))
+            excess_request_indexes = list(range(request_index, len(params)))
             break
 
     else:
@@ -548,7 +540,8 @@ async def execute_no_sleep[_T](
             break
 
         results = await _execute_specified(
-            params, active_request_indexes,
+            params,
+            active_request_indexes,
         )
 
         # Check results
@@ -603,18 +596,13 @@ async def execute_no_sleep[_T](
         expected_pending_cost = set(service.limits.keys())
 
     # Update deferred costs and any resulting limits.
-    report.deferred_costs = {
-        limit_name: 0
-        for limit_name in service.limits
-    }
+    report.deferred_costs = {limit_name: 0 for limit_name in service.limits}
     for limit_name in service.limits.keys():
         unexpected_deferred_costs = sum(
-            params[i].costs()[limit_name]
-            for i in pending_request_indexes
+            params[i].costs()[limit_name] for i in pending_request_indexes
         )
         excess_deferred_costs = sum(
-            params[i].costs()[limit_name]
-            for i in excess_request_indexes
+            params[i].costs()[limit_name] for i in excess_request_indexes
         )
         report.deferred_costs[limit_name] = (
             unexpected_deferred_costs + excess_deferred_costs
@@ -622,7 +610,6 @@ async def execute_no_sleep[_T](
 
         if (
             unexpected_deferred_costs != 0
-
             # If the limit was not a cause of delays, don't increase the delay
             # factor.
             and limit_name in expected_pending_cost
@@ -693,16 +680,15 @@ def _get_limit_base_delays[_T](
             for request_index in request_indexes
         )
 
-        base_delays[limit_name] = (limit.base_delay(
-            pending_limit_cost, guess=guess_delay,
-        ))
+        base_delays[limit_name] = limit.base_delay(
+            pending_limit_cost,
+            guess=guess_delay,
+        )
 
     return base_delays
 
 
-def _get_maximum_delay(
-    delays: dict[str, Optional[float]]
-) -> Optional[float]:
+def _get_maximum_delay(delays: dict[str, Optional[float]]) -> Optional[float]:
     result: Optional[float] = None
     for delay in delays.values():
         if result is None:

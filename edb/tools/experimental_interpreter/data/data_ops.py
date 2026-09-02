@@ -233,9 +233,9 @@ class ZeroCardinal:
         return other
 
     def __mul__(self, other: Cardinal):
-        assert not isinstance(
-            other, InfiniteCardinal
-        ), "Cannot multiply zero by inf"
+        assert not isinstance(other, InfiniteCardinal), (
+            "Cannot multiply zero by inf"
+        )
         return self
 
     def __le__(self, other: Cardinal):
@@ -274,9 +274,9 @@ class InfiniteCardinal:
         return InfiniteCardinal()
 
     def __mul__(self, other: Cardinal):
-        assert not isinstance(
-            other, ZeroCardinal
-        ), "cannot multiply zero by inf"
+        assert not isinstance(other, ZeroCardinal), (
+            "cannot multiply zero by inf"
+        )
         return InfiniteCardinal()
 
     def __le__(self, other: Cardinal):
@@ -718,7 +718,8 @@ class ResultMultiSetVal:
 
     def __post_init__(self):
         if not isinstance(self._vals, list) or not all(
-            isinstance(v, Val) for v in self._vals  # type: ignore
+            isinstance(v, Val)
+            for v in self._vals  # type: ignore
         ):
             raise ValueError("vals must be a list")
 
@@ -870,9 +871,7 @@ class RTVal(NamedTuple):
 @dataclass
 class TcCtx:
     schema: DBSchema
-    current_module: tuple[
-        str, ...
-    ]  # current module name, TODO: nested modules
+    current_module: tuple[str, ...]  # current module name, TODO: nested modules
     varctx: dict[str, ResultTp]
 
 

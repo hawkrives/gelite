@@ -53,21 +53,27 @@ base_type_name_map = {
     s_obj.get_known_type_id('std::float32'): ('float4',),
     s_obj.get_known_type_id('std::uuid'): ('uuid',),
     s_obj.get_known_type_id('std::datetime'): ('edgedbt', 'timestamptz_t'),
-    s_obj.get_known_type_id('std::duration'): ('edgedbt', 'duration_t',),
+    s_obj.get_known_type_id('std::duration'): (
+        'edgedbt',
+        'duration_t',
+    ),
     s_obj.get_known_type_id('std::bytes'): ('bytea',),
     s_obj.get_known_type_id('std::json'): ('jsonb',),
-
-    s_obj.get_known_type_id('std::cal::local_datetime'):
-        ('edgedbt', 'timestamp_t'),
+    s_obj.get_known_type_id('std::cal::local_datetime'): (
+        'edgedbt',
+        'timestamp_t',
+    ),
     s_obj.get_known_type_id('std::cal::local_date'): ('edgedbt', 'date_t'),
     s_obj.get_known_type_id('std::cal::local_time'): ('time',),
-    s_obj.get_known_type_id('std::cal::relative_duration'):
-        ('edgedbt', 'relative_duration_t'),
-    s_obj.get_known_type_id('std::cal::date_duration'):
-        ('edgedbt', 'date_duration_t'),
-
+    s_obj.get_known_type_id('std::cal::relative_duration'): (
+        'edgedbt',
+        'relative_duration_t',
+    ),
+    s_obj.get_known_type_id('std::cal::date_duration'): (
+        'edgedbt',
+        'date_duration_t',
+    ),
     s_obj.get_known_type_id('cfg::memory'): ('edgedbt', 'memory_t'),
-
     s_obj.get_known_type_id('std::pg::json'): ('json',),
     s_obj.get_known_type_id('std::pg::timestamptz'): ('timestamptz',),
     s_obj.get_known_type_id('std::pg::timestamp'): ('timestamp',),
@@ -136,7 +142,6 @@ base_type_name_map_r = {
     'interval': sn.QualName('std', 'duration'),
     'bytea': sn.QualName('std', 'bytes'),
     'jsonb': sn.QualName('std', 'json'),
-
     'timestamp': sn.QualName('std::cal', 'local_datetime'),
     'timestamp_t': sn.QualName('std::cal', 'local_datetime'),
     'edgedbt.timestamp_t': sn.QualName('std::cal', 'local_datetime'),
@@ -148,10 +153,8 @@ base_type_name_map_r = {
     'edgedbt.relative_duration_t': sn.QualName('std::cal', 'relative_duration'),
     'date_duration_t': sn.QualName('std::cal', 'date_duration'),
     'edgedbt.date_duration_t': sn.QualName('std::cal', 'date_duration'),
-
     'edgedbt.memory_t': sn.QualName('cfg', 'memory'),
     'memory_t': sn.QualName('cfg', 'memory'),
-
     'json': sn.QualName('std::pg', 'json'),
 }
 
@@ -269,20 +272,20 @@ def get_scalar_base(
             elif typstr := ancestor.resolve_sql_type(schema):
                 base = tuple(typstr.split('.'))
             else:
-                base = common.get_backend_name(
-                    schema, ancestor, catenate=False)
+                base = common.get_backend_name(schema, ancestor, catenate=False)
                 assert base
 
             return base
 
-    raise ValueError(f'cannot determine backend type for scalar type '
-                     f'{scalar.get_name(schema)}')
+    raise ValueError(
+        f'cannot determine backend type for scalar type '
+        f'{scalar.get_name(schema)}'
+    )
 
 
 def pg_type_from_scalar(
     schema: s_schema.Schema, scalar: s_scalars.ScalarType
 ) -> tuple[str, ...]:
-
     if scalar.is_polymorphic(schema):
         return ('anynonarray',)
 
@@ -316,7 +319,6 @@ def pg_type_multirange(tp: tuple[str, ...]) -> tuple[str, ...]:
 def pg_type_from_object(
     schema: s_schema.Schema, obj: s_obj.Object, persistent_tuples: bool = False
 ) -> tuple[str, ...]:
-
     if isinstance(obj, s_scalars.ScalarType):
         return pg_type_from_scalar(schema, obj)
 
@@ -337,8 +339,10 @@ def pg_type_from_object(
             return ('anyarray',)
         else:
             tp = pg_type_from_object(
-                schema, obj.get_subtypes(schema)[0],
-                persistent_tuples=persistent_tuples)
+                schema,
+                obj.get_subtypes(schema)[0],
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_array(tp)
 
     elif isinstance(obj, s_types.Range):
@@ -346,8 +350,10 @@ def pg_type_from_object(
             return ('anyrange',)
         else:
             tp = pg_type_from_object(
-                schema, obj.get_subtypes(schema)[0],
-                persistent_tuples=persistent_tuples)
+                schema,
+                obj.get_subtypes(schema)[0],
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_range(tp)
 
     elif isinstance(obj, s_types.MultiRange):
@@ -355,8 +361,10 @@ def pg_type_from_object(
             return ('anymultirange',)
         else:
             tp = pg_type_from_object(
-                schema, obj.get_subtypes(schema)[0],
-                persistent_tuples=persistent_tuples)
+                schema,
+                obj.get_subtypes(schema)[0],
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_multirange(tp)
 
     elif isinstance(obj, s_objtypes.ObjectType):
@@ -375,11 +383,11 @@ def pg_type_from_ir_typeref(
     serialized: bool = False,
     persistent_tuples: bool = False,
 ) -> tuple[str, ...]:
-
     if irtyputils.is_array(ir_typeref):
-        if (irtyputils.is_generic(ir_typeref)
-                or (irtyputils.is_abstract(ir_typeref.subtypes[0])
-                    and irtyputils.is_scalar(ir_typeref.subtypes[0]))):
+        if irtyputils.is_generic(ir_typeref) or (
+            irtyputils.is_abstract(ir_typeref.subtypes[0])
+            and irtyputils.is_scalar(ir_typeref.subtypes[0])
+        ):
             return ('anyarray',)
         elif irtyputils.is_array(ir_typeref.subtypes[0]):
             return ('record[]',)
@@ -387,31 +395,36 @@ def pg_type_from_ir_typeref(
             tp = pg_type_from_ir_typeref(
                 ir_typeref.subtypes[0],
                 serialized=serialized,
-                persistent_tuples=persistent_tuples)
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_array(tp)
 
     elif irtyputils.is_range(ir_typeref):
-        if (irtyputils.is_generic(ir_typeref)
-                or (irtyputils.is_abstract(ir_typeref.subtypes[0])
-                    and irtyputils.is_scalar(ir_typeref.subtypes[0]))):
+        if irtyputils.is_generic(ir_typeref) or (
+            irtyputils.is_abstract(ir_typeref.subtypes[0])
+            and irtyputils.is_scalar(ir_typeref.subtypes[0])
+        ):
             return ('anyrange',)
         else:
             tp = pg_type_from_ir_typeref(
                 ir_typeref.subtypes[0],
                 serialized=serialized,
-                persistent_tuples=persistent_tuples)
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_range(tp)
 
     elif irtyputils.is_multirange(ir_typeref):
-        if (irtyputils.is_generic(ir_typeref)
-                or (irtyputils.is_abstract(ir_typeref.subtypes[0])
-                    and irtyputils.is_scalar(ir_typeref.subtypes[0]))):
+        if irtyputils.is_generic(ir_typeref) or (
+            irtyputils.is_abstract(ir_typeref.subtypes[0])
+            and irtyputils.is_scalar(ir_typeref.subtypes[0])
+        ):
             return ('anymultirange',)
         else:
             tp = pg_type_from_ir_typeref(
                 ir_typeref.subtypes[0],
                 serialized=serialized,
-                persistent_tuples=persistent_tuples)
+                persistent_tuples=persistent_tuples,
+            )
             return pg_type_multirange(tp)
 
     elif irtyputils.is_anytuple(ir_typeref):
@@ -458,7 +471,8 @@ def pg_type_from_ir_typeref(
                 assert isinstance(real_name_hint, sn.QualName)
                 # User-defined scalar type
                 pg_type = common.get_scalar_backend_name(
-                    material.id, real_name_hint.module, catenate=False)
+                    material.id, real_name_hint.module, catenate=False
+                )
 
             return pg_type
 
@@ -467,12 +481,15 @@ TableInfo = tuple[tuple[str, str], str, str]
 
 
 def _source_table_info(
-    schema: s_schema.Schema, pointer: s_pointers.Pointer,
+    schema: s_schema.Schema,
+    pointer: s_pointers.Pointer,
     versioned: bool,
 ) -> TableInfo:
     table = common.get_backend_name(
-        schema, not_none(pointer.get_source(schema)),
-        catenate=False, versioned=versioned,
+        schema,
+        not_none(pointer.get_source(schema)),
+        catenate=False,
+        versioned=versioned,
     )
     ptr_name = pointer.get_shortname(schema).name
     if ptr_name.startswith('__') or ptr_name == 'id':
@@ -485,11 +502,13 @@ def _source_table_info(
 
 
 def _pointer_table_info(
-    schema: s_schema.Schema, pointer: s_pointers.Pointer,
+    schema: s_schema.Schema,
+    pointer: s_pointers.Pointer,
     versioned: bool,
 ) -> TableInfo:
     table = common.get_backend_name(
-        schema, pointer, catenate=False, versioned=versioned)
+        schema, pointer, catenate=False, versioned=versioned
+    )
     col_name = 'target'
     table_type = 'link'
 
@@ -545,9 +564,9 @@ def get_pointer_storage_info(
     versioned: bool = True,
     link_bias: bool = False,
 ) -> PointerStorageInfo:
-    assert not pointer.is_non_concrete(
-        schema
-    ), "only specialized pointers can be stored"
+    assert not pointer.is_non_concrete(schema), (
+        "only specialized pointers can be stored"
+    )
     if pointer.get_computable(schema):
         material_ptrcls = None
     else:
@@ -579,7 +598,8 @@ def get_pointer_storage_info(
     elif is_lprop:
         assert source
         table = common.get_backend_name(
-            schema, source, catenate=False, versioned=versioned)
+            schema, source, catenate=False, versioned=versioned
+        )
         table_type = 'link'
         if pointer.get_shortname(schema).name == 'source':
             col_name = 'source'
@@ -597,7 +617,9 @@ def get_pointer_storage_info(
             )
         elif _pointer_storable_in_pointer(schema, pointer):
             table, table_type, col_name = _pointer_table_info(
-                schema, pointer, versioned=versioned,
+                schema,
+                pointer,
+                versioned=versioned,
             )
         else:
             return None  # type: ignore
@@ -617,7 +639,6 @@ def get_pointer_storage_info(
 
 @dataclasses.dataclass(kw_only=True, eq=False, slots=True)
 class PointerStorageInfo:
-
     table_name: Optional[tuple[str, str]]
     table_type: str
     column_name: str
@@ -675,7 +696,6 @@ def _get_ptrref_storage_info(
     allow_missing: bool = False,
     versioned: bool = False,
 ) -> Optional[PointerStorageInfo]:
-
     if ptrref.material_ptr:
         ptrref = ptrref.material_ptr
 
@@ -684,7 +704,8 @@ def _get_ptrref_storage_info(
         # cardinality correctly.
         raise RuntimeError(
             f'cannot determine backend storage parameters for the '
-            f'{ptrref.name!r} pointer: the cardinality is not known')
+            f'{ptrref.name!r} pointer: the cardinality is not known'
+        )
 
     target = ptrref.out_target
 
@@ -701,7 +722,9 @@ def _get_ptrref_storage_info(
         source_ptr = ptrref.source_ptr
 
         table = common.get_pointer_backend_name(
-            source_ptr.id, source_ptr.name.module, catenate=False,
+            source_ptr.id,
+            source_ptr.name.module,
+            catenate=False,
             versioned=versioned,
         )
         table_type = 'link'
@@ -723,9 +746,10 @@ def _get_ptrref_storage_info(
             assert isinstance(source.name_hint, sn.QualName)
             # XXX: TRAMPOLINE
             table = common.get_objtype_backend_name(
-                source.id, source.name_hint.module, catenate=False,
+                source.id,
+                source.name_hint.module,
+                catenate=False,
                 versioned=versioned,
-
             )
             ptrname = ptrref.shortname.name
             if ptrname.startswith('__') or ptrname == 'id':
@@ -736,15 +760,19 @@ def _get_ptrref_storage_info(
 
         elif _ptrref_storable_in_pointer(ptrref):
             table = common.get_pointer_backend_name(
-                ptrref.id, ptrref.name.module, catenate=False,
-                versioned=versioned)
+                ptrref.id,
+                ptrref.name.module,
+                catenate=False,
+                versioned=versioned,
+            )
             col_name = 'target'
             table_type = 'link'
 
         elif not link_bias and not allow_missing:
             raise RuntimeError(
                 f'cannot determine backend storage parameters for the '
-                f'{ptrref.name} pointer: unexpected characteristics')
+                f'{ptrref.name} pointer: unexpected characteristics'
+            )
 
         else:
             return None
@@ -755,7 +783,8 @@ def _get_ptrref_storage_info(
             column_type = ('uuid',)
         else:
             column_type = pg_type_from_ir_typeref(
-                target, persistent_tuples=True)
+                target, persistent_tuples=True
+            )
     else:
         column_type = None
 
@@ -777,10 +806,7 @@ def _ptrref_storable_in_pointer(ptrref: irast.BasePointerRef) -> bool:
             _ptrref_storable_in_pointer(c) for c in ptrref.union_components
         )
     else:
-        return (
-            ptrref.out_cardinality.is_multi()
-            or ptrref.has_properties
-        )
+        return ptrref.out_cardinality.is_multi() or ptrref.has_properties
 
 
 def has_table(
@@ -791,9 +817,9 @@ def has_table(
 
     if isinstance(obj, s_objtypes.ObjectType):
         return not (
-            obj.is_compound_type(schema) or
-            obj.get_is_derived(schema) or
-            obj.is_view(schema)
+            obj.is_compound_type(schema)
+            or obj.get_is_derived(schema)
+            or obj.is_view(schema)
         )
 
     assert isinstance(obj, s_pointers.Pointer)
@@ -811,9 +837,7 @@ def has_table(
         return False
     else:
         ptr_stor_info = get_pointer_storage_info(
-            obj, resolve_type=False, schema=schema, link_bias=True)
-
-        return (
-            ptr_stor_info is not None
-            and ptr_stor_info.table_type == 'link'
+            obj, resolve_type=False, schema=schema, link_bias=True
         )
+
+        return ptr_stor_info is not None and ptr_stor_info.table_type == 'link'

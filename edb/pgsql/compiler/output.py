@@ -48,7 +48,6 @@ def _get_json_func(
     output_format: Optional[context.OutputFormat] = None,
     env: context.Environment,
 ) -> tuple[str, ...]:
-
     if output_format is None:
         output_format = env.output_format
 
@@ -113,10 +112,7 @@ def _build_json(
 
         if env.output_format in _JSON_FORMATS:
             result = pgast.TypeCast(
-                arg=result,
-                type_name=pgast.TypeName(
-                    name=('json',)
-                )
+                arg=result, type_name=pgast.TypeName(name=('json',))
             )
 
         return result
@@ -181,7 +177,8 @@ def array_as_json_object(
 
                 val = pgast.ColumnRef(name=[colname])
                 val = serialize_expr_to_json(
-                    val, styperef=st, nested=True, env=env)
+                    val, styperef=st, nested=True, env=env
+                )
 
                 json_args.append(val)
 
@@ -194,7 +191,7 @@ def array_as_json_object(
                             name=colname,
                             typename=pgast.TypeName(
                                 name=pgtypes.pg_type_from_ir_typeref(st)
-                            )
+                            ),
                         )
                     )
 
@@ -205,7 +202,8 @@ def array_as_json_object(
         else:
             val = pgast.ColumnRef(name=[out_alias])
             agg_arg = serialize_expr_to_json(
-                val, styperef=el_type, nested=True, env=env)
+                val, styperef=el_type, nested=True, env=env
+            )
             needs_unnest = True
 
         return pgast.SelectStmt(
@@ -233,9 +231,11 @@ def array_as_json_object(
                             args=[expr],
                             coldeflist=coldeflist,
                         )
-                    ]
+                    ],
                 )
-            ] if needs_unnest else [],
+            ]
+            if needs_unnest
+            else [],
         )
     elif irtyputils.is_array(el_type):
         # array<array<...>> implemented as array<tuple<array<...>>>
@@ -287,12 +287,15 @@ def array_as_json_object(
                     ser_safe=True,
                 )
             ],
-            from_clause=[unwrapped_inner_array]
+            from_clause=[unwrapped_inner_array],
         )
     else:
         return pgast.FuncCall(
-            name=_get_json_func('to', env=env), args=[expr],
-            null_safe=True, ser_safe=True)
+            name=_get_json_func('to', env=env),
+            args=[expr],
+            null_safe=True,
+            ser_safe=True,
+        )
 
 
 def tuple_as_json_object(
@@ -322,7 +325,8 @@ def unnamed_tuple_as_json_object(
                 indirection=[pgast.RecordIndirectionOp(name=str(el_idx))],
             )
             val = serialize_expr_to_json(
-                val, styperef=el_type, nested=True, env=env)
+                val, styperef=el_type, nested=True, env=env
+            )
             vals.append(val)
 
         obj = _build_json(
@@ -338,18 +342,20 @@ def unnamed_tuple_as_json_object(
         coldeflist = []
 
         for el_idx, el_type in enumerate(styperef.subtypes):
-
-            coldeflist.append(pgast.ColumnDef(
-                name=str(el_idx),
-                typename=pgast.TypeName(
-                    name=pgtypes.pg_type_from_ir_typeref(el_type),
-                ),
-            ))
+            coldeflist.append(
+                pgast.ColumnDef(
+                    name=str(el_idx),
+                    typename=pgast.TypeName(
+                        name=pgtypes.pg_type_from_ir_typeref(el_type),
+                    ),
+                )
+            )
 
             val = pgast.ColumnRef(name=[str(el_idx)])
 
             val = serialize_expr_to_json(
-                val, styperef=el_type, nested=True, env=env)
+                val, styperef=el_type, nested=True, env=env
+            )
 
             vals.append(val)
 
@@ -382,13 +388,15 @@ def unnamed_tuple_as_json_object(
                         )
                     ]
                 )
-            ] if styperef.subtypes else []
+            ]
+            if styperef.subtypes
+            else [],
         )
 
     if expr.nullable:
         obj = pgast.SelectStmt(
             target_list=[pgast.ResTarget(val=obj)],
-            where_clause=pgast.NullTest(arg=expr, negated=True)
+            where_clause=pgast.NullTest(arg=expr, negated=True),
         )
     return obj
 
@@ -408,13 +416,12 @@ def named_tuple_as_json_object(
             val: pgast.BaseExpr = pgast.Indirection(
                 arg=expr,
                 indirection=[
-                    pgast.RecordIndirectionOp(
-                        name=el_type.element_name
-                    )
-                ]
+                    pgast.RecordIndirectionOp(name=el_type.element_name)
+                ],
             )
             val = serialize_expr_to_json(
-                val, styperef=el_type, nested=True, env=env)
+                val, styperef=el_type, nested=True, env=env
+            )
             keyvals.append(val)
 
         obj = _build_json(
@@ -433,17 +440,20 @@ def named_tuple_as_json_object(
             assert el_type.element_name
             keyvals.append(pgast.StringConstant(val=el_type.element_name))
 
-            coldeflist.append(pgast.ColumnDef(
-                name=el_type.element_name,
-                typename=pgast.TypeName(
-                    name=pgtypes.pg_type_from_ir_typeref(el_type),
-                ),
-            ))
+            coldeflist.append(
+                pgast.ColumnDef(
+                    name=el_type.element_name,
+                    typename=pgast.TypeName(
+                        name=pgtypes.pg_type_from_ir_typeref(el_type),
+                    ),
+                )
+            )
 
             val = pgast.ColumnRef(name=[el_type.element_name])
 
             val = serialize_expr_to_json(
-                val, styperef=el_type, nested=True, env=env)
+                val, styperef=el_type, nested=True, env=env
+            )
 
             keyvals.append(val)
 
@@ -476,13 +486,15 @@ def named_tuple_as_json_object(
                         )
                     ]
                 )
-            ] if styperef.subtypes else []
+            ]
+            if styperef.subtypes
+            else [],
         )
 
     if expr.nullable:
         obj = pgast.SelectStmt(
             target_list=[pgast.ResTarget(val=obj)],
-            where_clause=pgast.NullTest(arg=expr, negated=True)
+            where_clause=pgast.NullTest(arg=expr, negated=True),
         )
     return obj
 
@@ -493,7 +505,6 @@ def tuple_var_as_json_object(
     styperef: irast.TypeRef,
     env: context.Environment,
 ) -> pgast.BaseExpr:
-
     if not tvar.named:
         vals = [
             serialize_expr(t.val, path_id=t.path_id, nested=True, env=env)
@@ -519,7 +530,8 @@ def tuple_var_as_json_object(
                 name = '@' + name
             keyvals.append(pgast.StringConstant(val=name))
             val = serialize_expr(
-                element.val, path_id=element.path_id, nested=True, env=env)
+                element.val, path_id=element.path_id, nested=True, env=env
+            )
             keyvals.append(val)
 
         return _build_json(
@@ -555,8 +567,7 @@ def serialize_custom_tuple(
                     pgast.RecordIndirectionOp(name=str(el_idx)),
                 ],
             )
-            val = output_as_value(
-                val, ser_typeref=el_type, env=env)
+            val = output_as_value(val, ser_typeref=el_type, env=env)
             vals.append(val)
 
         obj = _row(vals)
@@ -565,18 +576,18 @@ def serialize_custom_tuple(
         coldeflist = []
 
         for el_idx, el_type in enumerate(styperef.subtypes):
-
-            coldeflist.append(pgast.ColumnDef(
-                name=str(el_idx),
-                typename=pgast.TypeName(
-                    name=pgtypes.pg_type_from_ir_typeref(el_type),
-                ),
-            ))
+            coldeflist.append(
+                pgast.ColumnDef(
+                    name=str(el_idx),
+                    typename=pgast.TypeName(
+                        name=pgtypes.pg_type_from_ir_typeref(el_type),
+                    ),
+                )
+            )
 
             val = pgast.ColumnRef(name=[str(el_idx)])
 
-            val = output_as_value(
-                val, ser_typeref=el_type, env=env)
+            val = output_as_value(val, ser_typeref=el_type, env=env)
 
             vals.append(val)
 
@@ -602,13 +613,15 @@ def serialize_custom_tuple(
                         )
                     ]
                 )
-            ] if styperef.subtypes else []
+            ]
+            if styperef.subtypes
+            else [],
         )
 
     if expr.nullable:
         obj = pgast.SelectStmt(
             target_list=[pgast.ResTarget(val=obj)],
-            where_clause=pgast.NullTest(arg=expr, negated=True)
+            where_clause=pgast.NullTest(arg=expr, negated=True),
         )
     return obj
 
@@ -653,7 +666,7 @@ def serialize_custom_array(
                         name=colname,
                         typename=pgast.TypeName(
                             name=pgtypes.pg_type_from_ir_typeref(st)
-                        )
+                        ),
                     )
                 )
 
@@ -687,9 +700,9 @@ def serialize_custom_array(
                             args=[expr],
                             coldeflist=coldeflist,
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
     else:
         el_sql_type = el_type.real_base_type.custom_sql_serialization
@@ -699,9 +712,7 @@ def serialize_custom_array(
         )
 
 
-def _row(
-    args: list[pgast.BaseExpr]
-) -> pgast.ImplicitRowExpr | pgast.RowExpr:
+def _row(args: list[pgast.BaseExpr]) -> pgast.ImplicitRowExpr | pgast.RowExpr:
     if len(args) > 1:
         return pgast.ImplicitRowExpr(args=args)
     else:
@@ -709,9 +720,11 @@ def _row(
 
 
 def output_as_value(
-        expr: pgast.BaseExpr, *,
-        ser_typeref: Optional[irast.TypeRef] = None,
-        env: context.Environment) -> pgast.BaseExpr:
+    expr: pgast.BaseExpr,
+    *,
+    ser_typeref: Optional[irast.TypeRef] = None,
+    env: context.Environment,
+) -> pgast.BaseExpr:
     """Format an expression as a proper value.
 
     Normally this just means packing TupleVars into real expressions,
@@ -722,7 +735,8 @@ def output_as_value(
     """
 
     needs_custom_serialization = ser_typeref and (
-        irtyputils.needs_custom_serialization(ser_typeref))
+        irtyputils.needs_custom_serialization(ser_typeref)
+    )
 
     val = expr
 
@@ -740,18 +754,23 @@ def output_as_value(
 
         ser_typerefs = [
             ser_typeref.subtypes[i]
-            if ser_typeref and ser_typeref.subtypes else None
+            if ser_typeref and ser_typeref.subtypes
+            else None
             for i in range(len(expr.elements))
         ]
-        val = _row([
-            output_as_value(e.val, ser_typeref=ser_typerefs[i], env=env)
-            for i, e in enumerate(expr.elements)
-        ])
+        val = _row(
+            [
+                output_as_value(e.val, ser_typeref=ser_typerefs[i], env=env)
+                for i, e in enumerate(expr.elements)
+            ]
+        )
 
-        if (expr.typeref is not None
-                and not needs_custom_serialization
-                and not env.singleton_mode
-                and irtyputils.is_persistent_tuple(expr.typeref)):
+        if (
+            expr.typeref is not None
+            and not needs_custom_serialization
+            and not env.singleton_mode
+            and irtyputils.is_persistent_tuple(expr.typeref)
+        ):
             pg_type = pgtypes.pg_type_from_ir_typeref(expr.typeref)
             val = pgast.TypeCast(
                 arg=val,
@@ -760,7 +779,7 @@ def output_as_value(
                 ),
             )
 
-    elif (needs_custom_serialization and not expr.ser_safe):
+    elif needs_custom_serialization and not expr.ser_safe:
         assert ser_typeref is not None
         if irtyputils.is_array(ser_typeref):
             return serialize_custom_array(expr, styperef=ser_typeref, env=env)
@@ -785,15 +804,16 @@ def add_null_test(expr: pgast.BaseExpr, query: pgast.SelectStmt) -> None:
         expr = expr.elements[0].val
 
     query.where_clause = astutils.extend_binop(
-        query.where_clause,
-        pgast.NullTest(arg=expr, negated=True)
+        query.where_clause, pgast.NullTest(arg=expr, negated=True)
     )
 
 
 def serialize_expr_if_needed(
-        expr: pgast.BaseExpr, *,
-        path_id: irast.PathId,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    expr: pgast.BaseExpr,
+    *,
+    path_id: irast.PathId,
+    ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     if in_serialization_ctx(ctx):
         val = serialize_expr(expr, path_id=path_id, env=ctx.env)
     else:
@@ -803,11 +823,12 @@ def serialize_expr_if_needed(
 
 
 def serialize_expr_to_json(
-        expr: pgast.BaseExpr, *,
-        styperef: irast.TypeRef,
-        nested: bool=False,
-        env: context.Environment) -> pgast.BaseExpr:
-
+    expr: pgast.BaseExpr,
+    *,
+    styperef: irast.TypeRef,
+    nested: bool = False,
+    env: context.Environment,
+) -> pgast.BaseExpr:
     val: pgast.BaseExpr
 
     if isinstance(expr, pgast.TupleVar):
@@ -829,11 +850,13 @@ def serialize_expr_to_json(
                 ('edgedb', 'range_to_jsonb'),
                 versioned=env.versioned_stdlib,
             ),
-            args=[expr], null_safe=True, ser_safe=True)
+            args=[expr],
+            null_safe=True,
+            ser_safe=True,
+        )
         if env.output_format in _JSON_FORMATS:
             val = pgast.TypeCast(
-                arg=val,
-                type_name=pgast.TypeName(name=('json',))
+                arg=val, type_name=pgast.TypeName(name=('json',))
             )
 
     elif irtyputils.is_multirange(styperef) and not expr.ser_safe:
@@ -844,20 +867,19 @@ def serialize_expr_to_json(
                 ('edgedb', 'multirange_to_jsonb'),
                 versioned=env.versioned_stdlib,
             ),
-            args=[expr], null_safe=True, ser_safe=True)
+            args=[expr],
+            null_safe=True,
+            ser_safe=True,
+        )
         if env.output_format in _JSON_FORMATS:
             val = pgast.TypeCast(
-                arg=val,
-                type_name=pgast.TypeName(name=('json',))
+                arg=val, type_name=pgast.TypeName(name=('json',))
             )
 
     elif irtyputils.is_collection(styperef) and not expr.ser_safe:
         val = coll_as_json_object(expr, styperef=styperef, env=env)
 
-    elif (
-        styperef.real_base_type.needs_custom_json_cast
-        and not expr.ser_safe
-    ):
+    elif styperef.real_base_type.needs_custom_json_cast and not expr.ser_safe:
         base = styperef.real_base_type
         cast_name = s_casts.get_cast_fullname_from_names(
             base.orig_name_hint or base.name_hint,
@@ -867,17 +889,22 @@ def serialize_expr_to_json(
             name=common.get_cast_backend_name(
                 cast_name, aspect='function', versioned=env.versioned_stdlib
             ),
-            args=[expr], null_safe=True, ser_safe=True)
+            args=[expr],
+            null_safe=True,
+            ser_safe=True,
+        )
         if env.output_format in _JSON_FORMATS:
             val = pgast.TypeCast(
-                arg=val,
-                type_name=pgast.TypeName(name=('json',))
+                arg=val, type_name=pgast.TypeName(name=('json',))
             )
 
     elif not nested:
         val = pgast.FuncCall(
             name=_get_json_func('to', env=env),
-            args=[expr], null_safe=True, ser_safe=True)
+            args=[expr],
+            null_safe=True,
+            ser_safe=True,
+        )
 
     else:
         val = expr
@@ -886,20 +913,26 @@ def serialize_expr_to_json(
 
 
 def serialize_expr(
-        expr: pgast.BaseExpr, *,
-        path_id: irast.PathId,
-        nested: bool=False,
-        env: context.Environment) -> pgast.BaseExpr:
-
-    if env.output_format in (context.OutputFormat.JSON,
-                             context.OutputFormat.JSON_ELEMENTS,
-                             context.OutputFormat.JSONB):
+    expr: pgast.BaseExpr,
+    *,
+    path_id: irast.PathId,
+    nested: bool = False,
+    env: context.Environment,
+) -> pgast.BaseExpr:
+    if env.output_format in (
+        context.OutputFormat.JSON,
+        context.OutputFormat.JSON_ELEMENTS,
+        context.OutputFormat.JSONB,
+    ):
         val = serialize_expr_to_json(
-            expr, styperef=path_id.target, nested=nested, env=env)
+            expr, styperef=path_id.target, nested=nested, env=env
+        )
 
-    elif env.output_format in (context.OutputFormat.NATIVE,
-                               context.OutputFormat.NATIVE_INTERNAL,
-                               context.OutputFormat.NONE):
+    elif env.output_format in (
+        context.OutputFormat.NATIVE,
+        context.OutputFormat.NATIVE_INTERNAL,
+        context.OutputFormat.NONE,
+    ):
         val = output_as_value(expr, ser_typeref=path_id.target, env=env)
 
     else:
@@ -909,9 +942,8 @@ def serialize_expr(
 
 
 def get_pg_type(
-        typeref: irast.TypeRef, *,
-        ctx: context.CompilerContextLevel) -> tuple[str, ...]:
-
+    typeref: irast.TypeRef, *, ctx: context.CompilerContextLevel
+) -> tuple[str, ...]:
     if in_serialization_ctx(ctx):
         if ctx.env.output_format is context.OutputFormat.JSONB:
             return ('jsonb',)
@@ -927,15 +959,10 @@ def get_pg_type(
 
 
 def aggregate_json_output(
-        stmt: pgast.SelectStmt,
-        ir_set: irast.Set, *,
-        env: context.Environment) -> pgast.SelectStmt:
-
+    stmt: pgast.SelectStmt, ir_set: irast.Set, *, env: context.Environment
+) -> pgast.SelectStmt:
     subrvar = pgast.RangeSubselect(
-        subquery=stmt,
-        alias=pgast.Alias(
-            aliasname=env.aliases.get('aggw')
-        )
+        subquery=stmt, alias=pgast.Alias(aliasname=env.aliases.get('aggw'))
     )
 
     stmt_res = stmt.target_list[0]
@@ -951,22 +978,14 @@ def aggregate_json_output(
         args=[
             pgast.FuncCall(
                 name=_get_json_func('agg', env=env),
-                args=[pgast.ColumnRef(name=[stmt_res.name])]
+                args=[pgast.ColumnRef(name=[stmt_res.name])],
             ),
-            pgast.StringConstant(val='[]')
+            pgast.StringConstant(val='[]'),
         ]
     )
 
     result = pgast.SelectStmt(
-        target_list=[
-            pgast.ResTarget(
-                val=new_val
-            )
-        ],
-
-        from_clause=[
-            subrvar
-        ]
+        target_list=[pgast.ResTarget(val=new_val)], from_clause=[subrvar]
     )
 
     result.ctes = stmt.ctes
@@ -981,12 +1000,8 @@ def wrap_script_stmt(
     suppress_all_output: bool = False,
     env: context.Environment,
 ) -> pgast.SelectStmt:
-
     subrvar = pgast.RangeSubselect(
-        subquery=stmt,
-        alias=pgast.Alias(
-            aliasname=env.aliases.get('aggw')
-        )
+        subquery=stmt, alias=pgast.Alias(aliasname=env.aliases.get('aggw'))
     )
 
     stmt_res = stmt.target_list[0]
@@ -999,8 +1014,7 @@ def wrap_script_stmt(
         assert stmt_res.name is not None
 
     count_val = pgast.FuncCall(
-        name=('count',),
-        args=[pgast.ColumnRef(name=[stmt_res.name])]
+        name=('count',), args=[pgast.ColumnRef(name=[stmt_res.name])]
     )
 
     result = pgast.SelectStmt(
@@ -1010,18 +1024,14 @@ def wrap_script_stmt(
                 name=stmt_res.name,
             ),
         ],
-
         from_clause=[
             subrvar,
-        ]
+        ],
     )
 
     if suppress_all_output:
         subrvar = pgast.RangeSubselect(
-            subquery=result,
-            alias=pgast.Alias(
-                aliasname=env.aliases.get('q')
-            )
+            subquery=result, alias=pgast.Alias(aliasname=env.aliases.get('q'))
         )
 
         result = pgast.SelectStmt(
@@ -1043,23 +1053,21 @@ def wrap_script_stmt(
 
 
 def top_output_as_value(
-        stmt: pgast.SelectStmt,
-        ir_set: irast.Set, *,
-        env: context.Environment) -> pgast.SelectStmt:
+    stmt: pgast.SelectStmt, ir_set: irast.Set, *, env: context.Environment
+) -> pgast.SelectStmt:
     """Finalize output serialization on the top level."""
 
-    if (env.output_format is context.OutputFormat.JSON and
-            not env.expected_cardinality_one):
+    if (
+        env.output_format is context.OutputFormat.JSON
+        and not env.expected_cardinality_one
+    ):
         # For JSON we just want to aggregate the whole thing
         # into a JSON array.
         return aggregate_json_output(stmt, ir_set, env=env)
 
-    elif (
-        env.explicit_top_cast is not None
-        and (
-            env.output_format is context.OutputFormat.NATIVE
-            or env.output_format is context.OutputFormat.NATIVE_INTERNAL
-        )
+    elif env.explicit_top_cast is not None and (
+        env.output_format is context.OutputFormat.NATIVE
+        or env.output_format is context.OutputFormat.NATIVE_INTERNAL
     ):
         typecast = pgast.TypeCast(
             arg=stmt.target_list[0].val,

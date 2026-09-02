@@ -23,7 +23,6 @@ A top-down cardinality inferer that traverses the full AST populating
 cardinality fields and performing cardinality checks.
 """
 
-
 from __future__ import annotations
 from typing import (
     Optional,
@@ -68,6 +67,7 @@ AT_LEAST_ONE = qltypes.Cardinality.AT_LEAST_ONE
 
 class CardinalityBound(int, enum.Enum):
     '''This enum is used to perform some of the cardinality operations.'''
+
     ZERO = 0
     ONE = 1
     MANY = 2
@@ -177,8 +177,7 @@ def _union_cardinality(
 ) -> qltypes.Cardinality:
     '''Cardinality of UNION of multiple args.'''
     lower, upper = _card_unzip(args)
-    return _bounds_to_card(
-        sum(lower, start=CB_ZERO), sum(upper, start=CB_ZERO))
+    return _bounds_to_card(sum(lower, start=CB_ZERO), sum(upper, start=CB_ZERO))
 
 
 VOLATILE = qltypes.Volatility.Volatile
@@ -204,7 +203,7 @@ def _check_op_volatility(
             if cartesian_cardinality(cards2).is_multi():
                 raise errors.QueryError(
                     "can not take cross product of volatile operation",
-                    span=args[i].span
+                    span=args[i].span,
                 )
 
 
@@ -213,11 +212,7 @@ def _common_cardinality(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    cards = [
-        infer_cardinality(
-            a, scope_tree=scope_tree, ctx=ctx
-        ) for a in args
-    ]
+    cards = [infer_cardinality(a, scope_tree=scope_tree, ctx=ctx) for a in args]
     _check_op_volatility(args, cards, ctx=ctx)
 
     return cartesian_cardinality(cards)
@@ -240,8 +235,7 @@ def __infer_statement(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    return infer_cardinality(
-        ir.expr, scope_tree=scope_tree, ctx=ctx)
+    return infer_cardinality(ir.expr, scope_tree=scope_tree, ctx=ctx)
 
 
 @_infer_cardinality.register
@@ -251,8 +245,7 @@ def __infer_config_insert(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    return infer_cardinality(
-        ir.expr, scope_tree=scope_tree, ctx=ctx)
+    return infer_cardinality(ir.expr, scope_tree=scope_tree, ctx=ctx)
 
 
 @_infer_cardinality.register
@@ -262,8 +255,7 @@ def __infer_config_set(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    card = infer_cardinality(
-        ir.expr, scope_tree=scope_tree, ctx=ctx)
+    card = infer_cardinality(ir.expr, scope_tree=scope_tree, ctx=ctx)
     if ir.required and card.can_be_zero():
         raise errors.QueryError(
             f"possibly an empty set returned for "
@@ -288,8 +280,7 @@ def __infer_config_reset(
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
     if ir.selector:
-        return infer_cardinality(
-            ir.selector, scope_tree=scope_tree, ctx=ctx)
+        return infer_cardinality(ir.selector, scope_tree=scope_tree, ctx=ctx)
     else:
         return ONE
 
@@ -360,7 +351,6 @@ def _infer_pointer_cardinality(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> None:
-
     env = ctx.env
 
     if specified_required is None:
@@ -373,8 +363,7 @@ def _infer_pointer_cardinality(
     else:
         spec_upper_bound = CardinalityBound.from_schema_value(specified_card)
 
-    expr_card = infer_cardinality(
-        irexpr, scope_tree=scope_tree, ctx=ctx)
+    expr_card = infer_cardinality(irexpr, scope_tree=scope_tree, ctx=ctx)
 
     ptrcls_schema_card = ptrcls.get_cardinality(env.schema)
 
@@ -464,7 +453,8 @@ def _infer_pointer_cardinality(
 
     if ptrref and ctx.make_updates:
         out_card, in_card = typeutils.cardinality_from_ptrcls(
-            env.schema, ptrcls)
+            env.schema, ptrcls
+        )
         assert in_card is not None
         assert out_card is not None
         ptrref.in_cardinality = in_card
@@ -474,7 +464,6 @@ def _infer_pointer_cardinality(
 def _update_cardinality_in_derived(
     ptrcls: s_pointers.Pointer, *, env: context.Environment
 ) -> None:
-
     children = env.pointer_derivation_map.get(ptrcls)
     if children:
         ptrcls_cardinality = ptrcls.get_cardinality(env.schema)
@@ -482,9 +471,11 @@ def _update_cardinality_in_derived(
         assert ptrcls_cardinality.is_known()
         for child in children:
             env.schema = child.set_field_value(
-                env.schema, 'cardinality', ptrcls_cardinality)
+                env.schema, 'cardinality', ptrcls_cardinality
+            )
             env.schema = child.set_field_value(
-                env.schema, 'required', ptrcls_required)
+                env.schema, 'required', ptrcls_required
+            )
             _update_cardinality_in_derived(child, env=env)
 
 
@@ -506,11 +497,12 @@ def _infer_shape(
             ptrref = rptr.ptrref
 
             ctx.env.schema, ptrcls = typeutils.ptrcls_from_ptrref(
-                ptrref, schema=ctx.env.schema)
+                ptrref, schema=ctx.env.schema
+            )
             assert isinstance(ptrcls, s_pointers.Pointer)
             specified_card, specified_required, _ = (
-                ctx.env.pointer_specified_info.get(ptrcls,
-                                                   (None, False, None)))
+                ctx.env.pointer_specified_info.get(ptrcls, (None, False, None))
+            )
             assert isinstance(rptr.expr, irast.Stmt)
 
             _infer_pointer_cardinality(
@@ -526,8 +518,7 @@ def _infer_shape(
                 ctx=ctx,
             )
 
-        _infer_shape(shape_set, scope_tree=scope_tree,
-                     ctx=ctx)
+        _infer_shape(shape_set, scope_tree=scope_tree, ctx=ctx)
 
 
 def _infer_set(
@@ -536,19 +527,16 @@ def _infer_set(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-
     # First compute (or look up) the "intrinsic" cardinality of the set
     if not (result := ctx.inferred_cardinality.get(ir)):
-        result = _infer_set_inner(
-            ir, scope_tree=scope_tree, ctx=ctx)
+        result = _infer_set_inner(ir, scope_tree=scope_tree, ctx=ctx)
 
         # We need to cache the main result before doing the shape,
         # since sometimes the shape will refer to the enclosing set.
         ctx.inferred_cardinality[ir] = result
 
         new_scope = inf_utils.get_set_scope(ir, scope_tree, ctx=ctx)
-        _infer_shape(
-            ir, scope_tree=new_scope, ctx=ctx)
+        _infer_shape(ir, scope_tree=new_scope, ctx=ctx)
 
     # With that in hand, compute the cardinality of a *reference* to the
     # set from this location in the tree.
@@ -596,11 +584,14 @@ def _infer_set_inner(
         # here is that this source inference relies on using the old
         # scope_tree. I think this is probably fixable.
         source_card = infer_cardinality(
-            ptr.source, scope_tree=scope_tree, ctx=ctx,
+            ptr.source,
+            scope_tree=scope_tree,
+            ctx=ctx,
         )
 
         ctx.env.schema, ptrcls = typeutils.ptrcls_from_ptrref(
-            ptr.ptrref, schema=ctx.env.schema)
+            ptr.ptrref, schema=ctx.env.schema
+        )
         if ptr.expr:
             assert isinstance(ptrcls, s_pointers.Pointer)
             _infer_pointer_cardinality(
@@ -648,9 +639,11 @@ def _infer_set_inner(
     # subpar codegen.
     if (
         new_scope.parent_fence
-        and (node := new_scope.parent_fence.find_child(
-            ir.path_id, in_branches=True
-        ))
+        and (
+            node := new_scope.parent_fence.find_child(
+                ir.path_id, in_branches=True
+            )
+        )
         and node.optional
         and not card.can_be_zero()
     ):
@@ -661,9 +654,11 @@ def _infer_set_inner(
 
 def _typemod_to_card(typemod: qltypes.TypeModifier) -> qltypes.Cardinality:
     return (
-        MANY if typemod is qltypes.TypeModifier.SetOfType else
-        AT_MOST_ONE if typemod is qltypes.TypeModifier.OptionalType else
-        ONE
+        MANY
+        if typemod is qltypes.TypeModifier.SetOfType
+        else AT_MOST_ONE
+        if typemod is qltypes.TypeModifier.OptionalType
+        else ONE
     )
 
 
@@ -695,11 +690,11 @@ def _standard_call_cardinality(
                 _bounds_to_card(CB_ONE, _card_to_bounds(card).upper)
             )
 
-    _check_op_volatility(
-        non_aggregate_args, non_aggregate_arg_cards, ctx=ctx)
+    _check_op_volatility(non_aggregate_args, non_aggregate_arg_cards, ctx=ctx)
 
     return cartesian_cardinality(
-        non_aggregate_arg_cards + [_typemod_to_card(ir.typemod)])
+        non_aggregate_arg_cards + [_typemod_to_card(ir.typemod)]
+    )
 
 
 @_infer_cardinality.register
@@ -709,8 +704,7 @@ def __infer_func_call(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-
-    for glob_arg in (ir.global_args or ()):
+    for glob_arg in ir.global_args or ():
         infer_cardinality(glob_arg, scope_tree=scope_tree, ctx=ctx)
 
     cards: list[qltypes.Cardinality] = []
@@ -724,7 +718,8 @@ def __infer_func_call(
 
     if ir.preserves_optionality or ir.preserves_upper_cardinality:
         ret_lower_bound, ret_upper_bound = _card_to_bounds(
-            _typemod_to_card(ir.typemod))
+            _typemod_to_card(ir.typemod)
+        )
 
         # This is a generic aggregate function which preserves the
         # optionality and/or upper cardinality of its generic
@@ -744,13 +739,19 @@ def __infer_func_call(
         arg_card = zip(*(_card_to_bounds(card) for card in arg_cards))
         arg_lower, arg_upper = arg_card
         lower = (
-            min(arg_lower) if ir.preserves_optionality else
-            CB_ONE if ir.func_shortname == sn.QualName('std', 'assert_exists')
+            min(arg_lower)
+            if ir.preserves_optionality
+            else CB_ONE
+            if ir.func_shortname == sn.QualName('std', 'assert_exists')
             else ret_lower_bound
         )
-        upper = (CB_MANY if force_multi
-                 else max(arg_upper) if ir.preserves_upper_cardinality
-                 else ret_upper_bound)
+        upper = (
+            CB_MANY
+            if force_multi
+            else max(arg_upper)
+            if ir.preserves_upper_cardinality
+            else ret_upper_bound
+        )
         call_card = _bounds_to_card(lower, upper)
 
     else:
@@ -892,7 +893,9 @@ def __infer_typecheckop(
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
     return infer_cardinality(
-        ir.left, scope_tree=scope_tree, ctx=ctx,
+        ir.left,
+        scope_tree=scope_tree,
+        ctx=ctx,
     )
 
 
@@ -904,7 +907,9 @@ def __infer_typecast(
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
     card = infer_cardinality(
-        ir.expr, scope_tree=scope_tree, ctx=ctx,
+        ir.expr,
+        scope_tree=scope_tree,
+        ctx=ctx,
     )
     # json values can be 'null', which produces an empty set, which we
     # need to reflect in the cardinality.
@@ -950,7 +955,6 @@ def extract_filters(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> Sequence[tuple[Sequence[s_pointers.Pointer], irast.Set]]:
-
     env = ctx.env
     schema = env.schema
     scope_tree = inf_utils.get_set_scope(filter_set, scope_tree, ctx=ctx)
@@ -968,15 +972,16 @@ def extract_filters(
                 pass
 
             elif (
-                (left_matches := _is_ptr_or_self_ref(left, result_set, env))
-                or _is_ptr_or_self_ref(right, result_set, env)
-            ):
+                left_matches := _is_ptr_or_self_ref(left, result_set, env)
+            ) or _is_ptr_or_self_ref(right, result_set, env):
                 # If the match was on the right, flip the args
                 if not left_matches:
                     left, right = right, left
 
                 if infer_cardinality(
-                    right, scope_tree=scope_tree, ctx=ctx,
+                    right,
+                    scope_tree=scope_tree,
+                    ctx=ctx,
                 ).is_single():
                     pointers = []
                     left_stype = env.set_types[left]
@@ -992,8 +997,7 @@ def extract_filters(
 
                             assert isinstance(left.expr, irast.Pointer)
                             ptr = env.schema.get(
-                                left.expr.ptrref.name,
-                                type=s_pointers.Pointer
+                                left.expr.ptrref.name, type=s_pointers.Pointer
                             )
                             pointers.append(ptr)
                             left = left.expr.source
@@ -1003,16 +1007,11 @@ def extract_filters(
 
         elif str(expr.func_shortname) == 'std::AND':
             left, right = (
-                irutils.unwrap_set(a.expr)
-                for a in expr.args.values()
+                irutils.unwrap_set(a.expr) for a in expr.args.values()
             )
 
-            left_filters = extract_filters(
-                result_set, left, scope_tree, ctx
-            )
-            right_filters = extract_filters(
-                result_set, right, scope_tree, ctx
-            )
+            left_filters = extract_filters(result_set, left, scope_tree, ctx)
+            right_filters = extract_filters(result_set, right, scope_tree, ctx)
 
             return [*left_filters, *right_filters]
 
@@ -1024,8 +1023,7 @@ def _all_have_exclusive(
     ctx: inference_context.InfCtx,
 ) -> bool:
     return all(
-        bool(ptr.get_exclusive_constraints(ctx.env.schema))
-        for ptr in ptrs
+        bool(ptr.get_exclusive_constraints(ctx.env.schema)) for ptr in ptrs
     )
 
 
@@ -1047,7 +1045,6 @@ def extract_exclusive_filters(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> list[tuple[tuple[s_pointers.Pointer, irast.Set], ...]]:
-
     filtered_ptrs = extract_filters(result_set, filter_set, scope_tree, ctx)
 
     results: list[tuple[tuple[s_pointers.Pointer, irast.Set], ...]] = []
@@ -1075,7 +1072,8 @@ def extract_exclusive_filters(
         # Then look at all the object exclusive constraints
         result_stype = ctx.env.set_types[result_set]
         obj_exclusives = get_object_exclusive_constraints(
-            result_stype, ptr_set, ctx.env)
+            result_stype, ptr_set, ctx.env
+        )
         for constr, obj_exc_ptrs in obj_exclusives.items():
             results.append(
                 tuple((ptr, filtered_ptrs_map[ptr][1]) for ptr in obj_exc_ptrs)
@@ -1118,10 +1116,13 @@ def get_object_exclusive_constraints(
         ):
             if subjectexpr.refs is None:
                 continue
-            pointer_refs = frozenset({
-                x for x in subjectexpr.refs.objects(schema)
-                if isinstance(x, s_pointers.Pointer)
-            })
+            pointer_refs = frozenset(
+                {
+                    x
+                    for x in subjectexpr.refs.objects(schema)
+                    if isinstance(x, s_pointers.Pointer)
+                }
+            )
             # If all of the referenced pointers are filtered on,
             # we match.
             if pointer_refs.issubset(ptr_set):
@@ -1155,16 +1156,21 @@ def _infer_matset_cardinality(
         return
 
     for mat_set in materialized_sets.values():
-        if (len(mat_set.uses) <= 1
-                or mat_set.cardinality != qltypes.Cardinality.UNKNOWN):
+        if (
+            len(mat_set.uses) <= 1
+            or mat_set.cardinality != qltypes.Cardinality.UNKNOWN
+        ):
             continue
         assert mat_set.materialized
         # set it to something to prevent recursion
         mat_set.cardinality = MANY
         new_scope = inf_utils.get_set_scope(
-            mat_set.materialized, scope_tree, ctx=ctx)
+            mat_set.materialized, scope_tree, ctx=ctx
+        )
         mat_set.cardinality = infer_cardinality(
-            mat_set.materialized, scope_tree=new_scope, ctx=ctx,
+            mat_set.materialized,
+            scope_tree=new_scope,
+            ctx=ctx,
         )
 
 
@@ -1191,8 +1197,10 @@ def _infer_dml_check_cardinality(
     if ir.conflict_checks:
         for on_conflict in ir.conflict_checks:
             _infer_on_conflict_cardinality(
-                on_conflict, type_has_rewrites=False,
-                scope_tree=scope_tree, ctx=ctx,
+                on_conflict,
+                type_has_rewrites=False,
+                scope_tree=scope_tree,
+                ctx=ctx,
             )
 
     if ir.rewrites:
@@ -1211,7 +1219,7 @@ def _infer_stmt_cardinality(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    for part, _ in (ir.bindings or []):
+    for part, _ in ir.bindings or []:
         infer_cardinality(part, scope_tree=scope_tree, ctx=ctx)
 
     result = ir.subject if isinstance(ir, irast.MutatingStmt) else ir.result
@@ -1222,7 +1230,9 @@ def _infer_stmt_cardinality(
     )
     if ir.where:
         ir.where_card = infer_cardinality(
-            ir.where, scope_tree=scope_tree, ctx=ctx,
+            ir.where,
+            scope_tree=scope_tree,
+            ctx=ctx,
         )
 
         if (
@@ -1230,29 +1240,34 @@ def _infer_stmt_cardinality(
             # Don't generate warnings against internally generated code
             and ir.where.span
         ):
-            ctx.env.warnings.append(errors.QueryError(
-                'possibly more than one element returned by an expression '
-                'in a FILTER clause',
-                hint='If this is intended, try using any()',
-                span=ir.where.span,
-            ))
+            ctx.env.warnings.append(
+                errors.QueryError(
+                    'possibly more than one element returned by an expression '
+                    'in a FILTER clause',
+                    hint='If this is intended, try using any()',
+                    span=ir.where.span,
+                )
+            )
 
         # Cross with AT_MOST_ONE to ensure result can be empty
         result_card = cartesian_cardinality([result_card, AT_MOST_ONE])
 
     if result_card.is_multi() and ir.where:
         result_mult = multiplicity.infer_multiplicity(
-            result, scope_tree=scope_tree, ctx=ctx)
+            result, scope_tree=scope_tree, ctx=ctx
+        )
 
         # We can only apply filter clause restrictions when the result
         # is a unique set, because if the set has duplicates we can
         # also pick out duplicates.
         if result_mult.is_unique():
             result_card = _analyse_filter_clause(
-                ir.result, result_card, ir.where, scope_tree, ctx)
+                ir.result, result_card, ir.where, scope_tree, ctx
+            )
 
     _infer_matset_cardinality(
-        ir.materialized_sets, scope_tree=scope_tree, ctx=ctx)
+        ir.materialized_sets, scope_tree=scope_tree, ctx=ctx
+    )
 
     if isinstance(ir, irast.MutatingStmt):
         _infer_dml_check_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
@@ -1272,7 +1287,8 @@ def _infer_singleton_only(
         raise errors.QueryError(
             'possibly more than one element returned by an expression '
             'where only singletons are allowed',
-            span=part.span)
+            span=part.span,
+        )
     return card
 
 
@@ -1285,13 +1301,13 @@ def _infer_on_conflict_cardinality(
 ) -> qltypes.Cardinality:
     # Note: If we start supporting ELSE without ON, we'll need to
     # factor the cardinality of this into the else_card below
-    infer_cardinality(
-        on_conflict.select_ir, scope_tree=scope_tree, ctx=ctx)
+    infer_cardinality(on_conflict.select_ir, scope_tree=scope_tree, ctx=ctx)
 
     card = AT_MOST_ONE
     if on_conflict.else_ir:
         else_card = infer_cardinality(
-            on_conflict.else_ir, scope_tree=scope_tree, ctx=ctx)
+            on_conflict.else_ir, scope_tree=scope_tree, ctx=ctx
+        )
         card = max_cardinality((card, else_card))
         if type_has_rewrites:
             card = _bounds_to_card(CB_ZERO, _card_to_bounds(card).upper)
@@ -1306,16 +1322,18 @@ def __infer_select_stmt(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-
     if ir.iterator_stmt:
         iter_card = infer_cardinality(
-            ir.iterator_stmt, scope_tree=scope_tree, ctx=ctx,
+            ir.iterator_stmt,
+            scope_tree=scope_tree,
+            ctx=ctx,
         )
 
     stmt_card = _infer_stmt_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
 
     for part in [ir.limit, ir.offset] + [
-            sort.expr for sort in (ir.orderby or ())]:
+        sort.expr for sort in (ir.orderby or ())
+    ]:
         if part:
             _infer_singleton_only(part, scope_tree=scope_tree, ctx=ctx)
 
@@ -1326,18 +1344,19 @@ def __infer_select_stmt(
         ):
             # Explicit LIMIT 1 clause.
             stmt_card = _bounds_to_card(
-                _card_to_bounds(stmt_card).lower, CB_ONE)
+                _card_to_bounds(stmt_card).lower, CB_ONE
+            )
         elif (
             not isinstance(ir.limit.expr, irast.IntegerConstant)
             or ir.limit.expr.value == '0'
         ):
             # LIMIT 0 or a non-static LIMIT that could be 0
             stmt_card = _bounds_to_card(
-                CB_ZERO, _card_to_bounds(stmt_card).upper)
+                CB_ZERO, _card_to_bounds(stmt_card).upper
+            )
 
     if ir.offset is not None:
-        stmt_card = _bounds_to_card(
-            CB_ZERO, _card_to_bounds(stmt_card).upper)
+        stmt_card = _bounds_to_card(CB_ZERO, _card_to_bounds(stmt_card).upper)
 
     if ir.iterator_stmt:
         stmt_card = cartesian_cardinality((stmt_card, iter_card))
@@ -1345,7 +1364,8 @@ def __infer_select_stmt(
     # But actually! Check if it is overridden
     if ir.card_inference_override:
         stmt_card = infer_cardinality(
-            ir.card_inference_override, scope_tree=scope_tree, ctx=ctx)
+            ir.card_inference_override, scope_tree=scope_tree, ctx=ctx
+        )
 
     return stmt_card
 
@@ -1357,21 +1377,18 @@ def __infer_insert_stmt(
     scope_tree: irast.ScopeTreeNode,
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
-    for part, _ in (ir.bindings or []):
+    for part, _ in ir.bindings or []:
         infer_cardinality(part, scope_tree=scope_tree, ctx=ctx)
 
-    infer_cardinality(
-        ir.subject, scope_tree=scope_tree, ctx=ctx
-    )
+    infer_cardinality(ir.subject, scope_tree=scope_tree, ctx=ctx)
     new_scope = inf_utils.get_set_scope(ir.result, scope_tree, ctx=ctx)
-    infer_cardinality(
-        ir.result, scope_tree=new_scope, ctx=ctx
-    )
+    infer_cardinality(ir.result, scope_tree=new_scope, ctx=ctx)
 
     assert not ir.iterator_stmt, "InsertStmt shouldn't ever have an iterator"
 
     _infer_matset_cardinality(
-        ir.materialized_sets, scope_tree=scope_tree, ctx=ctx)
+        ir.materialized_sets, scope_tree=scope_tree, ctx=ctx
+    )
 
     _infer_dml_check_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
 
@@ -1396,7 +1413,9 @@ def __infer_update_stmt(
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
     infer_cardinality(
-        ir.result, scope_tree=scope_tree, ctx=ctx,
+        ir.result,
+        scope_tree=scope_tree,
+        ctx=ctx,
     )
 
     return _infer_stmt_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
@@ -1410,7 +1429,9 @@ def __infer_delete_stmt(
     ctx: inference_context.InfCtx,
 ) -> qltypes.Cardinality:
     infer_cardinality(
-        ir.result, scope_tree=scope_tree, ctx=ctx,
+        ir.result,
+        scope_tree=scope_tree,
+        ctx=ctx,
     )
 
     return _infer_stmt_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
@@ -1426,14 +1447,15 @@ def __infer_group_stmt(
     infer_cardinality(ir.subject, scope_tree=scope_tree, ctx=ctx)
     for key, (binding, _) in ir.using.items():
         binding_card = _infer_singleton_only(
-            binding, scope_tree=scope_tree, ctx=ctx)
+            binding, scope_tree=scope_tree, ctx=ctx
+        )
         ir.using[key] = binding, binding_card
 
     infer_cardinality(ir.group_binding, scope_tree=scope_tree, ctx=ctx)
 
     _infer_stmt_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
 
-    for part in (ir.orderby or ()):
+    for part in ir.orderby or ():
         _infer_singleton_only(part.expr, scope_tree=scope_tree, ctx=ctx)
 
     return MANY
@@ -1467,7 +1489,9 @@ def __infer_index(
     # index indirection cardinality depends on both the cardinality of
     # the base expression and the index expression
     return _common_cardinality(
-        [ir.expr, ir.index], scope_tree=scope_tree, ctx=ctx,
+        [ir.expr, ir.index],
+        scope_tree=scope_tree,
+        ctx=ctx,
     )
 
 
@@ -1528,16 +1552,18 @@ def infer_cardinality(
 
     if isinstance(ir, irast.Set):
         result = _infer_set(
-            ir, scope_tree=scope_tree, ctx=ctx,
+            ir,
+            scope_tree=scope_tree,
+            ctx=ctx,
         )
     else:
         result = _infer_cardinality(ir, scope_tree=scope_tree, ctx=ctx)
 
     if result not in {AT_MOST_ONE, ONE, MANY, AT_LEAST_ONE}:
         raise errors.QueryError(
-            'could not determine the cardinality of '
-            'set produced by expression',
-            span=ir.span)
+            'could not determine the cardinality of set produced by expression',
+            span=ir.span,
+        )
 
     ctx.inferred_cardinality[key] = result
 

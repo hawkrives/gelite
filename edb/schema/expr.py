@@ -54,7 +54,6 @@ if TYPE_CHECKING:
 
 
 class Expression(struct.MixedRTStruct, so.ObjectContainer):
-
     text = struct.Field(str, frozen=True)
     # mypy wants an argument to the ObjectSet generic, but
     # that wouldn't work for struct.Field, since subscripted
@@ -78,7 +77,7 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
         *args: Any,
         _qlast: Optional[qlast_.Expr] = None,
         _irast: Optional[irast_.Statement] = None,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().__init__(*args, **kwargs)
         self._qlast = _qlast
@@ -111,7 +110,8 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
 
         if self._qlast is None:
             self._qlast = qlparser.parse_fragment(
-                self.text, filename=f'<{self.origin}>' if self.origin else "")
+                self.text, filename=f'<{self.origin}>' if self.origin else ""
+            )
         return self._qlast
 
     @property
@@ -184,7 +184,7 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
                 qltree,
                 schema=schema,
                 modaliases=modaliases,
-                localnames=localnames
+                localnames=localnames,
             )
 
         norm_text = qlcodegen.generate_source(qltree, pretty=False)
@@ -209,7 +209,6 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
         ] = None,
         context: Optional[sd.CommandContext],
     ) -> CompiledExpression:
-
         from edb.ir import ast as irast_
         from edb.edgeql import ast as qlast
 
@@ -268,15 +267,19 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
             return self  # type: ignore
         else:
             return self.compiled(
-                schema, options=options, as_fragment=as_fragment,
-                context=context)
+                schema,
+                options=options,
+                as_fragment=as_fragment,
+                context=context,
+            )
 
     def assert_compiled(self) -> CompiledExpression:
         if self._irast:
             return self  # type: ignore
         else:
             raise AssertionError(
-                f"uncompiled expression {self.text!r} (origin: {self.origin})")
+                f"uncompiled expression {self.text!r} (origin: {self.origin})"
+            )
 
     @classmethod
     def from_ir(
@@ -296,9 +299,9 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
     def as_shell(self, schema: s_schema.Schema) -> ExpressionShell:
         return ExpressionShell(
             text=self.text,
-            refs=(
-                r.as_shell(schema) for r in self.refs.objects(schema)
-            ) if self.refs is not None else None,
+            refs=(r.as_shell(schema) for r in self.refs.objects(schema))
+            if self.refs is not None
+            else None,
             _qlast=self._qlast,
         )
 
@@ -367,7 +370,8 @@ class Expression(struct.MixedRTStruct, so.ObjectContainer):
         ir = self.irast
         if not isinstance(ir, irast_.Statement):
             raise AssertionError(
-                'expected the result of an expression to be a Statement')
+                'expected the result of an expression to be a Statement'
+            )
         return ir
 
     @property
@@ -395,7 +399,7 @@ class CompiledExpression(Expression):
         *args: Any,
         _qlast: Optional[qlast_.Expr] = None,
         _irast: irast_.Statement,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().__init__(*args, _qlast=_qlast, _irast=_irast, **kwargs)
 
@@ -409,7 +413,6 @@ class CompiledExpression(Expression):
 
 
 class ExpressionShell(so.Shell):
-
     def __init__(
         self,
         *,
@@ -430,7 +433,9 @@ class ExpressionShell(so.Shell):
             refs=so.ObjectSet.create(
                 schema,
                 [s.resolve(schema) for s in self.refs],
-            ) if self.refs is not None else None,
+            )
+            if self.refs is not None
+            else None,
             _qlast=self._qlast,
             _irast=self._irast,  # type: ignore[arg-type]
         )
@@ -449,7 +454,6 @@ class ExpressionShell(so.Shell):
 
 
 class ExpressionList(checked.FrozenCheckedList[Expression]):
-
     @staticmethod
     def merge_values(
         target: so.Object,
@@ -495,9 +499,14 @@ class ExpressionList(checked.FrozenCheckedList[Expression]):
             for expr1, expr2 in zip(ours, theirs):
                 similarity.append(
                     Expression.compare_values(
-                        expr1, expr2, our_schema=our_schema,
-                        their_schema=their_schema, context=context,
-                        compcoef=compcoef))
+                        expr1,
+                        expr2,
+                        our_schema=our_schema,
+                        their_schema=their_schema,
+                        context=context,
+                        compcoef=compcoef,
+                    )
+                )
 
             basecoef = sum(similarity) / len(similarity)
 
@@ -505,7 +514,6 @@ class ExpressionList(checked.FrozenCheckedList[Expression]):
 
 
 class ExpressionDict(checked.CheckedDict[str, Expression]):
-
     @staticmethod
     def merge_values(
         target: so.Object,
@@ -560,23 +568,26 @@ class ExpressionDict(checked.CheckedDict[str, Expression]):
             # We have the same keys, so just compare the values.
             similarity = []
 
-            for ((_, expr1), (_, expr2)) in zip(
+            for (_, expr1), (_, expr2) in zip(
                 sorted(ours.items()), sorted(theirs.items())
             ):
                 similarity.append(
                     Expression.compare_values(
-                        expr1, expr2, our_schema=our_schema,
-                        their_schema=their_schema, context=context,
-                        compcoef=compcoef))
+                        expr1,
+                        expr2,
+                        our_schema=our_schema,
+                        their_schema=their_schema,
+                        context=context,
+                        compcoef=compcoef,
+                    )
+                )
 
             basecoef = sum(similarity) / len(similarity)
 
         return basecoef + (1 - basecoef) * compcoef
 
 
-EXPRESSION_TYPES = (
-    Expression, ExpressionList, ExpressionDict
-)
+EXPRESSION_TYPES = (Expression, ExpressionList, ExpressionDict)
 
 
 def imprint_expr_context(
@@ -586,13 +597,17 @@ def imprint_expr_context(
     # Imprint current module aliases as explicit
     # alias declarations in the expression.
 
-    if (isinstance(qltree, qlast_.BaseConstant)
-            or qltree is None
-            or (isinstance(qltree, qlast_.Set)
-                and not qltree.elements)
-            or (isinstance(qltree, qlast_.Array)
-                and all(isinstance(el, qlast_.BaseConstant)
-                        for el in qltree.elements))):
+    if (
+        isinstance(qltree, qlast_.BaseConstant)
+        or qltree is None
+        or (isinstance(qltree, qlast_.Set) and not qltree.elements)
+        or (
+            isinstance(qltree, qlast_.Array)
+            and all(
+                isinstance(el, qlast_.BaseConstant) for el in qltree.elements
+            )
+        )
+    ):
         # Leave constants alone.
         return qltree
 
@@ -602,11 +617,12 @@ def imprint_expr_context(
         assert isinstance(qltree, (qlast_.Command, qlast_.DDLCommand))
         qltree = copy.copy(qltree)
         qltree.aliases = (
-            list(qltree.aliases) if qltree.aliases is not None else None)
+            list(qltree.aliases) if qltree.aliases is not None else None
+        )
     assert isinstance(qltree, (qlast_.Query, qlast_.Command))
 
     existing_aliases: dict[Optional[str], str] = {}
-    for alias in (qltree.aliases or ()):
+    for alias in qltree.aliases or ():
         if isinstance(alias, qlast_.ModuleAliasDecl):
             existing_aliases[alias.alias] = alias.module
 
@@ -630,7 +646,8 @@ def get_expr_referrers(
     """Return schema referrers with refs in expressions."""
 
     refs: dict[tuple[type[so.Object], str], frozenset[so.Object]] = (
-        schema.get_referrers_ex(obj))
+        schema.get_referrers_ex(obj)
+    )
     result: dict[so.Object, list[str]] = {}
 
     for (mcls, fn), referrers in refs.items():

@@ -63,7 +63,8 @@ class PidFile:
             if self.is_locked(path):
                 raise DaemonError(
                     'pid file {!r} exists and belongs to a '
-                    'running process'.format(path))
+                    'running process'.format(path)
+                )
             os.unlink(path)
 
         self._file = open(path, 'wt')

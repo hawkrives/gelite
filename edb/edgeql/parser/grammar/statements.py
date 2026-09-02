@@ -61,39 +61,38 @@ class Stmt(Nonterm):
 
 
 class TransactionMode(Nonterm):
-
     def reduce_ISOLATION_SERIALIZABLE(self, *kids):
-        self.val = (qltypes.TransactionIsolationLevel.SERIALIZABLE,
-                    kids[0].span)
+        self.val = (
+            qltypes.TransactionIsolationLevel.SERIALIZABLE,
+            kids[0].span,
+        )
 
     def reduce_ISOLATION_REPEATABLE_READ(self, *kids):
-        self.val = (qltypes.TransactionIsolationLevel.REPEATABLE_READ,
-                    kids[0].span)
+        self.val = (
+            qltypes.TransactionIsolationLevel.REPEATABLE_READ,
+            kids[0].span,
+        )
 
     def reduce_READ_WRITE(self, *kids):
-        self.val = (qltypes.TransactionAccessMode.READ_WRITE,
-                    kids[0].span)
+        self.val = (qltypes.TransactionAccessMode.READ_WRITE, kids[0].span)
 
     def reduce_READ_ONLY(self, *kids):
-        self.val = (qltypes.TransactionAccessMode.READ_ONLY,
-                    kids[0].span)
+        self.val = (qltypes.TransactionAccessMode.READ_ONLY, kids[0].span)
 
     def reduce_DEFERRABLE(self, *kids):
-        self.val = (qltypes.TransactionDeferMode.DEFERRABLE,
-                    kids[0].span)
+        self.val = (qltypes.TransactionDeferMode.DEFERRABLE, kids[0].span)
 
     def reduce_NOT_DEFERRABLE(self, *kids):
-        self.val = (qltypes.TransactionDeferMode.NOT_DEFERRABLE,
-                    kids[0].span)
+        self.val = (qltypes.TransactionDeferMode.NOT_DEFERRABLE, kids[0].span)
 
 
-class TransactionModeList(ListNonterm, element=TransactionMode,
-                          separator=tokens.T_COMMA):
+class TransactionModeList(
+    ListNonterm, element=TransactionMode, separator=tokens.T_COMMA
+):
     pass
 
 
 class OptTransactionModeList(Nonterm):
-
     @parsing.inline(0)
     def reduce_TransactionModeList(self, *kids):
         pass
@@ -103,7 +102,6 @@ class OptTransactionModeList(Nonterm):
 
 
 class TransactionStmt(Nonterm):
-
     def reduce_START_TRANSACTION_OptTransactionModeList(self, *kids):
         modes = kids[2].val
 
@@ -116,14 +114,15 @@ class TransactionStmt(Nonterm):
                 if isolation is not None:
                     raise errors.EdgeQLSyntaxError(
                         f"only one isolation level can be specified",
-                        span=mode_ctx)
+                        span=mode_ctx,
+                    )
                 isolation = mode
 
             elif isinstance(mode, qltypes.TransactionAccessMode):
                 if access is not None:
                     raise errors.EdgeQLSyntaxError(
-                        f"only one access mode can be specified",
-                        span=mode_ctx)
+                        f"only one access mode can be specified", span=mode_ctx
+                    )
                 access = mode
 
             else:
@@ -131,11 +130,13 @@ class TransactionStmt(Nonterm):
                 if deferrable is not None:
                     raise errors.EdgeQLSyntaxError(
                         f"deferrable mode can only be specified once",
-                        span=mode_ctx)
+                        span=mode_ctx,
+                    )
                 deferrable = mode
 
         self.val = qlast.StartTransaction(
-            isolation=isolation, access=access, deferrable=deferrable)
+            isolation=isolation, access=access, deferrable=deferrable
+        )
 
     def reduce_COMMIT(self, *kids):
         self.val = qlast.CommitTransaction()
@@ -154,7 +155,6 @@ class TransactionStmt(Nonterm):
 
 
 class DescribeFmt(typing.NamedTuple):
-
     language: typing.Optional[qltypes.DescribeLanguage] = None
     options: typing.Optional[qlast.Options] = None
 
@@ -196,8 +196,11 @@ class DescribeFormat(Nonterm):
         self.val = DescribeFmt(
             language=qltypes.DescribeLanguage.TEXT,
             options=qlast.Options(
-                options={'VERBOSE': qlast.OptionFlag(
-                    name='VERBOSE', val=True, span=kids[2].span)}
+                options={
+                    'VERBOSE': qlast.OptionFlag(
+                        name='VERBOSE', val=True, span=kids[2].span
+                    )
+                }
             ),
         )
 

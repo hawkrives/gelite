@@ -113,8 +113,8 @@ class Obj:
     def __init__(
         self,
         id: uuid.UUID,
-        shape: Optional[dict[str, Data]]=None,
-        data: Optional[dict[str, Data]]=None,
+        shape: Optional[dict[str, Data]] = None,
+        data: Optional[dict[str, Data]] = None,
     ) -> None:
         self.id = id
         if shape is None:
@@ -149,7 +149,7 @@ def mk_db(
         {
             typ: {ptr: parse_fragment(ql) for ptr, ql in d.items()}
             for typ, d in schema_computables.items()
-        }
+        },
     )
 
 
@@ -159,8 +159,8 @@ def bslink(n: int, **kwargs: Data) -> Data:
 
 
 def mk_free_object(
-    shape: Optional[dict[str, Data]]=None,
-    data: Optional[dict[str, Data]]=None,
+    shape: Optional[dict[str, Data]] = None,
+    data: Optional[dict[str, Data]] = None,
 ) -> Obj:
     id = uuid.uuid4()
     base_data = {'id': id, '__type__': 'FreeObject'}
@@ -172,8 +172,10 @@ def mk_free_object(
 # # Toy basis stuff
 
 SET_OF, OPTIONAL, SINGLETON = (
-    ft.TypeModifier.SetOfType, ft.TypeModifier.OptionalType,
-    ft.TypeModifier.SingletonType)
+    ft.TypeModifier.SetOfType,
+    ft.TypeModifier.OptionalType,
+    ft.TypeModifier.SingletonType,
+)
 
 # We just list things with weird behavior
 BASIS = {
@@ -256,18 +258,21 @@ def lift(f: Callable[..., Data]) -> LiftedFunc:
     """Lifts a function operating on base data to operator on sets.
 
     The result is the usual cartesian product."""
+
     def inner(*args: Result) -> Result:
         out = []
         for args1 in itertools.product(*args):
             val = f(*args1)
             out.append(val)
         return out
+
     return inner
 
 
 def lift_set_of(f: Callable[..., Data]) -> LiftedFunc:
     def inner(*args: Result) -> Result:
         return [f(*args)]
+
     return inner
 
 
@@ -408,6 +413,7 @@ BASIS_IMPLS: dict[tuple[str, str], LiftedFunc] = {
 
 # ############### The actual evaluator
 
+
 @dataclass
 class EvalContext:
     query_input_list: list[IPath]
@@ -421,8 +427,7 @@ def _eval(
     node: qlast.Base,
     ctx: EvalContext,
 ) -> Result:
-    raise NotImplementedError(
-        f'no EdgeQL eval handler for {node.__class__}')
+    raise NotImplementedError(f'no EdgeQL eval handler for {node.__class__}')
 
 
 def graft(
@@ -431,7 +436,8 @@ def graft(
     if new.partial or always_partial:
         assert prefix is not None
         return qlast.Path(
-            steps=prefix.steps + new.steps, partial=prefix.partial)
+            steps=prefix.steps + new.steps, partial=prefix.partial
+        )
     else:
         return new
 
@@ -450,17 +456,14 @@ def update_path(
             isinstance(query, qlast.GroupQuery)
             and query.subject_alias is not None
         ):
-            return qlast.Path(
-                steps=[qlast.ObjectRef(name=query.subject_alias)])
+            return qlast.Path(steps=[qlast.ObjectRef(name=query.subject_alias)])
         else:
             query = query.subject
     elif isinstance(
         query, (qlast.SelectQuery, qlast.ForQuery, qlast.InternalGroupQuery)
     ):
         if query.result_alias is not None:
-            return qlast.Path(steps=[
-                qlast.ObjectRef(name=query.result_alias)
-            ])
+            return qlast.Path(steps=[qlast.ObjectRef(name=query.result_alias)])
         else:
             query = query.result
 
@@ -494,7 +497,7 @@ def eval_filter(
     where: Optional[qlast.Expr],
     qil: list[IPath],
     out: list[Row],
-    ctx: EvalContext
+    ctx: EvalContext,
 ) -> list[Row]:
     if not where:
         return out
@@ -512,7 +515,7 @@ def eval_orderby(
     orderby: list[qlast.SortExpr],
     qil: list[IPath],
     out: list[Row],
-    ctx: EvalContext
+    ctx: EvalContext,
 ) -> list[Row]:
     # Go through the sort specifiers in reverse order, which takes
     # advantage of sort being stable to do the right thing. (We can't
@@ -521,9 +524,8 @@ def eval_orderby(
     # it in one go...)
     for sort in reversed(orderby):
         nones_bigger = (
-            (sort.direction == 'ASC' and sort.nones_order == 'last')
-            or (sort.direction == 'DESC' and sort.nones_order == 'first')
-        )
+            sort.direction == 'ASC' and sort.nones_order == 'last'
+        ) or (sort.direction == 'DESC' and sort.nones_order == 'first')
 
         # Decorate
         new = []
@@ -551,7 +553,7 @@ def eval_offset(
     if offset:
         res = subquery(offset, ctx=ctx)
         assert len(res) == 1
-        out = out[int(res[0]):]
+        out = out[int(res[0]) :]
     return out
 
 
@@ -561,15 +563,14 @@ def eval_limit(
     if limit:
         res = subquery(limit, ctx=ctx)
         assert len(res) == 1
-        out = out[:int(res[0])]
+        out = out[: int(res[0])]
     return out
 
 
 def add_alias(name: str, vals: Data, ctx: EvalContext) -> EvalContext:
     return replace(
         ctx,
-        query_input_list=ctx.query_input_list + [
-            (IORef(name, is_alias=True),)],
+        query_input_list=ctx.query_input_list + [(IORef(name, is_alias=True),)],
         input_tuple=ctx.input_tuple + (Alias(vals),),
     )
 
@@ -578,8 +579,7 @@ def eval_aliases(node: qlast.Statement, ctx: EvalContext) -> EvalContext:
     if node.aliases:
         for alias in node.aliases:
             assert isinstance(alias, qlast.AliasedExpr)
-            ctx = add_alias(
-                alias.alias, subquery(alias.expr, ctx=ctx), ctx=ctx)
+            ctx = add_alias(alias.alias, subquery(alias.expr, ctx=ctx), ctx=ctx)
 
     return ctx
 
@@ -624,7 +624,8 @@ def powerset[T](iterable: Iterable[T]) -> Iterable[tuple[T, ...]]:
     "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
     s = list(iterable)
     return itertools.chain.from_iterable(
-        itertools.combinations(s, r) for r in range(len(s) + 1))
+        itertools.combinations(s, r) for r in range(len(s) + 1)
+    )
 
 
 def simplify_grouping_sets(
@@ -665,14 +666,11 @@ def flatten_grouping_atom(atom: qlast.GroupingAtom) -> tuple[ByElement, ...]:
         return (get_by_element(atom),)
     else:
         assert isinstance(atom, qlast.GroupingIdentList)
-        return tuple(
-            x for g in atom.elements
-            for x in flatten_grouping_atom(g)
-        )
+        return tuple(x for g in atom.elements for x in flatten_grouping_atom(g))
 
 
 def get_grouping_sets(
-    node: qlast.GroupQuery | qlast.InternalGroupQuery
+    node: qlast.GroupQuery | qlast.InternalGroupQuery,
 ) -> list[tuple[ByElement, ...]]:
     toplevel_gsets = []
     for col in node.by:
@@ -706,7 +704,8 @@ def get_groups(
 
     subq_path = update_path(ctx.cur_path, node, subject=True)
     new_qil = ctx.query_input_list + [
-        simplify_path(subq_path) if subq_path else (IPartial(),)]
+        simplify_path(subq_path) if subq_path else (IPartial(),)
+    ]
 
     # Collect all the grouping sets from the node
     grouping_sets = get_grouping_sets(node)
@@ -716,13 +715,16 @@ def get_groups(
     # USING clause and all the path prefixes used in BY and record them.
     vals_and_keys = []
     for val in subject_vals:
-        subctx = replace(ctx, query_input_list=new_qil,
-                         cur_path=subq_path,
-                         input_tuple=ctx.input_tuple + (val,))
+        subctx = replace(
+            ctx,
+            query_input_list=new_qil,
+            cur_path=subq_path,
+            input_tuple=ctx.input_tuple + (val,),
+        )
 
         keys: dict[ByElement, Data] = {}
         # Collect all the USING bindings
-        for using in (node.using or ()):
+        for using in node.using or ():
             using_val = eval(using.expr, ctx=subctx)
             assert len(using_val) <= 1
             subctx = add_alias(using.alias, using_val, subctx)
@@ -748,15 +750,14 @@ def get_groups(
     ]
     for grouping_set in grouping_sets:
         groups: dict[
-            tuple[Data, ...],
-            tuple[dict[ByElement, Data], list[Data]]
+            tuple[Data, ...], tuple[dict[ByElement, Data], list[Data]]
         ] = {}
         for val, keys in vals_and_keys:
             # Prune the keys down to just this grouping set
             keys = {k: v if k in grouping_set else [] for k, v in keys.items()}
-            key = _keyify([
-                None if not keys[k] else keys[k][0]
-                for k in grouping_set])
+            key = _keyify(
+                [None if not keys[k] else keys[k][0] for k in grouping_set]
+            )
             groups.setdefault(key, (keys, []))[1].append(val)
 
         # We need to always output a group for the empty grouping set, if
@@ -805,7 +806,8 @@ def eval_InternalGroup(
             subctx = add_alias(
                 node.grouping_alias,
                 [[g.name.split('~')[0] for g in grouping]],
-                subctx)
+                subctx,
+            )
 
         new_qil, new = subquery_full(node.result, ctx=subctx)
         out += new
@@ -833,7 +835,8 @@ def eval_InternalGroup(
 def eval_Group(node: qlast.GroupQuery, ctx: EvalContext) -> Result:
     if DESUGARING_GROUP:
         return eval(
-            desugar_group.desugar_group(node, AliasGenerator()), ctx=ctx)
+            desugar_group.desugar_group(node, AliasGenerator()), ctx=ctx
+        )
     else:
         return direct_eval_group(node, ctx=ctx)
 
@@ -868,7 +871,6 @@ FREE_SHAPE_EXPR = qlast.DetachedExpr(
 
 @_eval.register
 def eval_Shape(node: qlast.Shape, ctx: EvalContext) -> Result:
-
     expr = node.expr or FREE_SHAPE_EXPR
 
     subq_path = update_path(ctx.cur_path, expr)
@@ -880,9 +882,12 @@ def eval_Shape(node: qlast.Shape, ctx: EvalContext) -> Result:
 
     out = []
     for val in shape_vals:
-        subctx = replace(ctx, query_input_list=qil,
-                         cur_path=subq_path,
-                         input_tuple=ctx.input_tuple + (val,))
+        subctx = replace(
+            ctx,
+            query_input_list=qil,
+            cur_path=subq_path,
+            input_tuple=ctx.input_tuple + (val,),
+        )
 
         vals = {}
         for el in node.elements:
@@ -911,8 +916,9 @@ def eval_For(node: qlast.ForQuery, ctx: EvalContext) -> Result:
     qil = ctx.query_input_list + [(IORef(node.iterator_alias),)]
     out = []
     for val in iter_vals:
-        subctx = replace(ctx, query_input_list=qil,
-                         input_tuple=ctx.input_tuple + (val,))
+        subctx = replace(
+            ctx, query_input_list=qil, input_tuple=ctx.input_tuple + (val,)
+        )
         out.extend(subquery(node.result, ctx=subctx))
 
     return out
@@ -943,7 +949,8 @@ def eval_func_or_op(
 @_eval.register
 def eval_BinOp(node: qlast.BinOp, ctx: EvalContext) -> Result:
     return eval_func_or_op(
-        node.op.upper(), [node.left, node.right], 'binop', ctx)
+        node.op.upper(), [node.left, node.right], 'binop', ctx
+    )
 
 
 @_eval.register
@@ -962,7 +969,8 @@ def eval_Call(node: qlast.FunctionCall, ctx: EvalContext) -> Result:
 @_eval.register
 def visit_IfElse(query: qlast.IfElse, ctx: EvalContext) -> Result:
     return eval_func_or_op(
-        'IF', [query.if_expr, query.condition, query.else_expr], 'binop', ctx)
+        'IF', [query.if_expr, query.condition, query.else_expr], 'binop', ctx
+    )
 
 
 @_eval.register
@@ -970,8 +978,10 @@ def eval_Indirection(node: qlast.Indirection, ctx: EvalContext) -> Result:
     base = eval(node.arg, ctx)
     for index in node.indirection:
         index_out = (
-            lift(slice)(eval(index.start, ctx) if index.start else [None],
-                        eval(index.stop, ctx) if index.stop else [None])
+            lift(slice)(
+                eval(index.start, ctx) if index.start else [None],
+                eval(index.stop, ctx) if index.stop else [None],
+            )
             if isinstance(index, qlast.Slice)
             else eval(index.index, ctx)
         )
@@ -1034,6 +1044,7 @@ def eval_Path(node: qlast.Path, ctx: EvalContext) -> Result:
 def eval(node: qlast.Base, ctx: EvalContext) -> Result:
     return _eval(node, ctx)
 
+
 # Query setup
 
 
@@ -1088,9 +1099,7 @@ def eval_computed(
     else:
         # For linkprops, we want both the source and the target in the
         # query input.
-        paths.append(qlast.Path(
-            steps=paths[0].steps + [qlast.Ptr(name=name)]
-        ))
+        paths.append(qlast.Path(steps=paths[0].steps + [qlast.Ptr(name=name)]))
         input_tuple = (src, obj)
 
     subctx = EvalContext(
@@ -1131,8 +1140,10 @@ def eval_bwd_ptr(base: Data, ptr: IPtr, ctx: EvalContext) -> Result:
 
 def eval_ptr(base: Data, ptr: IPtr, ctx: EvalContext) -> Result:
     return (
-        eval_bwd_ptr(base, ptr, ctx) if ptr.direction == '<'
-        else eval_fwd_ptr(base, ptr, ctx))
+        eval_bwd_ptr(base, ptr, ctx)
+        if ptr.direction == '<'
+        else eval_fwd_ptr(base, ptr, ctx)
+    )
 
 
 def eval_intersect(
@@ -1149,7 +1160,8 @@ def eval_objref(name: str, ctx: EvalContext) -> Result:
         return [mk_free_object()]
 
     return [
-        Obj(obj["id"]) for obj in ctx.db.data.values()
+        Obj(obj["id"])
+        for obj in ctx.db.data.values()
         if obj["__type__"] == name
     ]
 
@@ -1213,6 +1225,7 @@ def build_input_tuples(
 
     return data
 
+
 # ############### Preparation
 
 
@@ -1246,16 +1259,19 @@ class PathFinder(NodeVisitor):
         subject: bool = False,
     ) -> Iterator[None]:
         yield from self._update(
-            current_path=update_path(self.current_path, query, subject))
+            current_path=update_path(self.current_path, query, subject)
+        )
 
     def visit_Path(
         self, path: qlast.Path, always_partial: bool = False
     ) -> None:
-        self.paths.append((
-            graft(self.current_path, path, always_partial=always_partial),
-            self.optional_counter if self.in_optional else None,
-            self.in_subquery,
-        ))
+        self.paths.append(
+            (
+                graft(self.current_path, path, always_partial=always_partial),
+                self.optional_counter if self.in_optional else None,
+                self.in_subquery,
+            )
+        )
         self.generic_visit(path)
 
     def visit_SelectQuery(self, query: qlast.SelectQuery) -> None:
@@ -1345,7 +1361,8 @@ class PathFinder(NodeVisitor):
 
     def visit_IfElse(self, query: qlast.IfElse) -> None:
         self.visit_func_or_op(
-            'IF', [query.if_expr, query.condition, query.else_expr])
+            'IF', [query.if_expr, query.condition, query.else_expr]
+        )
 
     def visit_DetachedExpr(self, query: qlast.DetachedExpr) -> None:
         pass
@@ -1355,7 +1372,8 @@ def find_paths(
     e: qlast.Expr,
     cur_path: Optional[qlast.Path],
     extra_subqs: Iterable[
-        tuple[Optional[qlast.Path], Optional[qlast.Base]]] = (),
+        tuple[Optional[qlast.Path], Optional[qlast.Base]]
+    ] = (),
 ) -> list[tuple[qlast.Path, Optional[int], bool]]:
     pf = PathFinder(cur_path)
     pf.visit(e)
@@ -1393,7 +1411,7 @@ def find_common_prefixes(
         # We start from only the refs directly in the query, but we
         # look for common prefixes with anything in subqueries also.
         # XXX: The docs are wrong and don't suggest this.
-        for (y, oy) in direct_refs[i:] + subquery_refs:
+        for y, oy in direct_refs[i:] + subquery_refs:
             # XXX: Also optional stuff that the docs don't suggest
             if ox is not None and ox == oy:
                 continue
@@ -1405,8 +1423,7 @@ def find_common_prefixes(
 
 def _contains_non_alias_path(paths: Sequence[IPath], new: IPath) -> bool:
     return any(
-        new == y and not (len(y) == 1 and y[0].is_alias_ref())
-        for y in paths
+        new == y and not (len(y) == 1 and y[0].is_alias_ref()) for y in paths
     )
 
 
@@ -1435,8 +1452,7 @@ def simplify_path(path: qlast.Path) -> IPath:
             is_property = step.type == 'property'
             spath.append(IPtr(step.name, step.direction, is_property))
         elif isinstance(step, qlast.TypeIntersection):
-            spath.append(ITypeIntersection(
-                step.type.maintype.name))  # type: ignore
+            spath.append(ITypeIntersection(step.type.maintype.name))  # type: ignore
         elif isinstance(step, qlast.Splat):
             raise AssertionError("splats are not supported yet")
         else:
@@ -1461,16 +1477,17 @@ def parse_fragment(querystr: str) -> qlast.Expr:
 
 def analyze_paths(
     q: qlast.Expr,
-    extra_subqs: Iterable[
-        tuple[Optional[qlast.Path], Optional[qlast.Base]]],
+    extra_subqs: Iterable[tuple[Optional[qlast.Path], Optional[qlast.Base]]],
     cur_path: Optional[qlast.Path],
 ) -> tuple[
     list[tuple[IPath, Optional[int]]],
     list[tuple[IPath, Optional[int]]],
     dict[IPath, bool],
 ]:
-    paths_opt = [(simplify_path(p), optional, subq)
-                 for p, optional, subq in find_paths(q, cur_path, extra_subqs)]
+    paths_opt = [
+        (simplify_path(p), optional, subq)
+        for p, optional, subq in find_paths(q, cur_path, extra_subqs)
+    ]
 
     # For any link property reference we see, strip off the
     # link and the link prop, and add that. So for Person.notes@name,
@@ -1504,14 +1521,17 @@ def subquery_full(
     q: qlast.Expr,
     *,
     extra_subqs: Iterable[
-        tuple[Optional[qlast.Path], Optional[qlast.Base]]] = (),
-    ctx: EvalContext
+        tuple[Optional[qlast.Path], Optional[qlast.Base]]
+    ] = (),
+    ctx: EvalContext,
 ) -> tuple[list[IPath], list[Row]]:
     direct_paths, subquery_paths, always_optional = analyze_paths(
-        q, extra_subqs, ctx.cur_path)
+        q, extra_subqs, ctx.cur_path
+    )
 
     qil = make_query_input_list(
-        direct_paths, subquery_paths, ctx.query_input_list)
+        direct_paths, subquery_paths, ctx.query_input_list
+    )
 
     in_tuples = build_input_tuples(qil, always_optional, ctx)
 
@@ -1583,7 +1603,9 @@ class EdbJSONEncoder(json.JSONEncoder):
 def run(
     db: DB,
     s: str,
-    print_asts: bool, output_mode: str, singleton_cheating: bool,
+    print_asts: bool,
+    output_mode: str,
+    singleton_cheating: bool,
 ) -> None:
     q = parse(s)
     if print_asts:
@@ -1599,9 +1621,9 @@ def run(
 
 def repl(
     db: DB,
-    print_asts: bool=False,
-    output_mode: str='debug',
-    singleton_cheating: bool=False,
+    print_asts: bool = False,
+    output_mode: str = 'debug',
+    singleton_cheating: bool = False,
 ) -> None:
     # for now users should just invoke this script with rlwrap since I
     # don't want to fiddle with history or anything
@@ -1674,35 +1696,35 @@ CARDS_DB = [
     {
         "avatar": {
             "@text": "Best",
-            "id": "81537667-c308-11eb-98b8-e7ee6a203949"
+            "id": "81537667-c308-11eb-98b8-e7ee6a203949",
         },
         "awards": [
             {"id": "81537661-c308-11eb-98b8-d7ab026ed715"},
-            {"id": "81537663-c308-11eb-98b8-47f340f064e1"}
+            {"id": "81537663-c308-11eb-98b8-47f340f064e1"},
         ],
         "deck": [
             {"@count": 2, "id": "81537666-c308-11eb-98b8-67d1235c4527"},
             {"@count": 2, "id": "81537667-c308-11eb-98b8-e7ee6a203949"},
             {"@count": 3, "id": "81537668-c308-11eb-98b8-2b363efb8a80"},
-            {"@count": 3, "id": "81537669-c308-11eb-98b8-c37076e778d2"}
+            {"@count": 3, "id": "81537669-c308-11eb-98b8-c37076e778d2"},
         ],
         "friends": [
             {
                 "@nickname": "Swampy",
-                "id": "81537670-c308-11eb-98b8-d3d2e939fbfc"
+                "id": "81537670-c308-11eb-98b8-d3d2e939fbfc",
             },
             {
                 "@nickname": "Firefighter",
-                "id": "81537671-c308-11eb-98b8-6b6a92e0be3e"
+                "id": "81537671-c308-11eb-98b8-6b6a92e0be3e",
             },
             {
                 "@nickname": "Grumpy",
-                "id": "81537672-c308-11eb-98b8-53b70c263a56"
-            }
+                "id": "81537672-c308-11eb-98b8-53b70c263a56",
+            },
         ],
         "id": "8153766f-c308-11eb-98b8-af7e8ffd99f3",
         "name": "Alice",
-        "typ": "test::User"
+        "typ": "test::User",
     },
     {
         "avatar": null,
@@ -1711,12 +1733,12 @@ CARDS_DB = [
             {"@count": 3, "id": "81537668-c308-11eb-98b8-2b363efb8a80"},
             {"@count": 3, "id": "81537669-c308-11eb-98b8-c37076e778d2"},
             {"@count": 3, "id": "8153766a-c308-11eb-98b8-330dce42eb46"},
-            {"@count": 3, "id": "8153766b-c308-11eb-98b8-430d489d7125"}
+            {"@count": 3, "id": "8153766b-c308-11eb-98b8-430d489d7125"},
         ],
         "friends": [],
         "id": "81537670-c308-11eb-98b8-d3d2e939fbfc",
         "name": "Bob",
-        "typ": "test::User"
+        "typ": "test::User",
     },
     {
         "avatar": null,
@@ -1728,17 +1750,17 @@ CARDS_DB = [
             {"@count": 2, "id": "8153766b-c308-11eb-98b8-430d489d7125"},
             {"@count": 4, "id": "8153766c-c308-11eb-98b8-5bd98eec95bd"},
             {"@count": 3, "id": "8153766d-c308-11eb-98b8-8b072b1a5f69"},
-            {"@count": 1, "id": "8153766e-c308-11eb-98b8-1b59432eef87"}
+            {"@count": 1, "id": "8153766e-c308-11eb-98b8-1b59432eef87"},
         ],
         "friends": [],
         "id": "81537671-c308-11eb-98b8-6b6a92e0be3e",
         "name": "Carol",
-        "typ": "test::User"
+        "typ": "test::User",
     },
     {
         "avatar": {
             "@text": "Wow",
-            "id": "8153766e-c308-11eb-98b8-1b59432eef87"
+            "id": "8153766e-c308-11eb-98b8-1b59432eef87",
         },
         "awards": [],
         "deck": [
@@ -1748,14 +1770,14 @@ CARDS_DB = [
             {"@count": 1, "id": "8153766b-c308-11eb-98b8-430d489d7125"},
             {"@count": 4, "id": "8153766c-c308-11eb-98b8-5bd98eec95bd"},
             {"@count": 1, "id": "8153766d-c308-11eb-98b8-8b072b1a5f69"},
-            {"@count": 1, "id": "8153766e-c308-11eb-98b8-1b59432eef87"}
+            {"@count": 1, "id": "8153766e-c308-11eb-98b8-1b59432eef87"},
         ],
         "friends": [
             {"@nickname": null, "id": "81537670-c308-11eb-98b8-d3d2e939fbfc"}
         ],
         "id": "81537672-c308-11eb-98b8-53b70c263a56",
         "name": "Dave",
-        "typ": "test::User"
+        "typ": "test::User",
     },
     {
         "awards": [{"id": "81537663-c308-11eb-98b8-47f340f064e1"}],
@@ -1763,7 +1785,7 @@ CARDS_DB = [
         "element": "Fire",
         "id": "81537666-c308-11eb-98b8-67d1235c4527",
         "name": "Imp",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [{"id": "81537661-c308-11eb-98b8-d7ab026ed715"}],
@@ -1771,7 +1793,7 @@ CARDS_DB = [
         "element": "Fire",
         "id": "81537667-c308-11eb-98b8-e7ee6a203949",
         "name": "Dragon",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1779,7 +1801,7 @@ CARDS_DB = [
         "element": "Water",
         "id": "81537668-c308-11eb-98b8-2b363efb8a80",
         "name": "Bog monster",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1787,7 +1809,7 @@ CARDS_DB = [
         "element": "Water",
         "id": "81537669-c308-11eb-98b8-c37076e778d2",
         "name": "Giant turtle",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1795,7 +1817,7 @@ CARDS_DB = [
         "element": "Earth",
         "id": "8153766a-c308-11eb-98b8-330dce42eb46",
         "name": "Dwarf",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1803,7 +1825,7 @@ CARDS_DB = [
         "element": "Earth",
         "id": "8153766b-c308-11eb-98b8-430d489d7125",
         "name": "Golem",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1811,7 +1833,7 @@ CARDS_DB = [
         "element": "Air",
         "id": "8153766c-c308-11eb-98b8-5bd98eec95bd",
         "name": "Sprite",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [],
@@ -1819,7 +1841,7 @@ CARDS_DB = [
         "element": "Air",
         "id": "8153766d-c308-11eb-98b8-8b072b1a5f69",
         "name": "Giant eagle",
-        "typ": "test::Card"
+        "typ": "test::Card",
     },
     {
         "awards": [{"id": "81537665-c308-11eb-98b8-a7fee63c63ca"}],
@@ -1827,24 +1849,24 @@ CARDS_DB = [
         "element": "Air",
         "id": "8153766e-c308-11eb-98b8-1b59432eef87",
         "name": "Djinn",
-        "typ": "test::Card"
+        "typ": "test::Card",
         # "typ": "test::SpecialCard"
     },
     {
         "id": "81537661-c308-11eb-98b8-d7ab026ed715",
         "name": "1st",
-        "typ": "test::Award"
+        "typ": "test::Award",
     },
     {
         "id": "81537663-c308-11eb-98b8-47f340f064e1",
         "name": "2nd",
-        "typ": "test::Award"
+        "typ": "test::Award",
     },
     {
         "id": "81537665-c308-11eb-98b8-a7fee63c63ca",
         "name": "3rd",
-        "typ": "test::Award"
-    }
+        "typ": "test::Award",
+    },
 ]
 
 
@@ -1867,34 +1889,49 @@ SCHEMA_COMPUTABLES = {
 
 DB1_stub = [
     # Person
-    {"id": bsid(0x10), "__type__": PersonT,
-     "name": "Phil Emarg",
-     "notes": [bslink(0x20), bslink(0x21, metanote="arg!")]},
-    {"id": bsid(0x11), "__type__": PersonT,
-     "name": "Madeline Hatch", "notes": [bslink(0x21, metanote="sigh")]},
-    {"id": bsid(0x12), "__type__": PersonT,
-     "name": "Emmanuel Villip"},
+    {
+        "id": bsid(0x10),
+        "__type__": PersonT,
+        "name": "Phil Emarg",
+        "notes": [bslink(0x20), bslink(0x21, metanote="arg!")],
+    },
+    {
+        "id": bsid(0x11),
+        "__type__": PersonT,
+        "name": "Madeline Hatch",
+        "notes": [bslink(0x21, metanote="sigh")],
+    },
+    {"id": bsid(0x12), "__type__": PersonT, "name": "Emmanuel Villip"},
     # Note
     {"id": bsid(0x20), "__type__": NoteT, "name": "boxing"},
     {"id": bsid(0x21), "__type__": NoteT, "name": "unboxing", "note": "lolol"},
     {"id": bsid(0x22), "__type__": NoteT, "name": "dynamic", "note": "blarg"},
-
     # Foo
     {"id": bsid(0x30), "__type__": FooT, "val": "a"},
     {"id": bsid(0x31), "__type__": FooT, "val": "b", "opt": 111},
-
     # volatility
     {"id": bsid(0x81), "__type__": "Tgt", "n": 1},
     {"id": bsid(0x82), "__type__": "Tgt", "n": 2},
     {"id": bsid(0x83), "__type__": "Tgt", "n": 3},
     {"id": bsid(0x84), "__type__": "Tgt", "n": 4},
-
-    {"id": bsid(0x91), "__type__": "Obj", "n": 1,
-     "tgt": [bslink(0x81), bslink(0x82)]},
-    {"id": bsid(0x92), "__type__": "Obj", "n": 2,
-     "tgt": [bslink(0x82), bslink(0x83)]},
-    {"id": bsid(0x93), "__type__": "Obj", "n": 3,
-     "tgt": [bslink(0x83), bslink(0x84)]},
+    {
+        "id": bsid(0x91),
+        "__type__": "Obj",
+        "n": 1,
+        "tgt": [bslink(0x81), bslink(0x82)],
+    },
+    {
+        "id": bsid(0x92),
+        "__type__": "Obj",
+        "n": 2,
+        "tgt": [bslink(0x82), bslink(0x83)],
+    },
+    {
+        "id": bsid(0x93),
+        "__type__": "Obj",
+        "n": 3,
+        "tgt": [bslink(0x83), bslink(0x84)],
+    },
 ]
 
 
@@ -1906,22 +1943,36 @@ def mk_DB1():
 
 
 parser = argparse.ArgumentParser(description='Toy EdgeQL eval model')
-parser.add_argument('--debug', '-d', action='store_true',
-                    help='Dump ASTs after parsing')
-parser.add_argument('--pprint', '-p', action='store_true',
-                    help='Use pprint instead of debug.dump')
-parser.add_argument('--json', '-j', action='store_true',
-                    help='Use json.dump instead of debug.dump')
+parser.add_argument(
+    '--debug', '-d', action='store_true', help='Dump ASTs after parsing'
+)
+parser.add_argument(
+    '--pprint',
+    '-p',
+    action='store_true',
+    help='Use pprint instead of debug.dump',
+)
+parser.add_argument(
+    '--json',
+    '-j',
+    action='store_true',
+    help='Use json.dump instead of debug.dump',
+)
 
 # The toy model currently doesn't understand cardinality inference,
 # but reading shape output where everything is a list is just awful.
 # So as a hacky workaround for now, add a flag to just print size one
 # sets as if they were singletons.
-parser.add_argument('--singleton-cheating', '-s', action='store_true',
-                    help='Print length one shape elements as singletons')
+parser.add_argument(
+    '--singleton-cheating',
+    '-s',
+    action='store_true',
+    help='Print length one shape elements as singletons',
+)
 
-parser.add_argument('commands', metavar='cmd', type=str, nargs='*',
-                    help='commands to run')
+parser.add_argument(
+    'commands', metavar='cmd', type=str, nargs='*', help='commands to run'
+)
 
 
 def main() -> None:

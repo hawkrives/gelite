@@ -16,13 +16,13 @@ class BuildFailedError(Exception):
 
 
 class BaseDomainTest:
-
     def build(self, src, *, format='html'):
         src = textwrap.dedent(src)
 
-        with tempfile.TemporaryDirectory() as td_in, \
-                tempfile.TemporaryDirectory() as td_out:
-
+        with (
+            tempfile.TemporaryDirectory() as td_in,
+            tempfile.TemporaryDirectory() as td_out,
+        ):
             # Since v2.0, Sphinx uses "index" as master_doc by default.
             fn = os.path.join(td_in, 'index.rst')
             with open(fn, 'wt') as f:
@@ -31,22 +31,28 @@ class BaseDomainTest:
 
             args = [
                 'sphinx-build',
-                '-b', format,
+                '-b',
+                format,
                 '-W',
                 '-n',
                 '-C',
-                '-D', 'extensions=edb.tools.docs',
-                '-D', 'smartquotes_action=De',
+                '-D',
+                'extensions=edb.tools.docs',
+                '-D',
+                'smartquotes_action=De',
                 '-q',
                 td_in,
                 td_out,
-                fn
+                fn,
             ]
 
             try:
                 subprocess.run(
-                    args, check=True,
-                    stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+                    args,
+                    check=True,
+                    stderr=subprocess.PIPE,
+                    stdout=subprocess.PIPE,
+                )
             except subprocess.CalledProcessError as ex:
                 msg = [
                     'The build has failed.',
@@ -61,7 +67,7 @@ class BaseDomainTest:
                     '',
                     'INPUT',
                     '=====',
-                    src
+                    src,
                 ]
                 new_ex = BuildFailedError('\n'.join(msg))
                 new_ex.stdout = ex.stdout.decode()
@@ -83,7 +89,6 @@ class BaseDomainTest:
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlType(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_type_01(self):
         src = '''
         .. eql:type:: int64
@@ -100,7 +105,8 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
                     [@eql-fullname="std::int64"] /
                     desc_name / text()
             '''),
-            ['int64'])
+            ['int64'],
+        )
 
     def test_sphinx_eql_type_02(self):
         src = '''
@@ -120,7 +126,8 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
         '''
 
         with self.assert_fails(
-                "cannot resolve :eql:type: targeting 'type::std::int1'"):
+            "cannot resolve :eql:type: targeting 'type::std::int1'"
+        ):
             self.build(src)
 
     def test_sphinx_eql_type_04(self):
@@ -132,9 +139,7 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
         Testing refs :eql:type:`int64`
         '''
 
-        self.assertRegex(
-            self.build(src),
-            r'(?x).*<a .* href="#std::int64".*')
+        self.assertRegex(self.build(src), r'(?x).*<a .* href="#std::int64".*')
 
     def test_sphinx_eql_type_05(self):
         src = '''
@@ -174,7 +179,8 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
                 reference[@eql-type="type"] /
                 literal / text()
             '''),
-            ['XXX', 'array<int64>', 'array<int64>', 'array<array<int64>>'])
+            ['XXX', 'array<int64>', 'array<int64>', 'array<array<int64>>'],
+        )
 
     def test_sphinx_eql_type_07(self):
         src = '''
@@ -197,8 +203,13 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
                 reference[@eql-type="type"] /
                 literal / text()
             '''),
-            ['OPTIONAL  int64', 'OPTIONAL int64',
-             'SET  OF  int64', 'SET OF int64'])
+            [
+                'OPTIONAL  int64',
+                'OPTIONAL int64',
+                'SET  OF  int64',
+                'SET OF int64',
+            ],
+        )
 
     def test_sphinx_eql_type_08(self):
         src = '''
@@ -219,12 +230,12 @@ class TestEqlType(unittest.TestCase, BaseDomainTest):
                 reference[@eql-type="type"] /
                 literal / text()
             '''),
-            ['SET OF', 'XXX'])
+            ['SET OF', 'XXX'],
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlFunction(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_func_01(self):
         src = '''
         Testing DESC !! :eql:func-desc:`test` !! >> ref.
@@ -257,9 +268,7 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
         self.assertEqual(func.attrs['summary'], 'A super function.')
         self.assertIn('!! A super function. !!', out)
 
-        self.assertEqual(
-            x.xpath('//desc_returns / text()'),
-            ['any'])
+        self.assertEqual(x.xpath('//desc_returns / text()'), ['any'])
 
         self.assertEqual(
             x.xpath('''
@@ -268,13 +277,15 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
                     @refid="function::std::test"] /
                 literal / text()
             '''),
-            ['XXX', 'test()'])
+            ['XXX', 'test()'],
+        )
 
         self.assertEqual(
             x.xpath('''
                 //field[@eql-name="index"] / field_body / paragraph / text()
             '''),
-            ['xxx YyY'])
+            ['xxx YyY'],
+        )
 
     def test_sphinx_eql_func_02(self):
         src = '''
@@ -328,7 +339,8 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
         '''
 
         with self.assert_fails(
-                'fields must be specified before all other content'):
+            'fields must be specified before all other content'
+        ):
             self.build(src)
 
     def test_sphinx_eql_func_07(self):
@@ -343,13 +355,11 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
         out = self.build(src, format='xml')
         x = requests_xml.XML(xml=out)
 
-        self.assertEqual(
-            x.xpath('//desc_returns / text()'),
-            ['set of str'])
+        self.assertEqual(x.xpath('//desc_returns / text()'), ['set of str'])
 
         self.assertEqual(
             x.xpath('//desc_signature/@eql-signature'),
-            ['std::test(a: optional str, b: set of str, c: str) -> set of str']
+            ['std::test(a: optional str, b: set of str, c: str) -> set of str'],
         )
 
     def test_sphinx_eql_func_08(self):
@@ -362,13 +372,12 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
         out = self.build(src, format='xml')
         x = requests_xml.XML(xml=out)
 
-        self.assertEqual(
-            x.xpath('//desc_returns / text()'),
-            ['optional int64'])
+        self.assertEqual(x.xpath('//desc_returns / text()'), ['optional int64'])
 
         self.assertEqual(
             x.xpath('//desc_signature/@eql-signature'),
-            ['std::test(named only v: in64 = 42) -> optional int64'])
+            ['std::test(named only v: in64 = 42) -> optional int64'],
+        )
 
     def test_sphinx_eql_func_09(self):
         src = '''
@@ -385,13 +394,15 @@ class TestEqlFunction(unittest.TestCase, BaseDomainTest):
 
         self.assertEqual(
             x.xpath('//desc_signature/@eql-signature'),
-            ['sys::sleep(duration: duration) ->  bool',
-             'sys::sleep(duration: float64) ->  bool'])
+            [
+                'sys::sleep(duration: duration) ->  bool',
+                'sys::sleep(duration: float64) ->  bool',
+            ],
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlConstraint(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_constr_01(self):
         src = '''
         .. eql:type:: std::int64
@@ -426,7 +437,8 @@ class TestEqlConstraint(unittest.TestCase, BaseDomainTest):
                     @refid="constraint::std::max_len_value"] /
                 literal / text()
             '''),
-            ['XXX', 'max_len_value'])
+            ['XXX', 'max_len_value'],
+        )
 
     def test_sphinx_eql_constr_02(self):
         src = '''
@@ -442,16 +454,16 @@ class TestEqlConstraint(unittest.TestCase, BaseDomainTest):
 
         self.assertEqual(
             sig.attrs['eql-signature'],
-            'std::len_value on (len(<std::str>__subject__))')
+            'std::len_value on (len(<std::str>__subject__))',
+        )
 
         self.assertEqual(
-            sig.attrs['eql-subjexpr'],
-            'len(<std::str>__subject__)')
+            sig.attrs['eql-subjexpr'], 'len(<std::str>__subject__)'
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlOperator(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_op_01(self):
         src = '''
         Testing ?? :eql:op-desc:`PLUS` ??.
@@ -483,14 +495,17 @@ class TestEqlOperator(unittest.TestCase, BaseDomainTest):
         self.assertIn('Testing ?? Arithmetic addition. ??.', out)
 
         self.assertEqual(
-            len(x.xpath('''
+            len(
+                x.xpath('''
                 //desc_signature[@eql-name="PLUS" and @eql-signature="A + B"] /
                 *[
                     (self::desc_annotation and text()="operator") or
                     (self::desc_name and text()="A + B")
                 ]
-            ''')),
-            2)
+            ''')
+            ),
+            2,
+        )
 
         self.assertEqual(len(x.xpath('//field[@eql-name="operand"]')), 2)
         self.assertEqual(len(x.xpath('//field[@eql-name="resulttype"]')), 1)
@@ -501,7 +516,8 @@ class TestEqlOperator(unittest.TestCase, BaseDomainTest):
                 reference[@eql-type="operator" and @refid="operator::PLUS"] /
                 literal / text()
             '''),
-            ['XXX'])
+            ['XXX'],
+        )
 
     def test_sphinx_eql_op_02(self):
         src = '''
@@ -528,12 +544,12 @@ class TestEqlOperator(unittest.TestCase, BaseDomainTest):
                 //field[@eql-opname="B"] /
                 field_body / * / literal_strong / text()
             '''),
-            ['B'])
+            ['B'],
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlKeyword(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_kw_01(self):
         src = '''
         .. eql:keyword:: SET OF
@@ -549,7 +565,8 @@ class TestEqlKeyword(unittest.TestCase, BaseDomainTest):
         x = requests_xml.XML(xml=out)
 
         self.assertEqual(
-            len(x.xpath('''
+            len(
+                x.xpath('''
                 //desc[@desctype="keyword"] /
 
                 desc_signature[@eql-name="SET OF"] /
@@ -557,8 +574,10 @@ class TestEqlKeyword(unittest.TestCase, BaseDomainTest):
                     (self::desc_annotation and text()="keyword") or
                     (self::desc_name and text()="SET OF")
                 ]
-            ''')),
-            2)
+            ''')
+            ),
+            2,
+        )
 
         self.assertEqual(
             x.xpath('''
@@ -566,12 +585,12 @@ class TestEqlKeyword(unittest.TestCase, BaseDomainTest):
                 reference[@eql-type="keyword" and @refid="keyword::SET-OF"] /
                 literal / text()
             '''),
-            ['XXX'])
+            ['XXX'],
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlStatement(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_stmt_05(self):
         src = '''
 
@@ -616,7 +635,8 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
                           @refid="statement::create-function"] /
                 literal / text()
             '''),
-            ['create function'])
+            ['create function'],
+        )
 
         self.assertEqual(
             x.xpath('''
@@ -625,20 +645,25 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
                           @refid="statement::create-type"] /
                 literal / text()
             '''),
-            ['ttt'])
+            ['ttt'],
+        )
 
         self.assertEqual(
             x.xpath('''
                 //section[@eql-statement="true"]/@ids
             '''),
-            ['create-function statement::create-function',
-             'create-type statement::create-type'])
+            [
+                'create-function statement::create-function',
+                'create-type statement::create-type',
+            ],
+        )
 
         self.assertEqual(
             x.xpath('''
                 //section[@eql-statement="true"]/@summary
             '''),
-            ['CREATE FUNCTION--creates a function.', 'blah.'])
+            ['CREATE FUNCTION--creates a function.', 'blah.'],
+        )
 
     def test_sphinx_eql_stmt_06(self):
         src = '''
@@ -652,8 +677,7 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
         aa aaaaaa aaaaa aaaa aa aaaaaa aaaaa aaaa.
         '''
 
-        with self.assert_fails(
-                'first paragraph is longer than 79 characters'):
+        with self.assert_fails('first paragraph is longer than 79 characters'):
             self.build(src)
 
     def test_sphinx_eql_stmt_08(self):
@@ -674,8 +698,7 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
         bbb.
         '''
 
-        with self.assert_fails(
-                ' has a nested section with a :eql-statement:'):
+        with self.assert_fails(' has a nested section with a :eql-statement:'):
             self.build(src)
 
     def test_sphinx_eql_stmt_09(self):
@@ -734,20 +757,23 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 //section/title[text()="Functions"]/@edb-alt-title
             '''),
-            ['Functions and Operators'])
+            ['Functions and Operators'],
+        )
 
         self.assertEqual(
             x.xpath('''
                 //section[@eql-statement="true"]/title/text()
             '''),
-            ['CREATE FUNCTION', 'DROP FUNCTION'])
+            ['CREATE FUNCTION', 'DROP FUNCTION'],
+        )
 
         self.assertEqual(
             x.xpath('''
                 //section[@eql-statement="true" and @eql-haswith="true"]
                     /title/text()
             '''),
-            ['DROP FUNCTION'])
+            ['DROP FUNCTION'],
+        )
 
     def test_sphinx_eql_struct_01(self):
         src = '''
@@ -763,7 +789,8 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 literal_block/@language
             '''),
-            ['c', 'c'])
+            ['c', 'c'],
+        )
 
         val = x.xpath('''
             literal_block/text()
@@ -774,7 +801,6 @@ class TestEqlStatement(unittest.TestCase, BaseDomainTest):
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestEqlRoles(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_inline_role_01(self):
         src = '''
         a test of :eql:synopsis:`WITH <aaaa>`.
@@ -787,7 +813,8 @@ class TestEqlRoles(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 //literal[@eql-lang="edgeql-synopsis"] / text()
             '''),
-            ['WITH <aaaa>'])
+            ['WITH <aaaa>'],
+        )
 
     def test_sphinx_eql_inline_role_02(self):
         cases = [
@@ -807,15 +834,14 @@ class TestEqlRoles(unittest.TestCase, BaseDomainTest):
                 'ff123aaaaeeeee',
                 'edgedb/edgedb/commit/ff123aaaaeeeee',
                 None,
-                'ff123aaa'
+                'ff123aaa',
             ),
             (
                 'magicstack/asyncpg/ff123aaaaeeeee',
                 'magicstack/asyncpg/commit/ff123aaaaeeeee',
                 None,
-                'magicstack/asyncpg/ff123aaa'
+                'magicstack/asyncpg/ff123aaa',
             ),
-
             (
                 '#123',
                 'edgedb/edgedb/issues/123',
@@ -843,7 +869,7 @@ class TestEqlRoles(unittest.TestCase, BaseDomainTest):
         ]
 
         src = ''
-        for (body, _, title, _) in cases:
+        for body, _, title, _ in cases:
             if title:
                 src += f':eql:gh:`{title} <{body}>`\n'
             else:
@@ -852,7 +878,7 @@ class TestEqlRoles(unittest.TestCase, BaseDomainTest):
         out = self.build(src, format='xml')
         x = requests_xml.XML(xml=out)
 
-        for (_, expected_link, _, expected_title) in cases:
+        for _, expected_link, _, expected_title in cases:
             self.assertEqual(
                 x.xpath(f'''
                     //reference[
@@ -861,13 +887,12 @@ class TestEqlRoles(unittest.TestCase, BaseDomainTest):
                         @refuri="https://github.com/{expected_link}"
                     ]/text()
                 '''),
-                [expected_title]
+                [expected_title],
             )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestBlockquote(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_eql_blockquote_01(self):
         src = '''
         blah
@@ -905,7 +930,7 @@ class TestBlockquote(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 block_quote/*/text()
             '''),
-            ['spam']
+            ['spam'],
         )
 
     def test_sphinx_eql_singlebacktick_01(self):
@@ -945,12 +970,12 @@ class TestBlockquote(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 //container[@collapsed_block="True"]/paragraph/text()
             '''),
-            ['spam', 'ham'])
+            ['spam', 'ham'],
+        )
 
 
 @unittest.skipIf(requests_xml is None, 'requests-xml package is not installed')
 class TestOthers(unittest.TestCase, BaseDomainTest):
-
     def test_sphinx_edb_brand_name_01(self):
         src = '''
         blah |Gel|
@@ -964,7 +989,8 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
             x.xpath('''
                 //paragraph/inline[@edb-substitution="true"]/text()
             '''),
-            ["Gel", "Gel's"])
+            ["Gel", "Gel's"],
+        )
 
     def test_sphinx_edb_brand_name_02(self):
         src = '''
@@ -996,7 +1022,7 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-gelcmd-top="true"]
                     / text()
             '''),
-            ['gel']
+            ['gel'],
         )
 
         self.assertEqual(
@@ -1007,7 +1033,7 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-gelcmd-top="false"]
                     / text()
             '''),
-            ['gel migrate --help', 'gel migrate --help --foo']
+            ['gel migrate --help', 'gel migrate --help --foo'],
         )
 
         self.assertEqual(
@@ -1017,7 +1043,7 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-geluri="true"]
                     / text()
             '''),
-            ['gel://', 'gel://foo:bar@nax/a:123#12']
+            ['gel://', 'gel://foo:bar@nax/a:123#12'],
         )
 
         self.assertEqual(
@@ -1027,7 +1053,7 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-dotgel="true"]
                     / text()
             '''),
-             ['default.gel']
+            ['default.gel'],
         )
 
         self.assertEqual(
@@ -1037,5 +1063,5 @@ class TestOthers(unittest.TestCase, BaseDomainTest):
                     [@edb-gelenv="true"]
                     / text()
             '''),
-             ['GELITE_HOST', 'GELITE_HOST=AB']
+            ['GELITE_HOST', 'GELITE_HOST=AB'],
         )

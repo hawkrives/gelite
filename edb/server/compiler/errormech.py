@@ -51,12 +51,14 @@ class SchemaRequired:
 # Error codes that always require the schema to be resolved. There are
 # other error codes that only require the schema under certain
 # circumstances.
-SCHEMA_CODES = frozenset({
-    pgerrors.ERROR_INVALID_TEXT_REPRESENTATION,
-    pgerrors.ERROR_NUMERIC_VALUE_OUT_OF_RANGE,
-    pgerrors.ERROR_INVALID_DATETIME_FORMAT,
-    pgerrors.ERROR_DATETIME_FIELD_OVERFLOW,
-})
+SCHEMA_CODES = frozenset(
+    {
+        pgerrors.ERROR_INVALID_TEXT_REPRESENTATION,
+        pgerrors.ERROR_NUMERIC_VALUE_OUT_OF_RANGE,
+        pgerrors.ERROR_INVALID_DATETIME_FORMAT,
+        pgerrors.ERROR_DATETIME_FIELD_OVERFLOW,
+    }
+)
 
 
 class ErrorDetails(NamedTuple):
@@ -71,15 +73,17 @@ class ErrorDetails(NamedTuple):
     errcls: Optional[type[errors.EdgeDBError]] = None
 
 
-constraint_errors = frozenset({
-    pgerrors.ERROR_INTEGRITY_CONSTRAINT_VIOLATION,
-    pgerrors.ERROR_RESTRICT_VIOLATION,
-    pgerrors.ERROR_NOT_NULL_VIOLATION,
-    pgerrors.ERROR_FOREIGN_KEY_VIOLATION,
-    pgerrors.ERROR_UNIQUE_VIOLATION,
-    pgerrors.ERROR_CHECK_VIOLATION,
-    pgerrors.ERROR_EXCLUSION_VIOLATION,
-})
+constraint_errors = frozenset(
+    {
+        pgerrors.ERROR_INTEGRITY_CONSTRAINT_VIOLATION,
+        pgerrors.ERROR_RESTRICT_VIOLATION,
+        pgerrors.ERROR_NOT_NULL_VIOLATION,
+        pgerrors.ERROR_FOREIGN_KEY_VIOLATION,
+        pgerrors.ERROR_UNIQUE_VIOLATION,
+        pgerrors.ERROR_CHECK_VIOLATION,
+        pgerrors.ERROR_EXCLUSION_VIOLATION,
+    }
+)
 
 branch_errors = {
     pgerrors.ERROR_INVALID_CATALOG_NAME: errors.UnknownDatabaseError,
@@ -91,17 +95,17 @@ directly_mappable: dict[str, type | tuple[type, str]] = {
     pgerrors.ERROR_INTERVAL_FIELD_OVERFLOW: errors.NumericOutOfRangeError,
     pgerrors.ERROR_READ_ONLY_SQL_TRANSACTION: (
         errors.TransactionError,
-        "Modifications not allowed in a read-only transaction"
+        "Modifications not allowed in a read-only transaction",
     ),
     pgerrors.ERROR_SERIALIZATION_FAILURE: errors.TransactionSerializationError,
     pgerrors.ERROR_DEADLOCK_DETECTED: errors.TransactionDeadlockError,
     pgerrors.ERROR_OBJECT_IN_USE: errors.ExecutionError,
-    pgerrors.ERROR_IDLE_IN_TRANSACTION_TIMEOUT:
-        errors.IdleTransactionTimeoutError,
+    pgerrors.ERROR_IDLE_IN_TRANSACTION_TIMEOUT: errors.IdleTransactionTimeoutError,
     pgerrors.ERROR_QUERY_CANCELLED: errors.QueryTimeoutError,
     pgerrors.ERROR_INVALID_ROW_COUNT_IN_LIMIT_CLAUSE: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_ROW_COUNT_IN_RESULT_OFFSET_CLAUSE: (
-        errors.InvalidValueError),
+        errors.InvalidValueError
+    ),
     pgerrors.ERROR_INVALID_REGULAR_EXPRESSION: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_LOGARITHM_ARGUMENT: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_POWER_ARGUMENT: errors.InvalidValueError,
@@ -126,20 +130,23 @@ constraint_res = {
 }
 
 
-range_constraints = frozenset({
-    'timestamptz_t_check',
-    'timestamp_t_check',
-    'date_t_check',
-})
+range_constraints = frozenset(
+    {
+        'timestamptz_t_check',
+        'timestamp_t_check',
+        'date_t_check',
+    }
+)
 
 
 pgtype_re = re.compile(
-    '|'.join(fr'\b{key}\b' for key in types.base_type_name_map_r))
+    '|'.join(rf'\b{key}\b' for key in types.base_type_name_map_r)
+)
 enum_re = re.compile(
-    r'(?P<p>enum) (?P<v>edgedb([\w-]+)."(?P<id>[\w-]+)_domain")')
+    r'(?P<p>enum) (?P<v>edgedb([\w-]+)."(?P<id>[\w-]+)_domain")'
+)
 
-cache_function_re = re.compile(
-    r'^function edgedb_.*\.__qh_.* does not exist$')
+cache_function_re = re.compile(r'^function edgedb_.*\.__qh_.* does not exist$')
 
 type_in_access_policy_re = re.compile(r'(\w+|`.+?`)::(\w+|`.+?`)')
 
@@ -199,12 +206,14 @@ def get_error_details(fields):
         if errcode:
             try:
                 errcls = type(errors.EdgeDBError).get_error_class_from_code(
-                    errcode)
+                    errcode
+                )
             except LookupError:
                 pass
             else:
                 return ErrorDetails(
-                    errcls=errcls, message=message, detail_json=detail_json)
+                    errcls=errcls, message=message, detail_json=detail_json
+                )
 
     code = fields['C']
     schema_name = fields.get('s')
@@ -213,9 +222,14 @@ def get_error_details(fields):
     constraint_name = fields.get('n')
 
     return ErrorDetails(
-        message=message, detail=detail, detail_json=detail_json, code=code,
-        schema_name=schema_name, table_name=table_name,
-        column_name=column_name, constraint_name=constraint_name
+        message=message,
+        detail=detail,
+        detail_json=detail_json,
+        code=code,
+        schema_name=schema_name,
+        table_name=table_name,
+        column_name=column_name,
+        constraint_name=constraint_name,
     )
 
 
@@ -226,7 +240,8 @@ def get_generic_exception_from_err_details(err_details):
         if err_details.errcls is not errors.InternalServerError:
             err.set_linecol(
                 err_details.detail_json.get('line', -1),
-                err_details.detail_json.get('column', -1))
+                err_details.detail_json.get('column', -1),
+            )
     return err
 
 
@@ -242,8 +257,7 @@ def static_interpret_backend_error(fields):
     if err is not None:
         return err
 
-    return static_interpret_by_code(
-        err_details.code, err_details)
+    return static_interpret_by_code(err_details.code, err_details)
 
 
 @value_dispatch.value_dispatch
@@ -332,8 +346,7 @@ def _static_interpret_constraint_errors(
     elif error_type == 'link_target_del':
         msg = err_details.message
 
-        return errors.ConstraintViolationError(
-            msg, details=err_details.detail)
+        return errors.ConstraintViolationError(msg, details=err_details.detail)
 
     elif error_type == 'constraint':
         if err_details.constraint_name is None:
@@ -366,8 +379,11 @@ def _static_interpret_constraint_errors(
         # table_name, and column_name. But we don't expect
         # constraint_name to be present (because the constraint is
         # not yet present in the schema?).
-        if (err_details.schema_name and err_details.table_name and
-                err_details.column_name):
+        if (
+            err_details.schema_name
+            and err_details.table_name
+            and err_details.column_name
+        ):
             return SchemaRequired
 
         else:
@@ -378,7 +394,8 @@ def _static_interpret_constraint_errors(
 
     elif error_type == 'id':
         return errors.ConstraintViolationError(
-            'unique link constraint violation')
+            'unique link constraint violation'
+        )
 
 
 @static_interpret_by_code.register_for_all(SCHEMA_CODES)
@@ -419,8 +436,8 @@ def _static_interpret_invalid_param_value(
 ):
     error_message_context = ''
     if err_details.detail_json:
-        error_message_context = (
-            err_details.detail_json.get('error_message_context', '')
+        error_message_context = err_details.detail_json.get(
+            'error_message_context', ''
         )
 
     return errors.InvalidValueError(
@@ -441,8 +458,8 @@ def _static_interpret_wrong_object_type(
     error_message_context = ''
     if err_details.detail_json:
         hint = err_details.detail_json.get('hint')
-        error_message_context = (
-            err_details.detail_json.get('error_message_context', '')
+        error_message_context = err_details.detail_json.get(
+            'error_message_context', ''
         )
 
     return errors.InvalidValueError(
@@ -457,9 +474,10 @@ def _static_interpret_cardinality_violation(
     _code: str,
     err_details: ErrorDetails,
 ):
-
-    if (err_details.constraint_name == 'std::assert_single'
-            or err_details.constraint_name == 'std::assert_exists'):
+    if (
+        err_details.constraint_name == 'std::assert_single'
+        or err_details.constraint_name == 'std::assert_exists'
+    ):
         return errors.CardinalityViolationError(err_details.message)
 
     elif err_details.constraint_name == 'std::assert_distinct':
@@ -599,15 +617,18 @@ def _interpret_constraint_errors(
         # NOTE: this should never occur in GraphQL mode.
         tabname = (err_details.schema_name, err_details.table_name)
         source = common.get_object_from_backend_name(
-            schema, s_objtypes.ObjectType, tabname)
+            schema, s_objtypes.ObjectType, tabname
+        )
         source_name = source.get_displayname(schema)
         pointer = common.get_object_from_backend_name(
-            schema, s_pointers.Pointer, err_details.column_name)
+            schema, s_pointers.Pointer, err_details.column_name
+        )
         pointer_name = pointer.get_shortname(schema).name
 
         return errors.ConstraintViolationError(
             f'Existing {source_name}.{pointer_name} '
-            f'values violate the new constraint')
+            f'values violate the new constraint'
+        )
     elif error_type == 'scalar':
         assert match
         domain_name = match.group(1)
@@ -635,7 +656,10 @@ def _interpret_invalid_text_repr(
     hint: Optional[str],
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,)
+        translate_pgtype(
+            schema,
+            err_details.message,
+        )
     )
 
 
@@ -647,7 +671,10 @@ def _interpret_numeric_out_of_range(
     hint: Optional[str],
 ):
     return errors.NumericOutOfRangeError(
-        translate_pgtype(schema, err_details.message,)
+        translate_pgtype(
+            schema,
+            err_details.message,
+        )
     )
 
 
@@ -660,7 +687,10 @@ def _interpret_invalid_datetime(
     hint: Optional[str],
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,),
+        translate_pgtype(
+            schema,
+            err_details.message,
+        ),
         hint=hint,
     )
 
@@ -676,9 +706,9 @@ def _interpret_wrong_object_type(
     # validation.
 
     if (
-        err_details.message == 'covariance error' and
-        err_details.column_name is not None and
-        err_details.table_name is not None
+        err_details.message == 'covariance error'
+        and err_details.column_name is not None
+        and err_details.table_name is not None
     ):
         ptr = schema.get_by_id(uuidgen.UUID(err_details.column_name))
         wrong_obj = schema.get_by_id(uuidgen.UUID(err_details.table_name))
@@ -696,7 +726,7 @@ def _interpret_wrong_object_type(
 
 
 def static_interpret_psql_parse_error(
-    exc: parser_errors.PSqlParseError
+    exc: parser_errors.PSqlParseError,
 ) -> errors.EdgeDBError:
     res: errors.EdgeDBError
     if isinstance(exc, parser_errors.PSqlSyntaxError):

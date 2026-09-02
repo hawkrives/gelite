@@ -41,13 +41,13 @@ from edb.testbase.asyncutils import with_fake_event_loop
 
 @dataclass
 class TestScheduler(rs.Scheduler):
-
     params: Optional[list[TestParams]] = None
 
     execution_report: Optional[rs.ExecutionReport] = None
 
     async def get_params(
-        self, context: rs.Context,
+        self,
+        context: rs.Context,
     ) -> Optional[Sequence[rs.Params]]:
         return self.params
 
@@ -61,7 +61,6 @@ class TestData:
 
 
 class TestResult(rs.Result[TestData]):
-
     # The time this result was "produced"
     time: float = -1
 
@@ -69,9 +68,7 @@ class TestResult(rs.Result[TestData]):
     finalize_target: Optional[dict[int, float]] = None
 
     def __init__(
-        self,
-        finalize_target: Optional[dict[int, float]] = None,
-        **kwargs
+        self, finalize_target: Optional[dict[int, float]] = None, **kwargs
     ):
         super().__init__(**kwargs)
 
@@ -84,7 +81,6 @@ class TestResult(rs.Result[TestData]):
 
 @dataclass
 class TestParams(rs.Params[TestData]):
-
     # Cost multiplier used to factor the rate delay
     _costs: dict[str, int]
 
@@ -103,7 +99,6 @@ class TestParams(rs.Params[TestData]):
 
 
 class TestTask(rs.Request[TestData]):
-
     def __init__(self, params: TestParams):
         super().__init__(params=params)
 
@@ -120,7 +115,6 @@ class TestTask(rs.Request[TestData]):
 
 
 class TestRequests(unittest.TestCase):
-
     @with_fake_event_loop
     async def test_timer_is_ready_01(self):
         await asyncio.sleep(10)
@@ -177,48 +171,58 @@ class TestRequests(unittest.TestCase):
 
     def test_timer_combine_01(self):
         self.assertEqual(
-            rs.Timer.combine([
-                rs.Timer(None, True),
-            ]),
+            rs.Timer.combine(
+                [
+                    rs.Timer(None, True),
+                ]
+            ),
             rs.Timer(None, True),
         )
         self.assertEqual(
-            rs.Timer.combine([
-                rs.Timer(None, True),
-                rs.Timer(10, True),
-                rs.Timer(None, False),
-                rs.Timer(10, False),
-            ]),
+            rs.Timer.combine(
+                [
+                    rs.Timer(None, True),
+                    rs.Timer(10, True),
+                    rs.Timer(None, False),
+                    rs.Timer(10, False),
+                ]
+            ),
             rs.Timer(None, True),
         )
 
         self.assertEqual(
-            rs.Timer.combine([
-                rs.Timer(10, True),
-                rs.Timer(20, True),
-                rs.Timer(30, True),
-                rs.Timer(None, False),
-                rs.Timer(10, False),
-            ]),
+            rs.Timer.combine(
+                [
+                    rs.Timer(10, True),
+                    rs.Timer(20, True),
+                    rs.Timer(30, True),
+                    rs.Timer(None, False),
+                    rs.Timer(10, False),
+                ]
+            ),
             rs.Timer(10, True),
         )
 
         self.assertEqual(
-            rs.Timer.combine([
-                rs.Timer(None, False),
-                rs.Timer(10, False),
-                rs.Timer(20, False),
-                rs.Timer(30, False),
-            ]),
+            rs.Timer.combine(
+                [
+                    rs.Timer(None, False),
+                    rs.Timer(10, False),
+                    rs.Timer(20, False),
+                    rs.Timer(30, False),
+                ]
+            ),
             rs.Timer(None, False),
         )
 
         self.assertEqual(
-            rs.Timer.combine([
-                rs.Timer(10, False),
-                rs.Timer(20, False),
-                rs.Timer(30, False),
-            ]),
+            rs.Timer.combine(
+                [
+                    rs.Timer(10, False),
+                    rs.Timer(20, False),
+                    rs.Timer(30, False),
+                ]
+            ),
             rs.Timer(10, False),
         )
 
@@ -231,28 +235,36 @@ class TestRequests(unittest.TestCase):
         context = rs.Context(naptime=0)
 
         # Not ready, not immediate
-        self.assertFalse(await TestScheduler(
-            service=rs.Service(),
-            timer=rs.Timer(10, False),
-        ).process(context))
+        self.assertFalse(
+            await TestScheduler(
+                service=rs.Service(),
+                timer=rs.Timer(10, False),
+            ).process(context)
+        )
 
         # Not ready, immediate
-        self.assertFalse(await TestScheduler(
-            service=rs.Service(),
-            timer=rs.Timer(10, True),
-        ).process(context))
+        self.assertFalse(
+            await TestScheduler(
+                service=rs.Service(),
+                timer=rs.Timer(10, True),
+            ).process(context)
+        )
 
         # Ready, not immediate
-        self.assertTrue(await TestScheduler(
-            service=rs.Service(),
-            timer=rs.Timer(0, False),
-        ).process(context))
+        self.assertTrue(
+            await TestScheduler(
+                service=rs.Service(),
+                timer=rs.Timer(0, False),
+            ).process(context)
+        )
 
         # Ready, immediate
-        self.assertTrue(await TestScheduler(
-            service=rs.Service(),
-            timer=rs.Timer(0, True),
-        ).process(context))
+        self.assertTrue(
+            await TestScheduler(
+                service=rs.Service(),
+                timer=rs.Timer(0, True),
+            ).process(context)
+        )
 
     @with_fake_event_loop
     async def test_scheduler_process_02(self):
@@ -296,9 +308,9 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
-            ]
+            ],
         )
         context = rs.Context(naptime=30)
 
@@ -327,7 +339,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.delay_factor
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
         # Remaining is reset to None after processing
         self.assertEqual(
@@ -335,7 +347,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.remaining
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
 
     @with_fake_event_loop
@@ -359,7 +371,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -368,9 +380,9 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
-            ]
+            ],
         )
         context = rs.Context(naptime=30)
 
@@ -399,7 +411,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.delay_factor
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
         # Remaining is reset to None after processing
         self.assertEqual(
@@ -407,7 +419,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.remaining
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
 
     @with_fake_event_loop
@@ -428,19 +440,16 @@ class TestRequests(unittest.TestCase):
                     _costs={'requests': 1},
                     _results=[
                         TestResult(data=rs.Error('Error', False)),
-                    ]
+                    ],
                 ),
-            ]
+            ],
         )
         context = rs.Context(naptime=30)
 
         self.assertTrue(await scheduler.process(context))
 
         # Run again after some delay, naptime is greater than delay
-        self.assertEqual(
-            scheduler.timer,
-            rs.Timer(30, False)
-        )
+        self.assertEqual(scheduler.timer, rs.Timer(30, False))
 
         # Results are finalized
         self.assertEqual(finalize_target, {})
@@ -459,7 +468,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.delay_factor
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
         # Remaining is reset to None after processing
         self.assertEqual(
@@ -467,7 +476,7 @@ class TestRequests(unittest.TestCase):
             {
                 limit_name: limit.remaining
                 for limit_name, limit in report.updated_limits.items()
-            }
+            },
         )
 
     @with_fake_event_loop
@@ -485,7 +494,10 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total='unlimited')},
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1030, False),
         )
@@ -502,7 +514,10 @@ class TestRequests(unittest.TestCase):
                 limits={'requests': rs.Limits(total=6, delay_factor=2)},
                 delay_max=30,
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=60,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=60,
             ),
             rs.Timer(1060, False),
         )
@@ -513,7 +528,10 @@ class TestRequests(unittest.TestCase):
                 limits={'requests': rs.Limits(total=6, delay_factor=4)},
                 delay_max=30,
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=60,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=60,
             ),
             rs.Timer(1060, False),
         )
@@ -524,7 +542,10 @@ class TestRequests(unittest.TestCase):
                 limits={'requests': rs.Limits(total=6, delay_factor=2)},
                 delay_max=30,
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=10,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=10,
             ),
             rs.Timer(1022, False),
         )
@@ -535,7 +556,10 @@ class TestRequests(unittest.TestCase):
                 limits={'requests': rs.Limits(total=6, delay_factor=4)},
                 delay_max=30,
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=10,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=10,
             ),
             rs.Timer(1030, False),
         )
@@ -543,7 +567,10 @@ class TestRequests(unittest.TestCase):
         # If no request limits are known, just nap
         self.assertEqual(
             rs.Service().next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1030, False),
         )
@@ -563,7 +590,10 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total='unlimited')},
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(None, True),
         )
@@ -573,7 +603,10 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total=6)},
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1011, True),
         )
@@ -594,17 +627,21 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total='unlimited')}
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(None, True),
         )
 
         # Has delay, run immediately anyways
         self.assertEqual(
-            rs.Service(
-                limits={'requests': rs.Limits(total=6)}
-            ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+            rs.Service(limits={'requests': rs.Limits(total=6)}).next_delay(
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(None, True),
         )
@@ -624,17 +661,21 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total='unlimited')}
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1030, False),
         )
 
         # Has delay, take a nap
         self.assertEqual(
-            rs.Service(
-                limits={'requests': rs.Limits(total=6)}
-            ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+            rs.Service(limits={'requests': rs.Limits(total=6)}).next_delay(
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1030, False),
         )
@@ -644,7 +685,10 @@ class TestRequests(unittest.TestCase):
             rs.Service(
                 limits={'requests': rs.Limits(total=6, delay_factor=4)}
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1044, False),
         )
@@ -668,7 +712,10 @@ class TestRequests(unittest.TestCase):
                     'tokens': rs.Limits(total='unlimited'),
                 },
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(None, True),
         )
@@ -681,7 +728,10 @@ class TestRequests(unittest.TestCase):
                     'tokens': rs.Limits(total='unlimited'),
                 },
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1011, True),
         )
@@ -692,7 +742,10 @@ class TestRequests(unittest.TestCase):
                     'tokens': rs.Limits(total=6),
                 },
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1011, True),
         )
@@ -703,7 +756,10 @@ class TestRequests(unittest.TestCase):
                     'tokens': rs.Limits(total=6),
                 },
             ).next_delay(
-                success_count, deferred_costs, error_count, naptime=30,
+                success_count,
+                deferred_costs,
+                error_count,
+                naptime=30,
             ),
             rs.Timer(1022, True),
         )
@@ -746,14 +802,14 @@ class TestRequests(unittest.TestCase):
         )
 
         self.assertEqual(
-            rs.Limits(total='unlimited').update_total(rs.Limits(total='unlimited')),
+            rs.Limits(total='unlimited').update_total(
+                rs.Limits(total='unlimited')
+            ),
             rs.Limits(total='unlimited'),
         )
 
         self.assertEqual(
-            rs.Limits(total='unlimited').update_total(
-                rs.Limits(total=10)
-            ),
+            rs.Limits(total='unlimited').update_total(rs.Limits(total=10)),
             rs.Limits(total=10),
         )
 
@@ -767,30 +823,22 @@ class TestRequests(unittest.TestCase):
         )
 
         self.assertEqual(
-            rs.Limits(remaining=None).update_remaining(
-                rs.Limits(remaining=10)
-            ),
+            rs.Limits(remaining=None).update_remaining(rs.Limits(remaining=10)),
             rs.Limits(remaining=10),
         )
 
         self.assertEqual(
-            rs.Limits(remaining=10).update_remaining(
-                rs.Limits(remaining=None)
-            ),
+            rs.Limits(remaining=10).update_remaining(rs.Limits(remaining=None)),
             rs.Limits(remaining=10),
         )
 
         self.assertEqual(
-            rs.Limits(remaining=10).update_remaining(
-                rs.Limits(remaining=20)
-            ),
+            rs.Limits(remaining=10).update_remaining(rs.Limits(remaining=20)),
             rs.Limits(remaining=10),
         )
 
         self.assertEqual(
-            rs.Limits(remaining=20).update_remaining(
-                rs.Limits(remaining=10)
-            ),
+            rs.Limits(remaining=20).update_remaining(rs.Limits(remaining=10)),
             rs.Limits(remaining=10),
         )
 
@@ -818,16 +866,12 @@ class TestRequests(unittest.TestCase):
 
         # Check that a remaining value does not reset a limited total
         self.assertEqual(
-            rs.Limits(total=30, remaining=10).update_remaining(
-                rs.Limits()
-            ),
+            rs.Limits(total=30, remaining=10).update_remaining(rs.Limits()),
             rs.Limits(total=30, remaining=10),
         )
 
         self.assertEqual(
-            rs.Limits(total=30).update_remaining(
-                rs.Limits(remaining=10)
-            ),
+            rs.Limits(total=30).update_remaining(rs.Limits(remaining=10)),
             rs.Limits(total=30, remaining=10),
         )
 
@@ -886,7 +930,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -895,7 +939,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3},
@@ -904,7 +948,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4},
@@ -913,16 +957,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0, 3: 0, 4: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0, 3: 0, 4: 0}, finalize_target)
 
         self.assertEqual(4, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -930,10 +971,7 @@ class TestRequests(unittest.TestCase):
         self.assertEqual({'requests': 0}, report.deferred_costs)
 
         # Check limits
-        self.assertEqual(
-            {'requests'},
-            set(report.updated_limits.keys())
-        )
+        self.assertEqual({'requests'}, set(report.updated_limits.keys()))
 
         # Total limit is unchanged
         self.assertTrue(True, report.updated_limits['requests'].total)
@@ -963,7 +1001,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -974,11 +1012,9 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         ),
-                    ]
+                    ],
                 ),
-                TestParams(
-                    _costs={'requests': 3}
-                ),
+                TestParams(_costs={'requests': 3}),
                 TestParams(
                     _costs={'requests': 4},
                     _results=[TestResult(data=rs.Error('D', False))],
@@ -987,10 +1023,7 @@ class TestRequests(unittest.TestCase):
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0}, finalize_target)
 
         self.assertEqual(2, report.success_count)
         self.assertEqual(1, report.unknown_error_count)
@@ -998,10 +1031,7 @@ class TestRequests(unittest.TestCase):
         self.assertEqual({'requests': 0}, report.deferred_costs)
 
         # Check limits
-        self.assertEqual(
-            {'requests'},
-            set(report.updated_limits.keys())
-        )
+        self.assertEqual({'requests'}, set(report.updated_limits.keys()))
 
         # Total limit is unchanged
         self.assertTrue(True, report.updated_limits['requests'].total)
@@ -1031,7 +1061,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -1040,11 +1070,9 @@ class TestRequests(unittest.TestCase):
                         TestResult(data=rs.Error('B', True)),
                         TestResult(data=rs.Error('B', True)),
                         TestResult(data=rs.Error('B', True)),
-                    ]
+                    ],
                 ),
-                TestParams(
-                    _costs={'requests': 3}
-                ),
+                TestParams(_costs={'requests': 3}),
                 TestParams(
                     _costs={'requests': 4},
                     _results=[TestResult(data=rs.Error('D', False))],
@@ -1053,10 +1081,7 @@ class TestRequests(unittest.TestCase):
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0}, finalize_target)
 
         self.assertEqual(1, report.success_count)
         self.assertEqual(1, report.unknown_error_count)
@@ -1064,10 +1089,7 @@ class TestRequests(unittest.TestCase):
         self.assertEqual({'requests': 2}, report.deferred_costs)
 
         # Check limits
-        self.assertEqual(
-            {'requests'},
-            set(report.updated_limits.keys())
-        )
+        self.assertEqual({'requests'}, set(report.updated_limits.keys()))
 
         # Total limit is unchanged
         self.assertTrue(True, report.updated_limits['requests'].total)
@@ -1097,7 +1119,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -1106,7 +1128,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3},
@@ -1115,7 +1137,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4},
@@ -1124,16 +1146,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0, 3: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0, 3: 0}, finalize_target)
 
         self.assertEqual(3, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -1141,10 +1160,7 @@ class TestRequests(unittest.TestCase):
         self.assertEqual({'requests': 4}, report.deferred_costs)
 
         # Check limits
-        self.assertEqual(
-            {'requests'},
-            set(report.updated_limits.keys())
-        )
+        self.assertEqual({'requests'}, set(report.updated_limits.keys()))
 
         # Total limit is unchanged
         self.assertTrue(6, report.updated_limits['requests'].total)
@@ -1176,7 +1192,7 @@ class TestRequests(unittest.TestCase):
                             finalize_target=finalize_target,
                             limits={'requests': rs.Limits(remaining=9)},
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2},
@@ -1185,7 +1201,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3},
@@ -1194,7 +1210,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4},
@@ -1203,16 +1219,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0, 3: 0, 4: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0, 3: 0, 4: 0}, finalize_target)
 
         self.assertEqual(4, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -1220,10 +1233,7 @@ class TestRequests(unittest.TestCase):
         self.assertEqual({'requests': 0}, report.deferred_costs)
 
         # Check limits
-        self.assertEqual(
-            {'requests'},
-            set(report.updated_limits.keys())
-        )
+        self.assertEqual({'requests'}, set(report.updated_limits.keys()))
 
         # Total limit is unchanged
         self.assertTrue(12, report.updated_limits['requests'].total)
@@ -1256,7 +1266,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2, 'tokens': 2},
@@ -1265,7 +1275,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3, 'tokens': 3},
@@ -1274,7 +1284,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4, 'tokens': 4},
@@ -1283,16 +1293,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0, 3: 0, 4: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0, 3: 0, 4: 0}, finalize_target)
 
         self.assertEqual(4, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -1301,8 +1308,7 @@ class TestRequests(unittest.TestCase):
 
         # Check limits
         self.assertEqual(
-            {'requests', 'tokens'},
-            set(report.updated_limits.keys())
+            {'requests', 'tokens'}, set(report.updated_limits.keys())
         )
 
         # Total limit is unchanged
@@ -1341,7 +1347,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2, 'tokens': 2},
@@ -1350,7 +1356,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(2),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3, 'tokens': 3},
@@ -1359,7 +1365,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4, 'tokens': 4},
@@ -1368,7 +1374,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 5, 'tokens': 5},
@@ -1377,16 +1383,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(5),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 2: 0, 3: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 2: 0, 3: 0}, finalize_target)
 
         self.assertEqual(3, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -1395,8 +1398,7 @@ class TestRequests(unittest.TestCase):
 
         # Check limits
         self.assertEqual(
-            {'requests', 'tokens'},
-            set(report.updated_limits.keys())
+            {'requests', 'tokens'}, set(report.updated_limits.keys())
         )
 
         # Total limit is unchanged
@@ -1411,9 +1413,7 @@ class TestRequests(unittest.TestCase):
         self.assertAlmostEqual(
             2, report.updated_limits['requests'].delay_factor
         )
-        self.assertAlmostEqual(
-            3, report.updated_limits['tokens'].delay_factor
-        )
+        self.assertAlmostEqual(3, report.updated_limits['tokens'].delay_factor)
 
     @with_fake_event_loop
     async def test_execute_no_sleep_07(self):
@@ -1436,7 +1436,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(1),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 2, 'tokens': 2},
@@ -1448,7 +1448,7 @@ class TestRequests(unittest.TestCase):
                             data=rs.Error('B', True),
                             limits={'requests': rs.Limits(remaining=1)},
                         ),
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 3, 'tokens': 3},
@@ -1457,7 +1457,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(3),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 4, 'tokens': 4},
@@ -1466,7 +1466,7 @@ class TestRequests(unittest.TestCase):
                             data=TestData(4),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
                 TestParams(
                     _costs={'requests': 5, 'tokens': 5},
@@ -1475,16 +1475,13 @@ class TestRequests(unittest.TestCase):
                             data=TestData(5),
                             finalize_target=finalize_target,
                         )
-                    ]
+                    ],
                 ),
             ],
             service=rs.Service(jitter=False, limits=limits),
         )
 
-        self.assertEqual(
-            {1: 0, 3: 0},
-            finalize_target
-        )
+        self.assertEqual({1: 0, 3: 0}, finalize_target)
 
         self.assertEqual(2, report.success_count)
         self.assertEqual(0, report.unknown_error_count)
@@ -1493,8 +1490,7 @@ class TestRequests(unittest.TestCase):
 
         # Check limits
         self.assertEqual(
-            {'requests', 'tokens'},
-            set(report.updated_limits.keys())
+            {'requests', 'tokens'}, set(report.updated_limits.keys())
         )
 
         # Total limit is unchanged
@@ -1510,9 +1506,7 @@ class TestRequests(unittest.TestCase):
         self.assertAlmostEqual(
             4, report.updated_limits['requests'].delay_factor
         )
-        self.assertAlmostEqual(
-            3, report.updated_limits['tokens'].delay_factor
-        )
+        self.assertAlmostEqual(3, report.updated_limits['tokens'].delay_factor)
 
     @with_fake_event_loop
     async def test_execute_specified_01(self):

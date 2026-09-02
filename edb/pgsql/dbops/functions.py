@@ -51,7 +51,6 @@ class Function(base.DBObject):
         strict: bool = False,
         parallel_safe: bool = False,
         set_returning: bool = False,
-
         # Unused for Function, used in VersionedFunction.
         wrapper_volatility: Optional[str] = None,
     ):
@@ -71,7 +70,8 @@ class Function(base.DBObject):
 
     def __repr__(self):
         return '<{} {} at 0x{}>'.format(
-            self.__class__.__name__, self.name, id(self))
+            self.__class__.__name__, self.name, id(self)
+        )
 
 
 class FunctionExists(base.Condition):
@@ -104,7 +104,7 @@ class FunctionExists(base.Condition):
 class FunctionOperation:
     @staticmethod
     def normalize_args(
-        args: Optional[Sequence[FunctionArg]]
+        args: Optional[Sequence[FunctionArg]],
     ) -> Sequence[NormalizedFunctionArg]:
         normed = []
 
@@ -172,21 +172,23 @@ class CreateFunction(ddl.DDLOperation, FunctionOperation):
             {text}
             $____funcbody____$
             LANGUAGE {lang} {volatility} {strict} {parallel};
-        ''').format_map({
-            'replace': 'OR REPLACE' if self.or_replace else '',
-            'name': qn(*self.function.name),
-            'args': args,
-            'returns': qt(self.function.returns),
-            'lang': self.function.language,
-            'volatility': self.function.volatility.upper(),
-            'text': textwrap.dedent(self.function.text).strip(),
-            'strict': 'STRICT' if self.function.strict else '',
-            'setof': 'SETOF' if self.function.set_returning else '',
-            'parallel': (
-                'PARALLEL '
-                + ('SAFE' if self.function.parallel_safe else 'UNSAFE')
-            ),
-        })
+        ''').format_map(
+            {
+                'replace': 'OR REPLACE' if self.or_replace else '',
+                'name': qn(*self.function.name),
+                'args': args,
+                'returns': qt(self.function.returns),
+                'lang': self.function.language,
+                'volatility': self.function.volatility.upper(),
+                'text': textwrap.dedent(self.function.text).strip(),
+                'strict': 'STRICT' if self.function.strict else '',
+                'setof': 'SETOF' if self.function.set_returning else '',
+                'parallel': (
+                    'PARALLEL '
+                    + ('SAFE' if self.function.parallel_safe else 'UNSAFE')
+                ),
+            }
+        )
         return code.strip()
 
 
@@ -209,6 +211,7 @@ class DropFunction(ddl.DDLOperation, FunctionOperation):
 
     def code(self) -> str:
         ifexists = ' IF EXISTS' if self.conditional else ''
-        args = self.format_args(self.args, self.has_variadic,
-                                include_defaults=False)
+        args = self.format_args(
+            self.args, self.has_variadic, include_defaults=False
+        )
         return f'DROP FUNCTION{ifexists} {qn(*self.name)}({args})'

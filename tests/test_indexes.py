@@ -23,7 +23,6 @@ from edb.testbase import server as tb
 
 
 class TestIndexes(tb.DDLTestCase):
-
     async def test_index_01(self):
         await self.migrate(r"""
             type Person {
@@ -46,11 +45,15 @@ class TestIndexes(tb.DDLTestCase):
                     }
                 FILTER schema::ObjectType.name = 'default::Person';
             """,
-            [{
-                'indexes': [{
-                    'expr': '(.first_name, .last_name)',
-                }]
-            }],
+            [
+                {
+                    'indexes': [
+                        {
+                            'expr': '(.first_name, .last_name)',
+                        }
+                    ]
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -69,9 +72,7 @@ class TestIndexes(tb.DDLTestCase):
                 FILTER
                     Person.first_name = 'Elon' AND Person.last_name = 'Musk';
             """,
-            [{
-                'first_name': 'Elon'
-            }]
+            [{'first_name': 'Elon'}],
         )
 
         await self.con.execute(
@@ -91,9 +92,7 @@ class TestIndexes(tb.DDLTestCase):
                     }
                 FILTER schema::ObjectType.name = 'default::Person';
             """,
-            [{
-                'indexes': []
-            }],
+            [{'indexes': []}],
         )
 
     async def test_index_02(self):
@@ -115,11 +114,7 @@ class TestIndexes(tb.DDLTestCase):
                     }
                 FILTER .name = 'default::User';
             """,
-            [{
-                'indexes': [{
-                    'expr': '.title'
-                }]
-            }],
+            [{'indexes': [{'expr': '.title'}]}],
         )
 
         # simply test that the type can be dropped
@@ -173,8 +168,7 @@ class TestIndexes(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-            "cannot use SET OF operator 'std::EXISTS' "
-            "in an index expression",
+            "cannot use SET OF operator 'std::EXISTS' in an index expression",
         ):
             await self.con.execute(
                 """
@@ -186,8 +180,7 @@ class TestIndexes(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-            "cannot use SET OF function 'std::count' "
-            "in an index expression",
+            "cannot use SET OF function 'std::count' in an index expression",
         ):
             await self.con.execute(
                 """
@@ -235,7 +228,7 @@ class TestIndexes(tb.DDLTestCase):
     async def test_index_06(self):
         with self.assertRaisesRegex(
             edgedb.SchemaError,
-            r"index of object type 'default::Foo' already exists"
+            r"index of object type 'default::Foo' already exists",
         ):
             await self.con.execute(r"""
                 create type Foo{

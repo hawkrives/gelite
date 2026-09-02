@@ -119,7 +119,6 @@ class ScopeInfo:
 
 
 class PointerRefCache(dict[irtyputils.PtrRefCacheKey, irast.BasePointerRef]):
-
     _rcache: dict[irast.BasePointerRef, s_pointers.PointerLike]
 
     def __init__(self) -> None:
@@ -144,8 +143,7 @@ class PointerRefCache(dict[irtyputils.PtrRefCacheKey, irast.BasePointerRef]):
 # Volatility inference computes two volatility results:
 # A basic one, and one for consumption by materialization
 InferredVolatility = (
-    qltypes.Volatility
-    | tuple[qltypes.Volatility, qltypes.Volatility]
+    qltypes.Volatility | tuple[qltypes.Volatility, qltypes.Volatility]
 )
 
 
@@ -225,14 +223,12 @@ class Environment:
     order to provide useful diagnostics for type errors.
     """
 
-    inferred_volatility: dict[
-        irast.Base,
-        InferredVolatility]
+    inferred_volatility: dict[irast.Base, InferredVolatility]
     """A dictionary of expressions and their inferred volatility."""
 
     view_shapes: dict[
         s_types.Type | s_pointers.PointerLike,
-        list[tuple[s_pointers.Pointer, qlast.ShapeOp]]
+        list[tuple[s_pointers.Pointer, qlast.ShapeOp]],
     ]
     """Object output or modification shapes."""
 
@@ -301,7 +297,8 @@ class Environment:
     """A mapping of computable pointers to QL source AST and context."""
 
     type_rewrites: dict[
-        tuple[s_types.Type, bool], irast.Set | None | Literal[True]]
+        tuple[s_types.Type, bool], irast.Set | None | Literal[True]
+    ]
     """Access policy rewrites for schema-level types.
 
     None indicates no rewrite, True indicates a compound type
@@ -369,7 +366,8 @@ class Environment:
         self.inferred_volatility = {}
         self.view_shapes = collections.defaultdict(list)
         self.view_shapes_metadata = collections.defaultdict(
-            irast.ViewShapeMetadata)
+            irast.ViewShapeMetadata
+        )
         self.schema_refs = set()
         self.schema_ref_exprs = {} if options.track_schema_ref_exprs else None
         self.ptr_ref_cache = PointerRefCache()
@@ -412,8 +410,7 @@ class Environment:
         default: s_obj.Object | s_obj.NoDefaultT = s_obj.NoDefault,
         label: Optional[str] = None,
         condition: Optional[Callable[[s_obj.Object], bool]] = None,
-    ) -> s_obj.Object:
-        ...
+    ) -> s_obj.Object: ...
 
     @overload
     def get_schema_object_and_track(
@@ -426,8 +423,7 @@ class Environment:
         default: s_obj.Object | s_obj.NoDefaultT | None = s_obj.NoDefault,
         label: Optional[str] = None,
         condition: Optional[Callable[[s_obj.Object], bool]] = None,
-    ) -> Optional[s_obj.Object]:
-        ...
+    ) -> Optional[s_obj.Object]: ...
 
     def get_schema_object_and_track(
         self,
@@ -441,9 +437,13 @@ class Environment:
         condition: Optional[Callable[[s_obj.Object], bool]] = None,
     ) -> Optional[s_obj.Object]:
         sobj = self.schema.get(
-            name, module_aliases=modaliases, type=type,
-            condition=condition, label=label,
-            default=default)
+            name,
+            module_aliases=modaliases,
+            type=type,
+            condition=condition,
+            label=label,
+            default=default,
+        )
         if sobj is not None and sobj is not default:
             self.add_schema_ref(sobj, expr)
 
@@ -467,24 +467,27 @@ class Environment:
     def get_schema_type_and_track(
         self,
         name: s_name.Name,
-        expr: Optional[qlast.Base]=None,
+        expr: Optional[qlast.Base] = None,
         *,
         modaliases: Optional[Mapping[Optional[str], str]] = None,
         default: None | s_obj.Object | s_obj.NoDefaultT = s_obj.NoDefault,
-        label: Optional[str]=None,
-        condition: Optional[Callable[[s_obj.Object], bool]]=None,
+        label: Optional[str] = None,
+        condition: Optional[Callable[[s_obj.Object], bool]] = None,
     ) -> s_types.Type:
-
         stype = self.get_schema_object_and_track(
-            name, expr, modaliases=modaliases, default=default, label=label,
-            condition=condition, type=s_types.Type,
+            name,
+            expr,
+            modaliases=modaliases,
+            default=default,
+            label=label,
+            condition=condition,
+            type=s_types.Type,
         )
 
         return cast(s_types.Type, stype)
 
 
 class ContextLevel(compiler.ContextLevel):
-
     env: Environment
     """Compilation environment common for all context levels."""
 
@@ -650,7 +653,6 @@ class ContextLevel(compiler.ContextLevel):
         *,
         env: Optional[Environment] = None,
     ) -> None:
-
         self.mode = mode
 
         if prevlevel is None:
@@ -716,10 +718,12 @@ class ContextLevel(compiler.ContextLevel):
 
             self.iterator_path_ids = prevlevel.iterator_path_ids
             self.path_id_namespace = prevlevel.path_id_namespace
-            self.pending_stmt_own_path_id_namespace = \
+            self.pending_stmt_own_path_id_namespace = (
                 prevlevel.pending_stmt_own_path_id_namespace
-            self.pending_stmt_full_path_id_namespace = \
+            )
+            self.pending_stmt_full_path_id_namespace = (
                 prevlevel.pending_stmt_full_path_id_namespace
+            )
             self.inserting_paths = prevlevel.inserting_paths
             self.view_map = prevlevel.view_map
             if prevlevel.path_scope is None:
@@ -734,8 +738,9 @@ class ContextLevel(compiler.ContextLevel):
             self.implicit_tid_in_shapes = prevlevel.implicit_tid_in_shapes
             self.implicit_tname_in_shapes = prevlevel.implicit_tname_in_shapes
             self.implicit_limit = prevlevel.implicit_limit
-            self.special_computables_in_mutation_shape = \
+            self.special_computables_in_mutation_shape = (
                 prevlevel.special_computables_in_mutation_shape
+            )
             self.empty_result_type_hint = prevlevel.empty_result_type_hint
             self.defining_view = prevlevel.defining_view
             self.current_schema_views = prevlevel.current_schema_views
@@ -755,8 +760,9 @@ class ContextLevel(compiler.ContextLevel):
                 self.anchors = prevlevel.anchors.copy()
                 self.modaliases = prevlevel.modaliases.copy()
                 self.aliased_views = prevlevel.aliased_views.new_child()
-                self.class_view_overrides = \
+                self.class_view_overrides = (
                     prevlevel.class_view_overrides.copy()
+                )
 
                 self.pending_stmt_own_path_id_namespace = frozenset()
                 self.pending_stmt_full_path_id_namespace = frozenset()
@@ -804,8 +810,9 @@ class ContextLevel(compiler.ContextLevel):
                 self.qlstmt = prevlevel.qlstmt
 
                 self.view_rptr = prevlevel.view_rptr
-                self.toplevel_result_view_name = \
+                self.toplevel_result_view_name = (
                     prevlevel.toplevel_result_view_name
+                )
 
             if mode == ContextSwitchMode.NEWFENCE:
                 self.path_scope = self.path_scope.attach_fence()
@@ -834,7 +841,8 @@ class ContextLevel(compiler.ContextLevel):
     def create_anchor(
         self,
         ir: irast.Set,
-        name: str = 'v', *,
+        name: str = 'v',
+        *,
         check_dml: bool = False,
         move_scope: bool = False,
     ) -> qlast.Path:
@@ -846,9 +854,11 @@ class ContextLevel(compiler.ContextLevel):
         if move_scope:
             assert ir.path_scope_id is not None
         return qlast.Path(
-            steps=[qlast.IRAnchor(
-                name=alias, has_dml=has_dml, move_scope=move_scope
-            )],
+            steps=[
+                qlast.IRAnchor(
+                    name=alias, has_dml=has_dml, move_scope=move_scope
+                )
+            ],
         )
 
     def maybe_create_anchor(

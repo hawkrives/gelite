@@ -28,7 +28,7 @@ from datetime import datetime, timedelta
 def generate_tls_cert(
     tls_cert_file: pathlib.Path,
     tls_key_file: pathlib.Path,
-    listen_hosts: Iterable[str]
+    listen_hosts: Iterable[str],
 ) -> None:
     from cryptography import x509
     from cryptography.hazmat import backends
@@ -50,16 +50,13 @@ def generate_tls_cert(
         .public_key(private_key.public_key())
         .serial_number(int(uuid.uuid4()))
         .issuer_name(subject)
-        .not_valid_before(
-            datetime.today() - timedelta(days=1)
-        )
-        .not_valid_after(
-            datetime.today() + timedelta(weeks=1000)
-        )
+        .not_valid_before(datetime.today() - timedelta(days=1))
+        .not_valid_after(datetime.today() + timedelta(weeks=1000))
         .add_extension(
             x509.SubjectAlternativeName(
                 [
-                    x509.DNSName(name) for name in listen_hosts
+                    x509.DNSName(name)
+                    for name in listen_hosts
                     if name not in {'0.0.0.0', '::'}
                 ]
             ),

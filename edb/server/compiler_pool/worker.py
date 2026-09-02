@@ -35,8 +35,9 @@ from . import worker_proc
 
 INITED: bool = False
 DBS: state.DatabasesState = immutables.Map()
-BACKEND_RUNTIME_PARAMS: pgparams.BackendRuntimeParams = \
+BACKEND_RUNTIME_PARAMS: pgparams.BackendRuntimeParams = (
     pgparams.get_default_runtime_params()
+)
 COMPILER: compiler.Compiler
 LAST_STATE: Optional[compiler.dbstate.CompilerConnectionState] = None
 LAST_STATE_PICKLE: Optional[bytes] = None
@@ -136,7 +137,8 @@ def __sync__(
 
     except Exception as ex:
         raise state.FailedStateSync(
-            f'failed to sync worker state: {type(ex).__name__}({ex})') from ex
+            f'failed to sync worker state: {type(ex).__name__}({ex})'
+        ) from ex
 
     return db
 
@@ -169,7 +171,7 @@ def compile(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
 
     global LAST_STATE, LAST_STATE_PICKLE
@@ -201,7 +203,8 @@ def compile_in_tx(
         else:
             cstate.set_root_user_schema(DBS[dbname].user_schema)
     units, cstate = COMPILER.compile_serialized_request_in_tx(
-        cstate, *args, **kwargs)
+        cstate, *args, **kwargs
+    )
 
     LAST_STATE = cstate
 
@@ -209,9 +212,10 @@ def compile_in_tx(
     # for every new query in a transaction that doesn't actually change
     # its state in every query. I.e. it doesn't run DDL, configures
     # new session aliases, configs, or globals.
-    if (prev_last_state_key is None or
-        LAST_STATE_PICKLE is None or
-        prev_last_state_key != cstate.get_state_key()
+    if (
+        prev_last_state_key is None
+        or LAST_STATE_PICKLE is None
+        or prev_last_state_key != cstate.get_state_key()
     ):
         LAST_STATE_PICKLE = pickle.dumps(cstate, -1)
 
@@ -246,7 +250,7 @@ def compile_notebook(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
 
 
@@ -278,7 +282,7 @@ def compile_sql(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
 
 
@@ -287,9 +291,7 @@ def get_handler(methname):
         meth = __init_worker__
     else:
         if not INITED:
-            raise RuntimeError(
-                "call on uninitialized compiler worker"
-            )
+            raise RuntimeError("call on uninitialized compiler worker")
         if methname == "compile":
             meth = compile
         elif methname == "compile_in_tx":

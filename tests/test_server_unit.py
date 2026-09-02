@@ -23,7 +23,6 @@ from edb.server import server
 
 
 class TestServerUnittests(unittest.TestCase):
-
     def test_server_unittest_fix_wildcard_addrs(self):
         CASES = [
             (
@@ -53,7 +52,7 @@ class TestServerUnittests(unittest.TestCase):
                 ['127.0.0.1', 'example.com', '2001:db8::8a2e:370:7334', '::0'],
                 (
                     ['127.0.0.1', '::'],
-                    ['example.com', '2001:db8::8a2e:370:7334']
+                    ['example.com', '2001:db8::8a2e:370:7334'],
                 ),
                 (False, True),
             ),
@@ -100,11 +99,11 @@ class TestServerUnittests(unittest.TestCase):
         ]
 
         for hosts, expected, expected_wildcard in CASES:
-            (
-                new_hosts, rej_hosts, *has_wildcards
-            ) = server._cleanup_wildcard_addrs(hosts)
+            (new_hosts, rej_hosts, *has_wildcards) = (
+                server._cleanup_wildcard_addrs(hosts)
+            )
             self.assertEqual(
                 (set(new_hosts), set(rej_hosts)),
-                (set(expected[0]), set(expected[1]))
+                (set(expected[0]), set(expected[1])),
             )
             self.assertEqual(tuple(has_wildcards), expected_wildcard)

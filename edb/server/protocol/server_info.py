@@ -38,7 +38,6 @@ if TYPE_CHECKING:
 
 
 class ImmutableEncoder(json.JSONEncoder):
-
     def default(self, obj: Any) -> Any:
         if isinstance(obj, (set, frozenset)):
             return list(obj)
@@ -84,8 +83,7 @@ def _response_error(
     ex_type: type[errors.EdgeDBError],
 ) -> None:
     response.body = (
-        f'Unexpected error in /server-info.\n\n'
-        f'{ex_type.__name__}: {message}'
+        f'Unexpected error in /server-info.\n\n{ex_type.__name__}: {message}'
     ).encode()
     response.status = status
     response.close_connection = True

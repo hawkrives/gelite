@@ -452,6 +452,13 @@ jobs:
       run: |
         ruff check edb tests
 
+    # Runs whether or not the check above passed, so one push reports both
+    # rather than hiding the formatting diff behind a lint error.
+    - name: Ruff format
+      if: ${{ !cancelled() }}
+      run: |
+        ruff format --check --diff edb tests
+
   python-typecheck:
     runs-on: ubuntu-latest
 

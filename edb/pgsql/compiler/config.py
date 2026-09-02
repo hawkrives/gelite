@@ -46,7 +46,6 @@ def compile_ConfigSet(
     *,
     ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
-
     val = _compile_config_value(op, ctx=ctx)
     result: pgast.BaseExpr
 
@@ -249,7 +248,6 @@ def compile_ConfigReset(
     *,
     ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
-
     stmt: pgast.BaseExpr
 
     if op.scope is qltypes.ConfigScope.INSTANCE and op.backend_setting:
@@ -290,7 +288,6 @@ def compile_ConfigReset(
         )
 
     elif op.scope is qltypes.ConfigScope.INSTANCE:
-
         if op.selector is None:
             # Scalar reset
             result_row = pgast.RowExpr(
@@ -307,8 +304,9 @@ def compile_ConfigReset(
             with context.output_format(ctx, context.OutputFormat.JSONB):
                 selector = dispatch.compile(op.selector, ctx=ctx)
 
-            assert isinstance(selector, pgast.SelectStmt), \
+            assert isinstance(selector, pgast.SelectStmt), (
                 "expected ast.SelectStmt"
+            )
             target = selector.target_list[0]
             if not target.name:
                 target = selector.target_list[0] = pgast.ResTarget(
@@ -354,7 +352,6 @@ def compile_ConfigReset(
                     schemaname='edgedb',
                 ),
             ),
-
             where_clause=astutils.new_binop(
                 lexpr=pgast.ColumnRef(name=['name']),
                 rexpr=pgast.StringConstant(val=op.name),
@@ -373,8 +370,7 @@ def compile_ConfigReset(
         with context.output_format(ctx, context.OutputFormat.JSONB):
             selector = dispatch.compile(op.selector, ctx=ctx)
 
-        assert isinstance(selector, pgast.SelectStmt), \
-            "expected ast.SelectStmt"
+        assert isinstance(selector, pgast.SelectStmt), "expected ast.SelectStmt"
         target = selector.target_list[0]
         if not target.name:
             target = selector.target_list[0] = pgast.ResTarget(
@@ -402,20 +398,24 @@ def compile_ConfigReset(
         ]
 
         newval = pgast.SelectStmt(
-            target_list=[pgast.ResTarget(
-                val=pgast.FuncCall(
-                    name=('jsonb_agg',),
-                    args=[pgast.ColumnRef(name=['ov', 'value'])],
-                ),
-            )],
+            target_list=[
+                pgast.ResTarget(
+                    val=pgast.FuncCall(
+                        name=('jsonb_agg',),
+                        args=[pgast.ColumnRef(name=['ov', 'value'])],
+                    ),
+                )
+            ],
             from_clause=[
                 pgast.RangeFunction(
                     lateral=True,
                     alias=pgast.Alias(aliasname='ov'),
-                    functions=[pgast.FuncCall(
-                        name=('jsonb_array_elements',),
-                        args=[pgast.ColumnRef(name=['value'])],
-                    )],
+                    functions=[
+                        pgast.FuncCall(
+                            name=('jsonb_array_elements',),
+                            args=[pgast.ColumnRef(name=['value'])],
+                        )
+                    ],
                 ),
             ],
             where_clause=(
@@ -430,46 +430,51 @@ def compile_ConfigReset(
                                     name='=',
                                     lexpr=pgast.Expr(
                                         name='->',
-                                        lexpr=pgast.ColumnRef(name=[
-                                            rvar.alias.aliasname,
-                                            target.name,
-                                        ]),
+                                        lexpr=pgast.ColumnRef(
+                                            name=[
+                                                rvar.alias.aliasname,
+                                                target.name,
+                                            ]
+                                        ),
                                         rexpr=pgast.StringConstant(val=key),
                                     ),
                                     rexpr=pgast.CoalesceExpr(
                                         args=[
                                             pgast.Expr(
                                                 name='->',
-                                                lexpr=pgast.ColumnRef(name=[
-                                                    'ov', 'value'
-                                                ]),
+                                                lexpr=pgast.ColumnRef(
+                                                    name=['ov', 'value']
+                                                ),
                                                 rexpr=pgast.StringConstant(
                                                     val=key
                                                 ),
                                             ),
                                             pgast.TypeCast(
                                                 arg=pgast.StringConstant(
-                                                    val='null'),
+                                                    val='null'
+                                                ),
                                                 type_name=pgast.TypeName(
                                                     name=('jsonb',),
                                                 ),
                                             ),
                                         ]
-                                    )
+                                    ),
                                 )
                                 for key in keys
                             ],
-                        )
-                    )
+                        ),
+                    ),
                 )
             ),
         )
 
         stmt = pgast.UpdateStmt(
-            targets=[pgast.UpdateTarget(
-                name='value',
-                val=newval,
-            )],
+            targets=[
+                pgast.UpdateTarget(
+                    name='value',
+                    val=newval,
+                )
+            ],
             relation=pgast.RelRangeVar(
                 relation=pgast.Relation(
                     name='_db_config',
@@ -481,35 +486,37 @@ def compile_ConfigReset(
                 rexpr=pgast.StringConstant(val=op.name),
                 op='=',
             ),
-            returning_list=[pgast.ResTarget(
-                val=pgast.CaseExpr(
-                    args=[
-                        pgast.CaseWhen(
-                            expr=pgast.NullTest(
-                                arg=pgast.ColumnRef(name=['value'])
-                            ),
-                            result=pgast.FuncCall(
-                                name=('jsonb_build_array',),
-                                args=[
-                                    pgast.StringConstant(val='RESET'),
-                                    pgast.StringConstant(val=str(op.scope)),
-                                    pgast.StringConstant(val=op.name),
-                                    pgast.NullConstant(),
-                                ],
-                            )
-                        ),
-                    ],
-                    defresult=pgast.FuncCall(
-                        name=('jsonb_build_array',),
+            returning_list=[
+                pgast.ResTarget(
+                    val=pgast.CaseExpr(
                         args=[
-                            pgast.StringConstant(val='SET'),
-                            pgast.StringConstant(val=str(op.scope)),
-                            pgast.StringConstant(val=op.name),
-                            pgast.ColumnRef(name=['value']),
+                            pgast.CaseWhen(
+                                expr=pgast.NullTest(
+                                    arg=pgast.ColumnRef(name=['value'])
+                                ),
+                                result=pgast.FuncCall(
+                                    name=('jsonb_build_array',),
+                                    args=[
+                                        pgast.StringConstant(val='RESET'),
+                                        pgast.StringConstant(val=str(op.scope)),
+                                        pgast.StringConstant(val=op.name),
+                                        pgast.NullConstant(),
+                                    ],
+                                ),
+                            ),
                         ],
+                        defresult=pgast.FuncCall(
+                            name=('jsonb_build_array',),
+                            args=[
+                                pgast.StringConstant(val='SET'),
+                                pgast.StringConstant(val=str(op.scope)),
+                                pgast.StringConstant(val=op.name),
+                                pgast.ColumnRef(name=['value']),
+                            ],
+                        ),
                     )
                 )
-            )],
+            ],
         )
 
     elif op.scope is qltypes.ConfigScope.SESSION:
@@ -519,7 +526,6 @@ def compile_ConfigReset(
                     name='_edgecon_state',
                 ),
             ),
-
             where_clause=astutils.new_binop(
                 lexpr=astutils.new_binop(
                     lexpr=pgast.ColumnRef(name=['name']),
@@ -532,12 +538,10 @@ def compile_ConfigReset(
                     op='=',
                 ),
                 op='AND',
-            )
+            ),
         )
     elif op.scope is qltypes.ConfigScope.GLOBAL:
-        stmt = pgast.SelectStmt(
-            where_clause=pgast.BooleanConstant(val=False)
-        )
+        stmt = pgast.SelectStmt(where_clause=pgast.BooleanConstant(val=False))
     else:
         raise AssertionError(f'unexpected configuration scope: {op.scope}')
 
@@ -548,7 +552,6 @@ def compile_ConfigReset(
 def compile_ConfigInsert(
     stmt: irast.ConfigInsert, *, ctx: context.CompilerContextLevel
 ) -> pgast.BaseExpr:
-
     with ctx.new() as subctx:
         with context.output_format(ctx, context.OutputFormat.JSONB):
             subctx.expr_exposed = True
@@ -556,13 +559,13 @@ def compile_ConfigInsert(
             dispatch.compile(rewritten, ctx=subctx)
 
             return pathctx.get_path_serialized_output(
-                ctx.rel, stmt.expr.path_id, env=ctx.env)
+                ctx.rel, stmt.expr.path_id, env=ctx.env
+            )
 
 
 def _rewrite_config_insert(
     ir_set: irast.Set, *, ctx: context.CompilerContextLevel
 ) -> irast.Set:
-
     overwrite_query = pgast.SelectStmt()
     id_expr = pgast.FuncCall(
         name=astutils.edgedb_func('uuid_generate_v1mc', ctx=ctx),
@@ -590,21 +593,21 @@ def _rewrite_config_insert(
 
     # Config objects have derived computed ids,
     # so the autogenerated id must not be returned.
-    ir_set.shape = tuple(filter(
-        lambda el: (
-            el[0].expr.ptrref.shortname.name != 'id'
-        ),
-        ir_set.shape,
-    ))
+    ir_set.shape = tuple(
+        filter(
+            lambda el: (el[0].expr.ptrref.shortname.name != 'id'),
+            ir_set.shape,
+        )
+    )
 
     for el, _ in ir_set.shape:
         if isinstance(el.expr.expr, irast.InsertStmt):
-            el.shape = tuple(filter(
-                lambda e: (
-                    e[0].expr.ptrref.shortname.name != 'id'
-                ),
-                el.shape,
-            ))
+            el.shape = tuple(
+                filter(
+                    lambda e: (e[0].expr.ptrref.shortname.name != 'id'),
+                    el.shape,
+                )
+            )
 
             result = _rewrite_config_insert(el.expr.expr.subject, ctx=ctx)
             el.expr.expr = irast.SelectStmt(
@@ -656,11 +659,11 @@ def _compile_config_value(
                 assert isinstance(val, pgast.SelectStmt), "expected SelectStmt"
 
                 pathctx.get_path_serialized_output(
-                    val, expr.path_id, env=ctx.env)
+                    val, expr.path_id, env=ctx.env
+                )
 
                 if op.cardinality is qltypes.SchemaCardinality.Many:
-                    val = output.aggregate_json_output(
-                        val, expr, env=ctx.env)
+                    val = output.aggregate_json_output(val, expr, env=ctx.env)
 
     # For globals, we need to output the binary encoding so that we
     # can just hand it back to the server. We abuse `record_send` to
@@ -681,7 +684,8 @@ def _compile_config_value(
             ],
         )
         cast_name = s_casts.get_cast_fullname_from_names(
-            sn.QualName('std', 'bytes'), sn.QualName('std', 'json'))
+            sn.QualName('std', 'bytes'), sn.QualName('std', 'json')
+        )
         val = pgast.FuncCall(
             name=common.get_cast_backend_name(
                 cast_name,
@@ -705,7 +709,6 @@ def _compile_config_value(
 def top_output_as_config_op(
     ir_set: irast.Set, stmt: pgast.SelectStmt, *, env: context.Environment
 ) -> pgast.Query:
-
     assert isinstance(ir_set.expr, irast.ConfigCommand)
     op = ir_set.expr
 
@@ -728,7 +731,8 @@ def top_output_as_config_op(
     # FIXME: Can the duplication with other db cases be reduced?
     if op.scope is qltypes.ConfigScope.DATABASE:
         sval = pgast.SelectStmt(
-            target_list=[pgast.ResTarget(val=val)], from_clause=[subrvar])
+            target_list=[pgast.ResTarget(val=val)], from_clause=[subrvar]
+        )
         ins_val = pgast.FuncCall(
             name=('jsonb_build_array',),
             args=[sval],
@@ -795,9 +799,7 @@ def top_output_as_config_op(
                 ],
             ),
             returning_list=[
-                pgast.ResTarget(
-                    val=pgast.ColumnRef(name=[pgast.Star()])
-                )
+                pgast.ResTarget(val=pgast.ColumnRef(name=[pgast.Star()]))
             ],
         )
         ctes.append(
@@ -808,13 +810,15 @@ def top_output_as_config_op(
         val = pgast.ColumnRef(name=['value'])
 
     if ir_set.expr.scope in (
-        qltypes.ConfigScope.INSTANCE, qltypes.ConfigScope.DATABASE
+        qltypes.ConfigScope.INSTANCE,
+        qltypes.ConfigScope.DATABASE,
     ):
         # For database config, we do SET, and we return the entire new
         # value, in order to avoid race conditions in duplicate
         # checking.
         command = (
-            'SET' if ir_set.expr.scope is qltypes.ConfigScope.DATABASE
+            'SET'
+            if ir_set.expr.scope is qltypes.ConfigScope.DATABASE
             else 'ADD'
         )
         result_row = pgast.RowExpr(
@@ -850,4 +854,5 @@ def top_output_as_config_op(
         return result
     else:
         raise errors.InternalServerError(
-            f'CONFIGURE {ir_set.expr.scope} INSERT is not supported')
+            f'CONFIGURE {ir_set.expr.scope} INSERT is not supported'
+        )

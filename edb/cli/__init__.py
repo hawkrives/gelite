@@ -24,7 +24,7 @@ import os
 import sys
 
 
-def rustcli(*, args: Optional[list[str]]=None) -> NoReturn:
+def rustcli(*, args: Optional[list[str]] = None) -> NoReturn:
     if args is None:
         args = [*sys.argv]
 

@@ -69,8 +69,7 @@ def _response_error(
     ex_type: type[errors.EdgeDBError],
 ) -> None:
     response.body = (
-        f'Unexpected error in /metrics.\n\n'
-        f'{ex_type.__name__}: {message}'
+        f'Unexpected error in /metrics.\n\n{ex_type.__name__}: {message}'
     ).encode()
     response.status = status
     response.close_connection = True

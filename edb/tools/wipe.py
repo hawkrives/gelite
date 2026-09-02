@@ -54,31 +54,31 @@ class AbsPath(click.Path):
 @click.option(
     '--backend-dsn',
     type=str,
-    help='DSN of the remote Postgres instance to wipe Gel from')
+    help='DSN of the remote Postgres instance to wipe Gel from',
+)
 @click.option(
-    '-D',
-    '--data-dir',
-    type=AbsPath(),
-    help='database cluster directory')
+    '-D', '--data-dir', type=AbsPath(), help='database cluster directory'
+)
 @click.option(
     '--tenant-id',
     type=str,
     multiple=True,
     help='The tenant ID of a Gel server to wipe.  May be specified'
-         ' multiple times.  If not specified, all tenants are wiped.')
+    ' multiple times.  If not specified, all tenants are wiped.',
+)
 @click.option(
-    '-y',
-    'yes',
-    is_flag=True,
-    help='assume Yes response to all questions')
+    '-y', 'yes', is_flag=True, help='assume Yes response to all questions'
+)
 @click.option(
     '--dry-run',
     is_flag=True,
-    help='give a summary of wipe operations without performing them')
+    help='give a summary of wipe operations without performing them',
+)
 @click.option(
     '--list-tenants',
     is_flag=True,
-    help='list cluster tenants instead of performing a wipe')
+    help='list cluster tenants instead of performing a wipe',
+)
 def wipe(
     *,
     backend_dsn,
@@ -88,14 +88,16 @@ def wipe(
     dry_run,
     list_tenants,
 ):
-    asyncio.run(do_wipe(
-        backend_dsn=backend_dsn,
-        data_dir=data_dir,
-        tenant_id=tenant_id,
-        yes=yes,
-        dry_run=dry_run,
-        list_tenants=list_tenants,
-    ))
+    asyncio.run(
+        do_wipe(
+            backend_dsn=backend_dsn,
+            data_dir=data_dir,
+            tenant_id=tenant_id,
+            yes=yes,
+            dry_run=dry_run,
+            list_tenants=list_tenants,
+        )
+    )
 
 
 async def do_wipe(
@@ -126,9 +128,15 @@ async def do_wipe(
             'either --postgres-dsn or --data-dir is required'
         )
 
-    if not yes and not dry_run and not list_tenants and not click.confirm(
+    if (
+        not yes
+        and not dry_run
+        and not list_tenants
+        and not click.confirm(
             'This will DELETE all Gel data from the target '
-            'PostgreSQL instance.  ARE YOU SURE?'):
+            'PostgreSQL instance.  ARE YOU SURE?'
+        )
+    ):
         click.echo('OK. Not proceeding.')
         return
 
@@ -243,8 +251,9 @@ async def wipe_tenant(
     for role in roles:
         pg_role = get_role_backend_name(role, tenant_id=tenant)
 
-        members = json.loads(await pgconn.sql_fetch_val(
-            b"""
+        members = json.loads(
+            await pgconn.sql_fetch_val(
+                b"""
             SELECT
                 json_agg(member::regrole::text)
             FROM
@@ -252,8 +261,9 @@ async def wipe_tenant(
             WHERE
                 roleid = (SELECT oid FROM pg_roles WHERE rolname = $1)
             """,
-            args=[pg_role.encode("utf-8")],
-        ))
+                args=[pg_role.encode("utf-8")],
+            )
+        )
 
         for member in members:
             stmts.append(f'REVOKE {qi(pg_role)} FROM {qi(member)}')
@@ -261,7 +271,8 @@ async def wipe_tenant(
         stmts.append(f'DROP ROLE {qi(pg_role)}')
 
     super_group = get_role_backend_name(
-        edbdef.GELITE_SUPERGROUP, tenant_id=tenant)
+        edbdef.GELITE_SUPERGROUP, tenant_id=tenant
+    )
     stmts.append(f'DROP ROLE {qi(super_group)}')
 
     for stmt in stmts:
@@ -311,12 +322,14 @@ async def _get_dbs_and_roles(
         'SELECT sys::Branch.name',
     )
 
-    databases = list(sorted(
-        json.loads(
-            await pgconn.sql_fetch_val(get_databases_sql.encode("utf-8")),
-        ),
-        key=lambda dname: edbdef.GELITE_TEMPLATE_DB in dname,
-    ))
+    databases = list(
+        sorted(
+            json.loads(
+                await pgconn.sql_fetch_val(get_databases_sql.encode("utf-8")),
+            ),
+            key=lambda dname: edbdef.GELITE_TEMPLATE_DB in dname,
+        )
+    )
 
     _, get_roles_sql = edbcompiler.compile_edgeql_script(
         compilerctx,
@@ -329,12 +342,17 @@ async def _get_dbs_and_roles(
     roles = json.loads(
         await pgconn.sql_fetch_val(get_roles_sql.encode("utf-8")),
     )
-    sorted_roles = list(topological.sort({
-        r['name']: topological.DepGraphEntry(
-            item=r['name'],
-            deps=r['parents'],
-            extra=False,
-        ) for r in roles
-    }))
+    sorted_roles = list(
+        topological.sort(
+            {
+                r['name']: topological.DepGraphEntry(
+                    item=r['name'],
+                    deps=r['parents'],
+                    extra=False,
+                )
+                for r in roles
+            }
+        )
+    )
 
     return databases, sorted_roles

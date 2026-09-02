@@ -161,31 +161,32 @@ class TestEdgeQLSys(tb.QueryTestCase, TestQueryStatsMixin):
 
         self.assertEqual(
             await self.con.query(
-                'select sys::_advisory_unlock(<int64>$0)',
-                lock_key),
-            [False])
+                'select sys::_advisory_unlock(<int64>$0)', lock_key
+            ),
+            [False],
+        )
 
-        await self.con.query(
-            'select sys::_advisory_lock(<int64>$0)',
-            lock_key)
+        await self.con.query('select sys::_advisory_lock(<int64>$0)', lock_key)
 
         self.assertEqual(
             await self.con.query(
-                'select sys::_advisory_unlock(<int64>$0)',
-                lock_key),
-            [True])
+                'select sys::_advisory_unlock(<int64>$0)', lock_key
+            ),
+            [True],
+        )
         self.assertEqual(
             await self.con.query(
-                'select sys::_advisory_unlock(<int64>$0)',
-                lock_key),
-            [False])
+                'select sys::_advisory_unlock(<int64>$0)', lock_key
+            ),
+            [False],
+        )
 
     async def _query_for_stats(self):
         self.counter += 1
         self.assertEqual(
             await self.con.query(
                 f'select ('
-                    f'{self.stats_magic_word}{self.counter} := {self.counter})'
+                f'{self.stats_magic_word}{self.counter} := {self.counter})'
             ),
             [(self.counter,)],
         )
@@ -225,9 +226,7 @@ class TestSQLSys(tb.SQLQueryTestCase, TestQueryStatsMixin):
         self.counter += 1
         ident = common.quote_ident(self.stats_magic_word + str(self.counter))
         self.assertEqual(
-            await self.squery_values(
-                f"select {self.counter} as {ident}"
-            ),
+            await self.squery_values(f"select {self.counter} as {ident}"),
             [[self.counter]],
         )
 

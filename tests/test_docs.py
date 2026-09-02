@@ -27,7 +27,7 @@ try:
 
     docutils.parsers.rst.directives.register_directive(
         'code-block',
-        make_CodeBlock(docutils.parsers.rst.directives.body.CodeBlock)
+        make_CodeBlock(docutils.parsers.rst.directives.body.CodeBlock),
     )
 except ImportError:
     docutils = None  # type: ignore
@@ -46,7 +46,6 @@ def find_edgedb_root():
 
 
 class LintControl:
-
     _filename: str | None
     _errors: list[str]
 
@@ -68,7 +67,8 @@ class LintControl:
                 if not self._lint_on:
                     raise AssertionError(
                         f"Unexpected EOF. No closing '.. lint-on' found in "
-                        f"{self._filename}")
+                        f"{self._filename}"
+                    )
             finally:
                 self._filename = None
 
@@ -103,9 +103,7 @@ class LintControl:
 
     def raise_errors_if_any(self):
         if self._errors:
-            raise AssertionError(
-                '\n'.join(self._errors)
-            )
+            raise AssertionError('\n'.join(self._errors))
 
     def is_linting(self):
         return self._lint_on
@@ -130,35 +128,37 @@ class TestDocSnippets(unittest.TestCase):
     """
 
     CodeSnippet = collections.namedtuple(
-        'CodeSnippet',
-        ['filename', 'lineno', 'lang', 'code'])
+        'CodeSnippet', ['filename', 'lineno', 'lang', 'code']
+    )
 
     class RestructuredTextStyleError(Exception):
         pass
 
     if docutils is not None:
-        class CustomDocutilsReporter(docutils.utils.Reporter):
 
+        class CustomDocutilsReporter(docutils.utils.Reporter):
             def __init__(self, *args, **kwargs):
                 super().__init__(*args, **kwargs)
                 self.lint_errors = set()
 
             def system_message(self, level, message, *children, **kwargs):
                 skip = (
-                    message.startswith('Unknown interpreted text role') or
-                    message.startswith('No role entry for') or
-                    message.startswith('Unknown directive type') or
-                    message.startswith('No directive entry for') or
-                    level < 2  # Ignore DEBUG and INFO messages.
+                    message.startswith('Unknown interpreted text role')
+                    or message.startswith('No role entry for')
+                    or message.startswith('Unknown directive type')
+                    or message.startswith('No directive entry for')
+                    or level < 2  # Ignore DEBUG and INFO messages.
                 )
 
                 msg = super().system_message(
-                    level, message, *children, **kwargs)
+                    level, message, *children, **kwargs
+                )
 
                 if not skip:
                     self.lint_errors.add(
                         f"{message} at {msg['source']} on line "
-                        f"{msg.get('line', '?')}")
+                        f"{msg.get('line', '?')}"
+                    )
 
                 return msg
 
@@ -182,12 +182,14 @@ class TestDocSnippets(unittest.TestCase):
         parser = parser_class()
 
         settings = docutils.frontend.OptionParser(
-            components=(parser_class, )).get_default_values()
+            components=(parser_class,)
+        ).get_default_values()
         settings.syntax_highlight = 'none'
 
         min_error_code = 100  # Ignore all errors, we process them manually.
         reporter = self.CustomDocutilsReporter(
-            filename, min_error_code, min_error_code)
+            filename, min_error_code, min_error_code
+        )
         document = docutils.nodes.document(settings, reporter, source=filename)
         document.note_source(filename, -1)
 
@@ -195,8 +197,9 @@ class TestDocSnippets(unittest.TestCase):
 
         if reporter.lint_errors:
             raise self.RestructuredTextStyleError(
-                '\n\nRestructuredText lint errors:\n' +
-                '\n'.join(reporter.lint_errors))
+                '\n\nRestructuredText lint errors:\n'
+                + '\n'.join(reporter.lint_errors)
+            )
 
         directives = []
         for node in document.traverse():
@@ -208,21 +211,23 @@ class TestDocSnippets(unittest.TestCase):
                     block = node.astext()
 
                     # certain literal blocks also contain code-blocks
-                    if re.match(r'^\.\. eql:(operator|function|constraint)::',
-                                block):
-
+                    if re.match(
+                        r'^\.\. eql:(operator|function|constraint)::', block
+                    ):
                         # figure out the line offset of the start of the block
                         node_parent = node
                         while node_parent and node_parent.line is None:
                             node_parent = node_parent.parent
                         if node_parent:
-                            node_parent_line = \
-                                node_parent.line - block.count('\n')
+                            node_parent_line = node_parent.line - block.count(
+                                '\n'
+                            )
                         else:
                             node_parent_line = 0
 
                         subdoc = docutils.nodes.document(
-                            settings, reporter, source=filename)
+                            settings, reporter, source=filename
+                        )
                         subdoc.note_source(filename, node_parent_line)
 
                         # cut off the first chunk
@@ -234,8 +239,9 @@ class TestDocSnippets(unittest.TestCase):
 
                         subdirs = subdoc.traverse(
                             condition=lambda node: (
-                                node.tagname == 'literal_block' and
-                                'code' in node.attributes['classes'])
+                                node.tagname == 'literal_block'
+                                and 'code' in node.attributes['classes']
+                            )
                         )
                         for subdir in subdirs:
                             if subdir.line is not None:
@@ -277,16 +283,15 @@ class TestDocSnippets(unittest.TestCase):
                 if m:
                     # >>> prompt
                     in_query = True
-                    snips.append(
-                        (len(m.group('p')), [])
-                    )
+                    snips.append((len(m.group('p')), []))
                     snips[len(snips) - 1][1].append(m.group('l'))
                 else:
                     # output
                     if not snips:
                         raise AssertionError(
                             f'invalid REPL block (starts with output); '
-                            f'offending line {line!r}')
+                            f'offending line {line!r}'
+                        )
             else:
                 # ... prompt?
                 m = re.match(r'(?P<p>\.+\s)(?P<l>.*)', line)
@@ -295,20 +300,25 @@ class TestDocSnippets(unittest.TestCase):
                     if not snips:
                         raise AssertionError(
                             f'invalid REPL block (... before >>>); '
-                            f'offending line {line!r}')
+                            f'offending line {line!r}'
+                        )
                     if len(m.group('p')) != snips[len(snips) - 1][0]:
                         raise AssertionError(
                             f'invalid REPL block: number of "." does not '
                             f'match number of ">"; '
-                            f'offending line {line!r}')
+                            f'offending line {line!r}'
+                        )
                     snips[len(snips) - 1][1].append(m.group('l'))
                 else:
                     # no, this is output
                     in_query = False
 
-        return ['\n'.join(s[1]) for s in snips
-                # ignore the "\c" and other REPL commands
-                if not re.match(r'\\\w+', s[1][0])]
+        return [
+            '\n'.join(s[1])
+            for s in snips
+            # ignore the "\c" and other REPL commands
+            if not re.match(r'\\\w+', s[1][0])
+        ]
 
     def run_block_test(self, block):
         try:
@@ -327,7 +337,6 @@ class TestDocSnippets(unittest.TestCase):
                 before = []
                 after = []
                 for line in block.code.split('\n'):
-
                     if line == "":
                         continue
 
@@ -359,15 +368,13 @@ class TestDocSnippets(unittest.TestCase):
                         # lines as they interfere with our module
                         # detection.
                         sdl = re.sub(
-                            r'(using\s+extension\s+\w+;)|(#.*?\n)',
-                            '',
-                            snippet
+                            r'(using\s+extension\s+\w+;)|(#.*?\n)', '', snippet
                         ).strip()
 
                         # the snippet itself may either contain a module
                         # block or have a fully-qualified top-level name
                         if not sdl or re.match(
-                                r'''(?xm)
+                            r'''(?xm)
                                     (\bmodule\s+\w+\s*{) |
                                     (^.*
                                         (type|annotation|link|property|constraint)
@@ -375,7 +382,8 @@ class TestDocSnippets(unittest.TestCase):
                                         ({|extending)
                                     )
                                 ''',
-                                sdl):
+                            sdl,
+                        ):
                             ql_parser.parse_sdl(snippet)
                         else:
                             ql_parser.parse_sdl(
@@ -407,7 +415,7 @@ class TestDocSnippets(unittest.TestCase):
                         'elixir',
                         'toml',
                         'sql',
-                        'dockerfile'
+                        'dockerfile',
                     }:
                         pass
                     elif lang[-5:] == '-diff':
@@ -421,13 +429,16 @@ class TestDocSnippets(unittest.TestCase):
                     raise ex
             else:
                 if expect_invalid:
-                    raise AssertionError("code block is marked with '-invalid'"
-                                         " lang, but did not fail validation")
+                    raise AssertionError(
+                        "code block is marked with '-invalid'"
+                        " lang, but did not fail validation"
+                    )
         except Exception as ex:
             raise AssertionError(
                 f'unable to parse {block.lang} code block in '
                 f'{block.filename}, around line {block.lineno}: '
-                f'{code}') from ex
+                f'{code}'
+            ) from ex
 
     @unittest.skipIf(docutils is None, 'docutils is missing')
     def test_cqa_doc_snippets(self):
@@ -459,8 +470,8 @@ class TestDocSnippets(unittest.TestCase):
 
         if ws_errors:
             raise AssertionError(
-                'trailing whitespace:\n\n' +
-                '\n'.join(
+                'trailing whitespace:\n\n'
+                + '\n'.join(
                     f'{filename}:{linenos!r}'
                     for filename, linenos in ws_errors.items()
                 )
@@ -491,30 +502,35 @@ class TestDocSnippets(unittest.TestCase):
                             lc.report_error(
                                 f'do not use ``edgedb://``, '
                                 f'use |geluri| for "gel://" and '
-                                f':geluri:`blah` for "gel://blah"')
+                                f':geluri:`blah` for "gel://blah"'
+                            )
                         if '``gel://' in line:
                             lc.report_error(
                                 f'do not use ``gel://``, '
                                 f'use |geluri| for "gel://" and '
-                                f':geluri:`blah` for "gel://blah"')
+                                f':geluri:`blah` for "gel://blah"'
+                            )
 
                         if '.esdl``' in line or '.gel``' in line:
                             lc.report_error(
                                 f"don't use ``filename.esdl`` "
                                 f"or ``filename.gel``, use :dotgel:`filename` "
-                                f"instead")
+                                f"instead"
+                            )
                         if '``gel ' in line:
                             lc.report_error(
                                 f'do not use ``gel`` markup '
                                 f'for "gel" cli commands, '
                                 f'use :gelcmd:`command` instead; '
-                                f'it will be rendered as ``gel command``')
+                                f'it will be rendered as ``gel command``'
+                            )
                         if '``edgedb ' in line:
                             lc.report_error(
                                 f'do not use ``edgedb`` markup '
                                 f'for "gel" cli commands, '
                                 f'use :gelcmd:`command` instead; '
-                                f'it will be rendered as ``gel command``')
+                                f'it will be rendered as ``gel command``'
+                            )
 
         lc.raise_errors_if_any()
 
@@ -569,8 +585,9 @@ class TestDocSnippets(unittest.TestCase):
 
         blocks = self.extract_code_blocks(source, '<test>')
         self.assertEqual(len(blocks), 1)
-        self.assertEqual(blocks[0].code,
-                         "db> SELECT 'a%%c' NOT LIKE 'a\\%c';\n{true}")
+        self.assertEqual(
+            blocks[0].code, "db> SELECT 'a%%c' NOT LIKE 'a\\%c';\n{true}"
+        )
 
         with self.assertRaisesRegex(AssertionError, 'unable to parse edgeql'):
             self.run_block_test(blocks[0])
@@ -585,8 +602,9 @@ class TestDocSnippets(unittest.TestCase):
         ''')
 
         with self.assertRaisesRegex(
-                self.RestructuredTextStyleError,
-                r'lint errors:[.\s]*Title underline too short'):
+            self.RestructuredTextStyleError,
+            r'lint errors:[.\s]*Title underline too short',
+        ):
             self.extract_code_blocks(source, '<test>')
 
     @unittest.skipIf(sphinx is None, 'sphinx is missing')
@@ -598,11 +616,14 @@ class TestDocSnippets(unittest.TestCase):
                 [
                     sys.executable,
                     '-I',
-                    '-m', 'sphinx',
+                    '-m',
+                    'sphinx',
                     '-n',
-                    '-b', 'xml',
+                    '-b',
+                    'xml',
                     '-q',
-                    '-D', 'master_doc=index',
+                    '-D',
+                    'master_doc=index',
                     '-W',
                     docs_root,
                     td,
@@ -631,6 +652,5 @@ class TestDocSnippets(unittest.TestCase):
         if len(errors) > 0:
             errors = '\n'.join(errors)
             raise AssertionError(
-                f'Unable to build docs with Sphinx.\n\n'
-                f'{errors}\n\n'
+                f'Unable to build docs with Sphinx.\n\n{errors}\n\n'
             )

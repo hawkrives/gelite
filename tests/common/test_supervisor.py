@@ -24,9 +24,7 @@ from edb.testbase import server as tb
 
 
 class TestSupervisor(tb.TestCase):
-
     async def test_supervisor_01(self):
-
         async def foo1():
             await asyncio.sleep(0.1)
             return 42
@@ -44,7 +42,6 @@ class TestSupervisor(tb.TestCase):
         self.assertEqual(t2.result(), 11)
 
     async def test_supervisor_02(self):
-
         async def foo1():
             await asyncio.sleep(0.1)
             return 42
@@ -63,7 +60,6 @@ class TestSupervisor(tb.TestCase):
         self.assertEqual(t2.result(), 11)
 
     async def test_supervisor_03(self):
-
         async def foo1():
             await asyncio.sleep(1)
             return 42
@@ -87,7 +83,6 @@ class TestSupervisor(tb.TestCase):
         self.assertEqual(t2.result(), 11)
 
     async def test_supervisor_04(self):
-
         NUM = 0
         t2_cancel = False
         t2 = None
@@ -125,7 +120,6 @@ class TestSupervisor(tb.TestCase):
         self.assertTrue(t2.cancelled())
 
     async def test_supervisor_05(self):
-
         NUM = 0
 
         async def foo():
@@ -155,7 +149,6 @@ class TestSupervisor(tb.TestCase):
         self.assertEqual(NUM, 5)
 
     async def test_supervisor_06(self):
-
         async def foo1():
             await asyncio.sleep(1)
             return 42

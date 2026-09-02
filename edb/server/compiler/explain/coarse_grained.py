@@ -29,13 +29,15 @@ from edb.server.compiler.explain import pg_tree
 from edb.server.compiler.explain import fine_grained
 
 
-COST_KEYS = frozenset((
-    'plan_rows',
-    'plan_width',
-    'self_cost',
-    'total_cost',
-    'startup_cost',
-))
+COST_KEYS = frozenset(
+    (
+        'plan_rows',
+        'plan_width',
+        'self_cost',
+        'total_cost',
+        'startup_cost',
+    )
+)
 
 
 class _Index:
@@ -135,8 +137,8 @@ def _build_shape(
         subpath = f"{path}.{name}"
 
         if (
-            pointer.main_alias is not None and
-            (c_info := index.by_alias.get(pointer.main_alias)) is not None
+            pointer.main_alias is not None
+            and (c_info := index.by_alias.get(pointer.main_alias)) is not None
         ):
             info = c_info
         else:
@@ -169,9 +171,9 @@ def _build_shape(
 
     # sometimes context can be in inner node, hoist it
     if (
-        not contexts and
-        (main_alias := shape.main_alias) and
-        (main_info := index.by_alias.get(main_alias))
+        not contexts
+        and (main_alias := shape.main_alias)
+        and (main_info := index.by_alias.get(main_alias))
     ):
         alias = main_alias
         contexts = main_info.plan.contexts
@@ -180,8 +182,10 @@ def _build_shape(
     return Node(
         plan_id=plan.pipeline[0].plan_id,
         relations=relations,
-        children=[Child(kind=ChildKind.POINTER, name=name, node=node)
-                  for name, node in pointers.items()],
+        children=[
+            Child(kind=ChildKind.POINTER, name=name, node=node)
+            for name, node in pointers.items()
+        ],
         contexts=contexts,
         # cost vars
         startup_cost=top.startup_cost,
@@ -241,7 +245,7 @@ def _shape_mark(path: str, shape: ir_analyze.ShapeInfo, index: _Index) -> None:
 def build(
     plan: fine_grained.Plan,
     info: ir_analyze.AnalysisInfo,
-    index: fine_grained.Index
+    index: fine_grained.Index,
 ) -> Node:
     idx = _Index(plan, index)
     return _build_shape('🌳', plan, info.shape_tree, plan.contexts, idx)

@@ -45,6 +45,7 @@ def railroad_diagram():
 
     # serialize
     import edb._edgeql_parser as rust_parser
+
     rust_parser.save_spec(spec_json, str(dst))
 
     productions = to_ebnf(spec)
@@ -52,6 +53,7 @@ def railroad_diagram():
 
 
 # EBNF datatypes
+
 
 class ebnf:
     class Item:
@@ -92,6 +94,7 @@ class ebnf:
 
 
 # Conversion functions
+
 
 def ebnf_single_or_sequence(items: Sequence[ebnf.Item]) -> ebnf.Item:
     if len(items) == 1:
@@ -178,7 +181,6 @@ def to_w3c_ebnf(productions: list[ebnf.Production]) -> list[str]:
 def simplify_productions(
     productions: list[ebnf.Production],
 ) -> list[ebnf.Production]:
-
     productions_by_name: dict[str, ebnf.Production] = {
         production.name: production for production in productions
     }
@@ -248,7 +250,6 @@ def simplify_productions(
     def inline_references(
         item: ebnf.Item, references: dict[str, ebnf.Item]
     ) -> tuple[ebnf.Item, bool]:
-
         if isinstance(item, ebnf.Reference):
             if item.name in references:
                 return references[item.name], True
@@ -346,7 +347,6 @@ def simplify_productions(
     # substitute multi-items with a single item
 
     def substitute_multi_item_single(item: ebnf.Item) -> tuple[ebnf.Item, bool]:
-
         if isinstance(item, ebnf.Multiple) and len(item.inner) == 1:
             return item.inner[0], True
 
@@ -355,7 +355,6 @@ def simplify_productions(
     # substitute choices of optionals with optional of choice
 
     def substitute_choice_of_options(item: ebnf.Item) -> tuple[ebnf.Item, bool]:
-
         if isinstance(item, ebnf.Choice):
             inner_options = [
                 inner_item
@@ -384,7 +383,6 @@ def simplify_productions(
         item: ebnf.Item,
         funcs: list[Callable[[ebnf.Item], tuple[ebnf.Item, bool]]],
     ) -> ebnf.Item:
-
         changed = True
         while changed:
             changed = False
@@ -471,7 +469,8 @@ def to_ebnf(spec: parsing.Spec) -> list[ebnf.Production]:
             for item_list in item_lists
             if
             # refers to token or nonterm with productions
-            any(has_production[item.name] for item in item_list) or
+            any(has_production[item.name] for item in item_list)
+            or
             # keep empty reductions, handled later as an optional
             item_list == []
         ]
@@ -517,8 +516,7 @@ def to_ebnf(spec: parsing.Spec) -> list[ebnf.Production]:
 
 
 def write_ebnf_productions(
-    ebnf_productions: list[ebnf.Production],
-    path: pathlib.Path
+    ebnf_productions: list[ebnf.Production], path: pathlib.Path
 ) -> None:
     with open(path / 'grammar.iso.ebnf', 'w') as file:
         file.write('\n'.join(to_iso_ebnf(ebnf_productions)))

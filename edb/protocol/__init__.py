@@ -27,9 +27,7 @@ from . import render_utils
 from .messages import *  # NoQA
 
 
-def render(
-    obj: type[enum.Enum] | type[messages.Struct]
-) -> str:
+def render(obj: type[enum.Enum] | type[messages.Struct]) -> str:
     if issubclass(obj, messages.Struct):
         return obj.render()
     else:

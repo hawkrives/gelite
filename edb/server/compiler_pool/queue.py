@@ -27,25 +27,18 @@ W2 = typing.TypeVar('W2', contravariant=True)
 
 
 class AcquireCondition(typing.Protocol[W2]):
-
-    def __call__(self, worker: W2) -> bool:
-        ...
+    def __call__(self, worker: W2) -> bool: ...
 
 
 class Comparable(typing.Protocol):
-
-    def __gt__(self, other: typing.Self) -> bool:
-        ...
+    def __gt__(self, other: typing.Self) -> bool: ...
 
 
 class Weighter(typing.Protocol[W2]):
-
-    def __call__(self, worker: W2) -> Comparable:
-        ...
+    def __call__(self, worker: W2) -> Comparable: ...
 
 
 class WorkerQueue[W]:
-
     loop: asyncio.AbstractEventLoop
 
     _waiters: collections.deque[asyncio.Future[None]]
@@ -122,7 +115,7 @@ class WorkerQueue[W]:
 
         return self._queue.popleft()
 
-    def release(self, worker: W, *, put_in_front: bool=True) -> None:
+    def release(self, worker: W, *, put_in_front: bool = True) -> None:
         if put_in_front:
             self._queue.appendleft(worker)
         else:

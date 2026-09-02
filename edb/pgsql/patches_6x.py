@@ -49,13 +49,18 @@ PATCHES: list[tuple[str, str]] = [
     # 6.0b2
     # One of the sql-introspection's adds a param with a default to
     # uuid_to_oid, so we need to drop the original to avoid ambiguity.
-    ('sql', '''
+    (
+        'sql',
+        '''
 drop function if exists edgedbsql_v6_2f20b3fed0.uuid_to_oid(uuid) cascade
-'''),
+''',
+    ),
     ('sql-introspection', ''),
     ('metaschema-sql', 'SysConfigFullFunction'),
     # 6.0rc1
-    ('edgeql+schema+config+testmode', '''
+    (
+        'edgeql+schema+config+testmode',
+        '''
 CREATE SCALAR TYPE cfg::TestEnabledDisabledEnum
     EXTENDING enum<Enabled, Disabled>;
 ALTER TYPE cfg::AbstractConfig {
@@ -65,10 +70,13 @@ ALTER TYPE cfg::AbstractConfig {
         SET default := cfg::TestEnabledDisabledEnum.Enabled;
     };
 };
-'''),
+''',
+    ),
     ('metaschema-sql', 'PostgresConfigValueToJsonFunction'),
     ('metaschema-sql', 'SysConfigFullFunction'),
-    ('edgeql', '''
+    (
+        'edgeql',
+        '''
 ALTER FUNCTION
 std::assert_single(
     input: SET OF anytype,
@@ -90,8 +98,11 @@ std::assert_distinct(
 ) {
     SET volatility := 'Immutable';
 };
-'''),
-     ('edgeql+schema+config', '''
+''',
+    ),
+    (
+        'edgeql+schema+config',
+        '''
 CREATE SCALAR TYPE sys::TransactionAccessMode
     EXTENDING enum<ReadOnly, ReadWrite>;
 
@@ -141,22 +152,28 @@ ALTER TYPE cfg::AbstractConfig {
         SET default := sys::TransactionDeferrability.NotDeferrable;
     };
 };
-'''),
+''',
+    ),
     # 6.2
     ('ext-pkg', 'ai'),
-    ('edgeql+user_ext+config|ai', '''
+    (
+        'edgeql+user_ext+config|ai',
+        '''
 alter type ext::ai::EmbeddingModel {
     drop annotation
       ext::ai::embedding_model_max_batch_tokens;
     create annotation
       ext::ai::embedding_model_max_batch_tokens := "8191";
 }
-'''),
+''',
+    ),
     # 6.3
     ('repair', ''),  # For #8466
     # 6.5
     ('sql-introspection', ''),  # For #8511
-    ('edgeql+user_ext|ai', r'''
+    (
+        'edgeql+user_ext|ai',
+        r'''
 update ext::ai::ChatPrompt filter .name = 'builtin::rag-default' set {
     messages += (insert ext::ai::ChatPromptMessage {
                     participant_role := ext::ai::ChatParticipantRole.User,
@@ -166,11 +183,14 @@ update ext::ai::ChatPrompt filter .name = 'builtin::rag-default' set {
                     ),
                 })
 }
-'''),  # For #8553
+''',
+    ),  # For #8553
     # 6.6
     ('edgeql+schema', ''),  # For #8554
     ('ext-pkg', 'ai'),  # For #8521, #8646
-    ('edgeql+user_ext+config|ai', '''
+    (
+        'edgeql+user_ext+config|ai',
+        '''
     create function ext::ai::search(
         object: anyobject,
         query: str,
@@ -271,10 +291,13 @@ update ext::ai::ChatPrompt filter .name = 'builtin::rag-default' set {
         alter annotation
             ext::ai::embedding_model_max_output_dimensions := "1024";
     };
-'''),
+''',
+    ),
     # 6.8
     ('edgeql+user+remove_pointless_triggers', ''),
-    ('edgeql', '''
+    (
+        'edgeql',
+        '''
 CREATE FUNCTION
 std::to_bytes(j: std::json) -> std::bytes {
     CREATE ANNOTATION std::description :=
@@ -282,7 +305,8 @@ std::to_bytes(j: std::json) -> std::bytes {
     SET volatility := 'Immutable';
     USING (to_bytes(to_str(j)));
 };
-'''),
+''',
+    ),
     ('metaschema-sql', 'ArrayIndexWithBoundsFunction'),
     ('metaschema-sql', 'ArraySliceFunction'),
     ('metaschema-sql', 'StringIndexWithBoundsFunction'),
@@ -292,7 +316,9 @@ std::to_bytes(j: std::json) -> std::bytes {
     ('metaschema-sql', 'JSONIndexByTextFunction'),
     ('metaschema-sql', 'JSONIndexByIntFunction'),
     ('metaschema-sql', 'JSONSliceFunction'),
-    ('edgeql', '''
+    (
+        'edgeql',
+        '''
 CREATE MODULE std::lang;
 
 CREATE MODULE std::lang::go;
@@ -306,9 +332,12 @@ CREATE ABSTRACT ANNOTATION std::lang::py::type;
 
 CREATE MODULE std::lang::rs;
 CREATE ABSTRACT ANNOTATION std::lang::rs::type;
-'''),
+''',
+    ),
     # 6.9
-    ('edgeql', '''
+    (
+        'edgeql',
+        '''
 CREATE FUNCTION
 std::__pg_generate_series(
     `start`: std::int64,
@@ -318,10 +347,12 @@ std::__pg_generate_series(
     SET volatility := 'Immutable';
     USING SQL FUNCTION 'generate_series';
 };
-'''),
-
+''',
+    ),
     # !!!!!! 7.x !!!!!
-    ('edgeql+user_ext+config|auth', '''
+    (
+        'edgeql+user_ext+config|auth',
+        '''
     create type ext::auth::OneTimeCode extending ext::auth::Auditable {
         create required property code_hash: std::bytes {
             create constraint exclusive;
@@ -399,5 +430,6 @@ std::__pg_generate_series(
         OneTimeCodeVerified,
     >;
 
-'''),
+''',
+    ),
 ]

@@ -28,15 +28,24 @@ from edb.tools import test
 class TestEdgeQLFor(tb.QueryTestCase):
     '''These tests are focused on using FOR statement.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'cards_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql'
+    )
 
     async def test_edgeql_for_cross_01(self):
-        cards = ['Bog monster', 'Djinn', 'Dragon', 'Dwarf', 'Giant eagle',
-                 'Giant turtle', 'Golem', 'Imp', 'Sprite']
+        cards = [
+            'Bog monster',
+            'Djinn',
+            'Dragon',
+            'Dwarf',
+            'Giant eagle',
+            'Giant turtle',
+            'Golem',
+            'Imp',
+            'Sprite',
+        ]
         await self.assert_query_result(
             r'''
                 FOR C IN Card
@@ -44,7 +53,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 UNION (C.name, Card.name);
             ''',
             [[a, b] for a in cards for b in cards],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_for_cross_02(self):
@@ -65,7 +74,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 ['Imp', 9],
                 ['Sprite', 9],
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_for_cross_03(self):
@@ -86,7 +95,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 ['Imp', 1],
                 ['Sprite', 1],
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_for_cross_04(self):
@@ -98,7 +107,8 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 [1, 9],
-            ] * 9,
+            ]
+            * 9,
         )
 
     async def test_edgeql_for_mix_01(self):
@@ -121,7 +131,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 'Golem',
                 'Imp',
                 'Sprite',
-            }
+            },
         )
 
     async def test_edgeql_for_mix_02(self):
@@ -146,7 +156,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 ['Imp', 9, 4],
                 ['Sprite', 9, 4],
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_for_mix_03(self):
@@ -171,7 +181,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 ['Imp', 9, 4],
                 ['Sprite', 9, 4],
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_for_mix_04(self):
@@ -181,7 +191,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 # this should be just [3] for each name (9 + 4 of names)
                 UNION count(User.friends);
             ''',
-            [3] * 13
+            [3] * 13,
         )
 
     async def test_edgeql_for_limit_01(self):
@@ -197,7 +207,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             {
                 'Carol',
-            }
+            },
         )
 
     async def test_edgeql_for_implicit_limit_01(self):
@@ -233,7 +243,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 'Golem',
                 'Imp',
                 'Sprite',
-            }
+            },
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -262,7 +272,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 'Golem',
                 'Imp',
                 'Sprite',
-            }
+            },
         )
 
     async def test_edgeql_for_in_computable_01(self):
@@ -284,10 +294,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', '@letter': 'B'},
-                        {'name': 'Imp', '@letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', '@letter': 'B'},
+                            {'name': 'Imp', '@letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -345,7 +357,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         {'name': 'Imp', 'letter': 'I1'},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_for_in_computable_02b(self):
@@ -369,10 +381,13 @@ class TestEdgeQLFor(tb.QueryTestCase):
             [
                 {
                     'select_deck': [
-                        [{}], [{}], [{}], [{}],
+                        [{}],
+                        [{}],
+                        [{}],
+                        [{}],
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_for_in_computable_02c(self):
@@ -391,12 +406,14 @@ class TestEdgeQLFor(tb.QueryTestCase):
                     )
                 } FILTER .name = 'Alice'
             """,
-            [{
-                "select_deck": [
-                    {"name": "Imp", "count": 1},
-                    {"name": "Dragon", "count": 2},
-                ],
-            }],
+            [
+                {
+                    "select_deck": [
+                        {"name": "Imp", "count": 1},
+                        {"name": "Dragon", "count": 2},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_for_in_computable_02d(self):
@@ -452,7 +469,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         {'name': 'Imp', 'letter': 'I1'},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_for_in_computable_02e(self):
@@ -486,7 +503,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         [{'name': 'Imp', 'letter': 'I2'}],
                     ]
                 }
-            ]
+            ],
         )
 
     @test.xerror('deeply nested linkprop hoisting is currently broken')
@@ -520,7 +537,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         {'name': 'Imp', '@letter': 'I'},
                     ]
                 }
-            ]
+            ],
         )
 
     @test.xerror('''
@@ -577,7 +594,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         {'name': 'Imp', '@letter': 'I'},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_for_in_computable_05(self):
@@ -592,8 +609,13 @@ class TestEdgeQLFor(tb.QueryTestCase):
                     )
                 } FILTER .name = 'Alice';
             ''',
-            [{"select_deck":
-              tb.bag(["Bog monster", "Dragon", "Giant turtle", "Imp"])}],
+            [
+                {
+                    "select_deck": tb.bag(
+                        ["Bog monster", "Dragon", "Giant turtle", "Imp"]
+                    )
+                }
+            ],
         )
 
         # This one caused a totally nonsense type error.
@@ -608,8 +630,13 @@ class TestEdgeQLFor(tb.QueryTestCase):
                     )
                 } FILTER .name = 'Alice';
             ''',
-            [{"select_deck":
-              tb.bag(["Bog monster", "Dragon", "Giant turtle", "Imp"])}],
+            [
+                {
+                    "select_deck": tb.bag(
+                        ["Bog monster", "Dragon", "Giant turtle", "Imp"]
+                    )
+                }
+            ],
         )
 
     async def test_edgeql_for_in_computable_06(self):
@@ -631,10 +658,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    "select_deck": tb.bag([
-                        {"letter": {"B!!", "B!?"}, "name": "Bog monster"},
-                        {"letter": {"I!!", "I!?"}, "name": "Imp"},
-                    ])
+                    "select_deck": tb.bag(
+                        [
+                            {"letter": {"B!!", "B!?"}, "name": "Bog monster"},
+                            {"letter": {"I!!", "I!?"}, "name": "Imp"},
+                        ]
+                    )
                 }
             ],
         )
@@ -659,10 +688,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    "select_deck": tb.bag([
-                        {"letter": ["B!!", "B!?"], "name": "Bog monster"},
-                        {"letter": ["I!!", "I!?"], "name": "Imp"},
-                    ])
+                    "select_deck": tb.bag(
+                        [
+                            {"letter": ["B!!", "B!?"], "name": "Bog monster"},
+                            {"letter": ["I!!", "I!?"], "name": "Imp"},
+                        ]
+                    )
                 }
             ],
         )
@@ -688,24 +719,42 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    "select_deck": tb.bag([
-                        {
-                            "name": "Bog monster",
-                            "letter": {"B!!", "B!?"},
-                            "correlated": {("!", "!"), ("!", "?"),
-                                           ("?", "!"), ("?", "?")},
-                            "uncorrelated": {("!", "!"), ("!", "?"),
-                                             ("?", "!"), ("?", "?")}
-                        },
-                        {
-                            "name": "Imp",
-                            "letter": {"I!!", "I!?"},
-                            "correlated": {("!", "!"), ("!", "?"),
-                                           ("?", "!"), ("?", "?")},
-                            "uncorrelated": {("!", "!"), ("!", "?"),
-                                             ("?", "!"), ("?", "?")}
-                        },
-                    ])
+                    "select_deck": tb.bag(
+                        [
+                            {
+                                "name": "Bog monster",
+                                "letter": {"B!!", "B!?"},
+                                "correlated": {
+                                    ("!", "!"),
+                                    ("!", "?"),
+                                    ("?", "!"),
+                                    ("?", "?"),
+                                },
+                                "uncorrelated": {
+                                    ("!", "!"),
+                                    ("!", "?"),
+                                    ("?", "!"),
+                                    ("?", "?"),
+                                },
+                            },
+                            {
+                                "name": "Imp",
+                                "letter": {"I!!", "I!?"},
+                                "correlated": {
+                                    ("!", "!"),
+                                    ("!", "?"),
+                                    ("?", "!"),
+                                    ("?", "?"),
+                                },
+                                "uncorrelated": {
+                                    ("!", "!"),
+                                    ("!", "?"),
+                                    ("?", "!"),
+                                    ("?", "?"),
+                                },
+                            },
+                        ]
+                    )
                 }
             ],
         )
@@ -736,10 +785,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', '@letter': 'B'},
-                        {'name': 'Imp', '@letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', '@letter': 'B'},
+                            {'name': 'Imp', '@letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -776,10 +827,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', 'letter': 'B'},
-                        {'name': 'Imp', 'letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', 'letter': 'B'},
+                            {'name': 'Imp', 'letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -802,9 +855,11 @@ class TestEdgeQLFor(tb.QueryTestCase):
             """,
             [
                 {
-                    'select_deck': [{
-                        'name': 'Imp',
-                    }],
+                    'select_deck': [
+                        {
+                            'name': 'Imp',
+                        }
+                    ],
                 },
             ],
         )
@@ -827,10 +882,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        [{'name': 'Bog monster', 'letter': 'B'}],
-                        [{'name': 'Imp', 'letter': 'I'}],
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            [{'name': 'Bog monster', 'letter': 'B'}],
+                            [{'name': 'Imp', 'letter': 'I'}],
+                        ]
+                    )
                 }
             ],
         )
@@ -878,10 +935,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', 'letter': 'B'},
-                        {'name': 'Imp', 'letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', 'letter': 'B'},
+                            {'name': 'Imp', 'letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -904,10 +963,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', 'letter': 'B'},
-                        {'name': 'Imp', 'letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', 'letter': 'B'},
+                            {'name': 'Imp', 'letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -930,10 +991,12 @@ class TestEdgeQLFor(tb.QueryTestCase):
             ''',
             [
                 {
-                    'select_deck': tb.bag([
-                        {'name': 'Bog monster', 'letter': 'B'},
-                        {'name': 'Imp', 'letter': 'I'},
-                    ])
+                    'select_deck': tb.bag(
+                        [
+                            {'name': 'Bog monster', 'letter': 'B'},
+                            {'name': 'Imp', 'letter': 'I'},
+                        ]
+                    )
                 }
             ],
         )
@@ -1060,7 +1123,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
             }
             order by .key.element;
             ''',
-            [{"key": {"element": "Earth"}}, {"key": {"element": "Water"}}]
+            [{"key": {"element": "Earth"}}, {"key": {"element": "Water"}}],
         )
 
     async def test_edgeql_for_fake_group_01b(self):
@@ -1077,7 +1140,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
             }
             order by .key.element;
             ''',
-            [{"key": {"element": "Earth"}}, {"key": {"element": "Water"}}]
+            [{"key": {"element": "Earth"}}, {"key": {"element": "Water"}}],
         )
 
     # XXX: This is *wrong*, I think
@@ -1104,11 +1167,14 @@ class TestEdgeQLFor(tb.QueryTestCase):
                 },
                 {
                     "key": {"element": "Water"},
-                    "elements": tb.bag([
-                        {"name": "Bog monster"}, {"name": "Giant turtle"},
-                    ]),
+                    "elements": tb.bag(
+                        [
+                            {"name": "Bog monster"},
+                            {"name": "Giant turtle"},
+                        ]
+                    ),
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_for_fake_group_02(self):
@@ -1118,7 +1184,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
             select GR { key }
             order by .key;
             ''',
-            [{"key": "Earth"}, {"key": "Water"}]
+            [{"key": "Earth"}, {"key": "Water"}],
         )
 
     async def test_edgeql_for_tuple_optional_01(self):
@@ -1289,10 +1355,10 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         ["Giant eagle", 3],
                         ["Giant turtle", 2],
                         ["Golem", 2],
-                        ["Sprite", 4]
+                        ["Sprite", 4],
                     ]
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1312,7 +1378,7 @@ class TestEdgeQLFor(tb.QueryTestCase):
                         ["Djinn", 1],
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_for_lprop_02(self):

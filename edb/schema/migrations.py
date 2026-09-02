@@ -19,7 +19,6 @@
 
 """Implementation of MIGRATION objects."""
 
-
 from __future__ import annotations
 from typing import Optional, TYPE_CHECKING
 
@@ -45,7 +44,6 @@ class Migration(
     qlkind=qltypes.SchemaObjectClass.MIGRATION,
     data_safe=False,
 ):
-
     parents = so.SchemaField(
         so.ObjectList["Migration"],
         default=so.DEFAULT_CONSTRUCTOR,
@@ -85,7 +83,6 @@ class MigrationCommand(
 
 
 class CreateMigration(MigrationCommand, sd.CreateObject[Migration]):
-
     astnode = qlast.CreateMigration
 
     @classmethod
@@ -122,10 +119,13 @@ class CreateMigration(MigrationCommand, sd.CreateObject[Migration]):
             ddl_text = astnode.body.text
         elif astnode.body.commands:
             # An implicit CREATE MIGRATION produced by START MIGRATION
-            ddl_text = ';\n'.join(
-                qlcodegen.generate_source(stmt, uppercase=True)
-                for stmt in [*astnode.commands, *astnode.body.commands]
-            ) + ';'
+            ddl_text = (
+                ';\n'.join(
+                    qlcodegen.generate_source(stmt, uppercase=True)
+                    for stmt in [*astnode.commands, *astnode.body.commands]
+                )
+                + ';'
+            )
         else:
             ddl_text = ''
 
@@ -214,10 +214,7 @@ class CreateMigration(MigrationCommand, sd.CreateObject[Migration]):
 
         new_schema = super().apply(schema, context)
 
-        if (
-            context.store_migration_sdl
-            and not self.get_attribute_value('sdl')
-        ):
+        if context.store_migration_sdl and not self.get_attribute_value('sdl'):
             # If target sdl was not known in advance, compute it now.
             new_sdl: str = s_ddl.sdl_text_from_schema(new_schema)
             new_schema = self.scls.set_field_value(new_schema, 'sdl', new_sdl)
@@ -278,12 +275,10 @@ class CreateMigration(MigrationCommand, sd.CreateObject[Migration]):
 
 
 class AlterMigration(MigrationCommand, sd.AlterObject[Migration]):
-
     astnode = qlast.AlterMigration
 
 
 class DeleteMigration(MigrationCommand, sd.DeleteObject[Migration]):
-
     astnode = qlast.DropMigration
 
 

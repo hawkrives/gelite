@@ -29,11 +29,11 @@ from edb.tools import test
 class TestEdgeQLScope(tb.QueryTestCase):
     '''This tests the scoping rules.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'cards_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql'
+    )
 
     async def test_edgeql_scope_sort_01a(self):
         await self.assert_query_result(
@@ -50,7 +50,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 [{'name': 'Alice'}, 1],
                 [{'name': 'Bob'}, 2],
                 [{'name': 'Alice'}, 2],
-            ]
+            ],
         )
 
     async def test_edgeql_scope_sort_01b(self):
@@ -71,7 +71,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 [{'name': 'Alice'}, 1],
                 [{'name': 'Bob'}, 2],
                 [{'name': 'Alice'}, 2],
-            ]
+            ],
         )
 
     async def test_edgeql_scope_sort_01c(self):
@@ -95,7 +95,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     [{'name': 'Bob'}, 2],
                     [{'name': 'Alice'}, 2],
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_scope_tuple_07(self):
@@ -128,7 +128,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     'name': 'Dave',
                     'foo': {'name': 'Dave'},
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_scope_tuple_10(self):
@@ -157,9 +157,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ) ORDER BY .0.name).1
             ''',
             [
-                2.25,                # Bob (friend of Alice and Dave)
-                2.28571428571429,    # Carol
-                2.85714285714286,    # Dave
+                2.25,  # Bob (friend of Alice and Dave)
+                2.28571428571429,  # Carol
+                2.85714285714286,  # Dave
             ],
         )
 
@@ -177,9 +177,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             r"""
             with z := User, select ({z}.name, count(z));
             """,
-            tb.bag(
-                [["Alice", 4], ["Bob", 4], ["Carol", 4], ["Dave", 4]]
-            ),
+            tb.bag([["Alice", 4], ["Bob", 4], ["Carol", 4], ["Dave", 4]]),
         )
 
     async def test_edgeql_scope_binding_01(self):
@@ -198,7 +196,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ['Alice', 'Bob'],
                 ['Bob', 'Alice'],
                 ['Bob', 'Bob'],
-            ]
+            ],
         )
 
     async def test_edgeql_scope_binding_02a(self):
@@ -229,8 +227,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ["Bob", "Bob"],
                 ["Bob", "Bob"],
                 ["Bob", "Bob"],
-                ["Bob", "Bob"]
-            ]
+                ["Bob", "Bob"],
+            ],
         )
 
     async def test_edgeql_scope_binding_02b(self):
@@ -261,8 +259,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ["Bob", "Bob"],
                 ["Bob", "Bob"],
                 ["Bob", "Bob"],
-                ["Bob", "Bob"]
-            ]
+                ["Bob", "Bob"],
+            ],
         )
 
     async def test_edgeql_scope_binding_04(self):
@@ -272,7 +270,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             SELECT _ := ((SELECT Y), (SELECT Y))
             ORDER BY _;
             """,
-            [[2, 2], [2, 3], [3, 2], [3, 3]]
+            [[2, 2], [2, 3], [3, 2], [3, 3]],
         )
 
     async def test_edgeql_scope_binding_05(self):
@@ -283,8 +281,24 @@ class TestEdgeQLScope(tb.QueryTestCase):
             SELECT _ := ((SELECT Y), (SELECT Y))
             ORDER BY _;
             """,
-            [[2, 2], [2, 2], [2, 2], [2, 2], [2, 3], [2, 3], [2, 3], [2, 3],
-             [3, 2], [3, 2], [3, 2], [3, 2], [3, 3], [3, 3], [3, 3], [3, 3]]
+            [
+                [2, 2],
+                [2, 2],
+                [2, 2],
+                [2, 2],
+                [2, 3],
+                [2, 3],
+                [2, 3],
+                [2, 3],
+                [3, 2],
+                [3, 2],
+                [3, 2],
+                [3, 2],
+                [3, 3],
+                [3, 3],
+                [3, 3],
+                [3, 3],
+            ],
         )
 
     async def test_edgeql_scope_binding_06(self):
@@ -307,10 +321,10 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         ["Alice", "Alice"],
                         ["Alice", "Bob"],
                         ["Bob", "Alice"],
-                        ["Bob", "Bob"]
+                        ["Bob", "Bob"],
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_binding_07(self):
@@ -324,7 +338,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 )
             };
             """,
-            [{"lol": [[2, 2], [2, 3], [3, 2], [3, 3]]}]
+            [{"lol": [[2, 2], [2, 3], [3, 2], [3, 3]]}],
         )
 
     async def test_edgeql_scope_with_subquery_01(self):
@@ -390,7 +404,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Dave'},
                     ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_scope_filter_02(self):
@@ -404,7 +418,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {'name': 'Bob'},
                 {'name': 'Carol'},
                 {'name': 'Dave'},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_filter_03(self):
@@ -451,8 +465,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     'friends_of_others': [
                         {'name': 'Carol'},
                     ],
-                }
-            ]
+                },
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -476,7 +490,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Dave'},
                     ],
                 },
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -488,7 +502,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT (SELECT User.name)
                 FILTER User.name = 'Alice';
             ''',
-            {'Alice', 'Bob', 'Carol', 'Dave'}
+            {'Alice', 'Bob', 'Carol', 'Dave'},
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -500,7 +514,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT (SELECT User).name
                 FILTER User.name = 'Alice';
             ''',
-            {'Alice', 'Bob', 'Carol', 'Dave'}
+            {'Alice', 'Bob', 'Carol', 'Dave'},
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -512,7 +526,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT (<str>{} ?? User.name)
                 FILTER User.name = 'Alice';
             ''',
-            {'Alice', 'Bob', 'Carol', 'Dave'}
+            {'Alice', 'Bob', 'Carol', 'Dave'},
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -524,7 +538,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT (<User>{} ?? User).name
                 FILTER User.name = 'Alice';
             ''',
-            {'Alice', 'Bob', 'Carol', 'Dave'}
+            {'Alice', 'Bob', 'Carol', 'Dave'},
         )
 
     async def test_edgeql_scope_order_01(self):
@@ -565,8 +579,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Carol'},
                         {'name': 'Dave'},
                     ],
-                }
-            ]
+                },
+            ],
         )
 
     # NOTE: LIMIT tests are largely identical to OFFSET tests, any
@@ -609,17 +623,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     );
             ''',
             [
-                {
-                    'name': 'Carol',
-                    'friends': []
-                },
+                {'name': 'Carol', 'friends': []},
                 {
                     'name': 'Dave',
                     'friends': [
                         {'name': 'Bob'},
                     ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_scope_offset_02(self):
@@ -645,21 +656,15 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Dave'},
                     ],
                 },
-                {
-                    'name': 'Bob',
-                    'friends': []
-                },
-                {
-                    'name': 'Carol',
-                    'friends': []
-                },
+                {'name': 'Bob', 'friends': []},
+                {'name': 'Carol', 'friends': []},
                 {
                     'name': 'Dave',
                     'friends': [
                         {'name': 'Bob'},
                     ],
                 },
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -707,11 +712,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Dave'},
                     ],
                 },
-                {
-                    'name': 'Bob',
-                    'friends': []
-                },
-            ]
+                {'name': 'Bob', 'friends': []},
+            ],
         )
 
     async def test_edgeql_scope_limit_02(self):
@@ -751,7 +753,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     'name': 'Dave',
                     'friends': [],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_scope_nested_01(self):
@@ -764,8 +766,13 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ORDER BY Card.name
                 ).slug
             ''',
-            ['Air Djinn', 'Air Giant eagle', 'Earth Golem', 'Fire Imp',
-             'Air Sprite']
+            [
+                'Air Djinn',
+                'Air Giant eagle',
+                'Earth Golem',
+                'Fire Imp',
+                'Air Sprite',
+            ],
         )
 
     async def test_edgeql_scope_nested_05(self):
@@ -786,7 +793,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {'foo': 'Earth1'},
                 {'foo': 'Fire1'},
                 {'foo': 'Air1'},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_nested_06(self):
@@ -808,7 +815,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     count(Card.owners.friends) > 2
                 ) ORDER BY .1.name).0;
             ''',
-            ['Bog monster4', 'Dragon2', 'Giant turtle4']
+            ['Bog monster4', 'Dragon2', 'Giant turtle4'],
         )
 
     async def test_edgeql_scope_nested_09(self):
@@ -818,8 +825,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 FOR Card in Card
                 SELECT Card.name ++ <str>count(Card.owners);
             ''',
-            {'Imp1', 'Dragon2', 'Bog monster4', 'Giant turtle4', 'Dwarf2',
-             'Golem3', 'Sprite2', 'Giant eagle2', 'Djinn2'}
+            {
+                'Imp1',
+                'Dragon2',
+                'Bog monster4',
+                'Giant turtle4',
+                'Dwarf2',
+                'Golem3',
+                'Sprite2',
+                'Giant eagle2',
+                'Djinn2',
+            },
         )
 
     async def test_edgeql_scope_nested_11(self):
@@ -831,8 +847,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT Card.name ++
                        <str>count((WITH A := Card SELECT A).owners);
             ''',
-            {'Imp1', 'Dragon2', 'Bog monster4', 'Giant turtle4', 'Dwarf2',
-             'Golem3', 'Sprite2', 'Giant eagle2', 'Djinn2'},
+            {
+                'Imp1',
+                'Dragon2',
+                'Bog monster4',
+                'Giant turtle4',
+                'Dwarf2',
+                'Golem3',
+                'Sprite2',
+                'Giant eagle2',
+                'Djinn2',
+            },
         )
 
         await self.assert_query_result(
@@ -841,8 +866,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT Card.name ++
                        <str>count((WITH A := Card SELECT A.owners));
             ''',
-            {'Imp1', 'Dragon2', 'Bog monster4', 'Giant turtle4', 'Dwarf2',
-             'Golem3', 'Sprite2', 'Giant eagle2', 'Djinn2'},
+            {
+                'Imp1',
+                'Dragon2',
+                'Bog monster4',
+                'Giant turtle4',
+                'Dwarf2',
+                'Golem3',
+                'Sprite2',
+                'Giant eagle2',
+                'Djinn2',
+            },
         )
 
         await self.assert_query_result(
@@ -851,8 +885,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT <str>count((WITH A := Card SELECT A.owners)) ++
                        Card.name;
             ''',
-            {'1Imp', '2Dragon', '4Bog monster', '4Giant turtle', '2Dwarf',
-             '3Golem', '2Sprite', '2Giant eagle', '2Djinn'},
+            {
+                '1Imp',
+                '2Dragon',
+                '4Bog monster',
+                '4Giant turtle',
+                '2Dwarf',
+                '3Golem',
+                '2Sprite',
+                '2Giant eagle',
+                '2Djinn',
+            },
         )
 
         await self.assert_query_result(
@@ -863,9 +906,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT (Card.name,
                         count((WITH A := Card SELECT A).owners));
             ''',
-            [["Bog monster", 4], ["Djinn", 2], ["Dragon", 2], ["Dwarf", 2],
-             ["Giant eagle", 2], ["Giant turtle", 4], ["Golem", 3],
-             ["Imp", 1], ["Sprite", 2]],
+            [
+                ["Bog monster", 4],
+                ["Djinn", 2],
+                ["Dragon", 2],
+                ["Dwarf", 2],
+                ["Giant eagle", 2],
+                ["Giant turtle", 4],
+                ["Golem", 3],
+                ["Imp", 1],
+                ["Sprite", 2],
+            ],
             sort=True,
         )
 
@@ -885,7 +936,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 }
                 FILTER Card.name = 'Dragon';
             ''',
-            [{'name': 'Dragon', 'owner': []}]
+            [{'name': 'Dragon', 'owner': []}],
         )
 
     async def test_edgeql_scope_detached_01(self):
@@ -908,11 +959,13 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT User.name ++ DETACHED User.name ++
                        User.name ++ DETACHED User.name;
             """,
-            {a1 + b + a2 + c
+            {
+                a1 + b + a2 + c
                 for a1 in names
                 for a2 in names
                 for b in names
-                for c in names},
+                for c in names
+            },
         )
 
     async def test_edgeql_scope_detached_02(self):
@@ -950,11 +1003,13 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     U2 := DETACHED User.name
                 SELECT User.name ++ U0 ++ U1 ++ U2;
             """,
-            {a + b + c + d
+            {
+                a + b + c + d
                 for a in names
                 for b in names
                 for c in names
-                for d in names},
+                for d in names
+            },
         )
 
         await self.assert_query_result(
@@ -974,19 +1029,21 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 # product of names (expecting 256 results)
                 SELECT U2 ++ U3;
             """,
-            {a + b + c + d
+            {
+                a + b + c + d
                 for a in names
                 for b in names
                 for c in names
-                for d in names},
+                for d in names
+            },
         )
 
     async def test_edgeql_scope_detached_04(self):
         # Natural, but incorrect way of getting a bunch of friends
         # filtered by @nickname.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'User' changes the interpretation of 'User'"):
+            edgedb.QueryError, r"'User' changes the interpretation of 'User'"
+        ):
             async with self.con.transaction():
                 await self.con.query(r"""
                     SELECT User.friends
@@ -996,8 +1053,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
         # The above query is illegal, but the reason why may be
         # more obvious with the equivalent query below.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'User' changes the interpretation of 'User'"):
+            edgedb.QueryError, r"'User' changes the interpretation of 'User'"
+        ):
             await self.con.query(r"""
                 SELECT User.friends
                 FILTER (
@@ -1133,7 +1190,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Dave'},
                     ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_scope_detached_07(self):
@@ -1164,7 +1221,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 };
             ''',
             res,
-            sort=lambda x: x['name']
+            sort=lambda x: x['name'],
         )
 
     async def test_edgeql_scope_detached_08(self):
@@ -1194,7 +1251,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 };
             ''',
             res,
-            sort=lambda x: x['name']
+            sort=lambda x: x['name'],
         )
 
         await self.assert_query_result(
@@ -1211,13 +1268,13 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             res,
             implicit_limit=100,
-            sort=lambda x: x['name']
+            sort=lambda x: x['name'],
         )
 
     async def test_edgeql_scope_detached_09(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'only singletons are allowed'):
-
+            edgedb.QueryError, r'only singletons are allowed'
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     SELECT DETACHED User {name}
@@ -1236,7 +1293,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {'name': 'Bob'},
                 {'name': 'Carol'},
                 {'name': 'Dave'},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_detached_10(self):
@@ -1321,7 +1378,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ['Bob', {'x': ['Alice', 'Bob', 'Carol', 'Dave']}],
                 ['Carol', {'x': ['Alice', 'Bob', 'Carol', 'Dave']}],
                 ['Dave', {'x': ['Alice', 'Bob', 'Carol', 'Dave']}],
-            ]
+            ],
         )
 
     async def test_edgeql_scope_detached_12(self):
@@ -1334,7 +1391,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {"name2": "Bob"},
                 {"name2": "Carol"},
                 {"name2": "Dave"},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_detached_13(self):
@@ -1348,7 +1405,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {"name2": "Bob"},
                 {"name2": "Carol"},
                 {"name2": "Dave"},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_detached_14(self):
@@ -1362,7 +1419,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {"names": {"Alice", "Bob", "Carol", "Dave"}},
                 {"names": {"Alice", "Bob", "Carol", "Dave"}},
                 {"names": {"Alice", "Bob", "Carol", "Dave"}},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_union_01(self):
@@ -1373,7 +1430,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT len(User.name) UNION count(User);
             ''',
             [3, 4, 4, 5, 5],
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -1381,7 +1438,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT {len(User.name), count(User)};
             ''',
             [3, 4, 4, 5, 5],
-            sort=True
+            sort=True,
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -1433,7 +1490,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ['Alice', 'Dragon', 11],
                 ['Alice', 'Giant turtle', 11],
                 ['Alice', 'Imp', 11],
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1447,7 +1504,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 ['Alice', 'Dragon', 5],
                 ['Alice', 'Giant turtle', 3],
                 ['Alice', 'Imp', 1],
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -1461,9 +1518,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     alice := (SELECT User FILTER User.name = 'Alice')
                 } FILTER Card.alice != User AND Card.name = 'Bog monster';
             """,
-            [
-                {'name': 'Bog monster'}
-            ]
+            [{'name': 'Bog monster'}],
         )
 
     async def test_edgeql_scope_computables_03(self):
@@ -1488,7 +1543,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {'name': 'Imp', 'elemental_cost': '1 Fire'},
                     ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_computables_04(self):
@@ -1511,16 +1566,25 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     'deck': [
                         {
                             'name': 'Bog monster',
-                            'owners': [{'name': 'Alice'}, {'name': 'Bob'},
-                                       {'name': 'Carol'}, {'name': 'Dave'}],
+                            'owners': [
+                                {'name': 'Alice'},
+                                {'name': 'Bob'},
+                                {'name': 'Carol'},
+                                {'name': 'Dave'},
+                            ],
                         },
                         {
                             'name': 'Dragon',
-                            'owners': [{'name': 'Alice'}, {'name': 'Dave'}]},
+                            'owners': [{'name': 'Alice'}, {'name': 'Dave'}],
+                        },
                         {
                             'name': 'Giant turtle',
-                            'owners': [{'name': 'Alice'}, {'name': 'Bob'},
-                                       {'name': 'Carol'}, {'name': 'Dave'}],
+                            'owners': [
+                                {'name': 'Alice'},
+                                {'name': 'Bob'},
+                                {'name': 'Carol'},
+                                {'name': 'Dave'},
+                            ],
                         },
                         {
                             'name': 'Imp',
@@ -1528,7 +1592,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         },
                     ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_computables_05(self):
@@ -1566,7 +1630,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         },
                     ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_computables_06(self):
@@ -1590,7 +1654,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         },
                     ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_computables_07a(self):
@@ -1638,8 +1702,13 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT _ := U.unowned.name ORDER BY _;
             """,
             [
-                'Djinn', 'Dragon', 'Dwarf', 'Giant eagle',
-                'Golem', 'Imp', 'Sprite',
+                'Djinn',
+                'Dragon',
+                'Dwarf',
+                'Giant eagle',
+                'Golem',
+                'Imp',
+                'Sprite',
             ],
         )
 
@@ -1652,7 +1721,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 SELECT _ := U.unowned.name ORDER BY _;
             """,
             [
-                'Dragon', 'Dwarf', 'Imp',
+                'Dragon',
+                'Dwarf',
+                'Imp',
             ],
         )
 
@@ -1704,8 +1775,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
             [
                 {"name": "1st", "owner_count": 0},
                 {"name": "Alice", "owner_count": 0},
-                {"name": "Dwarf", "owner_count": 2}
-            ]
+                {"name": "Dwarf", "owner_count": 2},
+            ],
         )
 
         await self.assert_query_result(
@@ -1717,8 +1788,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
             [
                 {"name": "1st", "owner_count": 0},
                 {"name": "Alice", "owner_count": 0},
-                {"name": "Dwarf", "owner_count": 2}
-            ]
+                {"name": "Dwarf", "owner_count": 2},
+            ],
         )
 
     async def test_edgeql_scope_computables_13(self):
@@ -1731,7 +1802,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             """,
             [
                 {"title": "Alice"},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_with_01(self):
@@ -1755,8 +1826,17 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 # this is a Card.name now
                 SELECT User.name;
             """,
-            {'Imp', 'Dragon', 'Bog monster', 'Giant turtle', 'Dwarf', 'Golem',
-             'Sprite', 'Giant eagle', 'Djinn'},
+            {
+                'Imp',
+                'Dragon',
+                'Bog monster',
+                'Giant turtle',
+                'Dwarf',
+                'Golem',
+                'Sprite',
+                'Giant eagle',
+                'Djinn',
+            },
         )
 
         await self.assert_query_result(
@@ -1782,7 +1862,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     Y := X + 1,
                 SELECT _ := (X, Y) ORDER BY _;
             """,
-            [[1, 2], [1, 3], [2, 2], [2, 3]]
+            [[1, 2], [1, 3], [2, 2], [2, 3]],
         )
 
     async def test_edgeql_scope_with_03(self):
@@ -1798,13 +1878,12 @@ class TestEdgeQLScope(tb.QueryTestCase):
         )
 
     async def test_edgeql_scope_unused_with_def_01(self):
-
         await self.assert_query_result(
             """
                 WITH foo := 1
                 SELECT 1;
             """,
-            [1]
+            [1],
         )
 
     async def test_edgeql_scope_nested_computable_01(self):
@@ -1861,7 +1940,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {"name": "Alice", "specials": []},
                 {"name": "Bob", "specials": []},
                 {"name": "Carol", "specials": ["Djinn"]},
-                {"name": "Dave", "specials": ["Djinn"]}
+                {"name": "Dave", "specials": ["Djinn"]},
             ],
         )
 
@@ -1986,9 +2065,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         "awards": tb.bag([{"name": "1st"}, {"name": "3rd"}]),
                         "name": "Dragon",
                     },
-                    "name": "Alice"
+                    "name": "Alice",
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_3x_nested_materialized_02(self):
@@ -2011,9 +2090,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
             [
                 {
                     "avatar": {"awd": {"name": "1st"}, "name": "Dragon"},
-                    "name": "Alice"
+                    "name": "Alice",
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_source_rebind_01(self):
@@ -2063,14 +2142,16 @@ class TestEdgeQLScope(tb.QueryTestCase):
             """,
             [
                 {
-                    "cards": tb.bag([
-                        {"name": "Imp"},
-                        {"name": "Dragon"},
-                        {"name": "Bog monster"},
-                        {"name": "Giant turtle"}
-                    ]),
+                    "cards": tb.bag(
+                        [
+                            {"name": "Imp"},
+                            {"name": "Dragon"},
+                            {"name": "Bog monster"},
+                            {"name": "Giant turtle"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_source_rebind_03b(self):
@@ -2089,14 +2170,16 @@ class TestEdgeQLScope(tb.QueryTestCase):
             """,
             [
                 {
-                    "cards": tb.bag([
-                        {"name": "Imp"},
-                        {"name": "Dragon"},
-                        {"name": "Bog monster"},
-                        {"name": "Giant turtle"}
-                    ]),
+                    "cards": tb.bag(
+                        [
+                            {"name": "Imp"},
+                            {"name": "Dragon"},
+                            {"name": "Bog monster"},
+                            {"name": "Giant turtle"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_source_rebind_04(self):
@@ -2110,10 +2193,12 @@ class TestEdgeQLScope(tb.QueryTestCase):
                      {name },
                 SELECT A { name, tag };
             """,
-            tb.bag([
-                {"name": "Alice", "tag": "A"},
-                {"name": "Bob", "tag": "B"},
-            ])
+            tb.bag(
+                [
+                    {"name": "Alice", "tag": "A"},
+                    {"name": "Bob", "tag": "B"},
+                ]
+            ),
         )
 
     async def test_edgeql_scope_source_rebind_05(self):
@@ -2126,11 +2211,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 A := (SELECT U FILTER .name = 'Alice')
                 SELECT A {cards: {name}};
             """,
-            [
-                {
-                    "cards": {"name": "Bog monster"}
-                }
-            ]
+            [{"cards": {"name": "Bog monster"}}],
         )
 
     async def test_edgeql_scope_ref_outer_01(self):
@@ -2149,10 +2230,10 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {"tag": "Bog monster - Alice"},
                         {"tag": "Dragon - Alice"},
                         {"tag": "Giant turtle - Alice"},
-                        {"tag": "Imp - Alice"}
+                        {"tag": "Imp - Alice"},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_02a(self):
@@ -2164,14 +2245,16 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     })
                 } FILTER .name = 'Alice' AND EXISTS .cards;
             """,
-            [{
-                "cards": [
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]}
-                ]
-            }],
+            [
+                {
+                    "cards": [
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_02b(self):
@@ -2183,14 +2266,16 @@ class TestEdgeQLScope(tb.QueryTestCase):
                     })
                 }) FILTER .name = 'Alice' AND EXISTS .cards;
             """,
-            [{
-                "cards": [
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]},
-                    {"tag": ["Alice"]}
-                ]
-            }],
+            [
+                {
+                    "cards": [
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                        {"tag": ["Alice"]},
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_03(self):
@@ -2208,8 +2293,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 "Alice - Bog monster",
                 "Alice - Dragon",
                 "Alice - Giant turtle",
-                "Alice - Imp"
-            ]
+                "Alice - Imp",
+            ],
         )
 
         await self.assert_query_result(
@@ -2226,8 +2311,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 "Alice - Bog monster",
                 "Alice - Dragon",
                 "Alice - Giant turtle",
-                "Alice - Imp"
-            ]
+                "Alice - Imp",
+            ],
         )
 
         await self.assert_query_result(
@@ -2245,8 +2330,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 "Alice - Bog monster",
                 "Alice - Dragon",
                 "Alice - Giant turtle",
-                "Alice - Imp"
-            ]
+                "Alice - Imp",
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_04(self):
@@ -2267,8 +2352,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 "Alice - Bog monster",
                 "Alice - Dragon",
                 "Alice - Giant turtle",
-                "Alice - Imp"
-            ]
+                "Alice - Imp",
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_05a(self):
@@ -2299,9 +2384,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         "Bob - Giant turtle",
                         "Bob - Dwarf",
                         "Bob - Golem",
-                    }
+                    },
                 }
-            ]
+            ],
         )
 
     @test.xfail("""
@@ -2346,9 +2431,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         "Bob - Giant turtle",
                         "Bob - Dwarf",
                         "Bob - Golem",
-                    }
+                    },
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_06a(self):
@@ -2380,9 +2465,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         "Bob - Giant turtle",
                         "Bob - Dwarf",
                         "Bob - Golem",
-                    }
+                    },
                 }
-            ]
+            ],
         )
 
     @test.xerror("can't find materialized set")
@@ -2417,9 +2502,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         "Bob - Giant turtle",
                         "Bob - Dwarf",
                         "Bob - Golem",
-                    }
+                    },
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_07(self):
@@ -2460,8 +2545,8 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 {"avatar": None},
                 {"avatar": None},
                 {"avatar": {"tag": "Alice - Dragon"}},
-                {"avatar": {"tag": "Dave - Djinn"}}
-            ]
+                {"avatar": {"tag": "Dave - Djinn"}},
+            ],
         )
 
     async def test_edgeql_scope_ref_outer_09(self):
@@ -2474,7 +2559,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             """,
             [
                 {"avatar": {"tag": "Alice - Dragon"}},
-            ]
+            ],
         )
 
     async def test_edgeql_scope_tuple_correlate_03(self):
@@ -2483,7 +2568,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 WITH X := (User, User.friends)
                 SELECT count(X.0.friends.name ++ X.1.name);
             """,
-            [36]
+            [36],
         )
 
     async def test_edgeql_scope_tuple_correlate_04(self):
@@ -2495,7 +2580,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 WITH X := (User { friends }, User.friends)
                 SELECT count(X.0.friends.name ++ X.1.name);
             """,
-            [36]
+            [36],
         )
 
     async def test_edgeql_select_outer_rebind_01(self):
@@ -2522,10 +2607,10 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {"el2": "Water", "name": "Bog monster"},
                         {"el2": "Fire", "name": "Dragon"},
                         {"el2": "Water", "name": "Giant turtle"},
-                        {"el2": "Fire", "name": "Imp"}
+                        {"el2": "Fire", "name": "Imp"},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_select_outer_rebind_02a(self):
@@ -2546,7 +2631,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
               )
             } FILTER .name = 'Djinn';
             ''',
-            [{"name": "Djinn", "owners": [{"n": "Carol"}, {"n": "Dave"}]}]
+            [{"name": "Djinn", "owners": [{"n": "Carol"}, {"n": "Dave"}]}],
         )
 
     async def test_edgeql_select_outer_rebind_02b(self):
@@ -2567,7 +2652,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
               )
             } FILTER .name = 'Djinn';
             ''',
-            [{"name": "Djinn", "foo": [{"n": "Carol"}, {"n": "Dave"}]}]
+            [{"name": "Djinn", "foo": [{"n": "Carol"}, {"n": "Dave"}]}],
         )
 
     async def test_edgeql_select_outer_rebind_03(self):
@@ -2594,10 +2679,10 @@ class TestEdgeQLScope(tb.QueryTestCase):
                         {"cnt2": 3, "name": "Bog monster"},
                         {"cnt2": 2, "name": "Dragon"},
                         {"cnt2": 3, "name": "Giant turtle"},
-                        {"cnt2": 2, "name": "Imp"}
+                        {"cnt2": 2, "name": "Imp"},
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_select_outer_rebind_04(self):
@@ -2621,13 +2706,23 @@ class TestEdgeQLScope(tb.QueryTestCase):
             } order by .name
             ''',
             [
-                {"avatar": {
-                    "name": "Dragon", "retag": "Dragon-Best", "t2": "Best"}},
+                {
+                    "avatar": {
+                        "name": "Dragon",
+                        "retag": "Dragon-Best",
+                        "t2": "Best",
+                    }
+                },
                 {"avatar": None},
                 {"avatar": None},
-                {"avatar": {
-                    "name": "Djinn", "retag": "Djinn-Wow", "t2": "Wow"}}
-            ]
+                {
+                    "avatar": {
+                        "name": "Djinn",
+                        "retag": "Djinn-Wow",
+                        "t2": "Wow",
+                    }
+                },
+            ],
         )
 
     async def test_edgeql_select_outer_rebind_05(self):
@@ -2657,9 +2752,9 @@ class TestEdgeQLScope(tb.QueryTestCase):
             [
                 {
                     "avatar": {"name": "Dragon", "nameLen": 6, "nameLen2": 6},
-                    "name": "Alice"
+                    "name": "Alice",
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_select_outer_rebind_06(self):
@@ -2685,7 +2780,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
               )
             );
             ''',
-            [{"name": "Dragon", "nameLen": 6, "nameLen2": 6}]
+            [{"name": "Dragon", "nameLen": 6, "nameLen2": 6}],
         )
 
     async def test_edgeql_select_outer_rebind_07a(self):
@@ -2704,16 +2799,24 @@ class TestEdgeQLScope(tb.QueryTestCase):
                   )
                 }) filter .name ILIKE 'Alice%');
             ''',
-            tb.bag([
-                {
-                    "deck": tb.bag([
-                        {"awards": [{"name": "2nd"}]},
-                        {"awards": tb.bag([{"name": "1st"}, {"name": "3rd"}])},
-                        {"awards": []},
-                        {"awards": []}
-                    ])
-                }
-            ])
+            tb.bag(
+                [
+                    {
+                        "deck": tb.bag(
+                            [
+                                {"awards": [{"name": "2nd"}]},
+                                {
+                                    "awards": tb.bag(
+                                        [{"name": "1st"}, {"name": "3rd"}]
+                                    )
+                                },
+                                {"awards": []},
+                                {"awards": []},
+                            ]
+                        )
+                    }
+                ]
+            ),
         )
 
     async def test_edgeql_select_outer_rebind_07b(self):
@@ -2732,16 +2835,24 @@ class TestEdgeQLScope(tb.QueryTestCase):
                   )
                 }) filter .name ILIKE 'Alice%');
             ''',
-            tb.bag([
-                {
-                    "deck": tb.bag([
-                        {"awards": [{"name": "2nd"}]},
-                        {"awards": tb.bag([{"name": "1st"}, {"name": "3rd"}])},
-                        {"awards": []},
-                        {"awards": []}
-                    ])
-                }
-            ])
+            tb.bag(
+                [
+                    {
+                        "deck": tb.bag(
+                            [
+                                {"awards": [{"name": "2nd"}]},
+                                {
+                                    "awards": tb.bag(
+                                        [{"name": "1st"}, {"name": "3rd"}]
+                                    )
+                                },
+                                {"awards": []},
+                                {"awards": []},
+                            ]
+                        )
+                    }
+                ]
+            ),
         )
 
     async def test_edgeql_scope_linkprop_rebinding_01(self):
@@ -2767,14 +2878,16 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "deck": tb.bag([
-                        {"@count": 2},
-                        {"@count": 2},
-                        {"@count": 3},
-                        {"@count": 3},
-                    ])
+                    "deck": tb.bag(
+                        [
+                            {"@count": 2},
+                            {"@count": 2},
+                            {"@count": 3},
+                            {"@count": 3},
+                        ]
+                    )
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_for_with_computable_01(self):
@@ -2790,12 +2903,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
               namelen
             };
             ''',
-            tb.bag([
-                {"name": "Alice", "namelen": 5},
-                {"name": "Bob", "namelen": 3},
-                {"name": "Carol", "namelen": 5},
-                {"name": "Dave", "namelen": 4}
-            ])
+            tb.bag(
+                [
+                    {"name": "Alice", "namelen": 5},
+                    {"name": "Bob", "namelen": 3},
+                    {"name": "Carol", "namelen": 5},
+                    {"name": "Dave", "namelen": 4},
+                ]
+            ),
         )
 
     async def test_edgeql_scope_for_with_computable_02(self):
@@ -2811,12 +2926,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
               namelen
             };
             ''',
-            tb.bag([
-                {"name": "Alice", "namelen": 5},
-                {"name": "Bob", "namelen": 3},
-                {"name": "Carol", "namelen": 5},
-                {"name": "Dave", "namelen": 4}
-            ])
+            tb.bag(
+                [
+                    {"name": "Alice", "namelen": 5},
+                    {"name": "Bob", "namelen": 3},
+                    {"name": "Carol", "namelen": 5},
+                    {"name": "Dave", "namelen": 4},
+                ]
+            ),
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -2825,9 +2942,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             r'''
                 select User { name } filter [is Bot].deck.name = 'Dragon'
             ''',
-            [
-                {"name": "Dave"}
-            ]
+            [{"name": "Dave"}],
         )
 
     async def test_edgeql_computable_join_01(self):
@@ -2841,7 +2956,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             }
             filter .name = 'Dragon';
             ''',
-            [{"w": [{"name": "1st"}]}]
+            [{"w": [{"name": "1st"}]}],
         )
 
     async def test_edgeql_scope_intersection_semijoin_01(self):
@@ -2859,10 +2974,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 filter .name = 'Djinn';
             ''',
             [
-                {"name": "Djinn", "owners": tb.bag([
-                    {"name": "Carol"}, {"name": "Dave"}])},
-                {"name": "Djinn", "owners": tb.bag([
-                    {"name": "Carol"}, {"name": "Dave"}])},
+                {
+                    "name": "Djinn",
+                    "owners": tb.bag([{"name": "Carol"}, {"name": "Dave"}]),
+                },
+                {
+                    "name": "Djinn",
+                    "owners": tb.bag([{"name": "Carol"}, {"name": "Dave"}]),
+                },
             ],
         )
 
@@ -2879,10 +2998,12 @@ class TestEdgeQLScope(tb.QueryTestCase):
                 with U := User,
                 select U { name } filter exists .lcards;
             ''',
-            tb.bag([
-                {"name": "Bob"},
-                {"name": "Dave"},
-            ]),
+            tb.bag(
+                [
+                    {"name": "Bob"},
+                    {"name": "Dave"},
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -2891,13 +3012,15 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "lcards": tb.bag([
-                        {"name": "Dragon"},
-                        {"name": "Dwarf"},
-                        {"name": "Djinn"}
-                    ])
+                    "lcards": tb.bag(
+                        [
+                            {"name": "Dragon"},
+                            {"name": "Dwarf"},
+                            {"name": "Djinn"},
+                        ]
+                    )
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_scope_schema_computed_02(self):
@@ -2912,7 +3035,7 @@ class TestEdgeQLScope(tb.QueryTestCase):
             r'''
                 select User { foo }
             ''',
-            [{'foo': 4}, {'foo': 4}, {'foo': 4}, {'foo': 4}]
+            [{'foo': 4}, {'foo': 4}, {'foo': 4}, {'foo': 4}],
         )
 
     async def test_edgeql_scope_linkprop_assert_01(self):
@@ -2925,12 +3048,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "cards": tb.bag([
-                        {"c": 2, "name": "Imp"},
-                        {"c": 2, "name": "Dragon"},
-                        {"c": 3, "name": "Bog monster"},
-                        {"c": 3, "name": "Giant turtle"}
-                    ])
+                    "cards": tb.bag(
+                        [
+                            {"c": 2, "name": "Imp"},
+                            {"c": 2, "name": "Dragon"},
+                            {"c": 3, "name": "Bog monster"},
+                            {"c": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )
@@ -2944,12 +3069,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "cards": tb.bag([
-                        {"@c": 2, "name": "Imp"},
-                        {"@c": 2, "name": "Dragon"},
-                        {"@c": 3, "name": "Bog monster"},
-                        {"@c": 3, "name": "Giant turtle"}
-                    ])
+                    "cards": tb.bag(
+                        [
+                            {"@c": 2, "name": "Imp"},
+                            {"@c": 2, "name": "Dragon"},
+                            {"@c": 3, "name": "Bog monster"},
+                            {"@c": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )
@@ -2975,12 +3102,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "deck": tb.bag([
-                        {"@count": 2, "name": "Imp"},
-                        {"@count": 2, "name": "Dragon"},
-                        {"@count": 3, "name": "Bog monster"},
-                        {"@count": 3, "name": "Giant turtle"}
-                    ])
+                    "deck": tb.bag(
+                        [
+                            {"@count": 2, "name": "Imp"},
+                            {"@count": 2, "name": "Dragon"},
+                            {"@count": 3, "name": "Bog monster"},
+                            {"@count": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )
@@ -2995,12 +3124,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "cards": tb.bag([
-                        {"@count": 2, "name": "Imp"},
-                        {"@count": 2, "name": "Dragon"},
-                        {"@count": 3, "name": "Bog monster"},
-                        {"@count": 3, "name": "Giant turtle"}
-                    ])
+                    "cards": tb.bag(
+                        [
+                            {"@count": 2, "name": "Imp"},
+                            {"@count": 2, "name": "Dragon"},
+                            {"@count": 3, "name": "Bog monster"},
+                            {"@count": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )
@@ -3015,12 +3146,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "cards": tb.bag([
-                        {"c": 2, "name": "Imp"},
-                        {"c": 2, "name": "Dragon"},
-                        {"c": 3, "name": "Bog monster"},
-                        {"c": 3, "name": "Giant turtle"}
-                    ])
+                    "cards": tb.bag(
+                        [
+                            {"c": 2, "name": "Imp"},
+                            {"c": 2, "name": "Dragon"},
+                            {"c": 3, "name": "Bog monster"},
+                            {"c": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )
@@ -3034,12 +3167,14 @@ class TestEdgeQLScope(tb.QueryTestCase):
             ''',
             [
                 {
-                    "cards": tb.bag([
-                        {"c": 2, "name": "Imp"},
-                        {"c": 2, "name": "Dragon"},
-                        {"c": 3, "name": "Bog monster"},
-                        {"c": 3, "name": "Giant turtle"}
-                    ])
+                    "cards": tb.bag(
+                        [
+                            {"c": 2, "name": "Imp"},
+                            {"c": 2, "name": "Dragon"},
+                            {"c": 3, "name": "Bog monster"},
+                            {"c": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
             ],
         )

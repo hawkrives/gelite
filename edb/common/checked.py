@@ -50,7 +50,6 @@ __all__ = [
 
 
 class ParametricContainer:
-
     types: ClassVar[Optional[tuple[type, ...]]] = None
 
     def __reduce__(self) -> tuple[Any, ...]:

@@ -40,7 +40,6 @@ FREE_SHAPE_EXPR = qlast.DetachedExpr(
 
 
 class ParameterInliner(ast.NodeTransformer):
-
     def __init__(self, args_map: Mapping[str, qlast.Base]) -> None:
         super().__init__()
         self.args_map = args_map
@@ -65,7 +64,6 @@ class ParameterInliner(ast.NodeTransformer):
 def inline_parameters(
     ql_expr: qlast.Base, args: Mapping[str, qlast.Base]
 ) -> None:
-
     inliner = ParameterInliner(args)
     inliner.visit(ql_expr)
 
@@ -74,9 +72,8 @@ def index_parameters(
     ql_args: list[qlast.Base],
     *,
     parameters: s_func.ParameterLikeList,
-    schema: s_schema.Schema
+    schema: s_schema.Schema,
 ) -> dict[str, qlast.Base]:
-
     result: dict[str, qlast.Base] = {}
     varargs: Optional[list[qlast.Expr]] = None
     variadic = parameters.find_variadic(schema)
@@ -105,9 +102,7 @@ def index_parameters(
         if variadic and variadic_num == i:
             assert varargs is None
             varargs = []
-            result[p.get_parameter_name(schema)] = qlast.Array(
-                elements=varargs
-            )
+            result[p.get_parameter_name(schema)] = qlast.Array(elements=varargs)
 
         if varargs is not None:
             varargs.append(e)
@@ -118,7 +113,6 @@ def index_parameters(
 
 
 class AnchorInliner(ast.NodeTransformer):
-
     def __init__(self, anchors: Mapping[str, qlast.Base]) -> None:
         super().__init__()
         self.anchors = anchors
@@ -140,7 +134,6 @@ class AnchorInliner(ast.NodeTransformer):
 def inline_anchors(
     ql_expr: qlast.Base, anchors: Mapping[Any, qlast.Base]
 ) -> None:
-
     inliner = AnchorInliner(anchors)
     inliner.visit(ql_expr)
 
@@ -184,10 +177,12 @@ def subject_paths_substitute(
             and len(path.steps)
             and isinstance(path.steps[1], qlast.Ptr)
         ):
-            path.steps[0:2] = [subject_paths_substitute(
-                subject_ptrs[path.steps[1].name],
-                subject_ptrs,
-            )]
+            path.steps[0:2] = [
+                subject_paths_substitute(
+                    subject_ptrs[path.steps[1].name],
+                    subject_ptrs,
+                )
+            ]
     return ast
 
 

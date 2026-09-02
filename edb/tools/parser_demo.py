@@ -115,5 +115,5 @@ QUERIES = [
             set default := (global foo);
         }
     }; }
-    '''
+    ''',
 ]

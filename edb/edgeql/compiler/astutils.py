@@ -19,7 +19,6 @@
 
 """EdgeQL compiler helpers for AST classification and basic transforms."""
 
-
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional, TYPE_CHECKING
@@ -34,7 +33,6 @@ from edb.schema import name as sn
 from edb.schema import functions as s_func
 
 if TYPE_CHECKING:
-
     from edb.schema import functions as s_func
 
     from . import context
@@ -64,7 +62,6 @@ def extend_binop(
 
 
 def ensure_ql_query(expr: qlast.Expr) -> qlast.Query:
-
     # a sanity check added after refactoring AST
     assert isinstance(expr, qlast.Expr)
 
@@ -101,8 +98,8 @@ def is_nontrivial_shape_element(shape_el: qlast.ShapeElement) -> bool:
         or shape_el.limit
         or shape_el.compexpr
         or (
-            shape_el.elements and
-            any(is_nontrivial_shape_element(el) for el in shape_el.elements)
+            shape_el.elements
+            and any(is_nontrivial_shape_element(el) for el in shape_el.elements)
         )
     )
 
@@ -121,12 +118,12 @@ def extend_path(expr: qlast.Expr, field: str) -> qlast.Path:
 
 @dataclass
 class Params:
-    cast_params: list[
-        tuple[qlast.TypeCast, dict[Optional[str], str]]
-    ] = field(default_factory=list)
-    shaped_params: list[
-        tuple[qlast.QueryParameter, qlast.Shape]
-    ] = field(default_factory=list)
+    cast_params: list[tuple[qlast.TypeCast, dict[Optional[str], str]]] = field(
+        default_factory=list
+    )
+    shaped_params: list[tuple[qlast.QueryParameter, qlast.Shape]] = field(
+        default_factory=list
+    )
     loose_params: list[qlast.QueryParameter] = field(default_factory=list)
 
 
@@ -135,6 +132,7 @@ class FindParams(ast.NodeVisitor):
 
     The annoying bit is that we also need all the modaliases.
     """
+
     def __init__(self, modaliases: dict[Optional[str], str]) -> None:
         super().__init__()
         self.params: Params = Params()
@@ -148,7 +146,7 @@ class FindParams(ast.NodeVisitor):
 
     def _visit_with_stmt(self, n: qlast.Statement) -> None:
         old = self.modaliases
-        for with_entry in (n.aliases or ()):
+        for with_entry in n.aliases or ():
             if isinstance(with_entry, qlast.ModuleAliasDecl):
                 self.modaliases = self.modaliases.copy()
                 self.modaliases[with_entry.alias] = with_entry.module
@@ -204,11 +202,7 @@ class alias_view(
         raise view_patterns.NoMatch
 
 
-def contains_dml(
-    ql_expr: qlast.Base,
-    *,
-    ctx: context.ContextLevel
-    ) -> bool:
+def contains_dml(ql_expr: qlast.Base, *, ctx: context.ContextLevel) -> bool:
     """Check whether a expression contains any DML in a subtree."""
     # If this ends up being a perf problem, we can use a visitor
     # directly and cache.
@@ -217,7 +211,8 @@ def contains_dml(
         return True
 
     res = ast.find_children(
-        ql_expr, qlast.Base,
+        ql_expr,
+        qlast.Base,
         lambda x: (
             isinstance(x, dml_types)
             or (isinstance(x, qlast.IRAnchor) and x.has_dml)

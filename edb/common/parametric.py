@@ -51,7 +51,6 @@ except ImportError:
 
 
 class ParametricType:
-
     types: ClassVar[Optional[tuple[type, ...]]] = None
     orig_args: ClassVar[Optional[tuple[type, ...]]] = None
     _forward_refs: ClassVar[dict[str, tuple[int, str]]] = {}
@@ -82,9 +81,7 @@ class ParametricType:
         params = getattr(cls, '__parameters__', None)
 
         if not params:
-            raise TypeError(
-                f'{cls} must be declared as Generic'
-            )
+            raise TypeError(f'{cls} must be declared as Generic')
 
         mod = sys.modules[cls.__module__]
         annos = get_type_hints(cls, mod.__dict__)
@@ -171,8 +168,7 @@ class ParametricType:
                     continue
                 if not typing_inspect.is_typevar(arg):
                     raise TypeError(
-                        f'{b.__name__} expects all arguments to be'
-                        f' TypeVars'
+                        f'{b.__name__} expects all arguments to be TypeVars'
                     )
 
                 base_typevar = base_params[i]
@@ -189,15 +185,14 @@ class ParametricType:
             cls._type_param_map = subclass_map
 
         cls._non_type_params = {
-            i: p for i, p in enumerate(generic_params)
+            i: p
+            for i, p in enumerate(generic_params)
             if p not in cls._type_param_map
         }
 
     def __init__(self) -> None:
         if self._forward_refs:
-            raise TypeError(
-                f"{type(self)!r} unresolved type parameters"
-            )
+            raise TypeError(f"{type(self)!r} unresolved type parameters")
         if self.types is None:
             raise TypeError(
                 f"{type(self)!r} must be parametrized to instantiate"
@@ -276,8 +271,7 @@ class ParametricType:
                 }
 
                 if not forward_refs:
-                    raise TypeError(
-                        f"{cls!r} expects types as type parameters")
+                    raise TypeError(f"{cls!r} expects types as type parameters")
 
         result = type(name, bases, type_dict)
         assert issubclass(result, ParametricType)
@@ -291,9 +285,7 @@ class ParametricType:
     @classmethod
     def resolve_types(cls, globalns: dict[str, Any]) -> None:
         if cls.types is None:
-            raise TypeError(
-                f"{cls!r} is not parametrized"
-            )
+            raise TypeError(f"{cls!r} is not parametrized")
 
         if not cls._forward_refs:
             return

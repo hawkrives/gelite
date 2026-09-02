@@ -62,7 +62,6 @@ def copy_construct_inheritance(
     constraints: Sequence[e.Constraint],
     indexes: Sequence[Sequence[str]],
 ) -> tuple[e.ObjectTp, Sequence[e.Constraint], Sequence[Sequence[str]]]:
-
     definitions = [
         mops.resolve_type_def(ctx, super_type) for super_type in super_types
     ]
@@ -153,9 +152,9 @@ def module_inheritance_populate(
                         result_vals = {**result_vals, t_name: t_me}
                 elif isinstance(typedef, e.ScalarTp):
                     # insert assignment casts
-                    assert isinstance(
-                        typedef.name, e.QualifiedName
-                    ), "Name resolution should have been done"
+                    assert isinstance(typedef.name, e.QualifiedName), (
+                        "Name resolution should have been done"
+                    )
                     assert typedef.name == e.QualifiedName(
                         [*module_name, t_name]
                     )

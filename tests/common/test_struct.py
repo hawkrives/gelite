@@ -40,7 +40,6 @@ class PickleTestMixed(MixedStruct):
 
 
 class StructTests(unittest.TestCase):
-
     def test_common_struct_basics(self):
         class Test(Struct):
             field1 = Field(str, default='42')
@@ -75,7 +74,7 @@ class StructTests(unittest.TestCase):
         class Test(Struct):
             field = Field(str, None)
 
-        assert Test.__slots__ == ('field', )
+        assert Test.__slots__ == ('field',)
 
         t = Test()
         t.field = 'foo'
@@ -94,14 +93,12 @@ class StructTests(unittest.TestCase):
         with self.assertRaisesRegex(AttributeError, 'has no attribute'):
             t.foo = 'bar'
 
-        with self.assertRaisesRegex(
-                TypeError, 'field3 is an invalid argument'):
+        with self.assertRaisesRegex(TypeError, 'field3 is an invalid argument'):
             DTest(field='1', field2=2, field3='aaa')
 
         t = DTest()
 
-        with self.assertRaisesRegex(TypeError,
-                                    'field3 is an invalid argument'):
+        with self.assertRaisesRegex(TypeError, 'field3 is an invalid argument'):
             t.update(field='1', field2=2, field3='aaa')
 
     def test_common_struct_mixed(self):

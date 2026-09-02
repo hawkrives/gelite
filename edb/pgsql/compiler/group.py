@@ -40,7 +40,9 @@ from . import relgen
 
 def compile_grouping_atom(
     el: qlast.GroupingAtom,
-    stmt: irast.GroupStmt, *, ctx: context.CompilerContextLevel
+    stmt: irast.GroupStmt,
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> pgast.Base:
     '''Compile a GroupingAtom into sql grouping sets'''
     if isinstance(el, qlast.GroupingIdentList):
@@ -52,13 +54,14 @@ def compile_grouping_atom(
 
     assert isinstance(el, qlast.ObjectRef)
     alias_set, _ = stmt.using[el.name]
-    return pathctx.get_path_value_var(
-        ctx.rel, alias_set.path_id, env=ctx.env)
+    return pathctx.get_path_value_var(ctx.rel, alias_set.path_id, env=ctx.env)
 
 
 def compile_grouping_el(
     el: qlast.GroupingElement,
-    stmt: irast.GroupStmt, *, ctx: context.CompilerContextLevel
+    stmt: irast.GroupStmt,
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> pgast.Base:
     '''Compile a GroupingElement into sql grouping sets'''
     if isinstance(el, qlast.GroupingSets):
@@ -79,8 +82,11 @@ def compile_grouping_el(
 
 
 def _compile_grouping_value(
-        stmt: irast.GroupStmt, used_args: AbstractSet[str], *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    stmt: irast.GroupStmt,
+    used_args: AbstractSet[str],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     '''Produce the value for the grouping binding saying what is grouped on'''
     assert stmt.grouping_binding
     grouprel = ctx.rel
@@ -115,10 +121,12 @@ def _compile_grouping_value(
         ]
     )
     q = pgast.SelectStmt(
-        from_clause=[pgast.RangeSubselect(
-            subquery=subq,
-            alias=pgast.Alias(aliasname=ctx.env.aliases.get())
-        )]
+        from_clause=[
+            pgast.RangeSubselect(
+                subquery=subq,
+                alias=pgast.Alias(aliasname=ctx.env.aliases.get()),
+            )
+        ]
     )
 
     grouping_ref = pgast.ColumnRef(name=(grouping_alias,))
@@ -131,24 +139,26 @@ def _compile_grouping_value(
         mask = 1 << (len(using) - i - 1)
         # (CASE (e & <mask>) WHEN 0 THEN '<name>' ELSE NULL END)
 
-        els.append(pgast.CaseExpr(
-            arg=pgast.Expr(
-                name='&',
-                lexpr=grouping_ref,
-                rexpr=pgast.LiteralExpr(expr=str(mask))
-            ),
-            args=[
-                pgast.CaseWhen(
-                    expr=pgast.LiteralExpr(expr='0'),
-                    result=pgast.StringConstant(val=name)
-                )
-            ],
-            defresult=pgast.NullConstant()
-        ))
+        els.append(
+            pgast.CaseExpr(
+                arg=pgast.Expr(
+                    name='&',
+                    lexpr=grouping_ref,
+                    rexpr=pgast.LiteralExpr(expr=str(mask)),
+                ),
+                args=[
+                    pgast.CaseWhen(
+                        expr=pgast.LiteralExpr(expr='0'),
+                        result=pgast.StringConstant(val=name),
+                    )
+                ],
+                defresult=pgast.NullConstant(),
+            )
+        )
 
     val = pgast.FuncCall(
         name=('array_remove',),
-        args=[pgast.ArrayExpr(elements=els), pgast.NullConstant()]
+        args=[pgast.ArrayExpr(elements=els), pgast.NullConstant()],
     )
 
     q.target_list.append(pgast.ResTarget(val=val))
@@ -157,8 +167,11 @@ def _compile_grouping_value(
 
 
 def _compile_grouping_binding(
-        stmt: irast.GroupStmt, *, used_args: AbstractSet[str],
-        ctx: context.CompilerContextLevel) -> None:
+    stmt: irast.GroupStmt,
+    *,
+    used_args: AbstractSet[str],
+    ctx: context.CompilerContextLevel,
+) -> None:
     assert stmt.grouping_binding
     pathctx.put_path_var(
         ctx.rel,
@@ -169,10 +182,11 @@ def _compile_grouping_binding(
 
 
 def _compile_group(
-        stmt: irast.GroupStmt, *,
-        ctx: context.CompilerContextLevel,
-        parent_ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    stmt: irast.GroupStmt,
+    *,
+    ctx: context.CompilerContextLevel,
+    parent_ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     clauses.compile_volatile_bindings(stmt, ctx=ctx)
 
     query = ctx.stmt
@@ -191,26 +205,34 @@ def _compile_group(
                 # This shouldn't technically be needed but we generate
                 # better code with it.
                 relgen.ensure_source_rvar(
-                    stmt.subject, subjctx.rel, ctx=subjctx)
+                    stmt.subject, subjctx.rel, ctx=subjctx
+                )
 
-        subj_rvar = relctx.rvar_for_rel(
-            subjctx.rel, ctx=groupctx, lateral=True)
+        subj_rvar = relctx.rvar_for_rel(subjctx.rel, ctx=groupctx, lateral=True)
         aspects = pathctx.list_path_aspects(subjctx.rel, stmt.subject.path_id)
 
         pathctx.put_path_id_map(
-            subjctx.rel,
-            stmt.group_binding.path_id, stmt.subject.path_id)
+            subjctx.rel, stmt.group_binding.path_id, stmt.subject.path_id
+        )
 
         # update_mask=False because we are doing this solely to remap
         # elements individually and don't want to affect the mask.
         relctx.include_rvar(
-            grouprel, subj_rvar, stmt.group_binding.path_id,
+            grouprel,
+            subj_rvar,
+            stmt.group_binding.path_id,
             aspects=aspects,
-            update_mask=False, ctx=groupctx)
+            update_mask=False,
+            ctx=groupctx,
+        )
         relctx.include_rvar(
-            grouprel, subj_rvar, stmt.subject.path_id,
+            grouprel,
+            subj_rvar,
+            stmt.subject.path_id,
             aspects=aspects,
-            update_mask=False, ctx=groupctx)
+            update_mask=False,
+            ctx=groupctx,
+        )
 
         # Now we compile the bindings
         groupctx.path_scope = subjctx.path_scope.new_child()
@@ -250,7 +272,8 @@ def _compile_group(
                     ctx=hoistctx,
                 )
                 pathctx.get_path_value_output(
-                    rel=hoistctx.rel, path_id=group_use.path_id, env=ctx.env)
+                    rel=hoistctx.rel, path_id=group_use.path_id, env=ctx.env
+                )
                 pathctx.put_path_value_var(
                     grouprel, group_use.path_id, hoistctx.rel
                 )
@@ -261,18 +284,22 @@ def _compile_group(
             packed = True
             # TODO: Be able to directly output the final serialized version
             # if it is consumed directly.
-            with context.output_format(ctx, context.OutputFormat.NATIVE), (
-                    groupctx.new()) as matctx:
+            with (
+                context.output_format(ctx, context.OutputFormat.NATIVE),
+                groupctx.new() as matctx,
+            ):
                 matctx.materializing |= {stmt}
                 matctx.expr_exposed = True
 
                 mat_qry = relgen.set_as_subquery(
-                    stmt.group_binding, as_value=True, ctx=matctx)
+                    stmt.group_binding, as_value=True, ctx=matctx
+                )
                 mat_qry = relctx.set_to_array(
                     path_id=stmt.group_binding.path_id,
                     for_group_by=True,
                     query=mat_qry,
-                    ctx=matctx)
+                    ctx=matctx,
+                )
                 if not mat_qry.target_list[0].name:
                     mat_qry.target_list[0].name = ctx.env.aliases.get('v')
 
@@ -281,7 +308,8 @@ def _compile_group(
                     is_packed_multi=True,
                 )
                 pathctx.put_path_packed_output(
-                    mat_qry, stmt.group_binding.path_id, ref)
+                    mat_qry, stmt.group_binding.path_id, ref
+                )
 
                 pathctx.put_path_var(
                     grouprel,
@@ -344,10 +372,15 @@ def _compile_group(
     group_rvar = relctx.rvar_for_rel(grouprel, ctx=ctx, lateral=True)
     if packed:
         relctx.include_rvar(
-            query, group_rvar, path_id=stmt.group_binding.path_id,
-            flavor='packed', update_mask=False, pull_namespace=False,
+            query,
+            group_rvar,
+            path_id=stmt.group_binding.path_id,
+            flavor='packed',
+            update_mask=False,
+            pull_namespace=False,
             aspects=(pgce.PathAspect.VALUE,),
-            ctx=ctx)
+            ctx=ctx,
+        )
     else:
         # Not include_rvar because we don't actually provide the path id!
         relctx.rel_join(query, group_rvar, ctx=ctx)
@@ -378,8 +411,9 @@ def _compile_group(
         grouprel.target_list.append(
             pgast.ResTarget(
                 name=name,
-                val=pgast.FuncCall(name=('row_number',), args=[],
-                                   over=pgast.WindowDef())
+                val=pgast.FuncCall(
+                    name=('row_number',), args=[], over=pgast.WindowDef()
+                ),
             )
         )
         vol_ref = pgast.ColumnRef(name=[group_rvar.alias.aliasname, name])
@@ -409,19 +443,22 @@ def _compile_group(
             query.where_clause = astutils.extend_binop(
                 query.where_clause,
                 clauses.compile_filter_clause(
-                    stmt.where, stmt.where_card, ctx=ictx))
+                    stmt.where, stmt.where_card, ctx=ictx
+                ),
+            )
 
         # The ORDER BY clause
         if stmt.orderby is not None:
             with ictx.new() as octx:
                 query.sort_clause = clauses.compile_orderby_clause(
-                    stmt.orderby, ctx=octx)
+                    stmt.orderby, ctx=octx
+                )
 
     return query
 
 
 def compile_group(
-        stmt: irast.GroupStmt, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    stmt: irast.GroupStmt, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     with ctx.substmt() as sctx:
         return _compile_group(stmt, ctx=sctx, parent_ctx=ctx)

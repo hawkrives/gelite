@@ -37,7 +37,6 @@ class DomainError(EdgeSphinxExtensionError):
 
 
 class InlineCodeRole:
-
     def __init__(self, lang):
         self.lang = lang
 
@@ -56,11 +55,8 @@ class InlineCodeRole:
 
 def make_CodeBlock(parent):
     class CodeBlock(parent):
-
         option_spec = s_code.CodeBlock.option_spec.copy()
-        option_spec.update({
-            'version-lt': d_directives.unchanged_required
-        })
+        option_spec.update({'version-lt': d_directives.unchanged_required})
 
         def run(self):
             literal = super().run()

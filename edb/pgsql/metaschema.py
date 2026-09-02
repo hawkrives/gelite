@@ -20,15 +20,7 @@
 """Database structure and objects supporting Gel metadata."""
 
 from __future__ import annotations
-from typing import (
-    Callable,
-    Optional,
-    Protocol,
-    Iterable,
-    Sequence,
-    cast,
-    Any
-)
+from typing import Callable, Optional, Protocol, Iterable, Sequence, cast, Any
 
 import functools
 import json
@@ -91,9 +83,11 @@ CONFIG_ID_NAMESPACE = uuidgen.UUID('a48b38fa-349b-11e9-a6be-4f337f82f5ad')
 CONFIG_ID = {
     None: uuidgen.UUID('172097a4-39f4-11e9-b189-9321eb2f4b97'),
     qltypes.ConfigScope.INSTANCE: uuidgen.UUID(
-        '172097a4-39f4-11e9-b189-9321eb2f4b98'),
+        '172097a4-39f4-11e9-b189-9321eb2f4b98'
+    ),
     qltypes.ConfigScope.DATABASE: uuidgen.UUID(
-        '172097a4-39f4-11e9-b189-9321eb2f4b99'),
+        '172097a4-39f4-11e9-b189-9321eb2f4b99'
+    ),
 }
 
 
@@ -103,46 +97,43 @@ def qtl(t: tuple[str, ...]) -> str:
 
 
 class PGConnection(Protocol):
-
     async def sql_execute(
         self,
         sql: bytes,
-    ) -> None:
-        ...
+    ) -> None: ...
 
     async def sql_fetch(
         self,
         sql: bytes,
         *,
         args: tuple[bytes, ...] | list[bytes] = (),
-    ) -> list[tuple[bytes, ...]]:
-        ...
+    ) -> list[tuple[bytes, ...]]: ...
 
     async def sql_fetch_val(
         self,
         sql: bytes,
         *,
         args: tuple[bytes, ...] | list[bytes] = (),
-    ) -> bytes:
-        ...
+    ) -> bytes: ...
 
     async def sql_fetch_col(
         self,
         sql: bytes,
         *,
         args: tuple[bytes, ...] | list[bytes] = (),
-    ) -> list[bytes]:
-        ...
+    ) -> list[bytes]: ...
 
 
 class DBConfigTable(dbops.Table):
     def __init__(self) -> None:
         super().__init__(name=('edgedb', '_db_config'))
 
-        self.add_columns([
-            dbops.Column(name='name', type='text'),
-            dbops.Column(name='value', type='jsonb'),
-        ])
+        self.add_columns(
+            [
+                dbops.Column(name='name', type='text'),
+                dbops.Column(name='value', type='jsonb'),
+            ]
+        )
 
         self.add_constraint(
             dbops.UniqueConstraint(
@@ -175,12 +166,14 @@ class InstDataTable(dbops.Table):
                     type='jsonb',
                 ),
             ],
-            constraints=ordered.OrderedSet([
-                dbops.PrimaryKey(
-                    table_name=(sname, 'instdata'),
-                    columns=['key'],
-                ),
-            ]),
+            constraints=ordered.OrderedSet(
+                [
+                    dbops.PrimaryKey(
+                        table_name=(sname, 'instdata'),
+                        columns=['key'],
+                    ),
+                ]
+            ),
         )
 
 
@@ -188,19 +181,21 @@ class QueryCacheTable(dbops.Table):
     def __init__(self) -> None:
         super().__init__(name=('edgedb', '_query_cache'))
 
-        self.add_columns([
-            dbops.Column(name='key', type='uuid', required=True),
-            dbops.Column(name='schema_version', type='uuid', required=True),
-            dbops.Column(name='input', type='bytea', required=True),
-            dbops.Column(name='output', type='bytea', required=True),
-            dbops.Column(name='evict', type='text', required=True),
-            dbops.Column(
-                name='creation_time',
-                type='timestamp with time zone',
-                required=True,
-                default='current_timestamp',
-            ),
-        ])
+        self.add_columns(
+            [
+                dbops.Column(name='key', type='uuid', required=True),
+                dbops.Column(name='schema_version', type='uuid', required=True),
+                dbops.Column(name='input', type='bytea', required=True),
+                dbops.Column(name='output', type='bytea', required=True),
+                dbops.Column(name='evict', type='text', required=True),
+                dbops.Column(
+                    name='creation_time',
+                    type='timestamp with time zone',
+                    required=True,
+                    default='current_timestamp',
+                ),
+            ]
+        )
 
         self.add_constraint(
             dbops.PrimaryKey(
@@ -211,7 +206,6 @@ class QueryCacheTable(dbops.Table):
 
 
 class EvictQueryCacheFunction(trampoline.VersionedFunction):
-
     text = f'''
     DECLARE
         evict_sql text;
@@ -237,7 +231,6 @@ class EvictQueryCacheFunction(trampoline.VersionedFunction):
 
 
 class ClearQueryCacheFunction(trampoline.VersionedFunction):
-
     # TODO(fantix): this may consume a lot of memory in Postgres
     text = f'''
     DECLARE
@@ -345,6 +338,7 @@ class BigintDomain(dbops.Domain):
     the numeric bounds, because using bounds severly restricts the range
     of the numeric type (1000 vs 131072 digits).
     """
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedbt', 'bigint_t'),
@@ -367,6 +361,7 @@ class ConfigMemoryDomain(dbops.Domain):
       of data beyond petabytes;
     * enforces zero digits after the dot.
     """
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedbt', 'memory_t'),
@@ -387,6 +382,7 @@ class TimestampTzDomain(dbops.Domain):
     Postgres isn't ISO compliant with years out of the 1-9999 range and
     language compatibility is questionable.
     """
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedbt', 'timestamptz_t'),
@@ -407,6 +403,7 @@ class TimestampDomain(dbops.Domain):
     Postgres isn't ISO compliant with years out of the 1-9999 range and
     language compatibility is questionable.
     """
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedbt', 'timestamp_t'),
@@ -427,6 +424,7 @@ class DateDomain(dbops.Domain):
     Postgres isn't ISO compliant with years out of the 1-9999 range and
     language compatibility is questionable.
     """
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedbt', 'date_t'),
@@ -503,7 +501,7 @@ class Float64Range(dbops.Range):
         super().__init__(
             name=types.type_to_range_name_map[('float8',)],
             subtype=('float8',),
-            subtype_diff=('float8mi',)
+            subtype_diff=('float8mi',),
         )
 
 
@@ -525,6 +523,7 @@ class LocalDatetimeRange(dbops.Range):
 
 class RangeToJsonFunction(trampoline.VersionedFunction):
     """Convert anyrange to a jsonb object."""
+
     text = r'''
         SELECT
             CASE
@@ -559,6 +558,7 @@ class RangeToJsonFunction(trampoline.VersionedFunction):
 
 class MultiRangeToJsonFunction(trampoline.VersionedFunction):
     """Convert anymultirange to a jsonb object."""
+
     text = r'''
         SELECT
             CASE
@@ -593,6 +593,7 @@ class MultiRangeToJsonFunction(trampoline.VersionedFunction):
 
 class RangeValidateFunction(trampoline.VersionedFunction):
     """Range constructor validation function."""
+
     text = r'''
         SELECT
             CASE
@@ -632,6 +633,7 @@ class RangeValidateFunction(trampoline.VersionedFunction):
 
 class RangeUnpackLowerValidateFunction(trampoline.VersionedFunction):
     """Range unpack validation function."""
+
     text = r'''
         SELECT
             CASE WHEN
@@ -662,6 +664,7 @@ class RangeUnpackLowerValidateFunction(trampoline.VersionedFunction):
 
 class RangeUnpackUpperValidateFunction(trampoline.VersionedFunction):
     """Range unpack validation function."""
+
     text = r'''
         SELECT
             CASE WHEN
@@ -692,6 +695,7 @@ class RangeUnpackUpperValidateFunction(trampoline.VersionedFunction):
 
 class StrToConfigMemoryFunction(trampoline.VersionedFunction):
     """An implementation of std::str to cfg::memory cast."""
+
     text = r'''
         SELECT
             (CASE
@@ -766,6 +770,7 @@ class StrToConfigMemoryFunction(trampoline.VersionedFunction):
 
 class ConfigMemoryToStrFunction(trampoline.VersionedFunction):
     """An implementation of cfg::memory to std::str cast."""
+
     text = r'''
         SELECT
             CASE
@@ -816,6 +821,7 @@ class ConfigMemoryToStrFunction(trampoline.VersionedFunction):
 
 class AlterCurrentDatabaseSetString(trampoline.VersionedFunction):
     """Alter a PostgreSQL configuration parameter of the current database."""
+
     text = '''
     BEGIN
         EXECUTE 'ALTER DATABASE ' || quote_ident(current_database())
@@ -838,6 +844,7 @@ class AlterCurrentDatabaseSetString(trampoline.VersionedFunction):
 
 class AlterCurrentDatabaseSetStringArray(trampoline.VersionedFunction):
     """Alter a PostgreSQL configuration parameter of the current database."""
+
     text = '''
     BEGIN
         EXECUTE 'ALTER DATABASE ' || quote_ident(current_database())
@@ -870,6 +877,7 @@ class AlterCurrentDatabaseSetStringArray(trampoline.VersionedFunction):
 
 class AlterCurrentDatabaseSetNonArray(trampoline.VersionedFunction):
     """Alter a PostgreSQL configuration parameter of the current database."""
+
     text = '''
     BEGIN
         EXECUTE 'ALTER DATABASE ' || quote_ident(current_database())
@@ -895,6 +903,7 @@ class AlterCurrentDatabaseSetNonArray(trampoline.VersionedFunction):
 
 class AlterCurrentDatabaseSetArray(trampoline.VersionedFunction):
     """Alter a PostgreSQL configuration parameter of the current database."""
+
     text = '''
     BEGIN
         EXECUTE 'ALTER DATABASE ' || quote_ident(current_database())
@@ -927,6 +936,7 @@ class AlterCurrentDatabaseSetArray(trampoline.VersionedFunction):
 
 class CopyDatabaseConfigs(trampoline.VersionedFunction):
     """Copy database configs from one database to the current one"""
+
     text = '''
         SELECT edgedb_VER._alter_current_database_set(
             nameval.name, nameval.value)
@@ -999,11 +1009,13 @@ class StrToBigint(trampoline.VersionedFunction):
             language='plpgsql',
             volatility='immutable',
             strict=True,
-            text=self.text)
+            text=self.text,
+        )
 
 
 class StrToDecimal(trampoline.VersionedFunction):
     """Parse decimal from text."""
+
     text = r'''
         SELECT
             (CASE WHEN v.column1 != 'NaN' THEN
@@ -1046,6 +1058,7 @@ class StrToInt64NoInline(trampoline.VersionedFunction):
     This might need to change in the future if the heuristic
     changes.
     """
+
     text = r'''
         SELECT
             "val"::bigint
@@ -1066,6 +1079,7 @@ class StrToInt64NoInline(trampoline.VersionedFunction):
 
 class StrToInt32NoInline(trampoline.VersionedFunction):
     """String-to-int32 cast with noinline guard."""
+
     text = r'''
         SELECT
             "val"::int
@@ -1086,6 +1100,7 @@ class StrToInt32NoInline(trampoline.VersionedFunction):
 
 class StrToInt16NoInline(trampoline.VersionedFunction):
     """String-to-int16 cast with noinline guard."""
+
     text = r'''
         SELECT
             "val"::smallint
@@ -1106,6 +1121,7 @@ class StrToInt16NoInline(trampoline.VersionedFunction):
 
 class StrToFloat64NoInline(trampoline.VersionedFunction):
     """String-to-float64 cast with noinline guard."""
+
     text = r'''
         SELECT
             "val"::float8
@@ -1126,6 +1142,7 @@ class StrToFloat64NoInline(trampoline.VersionedFunction):
 
 class StrToFloat32NoInline(trampoline.VersionedFunction):
     """String-to-float32 cast with noinline guard."""
+
     text = r'''
         SELECT
             "val"::float4
@@ -1145,7 +1162,6 @@ class StrToFloat32NoInline(trampoline.VersionedFunction):
 
 
 class GetBackendCapabilitiesFunction(trampoline.VersionedFunction):
-
     text = f'''
         SELECT
             (json ->> 'capabilities')::bigint
@@ -1167,7 +1183,6 @@ class GetBackendCapabilitiesFunction(trampoline.VersionedFunction):
 
 
 class GetBackendTenantIDFunction(trampoline.VersionedFunction):
-
     text = f'''
         SELECT
             (json ->> 'tenant_id')::text
@@ -1189,7 +1204,6 @@ class GetBackendTenantIDFunction(trampoline.VersionedFunction):
 
 
 class GetDatabaseBackendNameFunction(trampoline.VersionedFunction):
-
     text = f'''
     SELECT
         CASE
@@ -1215,7 +1229,6 @@ class GetDatabaseBackendNameFunction(trampoline.VersionedFunction):
 
 
 class GetDatabaseFrontendNameFunction(trampoline.VersionedFunction):
-
     text = f'''
     SELECT
         CASE
@@ -1241,7 +1254,6 @@ class GetDatabaseFrontendNameFunction(trampoline.VersionedFunction):
 
 
 class GetRoleBackendNameFunction(trampoline.VersionedFunction):
-
     text = f'''
     SELECT
         CASE
@@ -1267,7 +1279,6 @@ class GetRoleBackendNameFunction(trampoline.VersionedFunction):
 
 
 class GetUserSequenceBackendNameFunction(trampoline.VersionedFunction):
-
     text = f"""
         SELECT
             'edgedbpub',
@@ -1286,7 +1297,6 @@ class GetUserSequenceBackendNameFunction(trampoline.VersionedFunction):
 
 
 class GetSequenceBackendNameFunction(trampoline.VersionedFunction):
-
     text = f'''
         SELECT
             (CASE
@@ -1314,7 +1324,6 @@ class GetSequenceBackendNameFunction(trampoline.VersionedFunction):
 
 
 class GetStdModulesFunction(trampoline.VersionedFunction):
-
     text = f'''
         SELECT ARRAY[{",".join(ql(str(m)) for m in s_schema.STD_MODULES)}]
     '''
@@ -1332,6 +1341,7 @@ class GetStdModulesFunction(trampoline.VersionedFunction):
 
 class GetObjectMetadata(trampoline.VersionedFunction):
     """Return Gel metadata associated with a backend object."""
+
     text = '''
         SELECT
             CASE WHEN substr(d, 1, char_length({prefix})) = {prefix}
@@ -1350,11 +1360,13 @@ class GetObjectMetadata(trampoline.VersionedFunction):
             args=[('objoid', ('oid',)), ('objclass', ('text',))],
             returns=('jsonb',),
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class GetColumnMetadata(trampoline.VersionedFunction):
     """Return Gel metadata associated with a backend object."""
+
     text = '''
         SELECT
             CASE WHEN substr(d, 1, char_length({prefix})) = {prefix}
@@ -1373,11 +1385,13 @@ class GetColumnMetadata(trampoline.VersionedFunction):
             args=[('tableoid', ('oid',)), ('column', ('integer',))],
             returns=('jsonb',),
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class GetSharedObjectMetadata(trampoline.VersionedFunction):
     """Return Gel metadata associated with a backend object."""
+
     text = '''
         SELECT
             CASE WHEN substr(d, 1, char_length({prefix})) = {prefix}
@@ -1396,11 +1410,13 @@ class GetSharedObjectMetadata(trampoline.VersionedFunction):
             args=[('objoid', ('oid',)), ('objclass', ('text',))],
             returns=('jsonb',),
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class GetDatabaseMetadataFunction(trampoline.VersionedFunction):
     """Return Gel metadata associated with a given database."""
+
     text = f'''
         SELECT
             CASE
@@ -1444,7 +1460,6 @@ class GetDatabaseMetadataFunction(trampoline.VersionedFunction):
 
 
 class GetCurrentDatabaseFunction(trampoline.VersionedFunction):
-
     text = f'''
         SELECT
             CASE
@@ -1597,6 +1612,7 @@ class RaiseExceptionFunction(trampoline.VersionedFunction):
 
 class RaiseExceptionOnNullFunction(trampoline.VersionedFunction):
     """Return the passed value or raise an exception if it's NULL."""
+
     text = '''
         SELECT coalesce(
             val,
@@ -1639,6 +1655,7 @@ class RaiseExceptionOnNullFunction(trampoline.VersionedFunction):
 
 class RaiseExceptionOnNotNullFunction(trampoline.VersionedFunction):
     """Return the passed value or raise an exception if it's NOT NULL."""
+
     text = '''
         SELECT
             CASE
@@ -1684,6 +1701,7 @@ class RaiseExceptionOnNotNullFunction(trampoline.VersionedFunction):
 
 class RaiseExceptionOnEmptyStringFunction(trampoline.VersionedFunction):
     """Return the passed string or raise an exception if it's empty."""
+
     text = '''
         SELECT
             CASE WHEN edgedb_VER._length(val) = 0 THEN
@@ -1711,6 +1729,7 @@ class RaiseExceptionOnEmptyStringFunction(trampoline.VersionedFunction):
 
 class AssertJSONTypeFunction(trampoline.VersionedFunction):
     """Assert that the JSON type matches what is expected."""
+
     text = '''
         SELECT
             CASE WHEN array_position(typenames, jsonb_typeof(val)) IS NULL THEN
@@ -1751,6 +1770,7 @@ class AssertJSONTypeFunction(trampoline.VersionedFunction):
 
 class ExtractJSONScalarFunction(trampoline.VersionedFunction):
     """Convert a given JSON scalar value into a text value."""
+
     text = '''
         SELECT
             (to_jsonb(ARRAY[
@@ -1872,7 +1892,8 @@ class IssubclassFunction(trampoline.VersionedFunction):
             args=[('clsid', 'uuid'), ('classes', 'uuid[]')],
             returns='bool',
             volatility='stable',
-            text=self.__class__.text)
+            text=self.__class__.text,
+        )
 
 
 class IssubclassFunction2(trampoline.VersionedFunction):
@@ -1895,7 +1916,8 @@ class IssubclassFunction2(trampoline.VersionedFunction):
             args=[('clsid', 'uuid'), ('pclsid', 'uuid')],
             returns='bool',
             volatility='stable',
-            text=self.__class__.text)
+            text=self.__class__.text,
+        )
 
 
 class NormalizeNameFunction(trampoline.VersionedFunction):
@@ -1924,7 +1946,8 @@ class NormalizeNameFunction(trampoline.VersionedFunction):
             returns='text',
             volatility='immutable',
             language='sql',
-            text=self.__class__.text)
+            text=self.__class__.text,
+        )
 
 
 class GetNameModuleFunction(trampoline.VersionedFunction):
@@ -1939,11 +1962,13 @@ class GetNameModuleFunction(trampoline.VersionedFunction):
             returns='text',
             volatility='immutable',
             language='sql',
-            text=self.__class__.text)
+            text=self.__class__.text,
+        )
 
 
 class NullIfArrayNullsFunction(trampoline.VersionedFunction):
     """Check if array contains NULLs and if so, return NULL."""
+
     def __init__(self) -> None:
         super().__init__(
             name=('edgedb', '_nullif_array_nulls'),
@@ -1954,7 +1979,8 @@ class NullIfArrayNullsFunction(trampoline.VersionedFunction):
             text='''
                 SELECT CASE WHEN array_position(a, NULL) IS NULL
                 THEN a ELSE NULL END
-            ''')
+            ''',
+        )
 
 
 class NormalizeArrayIndexFunction(trampoline.VersionedFunction):
@@ -2051,8 +2077,11 @@ class ArrayIndexWithBoundsFunction(trampoline.VersionedFunction):
     def __init__(self) -> None:
         super().__init__(
             name=('edgedb', '_index'),
-            args=[('val', ('anyarray',)), ('index', ('bigint',)),
-                  ('detail', ('text',))],
+            args=[
+                ('val', ('anyarray',)),
+                ('index', ('bigint',)),
+                ('detail', ('text',)),
+            ],
             returns=('anyelement',),
             # Min volatility of exception helpers and pg_typeof is 'stable',
             # but for all practical purposes, we can assume 'immutable'
@@ -2197,6 +2226,7 @@ class SubstrProxyFunction(trampoline.VersionedFunction):
 
 class LengthStringProxyFunction(trampoline.VersionedFunction):
     """Same as substr, but interpret negative length as 0 instead."""
+
     text = r'''
         SELECT char_length(val)
     '''
@@ -2208,11 +2238,13 @@ class LengthStringProxyFunction(trampoline.VersionedFunction):
             returns=('int',),
             volatility='immutable',
             strict=True,
-            text=self.text)
+            text=self.text,
+        )
 
 
 class LengthBytesProxyFunction(trampoline.VersionedFunction):
     """Same as substr, but interpret negative length as 0 instead."""
+
     text = r'''
         SELECT length(val)
     '''
@@ -2224,7 +2256,8 @@ class LengthBytesProxyFunction(trampoline.VersionedFunction):
             returns=('int',),
             volatility='immutable',
             strict=True,
-            text=self.text)
+            text=self.text,
+        )
 
 
 class StringSliceImplFunction(trampoline.VersionedFunction):
@@ -2263,6 +2296,7 @@ class StringSliceImplFunction(trampoline.VersionedFunction):
 
 class StringSliceFunction(trampoline.VersionedFunction):
     """Get a string slice."""
+
     text = r'''
         SELECT edgedb_VER._str_slice(val, start, stop)
     '''
@@ -2277,11 +2311,13 @@ class StringSliceFunction(trampoline.VersionedFunction):
             ],
             returns=('text',),
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class BytesSliceFunction(trampoline.VersionedFunction):
     """Get a string slice."""
+
     text = r'''
         SELECT edgedb_VER._str_slice(val, start, stop)
     '''
@@ -2296,11 +2332,13 @@ class BytesSliceFunction(trampoline.VersionedFunction):
             ],
             returns=('bytea',),
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class JSONIndexByTextFunction(trampoline.VersionedFunction):
     """Get a JSON element by text index or raise an exception."""
+
     text = r'''
         SELECT
             CASE jsonb_typeof(val)
@@ -2489,6 +2527,7 @@ class JSONSliceFunction(trampoline.VersionedFunction):
 # See issue #740.
 class DatetimeInFunction(trampoline.VersionedFunction):
     """Cast text into timestamptz using ISO8601 spec."""
+
     text = r'''
         SELECT
             CASE WHEN val !~ (
@@ -2526,11 +2565,13 @@ class DatetimeInFunction(trampoline.VersionedFunction):
             returns=('edgedbt', 'timestamptz_t'),
             # Same volatility as raise() (stable)
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class DurationInFunction(trampoline.VersionedFunction):
     """Cast text into duration, ensuring there is no days or months units"""
+
     text = r'''
         SELECT
             CASE WHEN
@@ -2573,6 +2614,7 @@ class DateDurationInFunction(trampoline.VersionedFunction):
     Cast text into date_duration, ensuring there is no unit smaller
     than days.
     """
+
     text = r'''
         SELECT
             CASE WHEN
@@ -2613,6 +2655,7 @@ class DateDurationInFunction(trampoline.VersionedFunction):
 
 class LocalDatetimeInFunction(trampoline.VersionedFunction):
     """Cast text into timestamp using ISO8601 spec."""
+
     text = r'''
         SELECT
             CASE WHEN
@@ -2649,11 +2692,13 @@ class LocalDatetimeInFunction(trampoline.VersionedFunction):
             args=[('val', ('text',))],
             returns=('edgedbt', 'timestamp_t'),
             volatility='immutable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class LocalDateInFunction(trampoline.VersionedFunction):
     """Cast text into date using ISO8601 spec."""
+
     text = r'''
         SELECT
             CASE WHEN
@@ -2688,11 +2733,13 @@ class LocalDateInFunction(trampoline.VersionedFunction):
             args=[('val', ('text',))],
             returns=('edgedbt', 'date_t'),
             volatility='immutable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class LocalTimeInFunction(trampoline.VersionedFunction):
     """Cast text into time using ISO8601 spec."""
+
     text = r'''
         SELECT
             CASE WHEN date_part('hour', x.t) = 24
@@ -2746,6 +2793,7 @@ class LocalTimeInFunction(trampoline.VersionedFunction):
 
 class ToTimestampTZCheck(trampoline.VersionedFunction):
     """Checks if the original text has time zone or not."""
+
     # What are we trying to mitigate?
     # We're trying to detect that when we're casting to datetime the
     # time zone is in fact present in the input. It is a problem if
@@ -2800,17 +2848,18 @@ class ToTimestampTZCheck(trampoline.VersionedFunction):
     def __init__(self) -> None:
         super().__init__(
             name=('edgedb', '_to_timestamptz_check'),
-            args=[('val', ('text',)), ('fmt', ('text',)),
-                  ('hastz', ('bool',))],
+            args=[('val', ('text',)), ('fmt', ('text',)), ('hastz', ('bool',))],
             returns=('edgedbt', 'timestamptz_t'),
             # We're relying on changing settings, so it's volatile.
             volatility='volatile',
             language='plpgsql',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class ToDatetimeFunction(trampoline.VersionedFunction):
     """Convert text into timestamptz using a formatting spec."""
+
     # NOTE that if only the TZM (minutes) are mentioned it is not
     # enough for a valid time zone definition
     text = r'''
@@ -2846,11 +2895,13 @@ class ToDatetimeFunction(trampoline.VersionedFunction):
             returns=('edgedbt', 'timestamptz_t'),
             # Same as _to_timestamptz_check.
             volatility='volatile',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class ToLocalDatetimeFunction(trampoline.VersionedFunction):
     """Convert text into timestamp using a formatting spec."""
+
     # NOTE time zone should not be mentioned at all.
     text = r'''
         SELECT
@@ -2882,11 +2933,13 @@ class ToLocalDatetimeFunction(trampoline.VersionedFunction):
             returns=('edgedbt', 'timestamp_t'),
             # Same as _to_timestamptz_check.
             volatility='volatile',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class StrToBool(trampoline.VersionedFunction):
     """Parse bool from text."""
+
     # We first try to match case-insensitive "true|false" at all. On
     # null, we raise an exception. But otherwise we know that we have
     # an array of matches. The first element matching "true" and
@@ -2914,11 +2967,13 @@ class StrToBool(trampoline.VersionedFunction):
             strict=True,
             # Stable because it's raising exceptions.
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class QuoteLiteralFunction(trampoline.VersionedFunction):
     """Encode string as edgeql literal quoted string"""
+
     text = r'''
         SELECT concat('\'',
             replace(
@@ -2933,11 +2988,13 @@ class QuoteLiteralFunction(trampoline.VersionedFunction):
             args=[('val', ('text',))],
             returns=('str',),
             volatility='immutable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class QuoteIdentFunction(trampoline.VersionedFunction):
     """Quote ident function."""
+
     # TODO do not quote valid identifiers unless they are reserved
     text = r'''
         SELECT concat('`', replace(val, '`', '``'), '`')
@@ -2954,7 +3011,6 @@ class QuoteIdentFunction(trampoline.VersionedFunction):
 
 
 class QuoteNameFunction(trampoline.VersionedFunction):
-
     text = r"""
         SELECT
             string_agg(edgedb_VER.quote_ident(np), '::')
@@ -3003,16 +3059,15 @@ class DescribeRolesAsDDLFunction(trampoline.VersionedFunction):
         )
         permissions = _schema_alias_view_name(schema, permissions_ptr)
         permissions = (
-            common.maybe_versioned_schema(permissions[0]), permissions[1]
+            common.maybe_versioned_schema(permissions[0]),
+            permissions[1],
         )
 
         branches_ptr = role_obj.getptr(
             schema, s_name.UnqualName('branches'), type=s_props.Property
         )
         branches = _schema_alias_view_name(schema, branches_ptr)
-        branches = (
-            common.maybe_versioned_schema(branches[0]), branches[1]
-        )
+        branches = (common.maybe_versioned_schema(branches[0]), branches[1])
 
         super_col = ptr_col_name(schema, role_obj, 'superuser')
         name_col = ptr_col_name(schema, role_obj, 'name')
@@ -3231,7 +3286,8 @@ class DescribeRolesAsDDLFunction(trampoline.VersionedFunction):
             returns=('text'),
             # Stable because it's raising exceptions.
             volatility='stable',
-            text=text)
+            text=text,
+        )
 
 
 class AllRoleMembershipsFunctionForwardDecl(trampoline.VersionedFunction):
@@ -3303,7 +3359,6 @@ class AllRoleMembershipsFunction(trampoline.VersionedFunction):
 
 
 class DumpSequencesFunction(trampoline.VersionedFunction):
-
     text = r"""
         SELECT
             string_agg(
@@ -3370,7 +3425,7 @@ class SysConfigSourceType(dbops.Enum):
                 'postgres interactive',
                 'postgres test',
                 'session',
-            ]
+            ],
         )
 
 
@@ -3382,32 +3437,40 @@ class SysConfigScopeType(dbops.Enum):
                 'INSTANCE',
                 'DATABASE',
                 'SESSION',
-            ]
+            ],
         )
 
 
 class SysConfigValueType(dbops.CompositeType):
     """Type of values returned by _read_sys_config."""
+
     def __init__(self) -> None:
         super().__init__(name=('edgedb', '_sys_config_val_t'))
 
-        self.add_columns([
-            dbops.Column(name='name', type='text'),
-            dbops.Column(name='value', type='jsonb'),
-            dbops.Column(name='source', type='edgedb._sys_config_source_t'),
-            dbops.Column(name='scope', type='edgedb._sys_config_scope_t'),
-        ])
+        self.add_columns(
+            [
+                dbops.Column(name='name', type='text'),
+                dbops.Column(name='value', type='jsonb'),
+                dbops.Column(name='source', type='edgedb._sys_config_source_t'),
+                dbops.Column(name='scope', type='edgedb._sys_config_scope_t'),
+            ]
+        )
 
 
 class SysConfigEntryType(dbops.CompositeType):
     """Type of values returned by _read_sys_config_full."""
+
     def __init__(self) -> None:
         super().__init__(name=('edgedb', '_sys_config_entry_t'))
 
-        self.add_columns([
-            dbops.Column(name='max_source', type='edgedb._sys_config_source_t'),
-            dbops.Column(name='value', type='edgedb._sys_config_val_t'),
-        ])
+        self.add_columns(
+            [
+                dbops.Column(
+                    name='max_source', type='edgedb._sys_config_source_t'
+                ),
+                dbops.Column(name='value', type='edgedb._sys_config_val_t'),
+            ]
+        )
 
 
 class IntervalToMillisecondsFunction(trampoline.VersionedFunction):
@@ -3528,7 +3591,7 @@ class ConvertPostgresConfigUnitsFunction(trampoline.VersionedFunction):
             args=[
                 ('value', ('numeric',)),
                 ('multiplier', ('numeric',)),
-                ('unit', ('text',))
+                ('unit', ('text',)),
             ],
             returns=('jsonb',),
             volatility='immutable',
@@ -3679,7 +3742,7 @@ class InterpretConfigValueToJsonFunction(trampoline.VersionedFunction):
                 ('value', ('text',)),
                 ('type', ('text',)),
                 ('multiplier', ('int',)),
-                ('unit', ('text',))
+                ('unit', ('text',)),
             ],
             returns=('jsonb',),
             volatility='immutable',
@@ -3724,10 +3787,7 @@ class PostgresJsonConfigValueToFrontendConfigValueFunction(
 
         super().__init__(
             name=('edgedb', '_postgres_json_config_value_to_fe_config_value'),
-            args=[
-                ('setting_name', ('text',)),
-                ('value', ('jsonb',))
-            ],
+            args=[('setting_name', ('text',)), ('value', ('jsonb',))],
             returns=('jsonb',),
             volatility='immutable',
             text=text,
@@ -3835,7 +3895,6 @@ class PostgresConfigValueToJsonFunction(trampoline.VersionedFunction):
 
 
 class SysConfigFullFunction(trampoline.VersionedFunction):
-
     # This is a function because "_edgecon_state" is a temporary table
     # and therefore cannot be used in a view.
 
@@ -4219,7 +4278,10 @@ class SysConfigFullFunction(trampoline.VersionedFunction):
             args=[
                 (
                     'source_filter',
-                    ('edgedb', '_sys_config_source_t[]',),
+                    (
+                        'edgedb',
+                        '_sys_config_source_t[]',
+                    ),
                     'NULL',
                 ),
                 (
@@ -4231,7 +4293,7 @@ class SysConfigFullFunction(trampoline.VersionedFunction):
                     'fs_access',
                     ('bool',),
                     'TRUE',
-                )
+                ),
             ],
             returns=('edgedb', '_sys_config_entry_t'),
             set_returning=True,
@@ -4242,7 +4304,6 @@ class SysConfigFullFunction(trampoline.VersionedFunction):
 
 
 class SysConfigUncachedFunction(trampoline.VersionedFunction):
-
     text = f'''
     DECLARE
         backend_caps bigint;
@@ -4272,7 +4333,10 @@ class SysConfigUncachedFunction(trampoline.VersionedFunction):
             args=[
                 (
                     'source_filter',
-                    ('edgedb', '_sys_config_source_t[]',),
+                    (
+                        'edgedb',
+                        '_sys_config_source_t[]',
+                    ),
                     'NULL',
                 ),
                 (
@@ -4290,7 +4354,6 @@ class SysConfigUncachedFunction(trampoline.VersionedFunction):
 
 
 class SysConfigFunction(trampoline.VersionedFunction):
-
     text = f'''
     DECLARE
     BEGIN
@@ -4334,7 +4397,10 @@ class SysConfigFunction(trampoline.VersionedFunction):
             args=[
                 (
                     'source_filter',
-                    ('edgedb', '_sys_config_source_t[]',),
+                    (
+                        'edgedb',
+                        '_sys_config_source_t[]',
+                    ),
                     'NULL',
                 ),
                 (
@@ -4352,7 +4418,6 @@ class SysConfigFunction(trampoline.VersionedFunction):
 
 
 class SysClearConfigCacheFunction(trampoline.VersionedFunction):
-
     text = f'''
     DECLARE
     BEGIN
@@ -4376,7 +4441,6 @@ class SysClearConfigCacheFunction(trampoline.VersionedFunction):
 
 
 class ResetSessionConfigFunction(trampoline.VersionedFunction):
-
     text = f'''
         RESET ALL
     '''
@@ -4406,7 +4470,6 @@ class ApplySessionConfigFunction(trampoline.VersionedFunction):
     """
 
     def __init__(self, config_spec: edbconfig.Spec) -> None:
-
         backend_settings = {}
         for setting_name in config_spec:
             setting = config_spec[setting_name]
@@ -4419,9 +4482,8 @@ class ApplySessionConfigFunction(trampoline.VersionedFunction):
             setting = config_spec[setting_name]
 
             valql = '"value"->>0'
-            if (
-                isinstance(setting.type, type)
-                and issubclass(setting.type, statypes.ScalarType)
+            if isinstance(setting.type, type) and issubclass(
+                setting.type, statypes.ScalarType
             ):
                 valql = setting.type.to_backend_expr(valql)
 
@@ -4492,6 +4554,7 @@ class ApplySessionConfigFunction(trampoline.VersionedFunction):
 
 class SysGetTransactionIsolation(trampoline.VersionedFunction):
     "Get transaction isolation value as text compatible with Gel's enum."
+
     text = r'''
         SELECT
             CASE setting
@@ -4518,11 +4581,13 @@ class SysGetTransactionIsolation(trampoline.VersionedFunction):
             returns=('text',),
             # This function only reads from a table.
             volatility='stable',
-            text=self.text)
+            text=self.text,
+        )
 
 
 class GetCachedReflection(trampoline.VersionedFunction):
     "Return a list of existing schema reflection helpers."
+
     text = '''
         SELECT
             substring(proname, '__rh_#"%#"', '#') AS eql_hash,
@@ -4570,8 +4635,7 @@ class GetTypeToRangeNameMap(trampoline.VersionedFunction):
     """Return a map of type names to the name of the associated range type"""
 
     text = f"VALUES" + ", ".join(
-        f"({qtl(k)}, {qtl(v)})"
-        for k, v in types.type_to_range_name_map.items()
+        f"({qtl(k)}, {qtl(v)})" for k, v in types.type_to_range_name_map.items()
     )
 
     def __init__(self) -> None:
@@ -5160,7 +5224,7 @@ class UuidGenerateV1mcFunction(trampoline.VersionedFunction):
             language='sql',
             strict=True,
             parallel_safe=True,
-            text=f'SELECT "{ext_schema}".uuid_generate_v1mc();'
+            text=f'SELECT "{ext_schema}".uuid_generate_v1mc();',
         )
 
 
@@ -5174,7 +5238,7 @@ class UuidGenerateV4Function(trampoline.VersionedFunction):
             language='sql',
             strict=True,
             parallel_safe=True,
-            text=f'SELECT "{ext_schema}".uuid_generate_v4();'
+            text=f'SELECT "{ext_schema}".uuid_generate_v4();',
         )
 
 
@@ -5191,7 +5255,7 @@ class UuidGenerateV5Function(trampoline.VersionedFunction):
             language='sql',
             strict=True,
             parallel_safe=True,
-            text=f'SELECT "{ext_schema}".uuid_generate_v5(namespace, name);'
+            text=f'SELECT "{ext_schema}".uuid_generate_v5(namespace, name);',
         )
 
 
@@ -5364,26 +5428,23 @@ def _maybe_trampoline(
     cmd: dbops.Command, out: list[trampoline.Trampoline]
 ) -> None:
     namespace = V('')
-    if (
-        isinstance(cmd, dbops.CreateFunction)
-        and cmd.function.name[0].endswith(namespace)
+    if isinstance(cmd, dbops.CreateFunction) and cmd.function.name[0].endswith(
+        namespace
     ):
         out.append(trampoline.make_trampoline(cmd.function))
-    elif (
-        isinstance(cmd, dbops.CreateView)
-        and cmd.view.name[0].endswith(namespace)
+    elif isinstance(cmd, dbops.CreateView) and cmd.view.name[0].endswith(
+        namespace
     ):
         out.append(trampoline.make_view_trampoline(cmd.view))
-    elif (
-        isinstance(cmd, dbops.CreateTable)
-        and cmd.table.name[0].endswith(namespace)
+    elif isinstance(cmd, dbops.CreateTable) and cmd.table.name[0].endswith(
+        namespace
     ):
         f, n = cmd.table.name
         out.append(trampoline.make_table_trampoline((f, n)))
 
 
 def trampoline_functions(
-    cmds: Sequence[dbops.Command]
+    cmds: Sequence[dbops.Command],
 ) -> list[trampoline.Trampoline]:
     ncmds: list[trampoline.Trampoline] = []
     for cmd in cmds:
@@ -5415,13 +5476,11 @@ def get_fixed_bootstrap_commands() -> dbops.CommandGroup:
         dbops.CreateSchema(name='edgedbpub'),
         dbops.CreateSchema(name='edgedbstd'),
         dbops.CreateSchema(name='edgedbinstdata'),
-
         dbops.CreateTable(
             DBConfigTable(),
         ),
         # TODO: SHOULD THIS BE VERSIONED?
         dbops.CreateTable(QueryCacheTable()),
-
         dbops.CreateDomain(BigintDomain()),
         dbops.CreateDomain(ConfigMemoryDomain()),
         dbops.CreateDomain(TimestampTzDomain()),
@@ -5430,10 +5489,8 @@ def get_fixed_bootstrap_commands() -> dbops.CommandGroup:
         dbops.CreateDomain(DurationDomain()),
         dbops.CreateDomain(RelativeDurationDomain()),
         dbops.CreateDomain(DateDurationDomain()),
-
         dbops.CreateEnum(SysConfigSourceType()),
         dbops.CreateEnum(SysConfigScopeType()),
-
         dbops.CreateCompositeType(SysConfigValueType()),
         dbops.CreateCompositeType(SysConfigEntryType()),
         dbops.CreateRange(Float32Range()),
@@ -5447,8 +5504,9 @@ def get_fixed_bootstrap_commands() -> dbops.CommandGroup:
     return commands
 
 
-def get_instdata_commands(
-) -> tuple[dbops.CommandGroup, list[trampoline.Trampoline]]:
+def get_instdata_commands() -> tuple[
+    dbops.CommandGroup, list[trampoline.Trampoline]
+]:
     cmds = [
         dbops.CreateSchema(name=V('edgedbinstdata')),
         dbops.CreateTable(InstDataTable()),
@@ -5478,7 +5536,6 @@ def get_bootstrap_commands(
         dbops.CreateSchema(name=V('edgedbpub')),
         dbops.CreateSchema(name=V('edgedbstd')),
         dbops.CreateSchema(name=V('edgedbsql')),
-
         dbops.CreateView(NormalizedPgSettingsView()),
         dbops.CreateFunction(EvictQueryCacheFunction()),
         dbops.CreateFunction(ClearQueryCacheFunction()),
@@ -5557,7 +5614,8 @@ def get_bootstrap_commands(
         dbops.CreateFunction(ConvertPostgresConfigUnitsFunction()),
         dbops.CreateFunction(InterpretConfigValueToJsonFunction()),
         dbops.CreateFunction(
-            PostgresJsonConfigValueToFrontendConfigValueFunction(config_spec)),
+            PostgresJsonConfigValueToFrontendConfigValueFunction(config_spec)
+        ),
         dbops.CreateFunction(PostgresConfigValueToJsonFunction()),
         dbops.CreateFunction(SysConfigFullFunction()),
         dbops.CreateFunction(SysConfigUncachedFunction()),
@@ -5620,11 +5678,13 @@ async def create_pg_extensions(
             inst_params.existing_exts is None
             or inst_params.existing_exts.get(ext) is None
         ):
-            commands.add_commands([
-                dbops.CreateExtension(
-                    dbops.Extension(name=ext, schema=ext_schema),
-                ),
-            ])
+            commands.add_commands(
+                [
+                    dbops.CreateExtension(
+                        dbops.Extension(name=ext, schema=ext_schema),
+                    ),
+                ]
+            )
     block = dbops.PLTopBlock()
     commands.generate(block)
     await _execute_block(conn, block)
@@ -5649,14 +5709,19 @@ async def patch_pg_extensions(
     commands = dbops.CommandGroup()
 
     if uuid_ext_schema != "edgedbext":
-        commands.add_commands([
-            dbops.CreateFunction(
-                UuidGenerateV1mcFunction(uuid_ext_schema), or_replace=True),
-            dbops.CreateFunction(
-                UuidGenerateV4Function(uuid_ext_schema), or_replace=True),
-            dbops.CreateFunction(
-                UuidGenerateV5Function(uuid_ext_schema), or_replace=True),
-        ])
+        commands.add_commands(
+            [
+                dbops.CreateFunction(
+                    UuidGenerateV1mcFunction(uuid_ext_schema), or_replace=True
+                ),
+                dbops.CreateFunction(
+                    UuidGenerateV4Function(uuid_ext_schema), or_replace=True
+                ),
+                dbops.CreateFunction(
+                    UuidGenerateV5Function(uuid_ext_schema), or_replace=True
+                ),
+            ]
+        )
 
     if len(commands) > 0:
         block = dbops.PLTopBlock()
@@ -5664,15 +5729,10 @@ async def patch_pg_extensions(
         await _execute_block(conn, block)
 
 
-classref_attr_aliases = {
-    'links': 'pointers',
-    'link_properties': 'pointers'
-}
+classref_attr_aliases = {'links': 'pointers', 'link_properties': 'pointers'}
 
 
-def tabname(
-    schema: s_schema.Schema, obj: s_obj.Object
-) -> tuple[str, str]:
+def tabname(schema: s_schema.Schema, obj: s_obj.Object) -> tuple[str, str]:
     return common.get_backend_name(
         schema,
         obj,
@@ -5712,9 +5772,9 @@ def format_fields(
     ptr_indexes = {
         v: i for i, v in enumerate(obj.get_pointers(schema).objects(schema))
     }
-    ptrs.sort(key=(
-        lambda p: (not p.is_link_source_property(schema), ptr_indexes[p])
-    ))
+    ptrs.sort(
+        key=(lambda p: (not p.is_link_source_property(schema), ptr_indexes[p]))
+    )
 
     cols = []
     for ptr in ptrs:
@@ -5729,9 +5789,11 @@ def format_fields(
 def _generate_branch_views(schema: s_schema.Schema) -> list[dbops.View]:
     Branch = schema.get('sys::Branch', type=s_objtypes.ObjectType)
     annos = Branch.getptr(
-        schema, s_name.UnqualName('annotations'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations'), type=s_links.Link
+    )
     int_annos = Branch.getptr(
-        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link
+    )
 
     view_fields = {
         'id': "((d.description)->>'id')::uuid",
@@ -5830,7 +5892,8 @@ def _generate_branch_views(schema: s_schema.Schema) -> list[dbops.View]:
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -5839,11 +5902,14 @@ def _generate_branch_views(schema: s_schema.Schema) -> list[dbops.View]:
 def _generate_extension_views(schema: s_schema.Schema) -> list[dbops.View]:
     ExtPkg = schema.get('sys::ExtensionPackage', type=s_objtypes.ObjectType)
     annos = ExtPkg.getptr(
-        schema, s_name.UnqualName('annotations'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations'), type=s_links.Link
+    )
     int_annos = ExtPkg.getptr(
-        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link
+    )
     ver = ExtPkg.getptr(
-        schema, s_name.UnqualName('version'), type=s_props.Property)
+        schema, s_name.UnqualName('version'), type=s_props.Property
+    )
     ver_t = common.get_backend_name(
         schema,
         not_none(ver.get_target(schema)),
@@ -5961,23 +6027,28 @@ def _generate_extension_views(schema: s_schema.Schema) -> list[dbops.View]:
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
 
 
 def _generate_extension_migration_views(
-    schema: s_schema.Schema
+    schema: s_schema.Schema,
 ) -> list[dbops.View]:
     ExtPkgMigration = schema.get(
-        'sys::ExtensionPackageMigration', type=s_objtypes.ObjectType)
+        'sys::ExtensionPackageMigration', type=s_objtypes.ObjectType
+    )
     annos = ExtPkgMigration.getptr(
-        schema, s_name.UnqualName('annotations'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations'), type=s_links.Link
+    )
     int_annos = ExtPkgMigration.getptr(
-        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link)
+        schema, s_name.UnqualName('annotations__internal'), type=s_links.Link
+    )
     from_ver = ExtPkgMigration.getptr(
-        schema, s_name.UnqualName('from_version'), type=s_props.Property)
+        schema, s_name.UnqualName('from_version'), type=s_props.Property
+    )
     ver_t = common.get_backend_name(
         schema,
         not_none(from_ver.get_target(schema)),
@@ -6090,7 +6161,8 @@ def _generate_extension_migration_views(
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -6101,9 +6173,7 @@ def _generate_role_views(schema: s_schema.Schema) -> list[dbops.View]:
     member_of = Role.getptr(
         schema, s_name.UnqualName('member_of'), type=s_links.Link
     )
-    bases = Role.getptr(
-        schema, s_name.UnqualName('bases'), type=s_links.Link
-    )
+    bases = Role.getptr(schema, s_name.UnqualName('bases'), type=s_links.Link)
     ancestors = Role.getptr(
         schema, s_name.UnqualName('ancestors'), type=s_links.Link
     )
@@ -6336,7 +6406,8 @@ def _generate_role_views(schema: s_schema.Schema) -> list[dbops.View]:
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -6347,9 +6418,7 @@ def _generate_single_role_views(schema: s_schema.Schema) -> list[dbops.View]:
     member_of = Role.getptr(
         schema, s_name.UnqualName('member_of'), type=s_links.Link
     )
-    bases = Role.getptr(
-        schema, s_name.UnqualName('bases'), type=s_links.Link
-    )
+    bases = Role.getptr(schema, s_name.UnqualName('bases'), type=s_links.Link)
     ancestors = Role.getptr(
         schema, s_name.UnqualName('ancestors'), type=s_links.Link
     )
@@ -6498,7 +6567,8 @@ def _generate_single_role_views(schema: s_schema.Schema) -> list[dbops.View]:
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -6531,14 +6601,13 @@ def _generate_schema_ver_views(schema: s_schema.Schema) -> list[dbops.View]:
             ) AS v
     '''
 
-    objects = {
-        Ver: view_query
-    }
+    objects = {Ver: view_query}
 
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -6551,18 +6620,16 @@ def _generate_stats_views(schema: s_schema.Schema) -> list[dbops.View]:
     )
     pvd = common.get_backend_name(
         schema,
-        QueryStats
-            .getptr(schema, s_name.UnqualName("protocol_version"))
-            .get_target(schema)  # type: ignore
+        QueryStats.getptr(
+            schema, s_name.UnqualName("protocol_version")
+        ).get_target(schema),  # type: ignore
     )
     QueryType = schema.get(
         'sys::QueryType',
         type=s_scalars.ScalarType,
     )
     query_type_domain = common.get_backend_name(schema, QueryType)
-    type_mapping = {
-        str(v): k for k, v in defines.QueryType.__members__.items()
-    }
+    type_mapping = {str(v): k for k, v in defines.QueryType.__members__.items()}
     output_format_domain = common.get_backend_name(
         schema, schema.get('sys::OutputFormat', type=s_scalars.ScalarType)
     )
@@ -6577,7 +6644,6 @@ def _generate_stats_views(schema: s_schema.Schema) -> list[dbops.View]:
         'builtin': "false",
         'internal': "false",
         'computed_fields': 'ARRAY[]::text[]',
-
         'compilation_config': "s.extras->'cc'",
         'protocol_version': f"ROW(s.extras->'pv'->0, s.extras->'pv'->1)::{pvd}",
         'default_namespace': "s.extras->>'dn'",
@@ -6588,32 +6654,28 @@ def _generate_stats_views(schema: s_schema.Schema) -> list[dbops.View]:
         'inline_typeids': "(s.extras->'ii')::boolean",
         'inline_typenames': "(s.extras->'in')::boolean",
         'inline_objectids': "(s.extras->'io')::boolean",
-
         'branch': "((d.description)->>'id')::uuid",
         'query': "s.query",
         'query_type': f"(t.mapping->>s.stmt_type::text)::{query_type_domain}",
         'tag': "s.tag",
-
         'plans': 's.plans',
         'total_plan_time': float64_to_duration_t('s.total_plan_time'),
         'min_plan_time': float64_to_duration_t('s.min_plan_time'),
         'max_plan_time': float64_to_duration_t('s.max_plan_time'),
         'mean_plan_time': float64_to_duration_t('s.mean_plan_time'),
         'stddev_plan_time': float64_to_duration_t('s.stddev_plan_time'),
-
         'calls': 's.calls',
         'total_exec_time': float64_to_duration_t('s.total_exec_time'),
         'min_exec_time': float64_to_duration_t('s.min_exec_time'),
         'max_exec_time': float64_to_duration_t('s.max_exec_time'),
         'mean_exec_time': float64_to_duration_t('s.mean_exec_time'),
         'stddev_exec_time': float64_to_duration_t('s.stddev_exec_time'),
-
         'rows': 's.rows',
         'stats_since': 's.stats_since::edgedbt.timestamptz_t',
         'minmax_stats_since': 's.minmax_stats_since::edgedbt.timestamptz_t',
     }
 
-    query_stats_query = fr'''
+    query_stats_query = rf'''
         SELECT
             {format_fields(schema, QueryStats, query_stats_fields)}
         FROM
@@ -6642,7 +6704,8 @@ def _generate_stats_views(schema: s_schema.Schema) -> list[dbops.View]:
     views: list[dbops.View] = []
     for obj, query in objects.items():
         tabview = trampoline.VersionedView(
-            name=tabname(schema, obj), query=query)
+            name=tabname(schema, obj), query=query
+        )
         views.append(tabview)
 
     return views
@@ -6699,7 +6762,6 @@ def _generate_schema_alias_view(
     schema: s_schema.Schema,
     obj: s_sources.Source | s_pointers.Pointer,
 ) -> dbops.View:
-
     name = _schema_alias_view_name(schema, obj)
     select = inheritance.get_inheritance_view(schema, obj)
 
@@ -6729,9 +6791,8 @@ def _schema_alias_view_name(
 
 
 def _generate_sql_information_schema(
-    backend_version: params.BackendVersion
+    backend_version: params.BackendVersion,
 ) -> list[dbops.Command]:
-
     # Helper to create wrappers around materialized views.  For
     # performance, we use MATERIALIZED VIEW for some of our SQL
     # emulation tables. Unfortunately we can't use those directly,
@@ -6815,7 +6876,7 @@ def _generate_sql_information_schema(
             'schema',
             'std'
         )
-        '''
+        ''',
     )
     # A few tables in here were causing problems, so let's hide them as an
     # implementation detail.
@@ -6839,7 +6900,7 @@ def _generate_sql_information_schema(
             SELECT (
                 ('x' || substring(id::text, 2, 7))::bit(28)::bigint*4 + extra
                  + 40000)::oid;
-        """
+        """,
     )
     long_name = trampoline.VersionedFunction(
         name=('edgedbsql', '_long_name'),
@@ -6854,7 +6915,7 @@ def _generate_sql_information_schema(
                 THEN left(longname, 55) || left(origname, 8)
                 ELSE longname
                 END
-        '''
+        ''',
     )
     type_rename = trampoline.VersionedFunction(
         name=('edgedbsql', '_pg_type_rename'),
@@ -6893,7 +6954,7 @@ def _generate_sql_information_schema(
                 ),
                 typename
             )
-        '''
+        ''',
     )
     namespace_rename = trampoline.VersionedFunction(
         name=('edgedbsql', '_pg_namespace_rename'),
@@ -6926,7 +6987,7 @@ def _generate_sql_information_schema(
             FROM
                 nspub,
                 nsdef
-        '''
+        ''',
     )
     # pg_settings is a function because "_edgecon_state" is a temporary table
     # and therefore cannot be used in a view.
@@ -6981,7 +7042,7 @@ def _generate_sql_information_schema(
                     WHERE
                         key = 'sql_default_fe_settings'
                 ) d ON p.name = d.name
-        '''
+        ''',
     )
 
     sql_ident = 'information_schema.sql_identifier'
@@ -7586,7 +7647,6 @@ def _generate_sql_information_schema(
         FROM edgedbsql_VER.pg_attribute_ext
         """,
         ),
-
         trampoline.VersionedView(
             name=("edgedbsql", "pg_database"),
             query=f"""
@@ -7624,7 +7684,6 @@ def _generate_sql_information_schema(
             AND NOT (metadata.j->'builtin')::bool
         """,
         ),
-
         # HACK: there were problems with pg_dump when exposing this table, so
         # I've added WHERE FALSE. The query could be simplified, but it may
         # be needed in the future. Its EXPLAIN cost is 0..0 anyway.
@@ -7814,7 +7873,7 @@ def _generate_sql_information_schema(
             sp.cardinality = 'Many' OR link_props.id IS NOT NULL
             AND sp.computable IS NOT TRUE
             AND sp.internal IS NOT TRUE
-        """
+        """,
         ),
         trampoline.VersionedView(
             name=("edgedbsql", "pg_statistic"),
@@ -7896,7 +7955,6 @@ def _generate_sql_information_schema(
         JOIN edgedbsql_VER.pg_class pn ON pr.ev_class = pn.oid
         """,
         ),
-
         # HACK: Automatically generated cast function for ranges/multiranges
         # was causing issues for pg_dump. So at the end of the day we opt for
         # not exposing any casts at all here since there is no real reason for
@@ -8071,7 +8129,7 @@ def _generate_sql_information_schema(
                     ) AS multiplier,
                     COALESCE(_unit.v[2], '') AS unit
             ) AS unit
-        """
+        """,
         ),
     ]
 
@@ -8229,8 +8287,14 @@ def _generate_sql_information_schema(
         trampoline.VersionedFunction(
             name=('edgedbsql', 'split_identifier_string'),
             args=(
-                ('rawstring', 'text',),
-                ('separator', 'text',),
+                (
+                    'rawstring',
+                    'text',
+                ),
+                (
+                    'separator',
+                    'text',
+                ),
             ),
             returns=('text[]',),
             language="plpgsql",
@@ -8371,7 +8435,10 @@ END;
         trampoline.VersionedFunction(
             name=('edgedbsql', 'current_schemas'),
             args=(
-                ('include_implicit', 'bool',),
+                (
+                    'include_implicit',
+                    'bool',
+                ),
             ),
             returns=('name[]',),
             language="plpgsql",
@@ -8432,7 +8499,10 @@ END;
         trampoline.VersionedFunction(
             name=('edgedbsql', 'to_regclass'),
             args=(
-                ('name_or_oid', 'text',),
+                (
+                    'name_or_oid',
+                    'text',
+                ),
             ),
             returns=('regclass',),
             language="plpgsql",
@@ -8473,53 +8543,65 @@ BEGIN
     END IF;
     RETURN result;
 END;
-            """
+            """,
         ),
         # Unlike pg_catalog.to_regclass(), edgedbsql.to_regclass() also takes
         # numeric parameters to support compiled `::regclass` typecasting.
         trampoline.VersionedFunction(
             name=('edgedbsql', 'to_regclass'),
             args=(
-                ('oid', 'integer',),
+                (
+                    'oid',
+                    'integer',
+                ),
             ),
             returns=('regclass',),
             volatility="stable",
             text="""
                 SELECT oid::regclass
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'to_regclass'),
             args=(
-                ('oid', 'smallint',),
+                (
+                    'oid',
+                    'smallint',
+                ),
             ),
             returns=('regclass',),
             volatility="stable",
             text="""
                 SELECT oid::regclass
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'to_regclass'),
             args=(
-                ('oid', 'bigint',),
+                (
+                    'oid',
+                    'bigint',
+                ),
             ),
             returns=('regclass',),
             volatility="stable",
             text="""
                 SELECT oid::regclass
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'to_regclass'),
             args=(
-                ('oid', 'oid',),
+                (
+                    'oid',
+                    'oid',
+                ),
             ),
             returns=('regclass',),
             volatility="stable",
             text="""
                 SELECT oid::regclass
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_database_privilege'),
@@ -8532,7 +8614,7 @@ END;
                 SELECT has_database_privilege(oid, privilege)
                 FROM edgedbsql_VER.pg_database
                 WHERE datname = database_name
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_database_privilege'),
@@ -8543,7 +8625,7 @@ END;
             returns=('bool',),
             text="""
                 SELECT has_database_privilege(database_oid, privilege)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_schema_privilege'),
@@ -8558,7 +8640,7 @@ END;
                 FROM edgedbsql_VER.pg_namespace
                 WHERE nspname = schema_name
             ), TRUE);
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_schema_privilege'),
@@ -8571,7 +8653,7 @@ END;
                 SELECT COALESCE(
                     has_schema_privilege(schema_oid, privilege), TRUE
                 )
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_table_privilege'),
@@ -8583,7 +8665,7 @@ END;
             text="""
                 SELECT has_table_privilege(
                     edgedbsql_VER.to_regclass(table_name), privilege)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_table_privilege'),
@@ -8594,9 +8676,8 @@ END;
             returns=('bool',),
             text="""
                 SELECT has_table_privilege(table_oid, privilege)
-            """
+            """,
         ),
-
         # pg_catalog.has_column_privilege will return NULL for computed and
         # static columns. So we COALESCE to TRUE.
         trampoline.VersionedFunction(
@@ -8611,7 +8692,7 @@ END;
               SELECT COALESCE((
                 SELECT has_column_privilege(tbl, col, privilege)
               ), TRUE)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_column_privilege'),
@@ -8626,7 +8707,7 @@ END;
                 SELECT has_column_privilege(
                     edgedbsql_VER.to_regclass(tbl), col, privilege)
               ), TRUE)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_column_privilege'),
@@ -8642,7 +8723,7 @@ END;
                 FROM edgedbsql_VER.pg_attribute_ext pa
                 WHERE attrelid = tbl AND attname = col
               ), TRUE)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_column_privilege'),
@@ -8659,7 +8740,7 @@ END;
                 LATERAL (SELECT edgedbsql_VER.to_regclass(tbl) AS oid) pc
                 WHERE pa.attrelid = pc.oid AND pa.attname = col
               ), TRUE)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_any_column_privilege'),
@@ -8670,7 +8751,7 @@ END;
             returns=('bool',),
             text="""
                 SELECT has_any_column_privilege(tbl, privilege)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'has_any_column_privilege'),
@@ -8682,7 +8763,7 @@ END;
             text="""
                 SELECT has_any_column_privilege(
                     edgedbsql_VER.to_regclass(tbl), privilege)
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', '_pg_truetypid'),
@@ -8698,7 +8779,7 @@ END;
                     WHEN typ.typtype = 'd' THEN typ.typbasetype
                     ELSE att.atttypid
                 END
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', '_pg_truetypmod'),
@@ -8714,7 +8795,7 @@ END;
                     WHEN typ.typtype = 'd' THEN typ.typtypmod
                     ELSE att.atttypmod
                 END
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=('edgedbsql', 'pg_table_is_visible'),
@@ -8732,7 +8813,7 @@ END;
                 )
                 FROM edgedbsql_VER.pg_class pc
                 WHERE id = pc.oid
-            '''
+            ''',
         ),
         trampoline.VersionedFunction(
             # Used instead of pg_catalog.format_type in pg_dump.
@@ -8819,7 +8900,7 @@ END;
                   ON pc.relnamespace = pn.oid
                 WHERE con.oid = conid
                 )
-            """
+            """,
         ),
         trampoline.VersionedFunction(
             name=("edgedbsql", "pg_get_constraintdef"),
@@ -8831,7 +8912,7 @@ END;
             volatility='stable',
             text=r"""
                 SELECT pg_get_constraintdef(conid)
-            """
+            """,
         ),
     ]
 
@@ -8851,17 +8932,16 @@ END;
 
 @functools.cache
 def generate_sql_information_schema_refresh(
-    backend_version: params.BackendVersion
+    backend_version: params.BackendVersion,
 ) -> dbops.Command:
     refresh = dbops.CommandGroup()
     for command in _generate_sql_information_schema(backend_version):
-        if (
-            isinstance(command, dbops.CreateView)
-            and command.view.materialized
-        ):
-            refresh.add_command(dbops.Query(
-                text=f'REFRESH MATERIALIZED VIEW {q(*command.view.name)}'
-            ))
+        if isinstance(command, dbops.CreateView) and command.view.materialized:
+            refresh.add_command(
+                dbops.Query(
+                    text=f'REFRESH MATERIALIZED VIEW {q(*command.view.name)}'
+                )
+            )
     return refresh
 
 
@@ -8899,7 +8979,7 @@ def get_config_type_views(
     schema: s_schema.Schema,
     conf: s_objtypes.ObjectType,
     scope: Optional[qltypes.ConfigScope],
-    existing_view_columns: Optional[dict[str, list[str]]]=None,
+    existing_view_columns: Optional[dict[str, list[str]]] = None,
 ) -> dbops.CommandGroup:
     commands = dbops.CommandGroup()
 
@@ -8911,15 +8991,19 @@ def get_config_type_views(
         rptr=None,
         existing_view_columns=existing_view_columns,
     )
-    commands.add_commands([
-        dbops.CreateView(
-            (trampoline.VersionedView if tn[0] == 'edgedbstd' else dbops.View)(
-                name=tn, query=trampoline.fixup_query(q)
-            ),
-            or_replace=True,
-        )
-        for tn, q in cfg_views
-    ])
+    commands.add_commands(
+        [
+            dbops.CreateView(
+                (
+                    trampoline.VersionedView
+                    if tn[0] == 'edgedbstd'
+                    else dbops.View
+                )(name=tn, query=trampoline.fixup_query(q)),
+                or_replace=True,
+            )
+            for tn, q in cfg_views
+        ]
+    )
 
     return commands
 
@@ -8935,15 +9019,21 @@ def generate_drop_views(
             # version, since that allows us to switch between them
             # more easily.
             dv = dbops.CommandGroup()
-            dv.add_command(dbops.DropView(
-                cv.view.name,
-                conditions=[dbops.ViewExists(cv.view.name)],
-            ))
-            dv.add_command(dbops.DropView(
-                cv.view.name,
-                conditions=[dbops.ViewExists(cv.view.name, materialized=True)],
-                materialized=True,
-            ))
+            dv.add_command(
+                dbops.DropView(
+                    cv.view.name,
+                    conditions=[dbops.ViewExists(cv.view.name)],
+                )
+            )
+            dv.add_command(
+                dbops.DropView(
+                    cv.view.name,
+                    conditions=[
+                        dbops.ViewExists(cv.view.name, materialized=True)
+                    ],
+                    materialized=True,
+                )
+            )
         elif isinstance(cv, dbops.CreateFunction):
             dv = dbops.DropFunction(
                 cv.function.name,
@@ -8960,14 +9050,16 @@ def generate_drop_views(
 
 def get_config_views(
     schema: s_schema.Schema,
-    existing_view_columns: Optional[dict[str, list[str]]]=None,
+    existing_view_columns: Optional[dict[str, list[str]]] = None,
 ) -> dbops.CommandGroup:
     commands = dbops.CommandGroup()
 
     conf = schema.get('cfg::Config', type=s_objtypes.ObjectType)
     commands.add_command(
         get_config_type_views(
-            schema, conf, scope=None,
+            schema,
+            conf,
+            scope=None,
             existing_view_columns=existing_view_columns,
         ),
     )
@@ -8975,7 +9067,9 @@ def get_config_views(
     conf = schema.get('cfg::InstanceConfig', type=s_objtypes.ObjectType)
     commands.add_command(
         get_config_type_views(
-            schema, conf, scope=qltypes.ConfigScope.INSTANCE,
+            schema,
+            conf,
+            scope=qltypes.ConfigScope.INSTANCE,
             existing_view_columns=existing_view_columns,
         ),
     )
@@ -8983,7 +9077,9 @@ def get_config_views(
     conf = schema.get('cfg::DatabaseConfig', type=s_objtypes.ObjectType)
     commands.add_command(
         get_config_type_views(
-            schema, conf, scope=qltypes.ConfigScope.DATABASE,
+            schema,
+            conf,
+            scope=qltypes.ConfigScope.DATABASE,
             existing_view_columns=existing_view_columns,
         ),
     )
@@ -9021,9 +9117,7 @@ def get_synthetic_type_views(
         for stats_view in _generate_stats_views(schema):
             commands.add_command(dbops.CreateView(stats_view, or_replace=True))
         commands.add_command(
-            dbops.CreateFunction(
-                ResetQueryStatsFunction(True), or_replace=True
-            )
+            dbops.CreateFunction(ResetQueryStatsFunction(True), or_replace=True)
         )
 
     return commands
@@ -9034,9 +9128,9 @@ def _get_wrapper_views() -> dbops.CommandGroup:
     # to reference from functions.
     wrapper_commands = dbops.CommandGroup()
     wrapper_commands.add_command(
-        dbops.CreateView(ObjectAncestorsView(), or_replace=True))
-    wrapper_commands.add_command(
-        dbops.CreateView(LinksView(), or_replace=True))
+        dbops.CreateView(ObjectAncestorsView(), or_replace=True)
+    )
+    wrapper_commands.add_command(dbops.CreateView(LinksView(), or_replace=True))
     return wrapper_commands
 
 
@@ -9047,21 +9141,26 @@ def get_support_views(
     commands = dbops.CommandGroup()
 
     schema_alias_views = _generate_schema_alias_views(
-        schema, s_name.UnqualName('schema'))
+        schema, s_name.UnqualName('schema')
+    )
 
     InhObject = schema.get(
-        'schema::InheritingObject', type=s_objtypes.ObjectType)
+        'schema::InheritingObject', type=s_objtypes.ObjectType
+    )
     InhObject__ancestors = InhObject.getptr(
-        schema, s_name.UnqualName('ancestors'), type=s_links.Link)
+        schema, s_name.UnqualName('ancestors'), type=s_links.Link
+    )
     schema_alias_views.append(
-        _generate_schema_alias_view(schema, InhObject__ancestors))
+        _generate_schema_alias_view(schema, InhObject__ancestors)
+    )
 
-    ObjectType = schema.get(
-        'schema::ObjectType', type=s_objtypes.ObjectType)
+    ObjectType = schema.get('schema::ObjectType', type=s_objtypes.ObjectType)
     ObjectType__ancestors = ObjectType.getptr(
-        schema, s_name.UnqualName('ancestors'), type=s_links.Link)
+        schema, s_name.UnqualName('ancestors'), type=s_links.Link
+    )
     schema_alias_views.append(
-        _generate_schema_alias_view(schema, ObjectType__ancestors))
+        _generate_schema_alias_view(schema, ObjectType__ancestors)
+    )
 
     for alias_view in schema_alias_views:
         commands.add_command(dbops.CreateView(alias_view, or_replace=True))
@@ -9073,18 +9172,17 @@ def get_support_views(
     commands.add_command(wrapper_commands)
 
     sys_alias_views = _generate_schema_alias_views(
-        schema, s_name.UnqualName('sys'))
+        schema, s_name.UnqualName('sys')
+    )
 
     # Include sys::Role::member_of and sys::Role::permissions
     # to support DescribeRolesAsDDLFunction
-    SysRole = schema.get(
-        'sys::Role', type=s_objtypes.ObjectType)
-    SysRole__member_of = SysRole.getptr(
-        schema, s_name.UnqualName('member_of'))
+    SysRole = schema.get('sys::Role', type=s_objtypes.ObjectType)
+    SysRole__member_of = SysRole.getptr(schema, s_name.UnqualName('member_of'))
     SysRole__permissions = SysRole.getptr(
-        schema, s_name.UnqualName('permissions'))
-    SysRole__branches = SysRole.getptr(
-        schema, s_name.UnqualName('branches'))
+        schema, s_name.UnqualName('permissions')
+    )
+    SysRole__branches = SysRole.getptr(schema, s_name.UnqualName('branches'))
     sys_alias_views.append(
         _generate_schema_alias_view(schema, SysRole__member_of)
     )
@@ -9099,9 +9197,7 @@ def get_support_views(
         commands.add_command(dbops.CreateView(alias_view, or_replace=True))
 
     commands.add_commands(
-        _generate_sql_information_schema(
-            backend_params.instance_params.version
-        )
+        _generate_sql_information_schema(backend_params.instance_params.version)
     )
 
     # The synthetic type views (cfg::, sys::) need to be trampolined
@@ -9131,8 +9227,9 @@ async def generate_support_functions(
     commands = dbops.CommandGroup()
 
     cmds = [
-        dbops.CreateFunction(GetPgTypeForEdgeDBTypeFunction2(),
-                             or_replace=True),
+        dbops.CreateFunction(
+            GetPgTypeForEdgeDBTypeFunction2(), or_replace=True
+        ),
         dbops.CreateFunction(IssubclassFunction()),
         dbops.CreateFunction(IssubclassFunction2()),
         dbops.CreateFunction(GetSchemaObjectNameFunction()),
@@ -9266,7 +9363,6 @@ def _build_data_source(
     always_array: bool = False,
     alias: Optional[str] = None,
 ) -> str:
-
     rptr_name = rptr.get_shortname(schema).name
     rptr_card = rptr.get_cardinality(schema)
     rptr_multi = rptr_card.is_multi()
@@ -9420,7 +9516,8 @@ def _generate_config_type_view(
         root_source = not_none(root.get_source(schema))
         is_root_ext_cfg = root_source.issubclass(schema, ext_cfg)
         assert not is_root_ext_cfg, (
-            "nested conf objects not yet supported for ext configs")
+            "nested conf objects not yet supported for ext configs"
+        )
 
         key_start = 0
 
@@ -9495,15 +9592,12 @@ def _generate_config_type_view(
             else:
                 single_links.append(pp)
         else:
-            pp_cast = _make_json_caster(
-                schema, pp_type, versioned=versioned
-            )
+            pp_cast = _make_json_caster(schema, pp_type, versioned=versioned)
 
             if pp_multi:
                 multi_props.append((pp, pp_cast))
             else:
-                extract_col = (
-                    f'{pp_cast(f"{sval}->{ql(pn)}")} AS {qi(pp_col)}')
+                extract_col = f'{pp_cast(f"{sval}->{ql(pn)}")} AS {qi(pp_col)}'
 
                 target_cols[pp] = extract_col
 
@@ -9526,7 +9620,7 @@ def _generate_config_type_view(
         # and the scope, since we create one object per scope.
         key_components = [
             f'ARRAY[{ql(str(stype.get_name(schema)))}]',
-            "ARRAY[coalesce(q0.scope, 'session')]"
+            "ARRAY[coalesce(q0.scope, 'session')]",
         ]
         final_keysource = f'{_build_key_expr(key_components, versioned)} AS k'
         sources.append(final_keysource)
@@ -9536,14 +9630,15 @@ def _generate_config_type_view(
 
     elif exclusive_props or rptr:
         sources.append(
-            _build_key_source(schema, exclusive_props, rptr, str(self_idx)))
+            _build_key_source(schema, exclusive_props, rptr, str(self_idx))
+        )
 
         key_components = [f'k{i}.key' for i in range(key_start, self_idx + 1)]
         if is_rptr_ext_cfg:
             assert rptr_source
             key_components = [
                 f'ARRAY[{ql(str(rptr_source.get_name(schema)))}]',
-                "ARRAY[coalesce(q0.scope, 'session')]"
+                "ARRAY[coalesce(q0.scope, 'session')]",
             ] + key_components
 
         final_keysource = f'{_build_key_expr(key_components, versioned)} AS k'
@@ -9604,13 +9699,17 @@ def _generate_config_type_view(
                 views.extend(desc_views)
 
         target_source = _build_data_source(
-            schema, link, self_idx, alias=link_name,
+            schema,
+            link,
+            self_idx,
+            alias=link_name,
             always_array=rptr is None,
         )
         sources.append(target_source)
 
         target_key_source = _build_key_source(
-            schema, target_exc_props, link, source_idx=link_name)
+            schema, target_exc_props, link, source_idx=link_name
+        )
         sources.append(target_key_source)
 
         target_key_components = key_components + [f'k{link_name}.key']
@@ -9634,9 +9733,14 @@ def _generate_config_type_view(
     #
     # FIXME: We should consider adding enough info to the schema to not need
     # this complication.
-    existing_indexes = {
-        v: i for i, v in enumerate(existing_view_columns.get(str(stype.id), []))
-    } if existing_view_columns else {}
+    existing_indexes = (
+        {
+            v: i
+            for i, v in enumerate(existing_view_columns.get(str(stype.id), []))
+        }
+        if existing_view_columns
+        else {}
+    )
     ptr_indexes = {}
     for i, v in enumerate(stype.get_pointers(schema).objects(schema)):
         # First try the id
@@ -9716,11 +9820,13 @@ def _generate_config_type_view(
             continue
 
         target_source = _build_data_source(
-            schema, link, self_idx, alias=link_name)
+            schema, link, self_idx, alias=link_name
+        )
         target_sources.append(target_source)
 
         target_key_source = _build_key_source(
-            schema, target_exc_props, link, source_idx=link_name)
+            schema, target_exc_props, link, source_idx=link_name
+        )
         target_sources.append(target_key_source)
 
         target_key_components = key_components + [f'k{link_name}.key']
@@ -9750,8 +9856,7 @@ def _generate_config_type_view(
 
         pn = prop.get_shortname(schema).name
 
-        target_source = _build_data_source(
-            schema, prop, self_idx, alias=pn)
+        target_source = _build_data_source(schema, prop, self_idx, alias=pn)
         target_sources.append(target_source)
 
         target_fromlist = ',\n'.join(f'LATERAL {X(s)}' for s in target_sources)
@@ -9802,7 +9907,9 @@ async def execute_sql_script(
         if context:
             pl_func_line_m = re.search(
                 r'^PL/pgSQL function inline_code_block line (\d+).*',
-                context, re.M)
+                context,
+                re.M,
+            )
 
             if pl_func_line_m:
                 pl_func_line = int(pl_func_line_m.group(1))

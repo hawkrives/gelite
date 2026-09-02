@@ -26,7 +26,6 @@ from edb.protocol.protocol import Connection
 
 
 class ProtocolTestCase(server.DatabaseTestCase):
-
     PARALLELISM_GRANULARITY = 'database'
     BASE_TEST_CLASS = True
 
@@ -41,8 +40,6 @@ class ProtocolTestCase(server.DatabaseTestCase):
 
     def tearDown(self):
         try:
-            self.loop.run_until_complete(
-                self.con.aclose()
-            )
+            self.loop.run_until_complete(self.con.aclose())
         finally:
             self.con = None

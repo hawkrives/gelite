@@ -27,8 +27,9 @@ from edb.testbase import server as tb
 class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
     '''Test type expressions'''
 
-    SCHEMA_DEFAULT = os.path.join(os.path.dirname(__file__), 'schemas',
-                                  'advtypes.esdl')
+    SCHEMA_DEFAULT = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'advtypes.esdl'
+    )
 
     async def test_edgeql_advtypes_overlapping_union(self):
         await self.con.execute('''
@@ -46,9 +47,11 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             r'''
                 SELECT Z {stw0: {name}} FILTER .name = 'z0';
             ''',
-            [{
-                'stw0': [{'name': 'v0'}],
-            }]
+            [
+                {
+                    'stw0': [{'name': 'v0'}],
+                }
+            ],
         )
 
     async def test_edgeql_advtypes_overlapping_link_union(self):
@@ -69,9 +72,11 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 cla := count(.l_a)
             }
             """,
-            [{
-                'cla': 1,
-            }]
+            [
+                {
+                    'cla': 1,
+                }
+            ],
         )
 
     async def _setup_basic_data(self):
@@ -640,12 +645,24 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
         await self.assert_query_result(
             r"""
@@ -658,10 +675,22 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
         await self.assert_query_result(
             r"""
@@ -674,16 +703,38 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
-                {'tn': 'default::CBbBc', 'ba': None, 'bb': 6, 'bc': 6.5},
-                {'tn': 'default::CBbBc', 'ba': None, 'bb': 7, 'bc': 7.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
+                    {'tn': 'default::CBbBc', 'ba': None, 'bb': 6, 'bc': 6.5},
+                    {'tn': 'default::CBbBc', 'ba': None, 'bb': 7, 'bc': 7.5},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -705,10 +756,17 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_advtypes_complex_intersection_18(self):
@@ -726,10 +784,22 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
         await self.assert_query_result(
             r"""
@@ -742,10 +812,22 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
         await self.assert_query_result(
             r"""
@@ -758,12 +840,24 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -961,7 +1055,7 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             [
                 'sss',
                 'ttt',
-            ]
+            ],
         )
 
     async def test_edgeql_advtypes_union_narrowing_subtype(self):
@@ -984,7 +1078,7 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             """,
             [
                 'xxx',
-            ]
+            ],
         )
 
     async def test_edgeql_advtypes_union_opaque_narrowing_subtype(self):
@@ -1010,11 +1104,15 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             }
             FILTER .name = 'www'
             """,
-            [{
-                'w_of': [{
-                    'name': 'xxx',
-                }],
-            }]
+            [
+                {
+                    'w_of': [
+                        {
+                            'name': 'xxx',
+                        }
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -1026,11 +1124,15 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             }
             FILTER .name = 'www'
             """,
-            [{
-                'w_of': [{
-                    'u': 'xxx_uuu',
-                }],
-            }]
+            [
+                {
+                    'w_of': [
+                        {
+                            'u': 'xxx_uuu',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_advtypes_union_opaque_narrowing_nop(self):
@@ -1083,14 +1185,14 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
             """
             select S[is T].l_a { name }
             """,
-            [{"name": "test"}]
+            [{"name": "test"}],
         )
 
         await self.assert_query_result(
             """
             select S[is T] { l_a: {name} }
             """,
-            [{"l_a": [{"name": "test"}]}]
+            [{"l_a": [{"name": "test"}]}],
         )
 
     async def test_edgeql_advtypes_update_complex_type_01(self):
@@ -1818,12 +1920,24 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 }
             )
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
         await self.assert_query_result(
             r"""
@@ -1835,12 +1949,24 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                 [IS Bc].bc,
             }
             """,
-            tb.bag([
-                {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
-                {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba8', 'bb': 8, 'bc': 8.5},
-                {'tn': 'default::CBaBbBc', 'ba': 'cba9', 'bb': 9, 'bc': 9.5},
-            ]),
+            tb.bag(
+                [
+                    {'tn': 'default::CBaBb', 'ba': 'cba2', 'bb': 2, 'bc': None},
+                    {'tn': 'default::CBaBb', 'ba': 'cba3', 'bb': 3, 'bc': None},
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba8',
+                        'bb': 8,
+                        'bc': 8.5,
+                    },
+                    {
+                        'tn': 'default::CBaBbBc',
+                        'ba': 'cba9',
+                        'bb': 9,
+                        'bc': 9.5,
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_advtypes_intersection_pointers_01(self):
@@ -1879,7 +2005,7 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                             edgedb.SchemaError,
                             r"it is illegal to create a type intersection "
                             r"that causes a computed .* to mix "
-                            r"with other versions of the same .*"
+                            r"with other versions of the same .*",
                         ):
                             await self.con.execute(f"""
                                 select {type_root_a}{type_suffix}A {{
@@ -1899,7 +2025,7 @@ class TestEdgeQLAdvancedTypes(tb.QueryTestCase):
                             r"it is illegal to create a type intersection "
                             r"that causes a .* to mix "
                             r"with other versions of .* "
-                            r"which have a different cardinality"
+                            r"which have a different cardinality",
                         ):
                             await self.con.execute(f"""
                                 select {type_root_a}{type_suffix}A {{

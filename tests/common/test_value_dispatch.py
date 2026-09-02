@@ -23,9 +23,7 @@ from edb.common import value_dispatch
 
 
 class TestValueDispatch(unittest.TestCase):
-
     def test_common_value_dispatch_01(self):
-
         @value_dispatch.value_dispatch
         def eat(fruit):
             return f"I don't want a {fruit}..."
@@ -45,7 +43,6 @@ class TestValueDispatch(unittest.TestCase):
         self.assertEqual(eat('banana'), "I don't want a banana...")
 
     def test_common_value_dispatch_02(self):
-
         @value_dispatch.value_dispatch
         def eat(fruit):
             return f"I don't want a {fruit}..."
@@ -68,15 +65,17 @@ class TestValueDispatch(unittest.TestCase):
             return "I love apples!"
 
         with self.assertRaisesRegex(
-                ValueError,
-                "there is already a handler registered for 'apple'"):
+            ValueError, "there is already a handler registered for 'apple'"
+        ):
+
             @eat.register('apple')
             def _eat_apple_bogus(fruit):
                 return "I love apples, do I?"
 
         with self.assertRaisesRegex(
-                ValueError,
-                "there is already a handler registered for 'apple'"):
+            ValueError, "there is already a handler registered for 'apple'"
+        ):
+
             @eat.register_for_all({'apple'})
             def _eat_apple_bogus2(fruit):
                 return "I love apples, do I?"

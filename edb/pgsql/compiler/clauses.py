@@ -43,20 +43,24 @@ from . import relgen
 
 
 def get_volatility_ref(
-        path_id: irast.PathId,
-        stmt: pgast.SelectStmt,
-        *,
-        ctx: context.CompilerContextLevel) -> Optional[pgast.BaseExpr]:
+    path_id: irast.PathId,
+    stmt: pgast.SelectStmt,
+    *,
+    ctx: context.CompilerContextLevel,
+) -> Optional[pgast.BaseExpr]:
     """Produce an appropriate volatility_ref from a path_id."""
 
     ref: Optional[pgast.BaseExpr] = relctx.maybe_get_path_var(
-        stmt, path_id, aspect=pgce.PathAspect.ITERATOR, ctx=ctx)
+        stmt, path_id, aspect=pgce.PathAspect.ITERATOR, ctx=ctx
+    )
     if not ref:
         ref = relctx.maybe_get_path_var(
-            stmt, path_id, aspect=pgce.PathAspect.IDENTITY, ctx=ctx)
+            stmt, path_id, aspect=pgce.PathAspect.IDENTITY, ctx=ctx
+        )
     if not ref:
         rvar = relctx.maybe_get_path_rvar(
-            stmt, path_id, aspect=pgce.PathAspect.VALUE, ctx=ctx)
+            stmt, path_id, aspect=pgce.PathAspect.VALUE, ctx=ctx
+        )
         if (
             rvar
             and isinstance(rvar.query, pgast.ReturningQuery)
@@ -73,21 +77,25 @@ def get_volatility_ref(
             rvar.query.target_list.append(
                 pgast.ResTarget(
                     name=name,
-                    val=pgast.FuncCall(name=('row_number',), args=[],
-                                       over=pgast.WindowDef())
+                    val=pgast.FuncCall(
+                        name=('row_number',), args=[], over=pgast.WindowDef()
+                    ),
                 )
             )
             ref = pgast.ColumnRef(name=[rvar.alias.aliasname, name])
         else:
             ref = relctx.maybe_get_path_var(
-                stmt, path_id, aspect=pgce.PathAspect.VALUE, ctx=ctx)
+                stmt, path_id, aspect=pgce.PathAspect.VALUE, ctx=ctx
+            )
 
     return ref
 
 
 def setup_iterator_volatility(
-        iterator: Optional[irast.Set | pgast.IteratorCTE], *,
-        ctx: context.CompilerContextLevel) -> None:
+    iterator: Optional[irast.Set | pgast.IteratorCTE],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> None:
     if iterator is None:
         return
 
@@ -97,20 +105,26 @@ def setup_iterator_volatility(
     # columns unless there is actually a volatile operation that
     # requires it.
     ctx.volatility_ref += (
-        lambda stmt, xctx: get_volatility_ref(path_id, stmt, ctx=xctx),)
+        lambda stmt, xctx: get_volatility_ref(path_id, stmt, ctx=xctx),
+    )
 
 
 def compile_materialized_exprs(
-        query: pgast.SelectStmt, stmt: irast.Stmt, *,
-        ctx: context.CompilerContextLevel) -> None:
+    query: pgast.SelectStmt,
+    stmt: irast.Stmt,
+    *,
+    ctx: context.CompilerContextLevel,
+) -> None:
     if not stmt.materialized_sets:
         return
 
     if stmt in ctx.materializing:
         return
 
-    with context.output_format(ctx, context.OutputFormat.NATIVE), (
-            ctx.new()) as matctx:
+    with (
+        context.output_format(ctx, context.OutputFormat.NATIVE),
+        ctx.new() as matctx,
+    ):
         matctx.materializing |= {stmt}
         matctx.expr_exposed = True
 
@@ -126,8 +140,11 @@ def compile_materialized_exprs(
                 continue
             assert mat_set.finalized, "materialized set was not finalized!"
             if relctx.find_rvar(
-                    query, flavor='packed',
-                    path_id=mat_set.materialized.path_id, ctx=matctx):
+                query,
+                flavor='packed',
+                path_id=mat_set.materialized.path_id,
+                ctx=matctx,
+            ):
                 continue
 
             _compile_materialized_expr(query, mat_set, ctx=matctx)
@@ -159,9 +176,8 @@ def _compile_materialized_expr(
 
     if not is_singleton:
         mat_qry = relctx.set_to_array(
-            path_id=mat_set.materialized.path_id,
-            query=mat_qry,
-            ctx=ctx)
+            path_id=mat_set.materialized.path_id, query=mat_qry, ctx=ctx
+        )
 
     if not mat_qry.target_list[0].name:
         mat_qry.target_list[0].name = ctx.env.aliases.get('v')
@@ -176,18 +192,23 @@ def _compile_materialized_expr(
     mat_rvar = relctx.rvar_for_rel(mat_qry, lateral=True, ctx=ctx)
     for mat_id in mat_ids:
         relctx.include_rvar(
-            query, mat_rvar, path_id=mat_id,
-            flavor='packed', update_mask=False, pull_namespace=False,
+            query,
+            mat_rvar,
+            path_id=mat_id,
+            flavor='packed',
+            update_mask=False,
+            pull_namespace=False,
             ctx=ctx,
         )
 
 
 def compile_iterator_expr(
-        query: pgast.SelectStmt, iterator_expr: irast.Set, *,
-        is_dml: bool,
-        ctx: context.CompilerContextLevel) \
-        -> pgast.PathRangeVar:
-
+    query: pgast.SelectStmt,
+    iterator_expr: irast.Set,
+    *,
+    is_dml: bool,
+    ctx: context.CompilerContextLevel,
+) -> pgast.PathRangeVar:
     assert isinstance(iterator_expr.expr, (irast.GroupStmt, irast.SelectStmt))
 
     ctx.env.binding_dml[iterator_expr.path_id] = irutils.get_dml_sources(
@@ -213,15 +234,18 @@ def compile_iterator_expr(
         is_optional = ctx.scope_tree.is_optional(iterator_expr.path_id)
         if isinstance(iterator_query, pgast.SelectStmt):
             iterator_var = pathctx.get_path_value_var(
-                iterator_query, path_id=iterator_expr.path_id, env=ctx.env)
+                iterator_query, path_id=iterator_expr.path_id, env=ctx.env
+            )
         if not is_optional:
             if isinstance(iterator_query, pgast.SelectStmt):
                 iterator_var = pathctx.get_path_value_var(
-                    iterator_query, path_id=iterator_expr.path_id, env=ctx.env)
+                    iterator_query, path_id=iterator_expr.path_id, env=ctx.env
+                )
                 if iterator_var.nullable:
                     iterator_query.where_clause = astutils.extend_binop(
                         iterator_query.where_clause,
-                        pgast.NullTest(arg=iterator_var, negated=True))
+                        pgast.NullTest(arg=iterator_var, negated=True),
+                    )
             elif isinstance(iterator_query, pgast.Relation):
                 # will never be null
                 pass
@@ -241,9 +265,11 @@ def compile_iterator_expr(
         # might be NULL.
         if is_dml or is_optional:
             relctx.create_iterator_identity_for_path(
-                iterator_expr.path_id, iterator_query,
+                iterator_expr.path_id,
+                iterator_query,
                 apply_volatility=is_dml,
-                ctx=subctx)
+                ctx=subctx,
+            )
 
             pathctx.put_path_rvar(
                 query,
@@ -256,30 +282,30 @@ def compile_iterator_expr(
 
 
 def compile_output(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> pgast.OutputVar:
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> pgast.OutputVar:
     with ctx.new() as newctx:
         dispatch.visit(ir_set, ctx=newctx)
 
         path_id = ir_set.path_id
 
-        if (output.in_serialization_ctx(ctx) and
-                newctx.stmt is newctx.toplevel_stmt):
+        if (
+            output.in_serialization_ctx(ctx)
+            and newctx.stmt is newctx.toplevel_stmt
+        ):
             val = pathctx.get_path_serialized_output(
-                ctx.rel, path_id, env=ctx.env)
+                ctx.rel, path_id, env=ctx.env
+            )
         else:
-            val = pathctx.get_path_value_output(
-                ctx.rel, path_id, env=ctx.env)
+            val = pathctx.get_path_value_output(ctx.rel, path_id, env=ctx.env)
 
     return val
 
 
 def compile_volatile_bindings(
-    stmt: irast.Stmt,
-    *,
-    ctx: context.CompilerContextLevel
+    stmt: irast.Stmt, *, ctx: context.CompilerContextLevel
 ) -> None:
-    for binding, volatility in (stmt.bindings or ()):
+    for binding, volatility in stmt.bindings or ():
         # If something we are WITH binding contains DML, we want to
         # compile it *now*, in the context of its initial appearance
         # and not where the variable is used.
@@ -305,16 +331,10 @@ def compile_volatile_bindings(
 
 
 def _compile_volatile_binding_for_dml(
-    stmt: irast.Stmt,
-    binding: irast.Set,
-    *,
-    ctx: context.CompilerContextLevel
+    stmt: irast.Stmt, binding: irast.Set, *, ctx: context.CompilerContextLevel
 ) -> None:
     materialized_set = None
-    if (
-        stmt.materialized_sets
-        and binding.typeref.id in stmt.materialized_sets
-    ):
+    if stmt.materialized_sets and binding.typeref.id in stmt.materialized_sets:
         materialized_set = stmt.materialized_sets[binding.typeref.id]
     assert materialized_set is not None
 
@@ -322,7 +342,7 @@ def _compile_volatile_binding_for_dml(
 
     with (
         context.output_format(ctx, context.OutputFormat.NATIVE),
-        ctx.newrel() as matctx
+        ctx.newrel() as matctx,
     ):
         matctx.materializing |= {stmt}
         matctx.expr_exposed = True
@@ -330,14 +350,10 @@ def _compile_volatile_binding_for_dml(
         dml.merge_iterator(last_iterator, matctx.rel, ctx=matctx)
         setup_iterator_volatility(last_iterator, ctx=matctx)
 
-        _compile_materialized_expr(
-            matctx.rel, materialized_set, ctx=matctx
-        )
+        _compile_materialized_expr(matctx.rel, materialized_set, ctx=matctx)
 
         # Add iterator identity
-        bind_pathid = (
-            irast.PathId.new_dummy(ctx.env.aliases.get('bind_path'))
-        )
+        bind_pathid = irast.PathId.new_dummy(ctx.env.aliases.get('bind_path'))
         with matctx.subrel() as bind_pathid_ctx:
             relctx.create_iterator_identity_for_path(
                 bind_pathid, bind_pathid_ctx.rel, ctx=bind_pathid_ctx
@@ -372,9 +388,11 @@ def _compile_volatile_binding_for_dml(
 
 
 def compile_filter_clause(
-        ir_set: irast.Set,
-        cardinality: qltypes.Cardinality, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
+    ir_set: irast.Set,
+    cardinality: qltypes.Cardinality,
+    *,
+    ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     where_clause: pgast.BaseExpr
 
     with ctx.new() as ctx1:
@@ -390,7 +408,8 @@ def compile_filter_clause(
                 dispatch.visit(ir_set, ctx=subctx)
                 wrapper = subctx.rel
                 wrapper.where_clause = pathctx.get_path_value_var(
-                    wrapper, ir_set.path_id, env=subctx.env)
+                    wrapper, ir_set.path_id, env=subctx.env
+                )
 
             where_clause = pgast.SubLink(operator="EXISTS", expr=wrapper)
 
@@ -398,9 +417,8 @@ def compile_filter_clause(
 
 
 def compile_orderby_clause(
-        ir_exprs: Sequence[irast.SortExpr], *,
-        ctx: context.CompilerContextLevel) -> list[pgast.SortBy]:
-
+    ir_exprs: Sequence[irast.SortExpr], *, ctx: context.CompilerContextLevel
+) -> list[pgast.SortBy]:
     sort_clause = []
 
     for expr in ir_exprs:
@@ -410,24 +428,24 @@ def compile_orderby_clause(
             # In ORDER BY we compile ir.Set as a subquery:
             #    SELECT SetRel.value FROM SetRel)
             subq = relgen.set_as_subquery(
-                expr.expr, as_value=True, ctx=orderctx)
+                expr.expr, as_value=True, ctx=orderctx
+            )
             # pg apparently can't use indexes for ordering if the body
             # of an ORDER BY is a subquery, so try to collapse the query
             # into a simple expression.
             value = astutils.collapse_query(subq)
 
             sortexpr = pgast.SortBy(
-                node=value,
-                dir=expr.direction,
-                nulls=expr.nones_order)
+                node=value, dir=expr.direction, nulls=expr.nones_order
+            )
             sort_clause.append(sortexpr)
 
     return sort_clause
 
 
 def compile_limit_offset_clause(
-        ir_set: Optional[irast.Set], *,
-        ctx: context.CompilerContextLevel) -> Optional[pgast.BaseExpr]:
+    ir_set: Optional[irast.Set], *, ctx: context.CompilerContextLevel
+) -> Optional[pgast.BaseExpr]:
     if ir_set is None:
         return None
 
@@ -489,26 +507,24 @@ def scan_check_ctes(
         val = pgast.Expr(name="+", lexpr=val, rexpr=check)
 
     update_query = pgast.UpdateStmt(
-        targets=[pgast.UpdateTarget(
-            name='flag', val=pgast.BooleanConstant(val=True)
-        )],
-        relation=pgast.RelRangeVar(relation=pgast.Relation(
-            name='_dml_dummy')),
+        targets=[
+            pgast.UpdateTarget(name='flag', val=pgast.BooleanConstant(val=True))
+        ],
+        relation=pgast.RelRangeVar(relation=pgast.Relation(name='_dml_dummy')),
         where_clause=pgast.Expr(
             name="=",
             lexpr=pgast.ColumnRef(name=["id"]),
             rexpr=val,
+        ),
+    )
+    stmt.append_cte(
+        pgast.CommonTableExpr(
+            query=update_query, name=ctx.env.aliases.get(hint='check_scan')
         )
     )
-    stmt.append_cte(pgast.CommonTableExpr(
-        query=update_query,
-        name=ctx.env.aliases.get(hint='check_scan')
-    ))
 
 
-def insert_ctes(
-    stmt: pgast.Query, ctx: context.CompilerContextLevel
-) -> None:
+def insert_ctes(stmt: pgast.Query, ctx: context.CompilerContextLevel) -> None:
     if stmt.ctes is None:
         stmt.ctes = []
     stmt.ctes[:0] = [
@@ -518,9 +534,7 @@ def insert_ctes(
     ]
 
 
-def fini_toplevel(
-        stmt: pgast.Query, ctx: context.CompilerContextLevel) -> None:
-
+def fini_toplevel(stmt: pgast.Query, ctx: context.CompilerContextLevel) -> None:
     scan_check_ctes(stmt, ctx.env.check_ctes, ctx=ctx)
 
     # Type rewrites and inheritance CTEs go first.
@@ -541,23 +555,31 @@ def fini_toplevel(
             pgparam = ctx.argmap[param.name]
             if pgparam.index in used or param.sub_params:
                 continue
-            targets.append(pgast.ResTarget(val=pgast.TypeCast(
-                arg=pgast.ParamRef(number=pgparam.index),
-                type_name=pgast.TypeName(
-                    name=pg_types.pg_type_from_ir_typeref(param.ir_type)
+            targets.append(
+                pgast.ResTarget(
+                    val=pgast.TypeCast(
+                        arg=pgast.ParamRef(number=pgparam.index),
+                        type_name=pgast.TypeName(
+                            name=pg_types.pg_type_from_ir_typeref(param.ir_type)
+                        ),
+                    )
                 )
-            )))
+            )
             if isinstance(param, irast.Global) and param.has_present_arg:
-                targets.append(pgast.ResTarget(val=pgast.TypeCast(
-                    arg=pgast.ParamRef(number=pgparam.index + 1),
-                    type_name=pgast.TypeName(name=('bool',)),
-                )))
+                targets.append(
+                    pgast.ResTarget(
+                        val=pgast.TypeCast(
+                            arg=pgast.ParamRef(number=pgparam.index + 1),
+                            type_name=pgast.TypeName(name=('bool',)),
+                        )
+                    )
+                )
 
         if targets:
             stmt.append_cte(
                 pgast.CommonTableExpr(
                     name="__unused_vars",
-                    query=pgast.SelectStmt(target_list=targets)
+                    query=pgast.SelectStmt(target_list=targets),
                 )
             )
 

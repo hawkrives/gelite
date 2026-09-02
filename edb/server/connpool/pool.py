@@ -34,19 +34,16 @@ CP2 = typing.TypeVar('CP2', contravariant=True)
 
 
 class Connector(typing.Protocol[CP1]):
-
     def __call__(self, dbname: str) -> typing.Awaitable[CP1]:
         pass
 
 
 class Disconnector(typing.Protocol[CP2]):
-
     def __call__(self, conn: CP2) -> typing.Awaitable[None]:
         pass
 
 
 class StatsCollector(typing.Protocol):
-
     def __call__(self, stats: Snapshot) -> None:
         pass
 
@@ -187,10 +184,8 @@ class Block[C]:
         # is being returned to the pool but not yet acquired by a waiter,
         # in which case the number isn't going to be accurate.
         return max(
-            self.count_conns() -
-            self.conn_acquired_num -
-            self.conn_waiters_num,
-            0
+            self.count_conns() - self.conn_acquired_num - self.conn_waiters_num,
+            0,
         )
 
     def inc_acquire_counter(self) -> None:
@@ -309,8 +304,9 @@ class Block[C]:
             self._log_events[event] = self._log_events.setdefault(event, 0) + 1
 
         # Time check only if we're not in batching
-        elif timestamp - self._last_log_timestamp > \
-            config.MIN_LOG_TIME_THRESHOLD:
+        elif (
+            timestamp - self._last_log_timestamp > config.MIN_LOG_TIME_THRESHOLD
+        ):
             logger.info(
                 "Connection %s to backend database: %s", event, self.dbname
             )
@@ -321,7 +317,8 @@ class Block[C]:
             self._is_log_batching = True
             self._log_events = {event: 1}
             self.loop.call_later(
-                config.MIN_LOG_TIME_THRESHOLD, self._log_batched_conns,
+                config.MIN_LOG_TIME_THRESHOLD,
+                self._log_batched_conns,
             )
 
     def _log_batched_conns(self) -> None:
@@ -330,8 +327,7 @@ class Block[C]:
             "in at least the last %.1f seconds.",
             self.dbname,
             ', '.join(
-                f'{num} were {event}'
-                for event, num in self._log_events.items()
+                f'{num} were {event}' for event, num in self._log_events.items()
             ),
             config.MIN_LOG_TIME_THRESHOLD,
         )
@@ -340,7 +336,6 @@ class Block[C]:
 
 
 class BasePool[C]:
-
     _connect_cb: Connector[C]
     _disconnect_cb: Disconnector[C]
     _stats_cb: typing.Optional[StatsCollector]
@@ -373,7 +368,7 @@ class BasePool[C]:
         connect: Connector[C],
         disconnect: Disconnector[C],
         max_capacity: int,
-        stats_collector: typing.Optional[StatsCollector]=None,
+        stats_collector: typing.Optional[StatsCollector] = None,
     ) -> None:
         self._connect_cb = connect
         self._disconnect_cb = disconnect
@@ -450,7 +445,6 @@ class BasePool[C]:
             blocks=bstats,
             capacity=self._cur_capacity,
             log=[],
-
             failed_connects=self._failed_connects,
             failed_disconnects=self._failed_disconnects,
             successful_connects=self._successful_connects,
@@ -476,8 +470,8 @@ class BasePool[C]:
         *,
         dbname: str,
         event: str,
-        value: int=0,
-        now: float=0,
+        value: int = 0,
+        now: float = 0,
     ) -> None:
         if self._stats_cb is None:
             return
@@ -538,7 +532,8 @@ class BasePool[C]:
                 # Skip retry and propagate the error immediately
                 if block.connect_failures_num <= config.CONNECT_FAILURE_RETRIES:
                     block.connect_failures_num = (
-                        config.CONNECT_FAILURE_RETRIES + 1)
+                        config.CONNECT_FAILURE_RETRIES + 1
+                    )
 
             if block.connect_failures_num > config.CONNECT_FAILURE_RETRIES:
                 # Abort all waiters on this block and propagate the error, as
@@ -605,7 +600,8 @@ class BasePool[C]:
             self._blocks.move_to_end(to_block.dbname, last=True)
             self._blocks.move_to_end(from_block.dbname, last=True)
         self._get_loop().create_task(
-            self._transfer(from_block, from_conn, to_block, started_at))
+            self._transfer(from_block, from_conn, to_block, started_at)
+        )
 
     def _schedule_new_conn(
         self, block: Block[C], event: str = 'established'
@@ -616,7 +612,8 @@ class BasePool[C]:
         if self._is_starving:
             self._blocks.move_to_end(block.dbname, last=True)
         self._log_to_snapshot(
-            dbname=block.dbname, event='connect', value=block.count_conns())
+            dbname=block.dbname, event='connect', value=block.count_conns()
+        )
         self._get_loop().create_task(self._connect(block, started_at, event))
 
     def _schedule_discard(self, block: Block[C], conn: C) -> None:
@@ -626,7 +623,8 @@ class BasePool[C]:
         assert not block.conns[conn].in_use
         block.conns.pop(conn)
         self._log_to_snapshot(
-            dbname=block.dbname, event='disconnect', value=block.count_conns())
+            dbname=block.dbname, event='disconnect', value=block.count_conns()
+        )
         await self._disconnect(conn, block)
         block.log_connection("discarded")
 
@@ -685,7 +683,7 @@ class Pool[C](BasePool[C]):
         connect: Connector[C],
         disconnect: Disconnector[C],
         max_capacity: int,
-        stats_collector: typing.Optional[StatsCollector]=None,
+        stats_collector: typing.Optional[StatsCollector] = None,
         min_idle_time_before_gc: float = config.MIN_IDLE_TIME_BEFORE_GC,
     ) -> None:
         super().__init__(
@@ -718,7 +716,7 @@ class Pool[C](BasePool[C]):
 
         self._htick = self._get_loop().call_later(
             max(self._conntime_avg.avg(), config.MIN_CONN_TIME_THRESHOLD),
-            self._tick
+            self._tick,
         )
 
     def _tick(self) -> None:
@@ -771,9 +769,8 @@ class Pool[C](BasePool[C]):
                     self._to_drop.append(block)
                     continue
 
-            demand = (
-                max(nwaiters_avg, nwaiters) *
-                max(block.querytime_avg.avg(), config.MIN_QUERY_TIME_THRESHOLD)
+            demand = max(nwaiters_avg, nwaiters) * max(
+                block.querytime_avg.avg(), config.MIN_QUERY_TIME_THRESHOLD
             )
             total_calibrated_demand += demand
             block._cached_calibrated_demand = demand
@@ -819,10 +816,8 @@ class Pool[C](BasePool[C]):
             for block in tuple(self._blocks.values()):
                 nconns = block.count_conns()
                 if nconns == 1:
-                    if (
-                        now - block.last_connect_timestamp <
-                            max(self._conntime_avg.avg(),
-                                config.MIN_CONN_TIME_THRESHOLD)
+                    if now - block.last_connect_timestamp < max(
+                        self._conntime_avg.avg(), config.MIN_CONN_TIME_THRESHOLD
                     ):
                         # let it keep its connection
                         block.quota = 1
@@ -838,11 +833,14 @@ class Pool[C](BasePool[C]):
 
                 if block.quota:
                     self._log_to_snapshot(
-                        dbname=block.dbname, event='set-quota',
-                        value=block.quota)
+                        dbname=block.dbname,
+                        event='set-quota',
+                        value=block.quota,
+                    )
                 else:
                     self._log_to_snapshot(
-                        dbname=block.dbname, event='reset-quota')
+                        dbname=block.dbname, event='reset-quota'
+                    )
 
             if not was_starving and self._new_blocks_waitlist:
                 # Mode D assumes all connections are already in use or to be
@@ -882,14 +880,17 @@ class Pool[C](BasePool[C]):
                     if not demand:
                         block.quota = 0
                         self._log_to_snapshot(
-                            dbname=block.dbname, event='reset-quota')
+                            dbname=block.dbname, event='reset-quota'
+                        )
 
                     k = (self._max_capacity * demand) / total_calibrated_demand
                     if 0 < k <= 1:
                         block.quota = 1
                         self._log_to_snapshot(
-                            dbname=block.dbname, event='set-quota',
-                            value=block.quota)
+                            dbname=block.dbname,
+                            event='set-quota',
+                            value=block.quota,
+                        )
                         capacity_left -= 1
 
             assert capacity_left > 0
@@ -901,13 +902,12 @@ class Pool[C](BasePool[C]):
                     continue
 
                 old_acc = acc
-                acc += (
-                    (capacity_left * demand) / total_calibrated_demand
-                )
+                acc += (capacity_left * demand) / total_calibrated_demand
                 block.quota = round(acc) - round(old_acc)
 
                 self._log_to_snapshot(
-                    dbname=block.dbname, event='set-quota', value=block.quota)
+                    dbname=block.dbname, event='set-quota', value=block.quota
+                )
 
             self._maybe_rebalance()
 
@@ -928,15 +928,14 @@ class Pool[C](BasePool[C]):
                     self._blocks_over_quota.append(block)
             elif nconns < quota:
                 while (
-                    block.count_conns() < quota and
-                    self._cur_capacity < self._max_capacity
+                    block.count_conns() < quota
+                    and self._cur_capacity < self._max_capacity
                 ):
                     self._schedule_new_conn(block)
 
         if self._blocks_over_quota:
             self._blocks_over_quota.sort(
-                key=lambda b: b.count_conns_over_quota(),
-                reverse=True
+                key=lambda b: b.count_conns_over_quota(), reverse=True
             )
 
     def _should_free_conn(self, from_block: Block[C]) -> bool:
@@ -977,11 +976,11 @@ class Pool[C](BasePool[C]):
         #   less time than the average time it spends on connecting to
         #   PostgreSQL.
         if (
-            self._is_starving and
-            from_block_size == 1 and
-            from_block.count_waiters() and
-            (time.monotonic() - from_block.last_connect_timestamp) <
-                max(self._conntime_avg.avg(), config.MIN_CONN_TIME_THRESHOLD)
+            self._is_starving
+            and from_block_size == 1
+            and from_block.count_waiters()
+            and (time.monotonic() - from_block.last_connect_timestamp)
+            < max(self._conntime_avg.avg(), config.MIN_CONN_TIME_THRESHOLD)
         ):
             return False
 
@@ -1008,10 +1007,7 @@ class Pool[C](BasePool[C]):
         return True
 
     def _try_shrink_block(self, block: Block[C]) -> None:
-        while (
-            block.count_conns_over_quota() and
-            self._should_free_conn(block)
-        ):
+        while block.count_conns_over_quota() and self._should_free_conn(block):
             if (conn := block.try_steal()) is not None:
                 _, to_block = self._find_most_starving_block()
                 if to_block is not None:
@@ -1028,8 +1024,7 @@ class Pool[C](BasePool[C]):
             if block is for_block or not self._should_free_conn(block):
                 continue
             if (conn := block.try_steal()) is not None:
-                self._log_to_snapshot(
-                    dbname=block.dbname, event='conn-stolen')
+                self._log_to_snapshot(dbname=block.dbname, event='conn-stolen')
                 self._schedule_transfer(block, conn, for_block)
                 return True
         return False
@@ -1109,9 +1104,9 @@ class Pool[C](BasePool[C]):
                     # connections for the number of late requesters plus one.
                     self._schedule_new_conn(block)
             elif (
-                not block_nconns or
-                block_nconns < block.quota or
-                not block.count_approx_available_conns()
+                not block_nconns
+                or block_nconns < block.quota
+                or not block.count_approx_available_conns()
             ):
                 # Block has no connections at all, or not enough connections.
                 self._schedule_new_conn(block)
@@ -1252,7 +1247,7 @@ class Pool[C](BasePool[C]):
         if conns:
             await asyncio.gather(
                 *(self._discard_conn(block, conn) for conn in conns),
-                return_exceptions=True
+                return_exceptions=True,
             )
 
     def iterate_connections(self) -> typing.Iterator[C]:
@@ -1275,7 +1270,7 @@ class _NaivePool[C](BasePool[C]):
         connect: Connector[C],
         disconnect: Disconnector[C],
         max_capacity: int,
-        stats_collector: typing.Optional[StatsCollector]=None,
+        stats_collector: typing.Optional[StatsCollector] = None,
         min_idle_time_before_gc: float = config.MIN_IDLE_TIME_BEFORE_GC,
     ) -> None:
         super().__init__(
@@ -1312,8 +1307,7 @@ class _NaivePool[C](BasePool[C]):
             if block is for_block:
                 continue
             if (conn := block.try_steal()) is not None:
-                self._log_to_snapshot(
-                    dbname=block.dbname, event='conn-stolen')
+                self._log_to_snapshot(dbname=block.dbname, event='conn-stolen')
                 self._schedule_transfer(block, conn, for_block)
                 self._blocks.move_to_end(block.dbname, last=True)
                 return
@@ -1323,8 +1317,7 @@ class _NaivePool[C](BasePool[C]):
                 continue
             if block.count_conns():
                 conn = await block.acquire()
-                self._log_to_snapshot(
-                    dbname=block.dbname, event='conn-stolen')
+                self._log_to_snapshot(dbname=block.dbname, event='conn-stolen')
                 self._schedule_transfer(block, conn, for_block)
                 self._blocks.move_to_end(block.dbname, last=True)
                 return

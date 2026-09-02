@@ -165,9 +165,7 @@ def handle_request(
                     break
 
         sid = (
-            base64.urlsafe_b64encode(os.urandom(16))
-            .decode("ascii")
-            .rstrip("=")
+            base64.urlsafe_b64encode(os.urandom(16)).decode("ascii").rstrip("=")
         )
         assert sid not in sessions
         sessions[sid] = Session(
@@ -184,9 +182,9 @@ def handle_request(
 
         server_first_str = base64.b64encode(server_first).decode("ascii")
         response.status = http.HTTPStatus.UNAUTHORIZED
-        response.custom_headers[
-            "WWW-Authenticate"
-        ] = f"SCRAM-SHA-256 sid={sid}, data={server_first_str}"
+        response.custom_headers["WWW-Authenticate"] = (
+            f"SCRAM-SHA-256 sid={sid}, data={server_first_str}"
+        )
 
     else:
         session = sessions.pop(sid)
@@ -270,7 +268,8 @@ def handle_request(
 
         try:
             response.body = auth.generate_gel_token(
-                jws, roles=[username],
+                jws,
+                roles=[username],
             ).encode("ascii")
         except ValueError as ex:
             if debug.flags.server:
@@ -280,9 +279,9 @@ def handle_request(
             response.custom_headers["WWW-Authenticate"] = "SCRAM-SHA-256"
             return
 
-        response.custom_headers[
-            "Authentication-Info"
-        ] = f"sid={sid}, data={server_final}"
+        response.custom_headers["Authentication-Info"] = (
+            f"sid={sid}, data={server_final}"
+        )
 
 
 def get_scram_verifier(

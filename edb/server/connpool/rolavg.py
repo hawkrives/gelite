@@ -18,7 +18,6 @@
 
 
 class RollingAverage:
-
     __slots__ = ('_hist_size', '_hist', '_pos', '_cached_avg')
 
     _hist_size: int
@@ -41,8 +40,8 @@ class RollingAverage:
         if self._cached_avg:
             return self._cached_avg
 
-        self._cached_avg = (
-            sum(self._hist) / max(min(self._pos, self._hist_size), 1)
+        self._cached_avg = sum(self._hist) / max(
+            min(self._pos, self._hist_size), 1
         )
 
         return self._cached_avg

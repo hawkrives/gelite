@@ -46,9 +46,8 @@ class DaemonContext:
         stdin: Optional[io.FileIO] = None,
         stdout: Optional[io.FileIO] = None,
         stderr: Optional[io.FileIO] = None,
-        signal_map: Optional[dict] = None
+        signal_map: Optional[dict] = None,
     ):
-
         self.pidfile = os.fspath(pidfile) if pidfile is not None else None
         self.files_preserve = files_preserve
         self.working_directory = working_directory
@@ -225,7 +224,7 @@ class DaemonContext:
             'SIGTTIN': None,
             'SIGTTOU': None,
             'SIGTERM': 'signal_terminate',
-            'SIGHUP': 'signal_reopen_sys_streams'
+            'SIGHUP': 'signal_reopen_sys_streams',
         }
 
         if self.signal_map:
@@ -239,12 +238,12 @@ class DaemonContext:
                     raise DaemonError('Invalid signal name {!r}'.format(name))
             elif isinstance(name, int):
                 if name < 1 or name >= signal.NSIG:
-                    raise DaemonError(
-                        'Invalid signal number {!r}'.format(name))
+                    raise DaemonError('Invalid signal number {!r}'.format(name))
                 num = name
             else:
                 raise DaemonError(
-                    'Invalid signal {!r}, str or int expected'.format(name))
+                    'Invalid signal {!r}, str or int expected'.format(name)
+                )
 
             if handler is None:
                 signal.signal(num, signal.SIG_IGN)
@@ -254,13 +253,17 @@ class DaemonContext:
                 except AttributeError:
                     raise DaemonError(
                         'Invalid signal {!r} handler name {!r}'.format(
-                            name, handler))
+                            name, handler
+                        )
+                    )
                 signal.signal(num, handler)
             else:
                 if not callable(handler):
                     raise DaemonError(
                         'Excpected callable signal {!r} handler: {!r}'.format(
-                            name, handler))
+                            name, handler
+                        )
+                    )
                 signal.signal(num, handler)
 
     def _init_pidfile(self):
@@ -274,9 +277,12 @@ class DaemonContext:
                 if self.pidfile.locked:
                     raise DaemonError(
                         'Pidfile object is already locked; '
-                        'unable to initialize daemon context')
+                        'unable to initialize daemon context'
+                    )
                 self._pidfile = self.pidfile
             else:
                 raise DaemonError(
-                    'Invalid pidfile, str of PidFile expected, got {!r}'.
-                    format(self.pidfile))
+                    'Invalid pidfile, str of PidFile expected, got {!r}'.format(
+                        self.pidfile
+                    )
+                )

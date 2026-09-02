@@ -51,9 +51,7 @@ def reverse_elab_error(msg: str, expr: Val | Expr | Sequence[Val]) -> Any:
 def reverse_elab_raw_name(name: e.RawName) -> qlast.ObjectRef:
     match name:
         case e.QualifiedName(names=names):
-            return qlast.ObjectRef(
-                name=names[-1], module="::".join(names[:-1])
-            )
+            return qlast.ObjectRef(name=names[-1], module="::".join(names[:-1]))
         case e.UnqualifiedName(name=n):
             return qlast.ObjectRef(name=n)
         case e.UncheckedTypeName(name=n):
@@ -118,9 +116,7 @@ def reverse_elab_type_name(tp: Tp | e.RawName) -> qlast.TypeName:
             if isinstance(qname, e.QualifiedName):
                 return reverse_elab_type_name(qname)
             elif isinstance(qname, e.UnqualifiedName):
-                return qlast.TypeName(
-                    maintype=qlast.ObjectRef(name=qname.name)
-                )
+                return qlast.TypeName(maintype=qlast.ObjectRef(name=qname.name))
             else:
                 raise ValueError("Unimplemented")
         case e.CompositeTp(kind=kind, tps=tps, labels=_):
@@ -138,7 +134,7 @@ def reverse_elab_type_name(tp: Tp | e.RawName) -> qlast.TypeName:
 
 
 def reverse_elab_order(
-    order: dict[str, Expr]
+    order: dict[str, Expr],
 ) -> Optional[list[qlast.SortExpr]]:
     keys = sorted(
         [
@@ -270,8 +266,9 @@ def reverse_elab(ir_expr: Expr) -> qlast.Expr:
             )
         case e.FreeObjectExpr():
             return qlast.Path(steps=[qlast.ObjectRef(name="std::FreeObject")])
-        case ObjectProjExpr(subject=subject, label=label) | e.TupleProjExpr(
-            subject=subject, label=label
+        case (
+            ObjectProjExpr(subject=subject, label=label)
+            | e.TupleProjExpr(subject=subject, label=label)
         ):
             label_path_component = qlast.Ptr(
                 name=label, direction=PointerDirection.Outbound, type=None
@@ -313,9 +310,7 @@ def reverse_elab(ir_expr: Expr) -> qlast.Expr:
             tp_path_component = qlast.TypeIntersection(
                 type=reverse_elab_type_name(tp_name)
             )
-            return append_path_element(
-                reverse_elab(subject), tp_path_component
-            )
+            return append_path_element(reverse_elab(subject), tp_path_component)
         case TypeCastExpr(tp=tp, arg=arg):
             return qlast.TypeCast(
                 type=reverse_elab_type_name(tp), expr=reverse_elab(arg)

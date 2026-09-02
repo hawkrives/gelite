@@ -70,8 +70,8 @@ class Comment(DDLOperation):
         object_id = self.object.get_id()
 
         code = 'COMMENT ON {type} {id} IS {text}'.format(
-            type=object_type, id=object_id,
-            text=ql(self.text))
+            type=object_type, id=object_id, text=ql(self.text)
+        )
 
         return code
 
@@ -110,8 +110,7 @@ class GetMetadata(base.Command):
             classoid = block.declare_var('oid')
             objoid = block.declare_var('oid')
             objsubid = block.declare_var('oid')
-            block.add_command(
-                qry + f' INTO {classoid}, {objoid}, {objsubid}')
+            block.add_command(qry + f' INTO {classoid}, {objoid}, {objsubid}')
         else:
             objoid, classoid, objsubid = oid
 
@@ -152,14 +151,16 @@ class GetSingleDBMetadata(base.Command):
         from .. import trampoline
 
         key = f'{self.dbname}metadata'
-        return textwrap.dedent(trampoline.fixup_query(f'''\
+        return textwrap.dedent(
+            trampoline.fixup_query(f'''\
             SELECT
                 json
             FROM
                 edgedbinstdata_VER.instdata
             WHERE
                 key = {ql(key)}
-        '''))
+        ''')
+        )
 
 
 class PutMetadata(DDLOperation):
@@ -169,12 +170,12 @@ class PutMetadata(DDLOperation):
         self.metadata = metadata
 
     def __repr__(self):
-        return \
-            '<{mod}.{cls} {object!r} {metadata!r}>'.format(
-                mod=self.__class__.__module__,
-                cls=self.__class__.__name__,
-                object=self.object,
-                metadata=self.metadata)
+        return '<{mod}.{cls} {object!r} {metadata!r}>'.format(
+            mod=self.__class__.__module__,
+            cls=self.__class__.__name__,
+            object=self.object,
+            metadata=self.metadata,
+        )
 
 
 class PutSingleDBMetadata(DDLOperation):
@@ -188,12 +189,12 @@ class PutSingleDBMetadata(DDLOperation):
         return f'{self.dbname}metadata'
 
     def __repr__(self):
-        return \
-            '<{mod}.{cls} Branch({dbname!r}) {metadata!r}>'.format(
-                mod=self.__class__.__module__,
-                cls=self.__class__.__name__,
-                dbname=self.dbname,
-                metadata=self.metadata)
+        return '<{mod}.{cls} Branch({dbname!r}) {metadata!r}>'.format(
+            mod=self.__class__.__module__,
+            cls=self.__class__.__name__,
+            dbname=self.dbname,
+            metadata=self.metadata,
+        )
 
 
 class SetMetadata(PutMetadata):
@@ -221,14 +222,16 @@ class SetSingleDBMetadata(PutSingleDBMetadata):
         from .. import trampoline
 
         metadata = ql(json.dumps(self.metadata))
-        return textwrap.dedent(trampoline.fixup_query(f'''\
+        return textwrap.dedent(
+            trampoline.fixup_query(f'''\
             UPDATE
                 edgedbinstdata_VER.instdata
             SET
                 json = {metadata}
             WHERE
                 key = {ql(self.key)};
-        '''))
+        ''')
+        )
 
 
 class UpdateMetadata(PutMetadata):
@@ -242,13 +245,15 @@ class UpdateMetadata(PutMetadata):
         upd_metadata = ql(json.dumps(self.metadata))
         block.add_command(f'{meta_v} := {upd_metadata}::jsonb')
 
-        block.add_command(textwrap.dedent(f'''\
+        block.add_command(
+            textwrap.dedent(f'''\
             IF {json_v} IS NOT NULL THEN
                 {upd_v} := E{prefix} || ({json_v} || {meta_v})::text;
             ELSE
                 {upd_v} := E{prefix} || {meta_v}::text;
             END IF;
-        '''))
+        ''')
+        )
 
         object_type = self.object.get_type()
         object_id = self.object.get_id()
@@ -272,14 +277,16 @@ class UpdateSingleDBMetadata(PutSingleDBMetadata):
         upd_metadata = ql(json.dumps(self.metadata))
         block.add_command(f'{meta_v} := {upd_metadata}::jsonb')
 
-        return textwrap.dedent(trampoline.fixup_query(f'''\
+        return textwrap.dedent(
+            trampoline.fixup_query(f'''\
             UPDATE
                 edgedbinstdata_VER.instdata
             SET
                 json = {json_v} || {meta_v}
             WHERE
                 key = {ql(self.key)}
-        '''))
+        ''')
+        )
 
 
 class UpdateMetadataSectionMixin:
@@ -314,13 +321,15 @@ class UpdateMetadataSection(UpdateMetadataSectionMixin, PutMetadata):
         json_v, meta_v = self._merge(block)
         upd_v = block.declare_var('text')
         prefix = ql(defines.GELITE_VISIBLE_METADATA_PREFIX)
-        block.add_command(textwrap.dedent(f'''\
+        block.add_command(
+            textwrap.dedent(f'''\
             IF {json_v} IS NOT NULL THEN
                 {upd_v} := E{prefix} || ({json_v} || {meta_v})::text;
             ELSE
                 {upd_v} := E{prefix} || {meta_v}::text;
             END IF;
-        '''))
+        ''')
+        )
 
         object_type = self.object.get_type()
         object_id = self.object.get_id()
@@ -343,18 +352,19 @@ class UpdateSingleDBMetadataSection(
         from .. import trampoline
 
         json_v, meta_v = self._merge(block)
-        return textwrap.dedent(trampoline.fixup_query(f'''\
+        return textwrap.dedent(
+            trampoline.fixup_query(f'''\
             UPDATE
                 edgedbinstdata_VER.instdata
             SET
                 json = {json_v} || {meta_v}
             WHERE
                 key = {ql(self.key)}
-        '''))
+        ''')
+        )
 
 
 class CreateObject(SchemaObjectOperation):
-
     def __init__(self, object, **kwargs):
         super().__init__(object.get_id(), **kwargs)
         self.object = object
@@ -397,7 +407,6 @@ class AlterObject(SchemaObjectOperation):
 
 
 class DropObject(SchemaObjectOperation):
-
     def __init__(self, object, **kwargs):
         super().__init__(object.get_id(), **kwargs)
         self.object = object

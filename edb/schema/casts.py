@@ -46,7 +46,6 @@ def _is_reachable(
     target: s_types.Type,
     distance: int,
 ) -> int:
-
     if source == target:
         return distance
 
@@ -93,7 +92,6 @@ def find_common_castable_type(
     source: s_types.Type,
     target: s_types.Type,
 ) -> Optional[s_types.Type]:
-
     if get_implicit_cast_distance(schema, target, source) >= 0:
         return source
     if get_implicit_cast_distance(schema, source, target) >= 0:
@@ -127,7 +125,6 @@ def is_assignment_castable(
     source: s_types.Type,
     target: s_types.Type,
 ) -> bool:
-
     # Implicitly castable implies assignment castable.
     if is_implicitly_castable(schema, source, target):
         return True
@@ -149,7 +146,6 @@ def is_castable(
     source: s_types.Type,
     target: s_types.Type,
 ) -> bool:
-
     # Implicitly castable
     if is_implicitly_castable(schema, source, target):
         return True
@@ -177,7 +173,8 @@ def get_cast_fullname_from_names(
         (
             isinstance(from_type, sn.QualName)
             and sn.UnqualName(from_type.module) not in s_schema.STD_MODULES
-        ) or (
+        )
+        or (
             isinstance(to_type, sn.QualName)
             and sn.UnqualName(to_type.module) not in s_schema.STD_MODULES
         )
@@ -210,43 +207,36 @@ class Cast(
     qlkind=qltypes.SchemaObjectClass.CAST,
     data_safe=True,
 ):
+    from_type = so.SchemaField(s_types.Type, compcoef=0.5)
 
-    from_type = so.SchemaField(
-        s_types.Type, compcoef=0.5)
+    to_type = so.SchemaField(s_types.Type, compcoef=0.5)
 
-    to_type = so.SchemaField(
-        s_types.Type, compcoef=0.5)
+    allow_implicit = so.SchemaField(bool, default=False, compcoef=0.4)
 
-    allow_implicit = so.SchemaField(
-        bool, default=False, compcoef=0.4)
-
-    allow_assignment = so.SchemaField(
-        bool, default=False, compcoef=0.4)
+    allow_assignment = so.SchemaField(bool, default=False, compcoef=0.4)
 
     language = so.SchemaField(
-        qlast.Language, default=None, compcoef=0.4, coerce=True)
+        qlast.Language, default=None, compcoef=0.4, coerce=True
+    )
 
-    from_function = so.SchemaField(
-        str, default=None, compcoef=0.4)
+    from_function = so.SchemaField(str, default=None, compcoef=0.4)
 
-    from_expr = so.SchemaField(
-        bool, default=False, compcoef=0.4)
+    from_expr = so.SchemaField(bool, default=False, compcoef=0.4)
 
-    from_cast = so.SchemaField(
-        bool, default=False, compcoef=0.4)
+    from_cast = so.SchemaField(bool, default=False, compcoef=0.4)
 
-    code = so.SchemaField(
-        str, default=None, compcoef=0.4)
+    code = so.SchemaField(str, default=None, compcoef=0.4)
 
 
-class CastCommandContext(sd.ObjectCommandContext[Cast],
-                         s_anno.AnnotationSubjectCommandContext):
+class CastCommandContext(
+    sd.ObjectCommandContext[Cast], s_anno.AnnotationSubjectCommandContext
+):
     pass
 
 
-class CastCommand(sd.QualifiedObjectCommand[Cast],
-                  context_class=CastCommandContext):
-
+class CastCommand(
+    sd.QualifiedObjectCommand[Cast], context_class=CastCommandContext
+):
     def get_ast_attr_for_field(
         self,
         field: str,
@@ -266,8 +256,7 @@ class CastCommand(sd.QualifiedObjectCommand[Cast],
     ) -> sd.Command:
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
-                'user-defined casts are not supported',
-                span=astnode.span
+                'user-defined casts are not supported', span=astnode.span
             )
 
         return super()._cmd_tree_from_ast(schema, astnode, context)
@@ -305,9 +294,11 @@ class CastCommand(sd.QualifiedObjectCommand[Cast],
     ) -> s_schema.Schema:
         schema = super().canonicalize_attributes(schema, context)
         schema = s_types.materialize_type_in_attribute(
-            schema, context, self, 'from_type')
+            schema, context, self, 'from_type'
+        )
         schema = s_types.materialize_type_in_attribute(
-            schema, context, self, 'to_type')
+            schema, context, self, 'to_type'
+        )
         return schema
 
 
@@ -328,7 +319,8 @@ class CreateCast(CastCommand, sd.CreateObject[Cast]):
             raise errors.DuplicateCastDefinitionError(
                 f'a cast from {from_type.get_displayname(schema)!r} '
                 f'to {to_type.get_displayname(schema)!r} is already defined',
-                span=self.span)
+                span=self.span,
+            )
 
         return super()._create_begin(schema, context)
 
@@ -406,14 +398,16 @@ class CreateCast(CastCommand, sd.CreateObject[Cast]):
         if op.property == 'from_type':
             # In a cast we can only have pure types, so this is going
             # to be a TypeName.
-            node.from_type = cast(qlast.TypeName,
-                                  utils.typeref_to_ast(schema, new_value))
+            node.from_type = cast(
+                qlast.TypeName, utils.typeref_to_ast(schema, new_value)
+            )
 
         elif op.property == 'to_type':
             # In a cast we can only have pure types, so this is going
             # to be a TypeName.
-            node.to_type = cast(qlast.TypeName,
-                                utils.typeref_to_ast(schema, new_value))
+            node.to_type = cast(
+                qlast.TypeName, utils.typeref_to_ast(schema, new_value)
+            )
 
         elif op.property == 'code':
             if node.code is None:

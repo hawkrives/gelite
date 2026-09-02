@@ -47,13 +47,17 @@ class TestLinkTargetDeleteSchema(tb.BaseSchemaLoadTest):
 
         self.assertEqual(
             obj.getptr(schema, s_name.UnqualName('foo')).get_on_target_delete(
-                schema),
-            s_links.LinkTargetDeleteAction.Allow)
+                schema
+            ),
+            s_links.LinkTargetDeleteAction.Allow,
+        )
 
         self.assertEqual(
             obj.getptr(schema, s_name.UnqualName('bar')).get_on_target_delete(
-                schema),
-            s_links.LinkTargetDeleteAction.Restrict)
+                schema
+            ),
+            s_links.LinkTargetDeleteAction.Restrict,
+        )
 
     def test_schema_on_target_delete_02(self):
         schema = self.load_schema("""
@@ -79,38 +83,43 @@ class TestLinkTargetDeleteSchema(tb.BaseSchemaLoadTest):
         obj2 = schema.get('default::Object2')
         self.assertEqual(
             obj2.getptr(schema, s_name.UnqualName('foo')).get_on_target_delete(
-                schema),
-            s_links.LinkTargetDeleteAction.Allow)
+                schema
+            ),
+            s_links.LinkTargetDeleteAction.Allow,
+        )
 
         obj3 = schema.get('default::Object3')
         self.assertEqual(
             obj3.getptr(schema, s_name.UnqualName('foo')).get_on_target_delete(
-                schema),
-            s_links.LinkTargetDeleteAction.Restrict)
+                schema
+            ),
+            s_links.LinkTargetDeleteAction.Restrict,
+        )
 
-    @tb.must_fail(errors.SchemaError,
-                  "cannot implicitly resolve the `on target delete` action "
-                  "for 'default::C.foo'")
+    @tb.must_fail(
+        errors.SchemaError,
+        "cannot implicitly resolve the `on target delete` action "
+        "for 'default::C.foo'",
+    )
     def test_schema_on_target_delete_03(self):
         """
-            type A {
-                link foo -> Object {
-                    on target delete restrict
-                }
-            };
+        type A {
+            link foo -> Object {
+                on target delete restrict
+            }
+        };
 
-            type B {
-                link foo -> Object {
-                    on target delete allow
-                }
-            };
+        type B {
+            link foo -> Object {
+                on target delete allow
+            }
+        };
 
-            type C extending A, B;
+        type C extending A, B;
         """
 
 
 class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
-
     SCHEMA = pathlib.Path(__file__).parent / 'schemas' / 'link_tgt_del.esdl'
 
     # Cannot use transaction isolation, because some
@@ -135,8 +144,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1.* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1.* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1 FILTER .name = 'Target1.1');
                 """)
@@ -158,8 +168,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1.* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1.* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1Child
                             FILTER .name = 'Target1Child.1');
@@ -182,8 +193,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1 .* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1 .* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1 FILTER .name = 'Target1.1');
                 """)
@@ -205,8 +217,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1.* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1.* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1Child
                             FILTER .name = 'Target1Child.1');
@@ -301,8 +314,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1.* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1.* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1 FILTER .name = 'Target1.1');
                 """)
@@ -311,9 +325,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
         exception_is_deferred = False
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                'deletion of default::Target1 .* is prohibited by link'):
-
+            edgedb.ConstraintViolationError,
+            'deletion of default::Target1 .* is prohibited by link',
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT Target1 {
@@ -342,9 +356,9 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
         exception_is_deferred = False
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                'deletion of default::Target1 .* is prohibited by link'):
-
+            edgedb.ConstraintViolationError,
+            'deletion of default::Target1 .* is prohibited by link',
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT Target1 {
@@ -435,7 +449,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     SELECT Target1 { name }
                     FILTER .name = 'Target4.2';
                 ''',
-                [{'name': 'Target4.2'}]
+                [{'name': 'Target4.2'}],
             )
 
         finally:
@@ -472,9 +486,11 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                             }
                         };
                 ''',
-                [{
-                    'tgt1_allow': {'name': 'Target1.1'},
-                }]
+                [
+                    {
+                        'tgt1_allow': {'name': 'Target1.1'},
+                    }
+                ],
             )
 
             await self.con.execute("""
@@ -492,9 +508,11 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                [{
-                    'tgt1_allow': None,
-                }]
+                [
+                    {
+                        'tgt1_allow': None,
+                    }
+                ],
             )
 
     async def test_link_on_target_delete_allow_02(self):
@@ -522,9 +540,11 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                             }
                         };
                 ''',
-                [{
-                    'tgt1_allow': {'name': 'Target1.1'},
-                }]
+                [
+                    {
+                        'tgt1_allow': {'name': 'Target1.1'},
+                    }
+                ],
             )
 
             await self.con.execute("""
@@ -542,9 +562,11 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source3.1';
                 ''',
-                [{
-                    'tgt1_allow': None,
-                }]
+                [
+                    {
+                        'tgt1_allow': None,
+                    }
+                ],
             )
 
     async def test_link_on_target_delete_allow_03(self):
@@ -579,14 +601,16 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                [{
-                    'name': 'Source1.1',
-                    'tgt1_m2m_allow': [
-                        {'name': 'Target1.1'},
-                        {'name': 'Target1.2'},
-                        {'name': 'Target1.3'},
-                    ],
-                }]
+                [
+                    {
+                        'name': 'Source1.1',
+                        'tgt1_m2m_allow': [
+                            {'name': 'Target1.1'},
+                            {'name': 'Target1.2'},
+                            {'name': 'Target1.3'},
+                        ],
+                    }
+                ],
             )
 
             await self.con.execute("""
@@ -605,13 +629,15 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                [{
-                    'name': 'Source1.1',
-                    'tgt1_m2m_allow': [
-                        {'name': 'Target1.2'},
-                        {'name': 'Target1.3'},
-                    ],
-                }]
+                [
+                    {
+                        'name': 'Source1.1',
+                        'tgt1_m2m_allow': [
+                            {'name': 'Target1.2'},
+                            {'name': 'Target1.3'},
+                        ],
+                    }
+                ],
             )
 
             await self.assert_query_result(
@@ -628,7 +654,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                 [
                     {'name': 'Target1.2'},
                     {'name': 'Target1.3'},
-                ]
+                ],
             )
 
     async def test_link_on_target_delete_delete_source_01(self):
@@ -676,12 +702,14 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source2.1';
                 ''',
-                [{
-                    'src1_del_source': {
-                        'name': 'Source1.1',
-                        'tgt1_del_source': {'name': 'Target1.1'},
+                [
+                    {
+                        'src1_del_source': {
+                            'name': 'Source1.1',
+                            'tgt1_del_source': {'name': 'Target1.1'},
+                        }
                     }
-                }]
+                ],
             )
 
             await self.con.execute("""
@@ -695,7 +723,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source2.1';
                 ''',
-                []
+                [],
             )
             await self.assert_query_result(
                 r'''
@@ -758,12 +786,14 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source2.1';
                 ''',
-                [{
-                    'src1_del_source': {
-                        'name': 'Source1.1',
-                        'tgt1_del_source': {'name': 'Target1.1'},
+                [
+                    {
+                        'src1_del_source': {
+                            'name': 'Source1.1',
+                            'tgt1_del_source': {'name': 'Target1.1'},
+                        }
                     }
-                }]
+                ],
             )
 
             await self.assert_query_result(
@@ -786,8 +816,8 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     {
                         'name': 'Source1.2',
                         'tgt1_del_source': {'name': 'Target1.1'},
-                    }
-                ]
+                    },
+                ],
             )
 
             await self.con.execute("""
@@ -846,14 +876,16 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                [{
-                    'name': 'Source1.1',
-                    'tgt1_m2m_del_source': [
-                        {'name': 'Target1.1'},
-                        {'name': 'Target1.2'},
-                        {'name': 'Target1.3'},
-                    ],
-                }]
+                [
+                    {
+                        'name': 'Source1.1',
+                        'tgt1_m2m_del_source': [
+                            {'name': 'Target1.1'},
+                            {'name': 'Target1.2'},
+                            {'name': 'Target1.3'},
+                        ],
+                    }
+                ],
             )
 
             await self.con.execute("""
@@ -872,7 +904,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                []
+                [],
             )
 
             await self.assert_query_result(
@@ -889,7 +921,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                 [
                     {'name': 'Target1.2'},
                     {'name': 'Target1.3'},
-                ]
+                ],
             )
 
     async def test_link_on_target_delete_delete_source_04(self):
@@ -939,12 +971,14 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source2.1';
                 ''',
-                [{
-                    'src1_del_source': {
-                        'name': 'Source3.1',
-                        'tgt1_del_source': {'name': 'Target1.1'},
+                [
+                    {
+                        'src1_del_source': {
+                            'name': 'Source3.1',
+                            'tgt1_del_source': {'name': 'Target1.1'},
+                        }
                     }
-                }]
+                ],
             )
 
             await self.assert_query_result(
@@ -967,8 +1001,8 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     {
                         'name': 'Source3.2',
                         'tgt1_del_source': {'name': 'Target1.1'},
-                    }
-                ]
+                    },
+                ],
             )
 
             await self.con.execute("""
@@ -1022,7 +1056,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                []
+                [],
             )
 
     async def test_link_on_target_delete_delete_source_06(self):
@@ -1052,7 +1086,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     FILTER
                         .name = 'Source1.1';
                 ''',
-                []
+                [],
             )
 
     async def test_link_on_target_delete_loop_01(self):
@@ -1084,7 +1118,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                 r'''
                     select Source1
                 ''',
-                []
+                [],
             )
 
     async def test_link_on_source_delete_01(self):
@@ -1111,7 +1145,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                     SELECT Target1
                     FILTER .name = 'Target1.1';
                 ''',
-                []
+                [],
             )
 
             # Make sure that the link tables get cleared when a policy
@@ -1140,7 +1174,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                 r'''
                     SELECT Target1
                 ''',
-                []
+                [],
             )
 
     async def test_link_on_source_delete_03(self):
@@ -1167,7 +1201,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                 r'''
                     SELECT Source1
                 ''',
-                []
+                [],
             )
 
     async def test_link_on_source_delete_orphan_01(self):
@@ -1205,7 +1239,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                         SELECT Target1
                         FILTER .name = 'Target1.1';
                     ''',
-                    [{}]
+                    [{}],
                 )
 
                 await self.con.execute("""
@@ -1217,7 +1251,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                         SELECT Target1
                         FILTER .name = 'Target1.1';
                     ''',
-                    []
+                    [],
                 )
 
     async def test_link_on_source_delete_orphan_02(self):
@@ -1255,7 +1289,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                         SELECT Target1 { name }
                         FILTER .name LIKE 'Target1.%';
                     ''',
-                    [{'name': "Target1.1"}]
+                    [{'name': "Target1.1"}],
                 )
 
                 await self.con.execute("""
@@ -1267,7 +1301,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
                         SELECT Target1
                         FILTER .name = 'Target1.1';
                     ''',
-                    []
+                    [],
                 )
 
     async def _cycle_test(self):
@@ -1298,7 +1332,7 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
             r'''
                 select Source1
             ''',
-            []
+            [],
         )
 
     async def test_link_on_source_delete_cycle_01(self):
@@ -1334,14 +1368,15 @@ class TestLinkTargetDeleteDeclarative(stb.QueryTestCase):
 
 
 class TestLinkTargetDeleteMigrations(stb.DDLTestCase):
-
     SCHEMA = pathlib.Path(__file__).parent / 'schemas' / 'link_tgt_del.esdl'
 
     async def test_link_on_target_delete_migration_01(self):
         async with self._run_and_rollback():
-
-            schema_f = (pathlib.Path(__file__).parent / 'schemas' /
-                        'link_tgt_del_migrated.esdl')
+            schema_f = (
+                pathlib.Path(__file__).parent
+                / 'schemas'
+                / 'link_tgt_del_migrated.esdl'
+            )
 
             with open(schema_f) as f:
                 schema = f.read()
@@ -1366,9 +1401,11 @@ class TestLinkTargetDeleteMigrations(stb.DDLTestCase):
 
     async def test_link_on_target_delete_migration_02(self):
         async with self._run_and_rollback():
-
-            schema_f = (pathlib.Path(__file__).parent / 'schemas' /
-                        'link_tgt_del_migrated.esdl')
+            schema_f = (
+                pathlib.Path(__file__).parent
+                / 'schemas'
+                / 'link_tgt_del_migrated.esdl'
+            )
 
             with open(schema_f) as f:
                 schema = f.read()
@@ -1392,8 +1429,9 @@ class TestLinkTargetDeleteMigrations(stb.DDLTestCase):
             # Post-migration the deletion trigger must fire immediately,
             # since the policy is no longer "DEFERRED"
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'deletion of default::Target1 .* is prohibited by link'):
+                edgedb.ConstraintViolationError,
+                'deletion of default::Target1 .* is prohibited by link',
+            ):
                 await self.con.execute("""
                     DELETE (SELECT Target1 FILTER .name = 'Target1.m02');
                 """)

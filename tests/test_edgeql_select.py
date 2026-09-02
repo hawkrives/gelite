@@ -27,12 +27,12 @@ from edb.tools import test
 
 
 class TestEdgeQLSelect(tb.QueryTestCase):
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
     SETUP = [
-        os.path.join(os.path.dirname(__file__), 'schemas',
-                     'issues_setup.edgeql'),
+        os.path.join(
+            os.path.dirname(__file__), 'schemas', 'issues_setup.edgeql'
+        ),
         # Used by patch/upgrade testing
         # We create it here to avoid some terrible slowdowns
         '''
@@ -50,15 +50,20 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     name
                 } ORDER BY .name;
             ''',
-            [{
-                'name': 'Improve EdgeDB repl output rendering.',
-            }, {
-                'name': 'Regression.',
-            }, {
-                'name': 'Release EdgeDB',
-            }, {
-                'name': 'Repl tweak.',
-            }]
+            [
+                {
+                    'name': 'Improve EdgeDB repl output rendering.',
+                },
+                {
+                    'name': 'Regression.',
+                },
+                {
+                    'name': 'Release EdgeDB',
+                },
+                {
+                    'name': 'Repl tweak.',
+                },
+            ],
         )
 
     async def test_edgeql_select_unique_02(self):
@@ -68,8 +73,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY Issue.owner.name;
             ''',
             [
-                {'name': 'Elvis'}, {'name': 'Yury'},
-            ]
+                {'name': 'Elvis'},
+                {'name': 'Yury'},
+            ],
         )
 
     async def test_edgeql_select_computable_01(self):
@@ -86,11 +92,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 Issue.number = '1';
             ''',
-            [{
-                'number': '1',
-                'aliased_number': '1',
-                'total_time_spent': 50000
-            }]
+            [{'number': '1', 'aliased_number': '1', 'total_time_spent': 50000}],
         )
 
     async def test_edgeql_select_computable_02(self):
@@ -106,10 +108,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 Issue.number = '1';
             ''',
-            [{
-                'number': '1',
-                'total_time_spent': 50000
-            }]
+            [{'number': '1', 'total_time_spent': 50000}],
         )
 
     async def test_edgeql_select_computable_03(self):
@@ -132,12 +131,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_own_text': {
-                    'body': 'Rewriting everything.',
-                },
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'shortest_own_text': {
+                        'body': 'Rewriting everything.',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_04(self):
@@ -162,12 +163,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_text': {
-                    'body': 'Minor lexer tweaks.',
-                },
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'shortest_text': {
+                        'body': 'Minor lexer tweaks.',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_05(self):
@@ -203,15 +206,17 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_own_text': {
-                    'body': 'Rewriting everything.',
-                },
-                'shortest_text': {
-                    'body': 'Minor lexer tweaks.',
-                },
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'shortest_own_text': {
+                        'body': 'Rewriting everything.',
+                    },
+                    'shortest_text': {
+                        'body': 'Minor lexer tweaks.',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_06(self):
@@ -233,12 +238,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_text': {
-                    'body': 'Minor lexer tweaks.',
-                },
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'shortest_text': {
+                        'body': 'Minor lexer tweaks.',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_07(self):
@@ -256,14 +263,18 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'special_texts': [
-                    {'body': 'We need to be able to render data in '
-                             'tabular format.'},
-                    {'body': 'Minor lexer tweaks.'}
-                ],
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'special_texts': [
+                        {
+                            'body': 'We need to be able to render data in '
+                            'tabular format.'
+                        },
+                        {'body': 'Minor lexer tweaks.'},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_08(self):
@@ -292,18 +303,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY User.name;
             """,
             [
+                {'name': 'Elvis', 'special_issue': None},
                 {
-                    'name': 'Elvis',
-                    'special_issue': None
-                }, {
                     'name': 'Yury',
                     'special_issue': {
                         'name': 'Improve EdgeDB repl output rendering.',
                         'owner': {'name': 'Yury'},
                         'status': {'name': 'Open'},
-                        'number': '2'
+                        'number': '2',
                     },
-                }
+                },
             ],
         )
 
@@ -320,19 +329,22 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY Text.body;
             """,
             [
-                {'body': 'EdgeDB needs to happen soon.',
-                 'name': 'comment'},
-                {'body': 'Fix regression introduced by lexer tweak.',
-                 'name': 'Regression.'},
-                {'body': 'Initial public release of EdgeDB.',
-                 'name': 'Release EdgeDB'},
-                {'body': 'Minor lexer tweaks.',
-                 'name': 'Repl tweak.'},
-                {'body': 'Rewriting everything.',
-                 'name': 'log'},
-                {'body': 'We need to be able to render data in '
-                         'tabular format.',
-                 'name': 'Improve EdgeDB repl output rendering.'}
+                {'body': 'EdgeDB needs to happen soon.', 'name': 'comment'},
+                {
+                    'body': 'Fix regression introduced by lexer tweak.',
+                    'name': 'Regression.',
+                },
+                {
+                    'body': 'Initial public release of EdgeDB.',
+                    'name': 'Release EdgeDB',
+                },
+                {'body': 'Minor lexer tweaks.', 'name': 'Repl tweak.'},
+                {'body': 'Rewriting everything.', 'name': 'log'},
+                {
+                    'body': 'We need to be able to render data in '
+                    'tabular format.',
+                    'name': 'Improve EdgeDB repl output rendering.',
+                },
             ],
         )
 
@@ -347,11 +359,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'name': 'Release EdgeDB',
-                'number': '1',
-                'foo': 11,
-            }],
+            [
+                {
+                    'name': 'Release EdgeDB',
+                    'number': '1',
+                    'foo': 11,
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_11(self):
@@ -369,7 +383,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT
                 sub.body;
             ''',
-            ['Minor lexer tweaks.']
+            ['Minor lexer tweaks.'],
         )
 
     async def test_edgeql_select_computable_12(self):
@@ -387,7 +401,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT
                 sub.__type__.name;
             ''',
-            ['default::Issue']
+            ['default::Issue'],
         )
 
     async def test_edgeql_select_computable_13(self):
@@ -405,7 +419,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT
                 sub[IS Issue].number;
             ''',
-            ['3']
+            ['3'],
         )
 
     async def test_edgeql_select_computable_14(self):
@@ -419,19 +433,22 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
                 FILTER Issue.number = '1';
             """,
-            [{
-                'name': 'Release EdgeDB',
-                'number': '1',
-                'foo': [11],
-            }],
+            [
+                {
+                    'name': 'Release EdgeDB',
+                    'number': '1',
+                    'foo': [11],
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_15(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly more than one element returned by an expression "
-                r"for a computed property 'foo' declared as 'single'",
-                _position=166):
+            edgedb.QueryError,
+            r"possibly more than one element returned by an expression "
+            r"for a computed property 'foo' declared as 'single'",
+            _position=166,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     name,
@@ -453,20 +470,23 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'name': 'Release EdgeDB',
-                'number': '1',
-                'foo': None,
-                'bar': 11,
-            }]
+            [
+                {
+                    'name': 'Release EdgeDB',
+                    'number': '1',
+                    'foo': None,
+                    'bar': 11,
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_17(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly more than one element returned by an expression "
-                r"for a computed property 'foo' declared as 'single'",
-                _position=215):
+            edgedb.QueryError,
+            r"possibly more than one element returned by an expression "
+            r"for a computed property 'foo' declared as 'single'",
+            _position=215,
+        ):
             await self.con.query("""\
                 WITH
                     V := (SELECT Issue {
@@ -501,15 +521,17 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     }
                     FILTER .title = 'aaa'
                 """,
-                [{
-                    'title': 'aaa',
-                    'title1': 'aaa',
-                    'title2': 'aaa',
-                    'title3': 'aaa',
-                    'title4': 'aaa',
-                    'title5': ['aaa'],
-                    'title6': ['aaa'],
-                }]
+                [
+                    {
+                        'title': 'aaa',
+                        'title1': 'aaa',
+                        'title2': 'aaa',
+                        'title3': 'aaa',
+                        'title4': 'aaa',
+                        'title5': ['aaa'],
+                        'title6': ['aaa'],
+                    }
+                ],
             )
 
     async def test_edgeql_select_computable_19(self):
@@ -521,10 +543,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'number': '1',
-                'foo': 42,
-            }]
+            [
+                {
+                    'number': '1',
+                    'foo': 42,
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_20(self):
@@ -539,21 +563,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'number': '1',
-                'foo': 1,
-                'bar': 1,
-                'baz': {1},
-                'te': '3000',
-            }]
+            [
+                {
+                    'number': '1',
+                    'foo': 1,
+                    'bar': 1,
+                    'baz': {1},
+                    'te': '3000',
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_21(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -564,10 +591,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_22(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -578,10 +606,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_23(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -592,10 +621,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_24(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly more than one element returned by an expression "
-                r"for a computed property 'foo' declared as 'single'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly more than one element returned by an expression "
+            r"for a computed property 'foo' declared as 'single'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -606,10 +636,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_25(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -620,10 +651,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_26(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -634,10 +666,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_computable_27(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed property 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed property 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -663,26 +696,23 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'number': '1',
-                'foo': {
-                    'name': 'Elvis'
-                },
-                'bar': {
-                    'name': 'Elvis'
-                },
-                'baz': [{
-                    'name': 'Elvis'
-                }],
-            }]
+            [
+                {
+                    'number': '1',
+                    'foo': {'name': 'Elvis'},
+                    'bar': {'name': 'Elvis'},
+                    'baz': [{'name': 'Elvis'}],
+                }
+            ],
         )
 
     async def test_edgeql_select_computable_29(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"possibly an empty set returned by an expression for "
-                r"a computed link 'foo' declared as 'required'",
-                _position=78):
+            edgedb.QueryError,
+            r"possibly an empty set returned by an expression for "
+            r"a computed link 'foo' declared as 'required'",
+            _position=78,
+        ):
             await self.con.query("""\
                 SELECT Issue{
                     number,
@@ -700,7 +730,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """,
             [
                 [{'m': 10}, 10],
-            ]
+            ],
         )
 
     async def test_edgeql_select_computable_31(self):
@@ -711,7 +741,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """,
             [
                 {'m': [10]},
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -723,7 +753,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 ['Elvis', 'Elvis'],
                 ['Yury', 'Yury'],
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -733,7 +763,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 ['Elvis', 'Elvis'],
                 ['Yury', 'Yury'],
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -744,7 +774,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 ['Elvis', 'Elvis'],
                 ['Yury', 'Yury'],
-            ]
+            ],
         )
 
     async def test_edgeql_select_computable_33(self):
@@ -754,7 +784,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """,
             [
                 {'name': 'Elvis', 'todo_ids': [str, str]},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -765,7 +795,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """,
             [
                 {'name': 'Elvis', 'asdf_id': str},
-            ]
+            ],
         )
 
     async def test_edgeql_select_computable_34(self):
@@ -815,10 +845,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER .number = '3'
             """,
             [
-                {
-                    'number': '3',
-                    'array_of_array': [[1]]
-                },
+                {'number': '3', 'array_of_array': [[1]]},
             ],
         )
 
@@ -865,8 +892,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 Issue.name NOT LIKE '%edgedb'
             ORDER BY Issue.number;
             """,
-            [{'number': '1'}, {'number': '2'}, {'number': '3'},
-             {'number': '4'}],
+            [
+                {'number': '1'},
+                {'number': '2'},
+                {'number': '3'},
+                {'number': '4'},
+            ],
         )
 
         await self.assert_query_result(
@@ -922,8 +953,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 Issue.name ILIKE '%re%'
             ORDER BY Issue.number;
             """,
-            [{'number': '1'}, {'number': '2'}, {'number': '3'},
-             {'number': '4'}],
+            [
+                {'number': '1'},
+                {'number': '2'},
+                {'number': '3'},
+                {'number': '4'},
+            ],
         )
 
     async def test_edgeql_select_match_04(self):
@@ -969,9 +1004,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test('ed', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'EdgeDB needs to happen soon.'},
-             {'body': 'Fix regression introduced by lexer tweak.'},
-             {'body': 'We need to be able to render data in tabular format.'}],
+            [
+                {'body': 'EdgeDB needs to happen soon.'},
+                {'body': 'Fix regression introduced by lexer tweak.'},
+                {
+                    'body': 'We need to be able to render data in tabular format.'
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -982,8 +1021,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test('eD', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'EdgeDB needs to happen soon.'},
-             {'body': 'Initial public release of EdgeDB.'}],
+            [
+                {'body': 'EdgeDB needs to happen soon.'},
+                {'body': 'Initial public release of EdgeDB.'},
+            ],
         )
 
         await self.assert_query_result(
@@ -994,8 +1035,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test(r'ed([S\s]|$)', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'Fix regression introduced by lexer tweak.'},
-             {'body': 'We need to be able to render data in tabular format.'}]
+            [
+                {'body': 'Fix regression introduced by lexer tweak.'},
+                {
+                    'body': 'We need to be able to render data in tabular format.'
+                },
+            ],
         )
 
     async def test_edgeql_select_match_08(self):
@@ -1007,10 +1052,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test('(?i)ed', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'EdgeDB needs to happen soon.'},
-             {'body': 'Fix regression introduced by lexer tweak.'},
-             {'body': 'Initial public release of EdgeDB.'},
-             {'body': 'We need to be able to render data in tabular format.'}],
+            [
+                {'body': 'EdgeDB needs to happen soon.'},
+                {'body': 'Fix regression introduced by lexer tweak.'},
+                {'body': 'Initial public release of EdgeDB.'},
+                {
+                    'body': 'We need to be able to render data in tabular format.'
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -1021,10 +1070,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test('(?i)eD', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'EdgeDB needs to happen soon.'},
-             {'body': 'Fix regression introduced by lexer tweak.'},
-             {'body': 'Initial public release of EdgeDB.'},
-             {'body': 'We need to be able to render data in tabular format.'}],
+            [
+                {'body': 'EdgeDB needs to happen soon.'},
+                {'body': 'Fix regression introduced by lexer tweak.'},
+                {'body': 'Initial public release of EdgeDB.'},
+                {
+                    'body': 'We need to be able to render data in tabular format.'
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -1035,9 +1088,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 re_test(r'(?i)ed([S\s]|$)', Text.body)
             ORDER BY Text.body;
             """,
-            [{'body': 'EdgeDB needs to happen soon.'},
-             {'body': 'Fix regression introduced by lexer tweak.'},
-             {'body': 'We need to be able to render data in tabular format.'}],
+            [
+                {'body': 'EdgeDB needs to happen soon.'},
+                {'body': 'Fix regression introduced by lexer tweak.'},
+                {
+                    'body': 'We need to be able to render data in tabular format.'
+                },
+            ],
         )
 
     async def test_edgeql_select_type_01(self):
@@ -1053,10 +1110,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 Issue.number = '1';
             ''',
-            [{
-                'number': '1',
-                '__type__': {'name': 'default::Issue'},
-            }],
+            [
+                {
+                    'number': '1',
+                    '__type__': {'name': 'default::Issue'},
+                }
+            ],
         )
 
     async def test_edgeql_select_type_02(self):
@@ -1064,13 +1123,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT User.__type__.name LIMIT 1;
             ''',
-            ['default::User']
+            ['default::User'],
         )
 
     async def test_edgeql_select_type_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'invalid property reference'):
+            edgedb.QueryError, 'invalid property reference'
+        ):
             await self.con.query(r'''
                 SELECT User.name.__type__.name LIMIT 1;
             ''')
@@ -1096,10 +1155,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 id,
             } FILTER `ObjectType`.name = 'default::User';
             ''',
-            [{
-                'name': res.__type__.name,
-                'id': str(res.__type__.id),
-            }]
+            [
+                {
+                    'name': res.__type__.name,
+                    'id': str(res.__type__.id),
+                }
+            ],
         )
 
     async def test_edgeql_select_type_05(self):
@@ -1107,9 +1168,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT User.__type__ { name };
             ''',
-            [{
-                'name': 'default::User'
-            }]
+            [{'name': 'default::User'}],
         )
 
     @test.not_implemented('recursive queries are not implemented')
@@ -1126,12 +1185,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 Issue.number = '2';
             ''',
-            [{
-                'number': '3',
-                'related_to': [{
-                    'number': '2',
-                }]
-            }],
+            [
+                {
+                    'number': '3',
+                    'related_to': [
+                        {
+                            'number': '2',
+                        }
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -1144,12 +1207,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 Issue.number = '2';
             ''',
-            [{
-                'number': '3',
-                'related_to': [{
-                    'number': '2',
-                }]
-            }],
+            [
+                {
+                    'number': '3',
+                    'related_to': [
+                        {
+                            'number': '2',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_select_limit_01(self):
@@ -1269,8 +1336,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {
                     'name': 'Yury',
                     'owner_of': {'number': '2'},
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_select_limit_05(self):
@@ -1296,16 +1363,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {
                     'name': 'Yury',
                     'owner_of': [{'number': '2'}],
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_select_limit_06(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed'):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+        ):
             await self.con.query("""
                 SELECT
                     User { name }
@@ -1314,10 +1381,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_limit_07(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed'):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+        ):
             await self.con.query("""
                 SELECT
                     User { name }
@@ -1326,11 +1393,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_limit_08(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            r'could not resolve partial path',
-            _hint=None
+            edgedb.QueryError, r'could not resolve partial path', _hint=None
         ):
-
             await self.con.query("""
                 SELECT
                     User { name }
@@ -1339,11 +1403,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_limit_09(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            r'could not resolve partial path',
-            _hint=None
+            edgedb.QueryError, r'could not resolve partial path', _hint=None
         ):
-
             await self.con.query("""
                 SELECT
                     User { name }
@@ -1352,9 +1413,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_limit_10(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'LIMIT must not be negative'):
-
+            edgedb.InvalidValueError, r'LIMIT must not be negative'
+        ):
             await self.con.query("""
                 SELECT 1 LIMIT -1
             """)
@@ -1378,9 +1438,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_offset_01(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'OFFSET must not be negative'):
-
+            edgedb.InvalidValueError, r'OFFSET must not be negative'
+        ):
             await self.con.query("""
                 SELECT 1 OFFSET -1
             """)
@@ -1398,8 +1457,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'body': 'Initial public release of EdgeDB.'},
                 {'body': 'Minor lexer tweaks.'},
                 {'body': 'Rewriting everything.'},
-                {'body': 'We need to be able to render data '
-                         'in tabular format.'}
+                {
+                    'body': 'We need to be able to render data '
+                    'in tabular format.'
+                },
             ],
         )
 
@@ -1413,20 +1474,23 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY Text.body;
             ''',
             [
-                {'body': 'EdgeDB needs to happen soon.',
-                 'name': None},
-                {'body': 'Fix regression introduced by lexer tweak.',
-                 'name': 'Regression.'},
-                {'body': 'Initial public release of EdgeDB.',
-                 'name': 'Release EdgeDB'},
-                {'body': 'Minor lexer tweaks.',
-                 'name': 'Repl tweak.'},
-                {'body': 'Rewriting everything.',
-                 'name': None},
-                {'body': 'We need to be able to render data in '
-                         'tabular format.',
-                 'name': 'Improve EdgeDB repl output rendering.'}
-            ]
+                {'body': 'EdgeDB needs to happen soon.', 'name': None},
+                {
+                    'body': 'Fix regression introduced by lexer tweak.',
+                    'name': 'Regression.',
+                },
+                {
+                    'body': 'Initial public release of EdgeDB.',
+                    'name': 'Release EdgeDB',
+                },
+                {'body': 'Minor lexer tweaks.', 'name': 'Repl tweak.'},
+                {'body': 'Rewriting everything.', 'name': None},
+                {
+                    'body': 'We need to be able to render data in '
+                    'tabular format.',
+                    'name': 'Improve EdgeDB repl output rendering.',
+                },
+            ],
         )
 
     async def test_edgeql_select_polymorphic_02(self):
@@ -1439,12 +1503,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 },
             } FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'owner_of': [
-                    {'body': 'Rewriting everything.'}
-                ],
-            }],
+            [
+                {
+                    'name': 'Elvis',
+                    'owner_of': [{'body': 'Rewriting everything.'}],
+                }
+            ],
         )
 
     async def test_edgeql_select_polymorphic_03(self):
@@ -1459,12 +1523,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 ),
             } FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'owner_of': [
-                    {'number': '1'},
-                ],
-            }],
+            [
+                {
+                    'name': 'Elvis',
+                    'owner_of': [
+                        {'number': '1'},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_select_polymorphic_04a(self):
@@ -1473,8 +1539,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         # protected property such as `id` on it as that would be
         # equivalent to re-writing it.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"cannot access property 'id' on a polymorphic shape element"):
+            edgedb.QueryError,
+            r"cannot access property 'id' on a polymorphic shape element",
+        ):
             await self.con.query(r'''
                 SELECT User {
                     [IS Named].id,
@@ -1554,7 +1621,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'name': 'Closed'},
                 {'name': 'High'},
                 {'name': 'Low'},
-                {'name': 'Open'}
+                {'name': 'Open'},
             ],
         )
 
@@ -1580,13 +1647,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'name': 'Closed'},
                 {'name': 'High'},
                 {'name': 'Low'},
-                {'name': 'Open'}
+                {'name': 'Open'},
             ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_select_polymorphic_09(self):
         # Test simultaneous type intersection on source and target
@@ -1625,7 +1692,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 count(Object[IS Named][IS Text])
                 != count(Object[IS Text]);
             ''',
-            [True]
+            [True],
         )
 
         await self.assert_query_result(
@@ -1634,7 +1701,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 count(User.<owner[IS Named][IS Text])
                 != count(User.<owner[IS Text]);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_polymorphic_11(self):
@@ -1649,7 +1716,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY
                 _
             ''',
-            [50000]
+            [50000],
         )
 
     async def test_edgeql_select_polymorphic_12(self):
@@ -1688,13 +1755,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''',
             [
                 {
-                    'references': [{
-                        'authors': [{
-                            'name': 'Yury'
-                        }, {
-                            'name': 'Elvis'
-                        }]
-                    }],
+                    'references': [
+                        {'authors': [{'name': 'Yury'}, {'name': 'Elvis'}]}
+                    ],
                 },
             ],
         )
@@ -1733,11 +1796,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''',
             [
                 {
-                    'references': [{
-                        'title': 'Introduction to EdgeDB',
-                    }, {
-                        'title': 'Introduction to EdgeDB Part Deux',
-                    }],
+                    'references': [
+                        {
+                            'title': 'Introduction to EdgeDB',
+                        },
+                        {
+                            'title': 'Introduction to EdgeDB Part Deux',
+                        },
+                    ],
                 },
             ],
         )
@@ -1749,10 +1815,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             select Issue { number, related_to }
             filter exists .related_to;
             ''',
-            tb.bag([
-                {'number': "3", 'related_to': [{}]},
-                {'number': "4", 'related_to': [{}]},
-            ]),
+            tb.bag(
+                [
+                    {'number': "3", 'related_to': [{}]},
+                    {'number': "4", 'related_to': [{}]},
+                ]
+            ),
         )
 
     async def test_edgeql_select_splat_01(self):
@@ -1778,24 +1846,28 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             select Issue { ** }
             filter .number = "1"
             ''',
-            tb.bag([
-                {
-                    "number": "1",
-                    "name": "Release EdgeDB",
-                    "body": "Initial public release of EdgeDB.",
-                    "time_estimate": 3000,
-                    "owner": {
-                        "name": "Elvis",
-                        "@note": "automatic assignment",
+            tb.bag(
+                [
+                    {
+                        "number": "1",
+                        "name": "Release EdgeDB",
+                        "body": "Initial public release of EdgeDB.",
+                        "time_estimate": 3000,
+                        "owner": {
+                            "name": "Elvis",
+                            "@note": "automatic assignment",
+                        },
+                        "watchers": [
+                            {
+                                "name": "Yury",
+                            }
+                        ],
+                        "status": {
+                            "name": "Open",
+                        },
                     },
-                    "watchers": [{
-                        "name": "Yury",
-                    }],
-                    "status": {
-                        "name": "Open",
-                    },
-                },
-            ]),
+                ]
+            ),
         )
 
     async def test_edgeql_select_splat_03(self):
@@ -1811,24 +1883,28 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             filter .number = "1"
             ''',
-            tb.bag([
-                {
-                    "number": "1",
-                    "name": "Release EdgeDB!",
-                    "body": "Initial public release of EdgeDB.",
-                    "time_estimate": 3000,
-                    "owner": {
-                        "name": "Elvis",
-                        "@note": "automatic assignment",
+            tb.bag(
+                [
+                    {
+                        "number": "1",
+                        "name": "Release EdgeDB!",
+                        "body": "Initial public release of EdgeDB.",
+                        "time_estimate": 3000,
+                        "owner": {
+                            "name": "Elvis",
+                            "@note": "automatic assignment",
+                        },
+                        "watchers": [
+                            {
+                                "name": "Yury",
+                            }
+                        ],
+                        "status": {
+                            "comp": 1,
+                        },
                     },
-                    "watchers": [{
-                        "name": "Yury",
-                    }],
-                    "status": {
-                        "comp": 1,
-                    },
-                },
-            ]),
+                ]
+            ),
         )
 
     async def test_edgeql_select_splat_04(self):
@@ -1868,26 +1944,32 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             filter .name = 'Polymorphic Splat Test 04'
             ''',
-            tb.bag([
-                {
-                    "references": tb.bag([
-                        {
-                            "title": "Introduction to EdgeDB",
-                            "authors": tb.bag([
+            tb.bag(
+                [
+                    {
+                        "references": tb.bag(
+                            [
                                 {
-                                    "name": "Yury",
+                                    "title": "Introduction to EdgeDB",
+                                    "authors": tb.bag(
+                                        [
+                                            {
+                                                "name": "Yury",
+                                            },
+                                            {
+                                                "name": "Elvis",
+                                            },
+                                        ]
+                                    ),
                                 },
                                 {
-                                    "name": "Elvis",
+                                    "name": "file01.jpg",
                                 },
-                            ]),
-                        },
-                        {
-                            "name": "file01.jpg",
-                        }
-                    ]),
-                },
-            ]),
+                            ]
+                        ),
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_select_splat_05(self):
@@ -1955,7 +2037,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             filter .name in {'Elvis', 'Release EdgeDB'}
             order by .name;
             ''',
-            res
+            res,
         )
 
         await self.assert_query_result(
@@ -1964,7 +2046,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             filter .name in {'Elvis', 'Release EdgeDB'}
             order by .name;
             ''',
-            res
+            res,
         )
 
         # TODO: Ideally this would work
@@ -1996,20 +2078,20 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             select Y {**}
             ''',
-            tb.bag([
-                {'x': {'a': 1, '@a': 2}}
-            ]),
+            tb.bag([{'x': {'a': 1, '@a': 2}}]),
         )
 
     async def test_edgeql_select_splat_07(self):
-        res = json.loads(await self.con.query_json(
-            r'''
+        res = json.loads(
+            await self.con.query_json(
+                r'''
             select Issue {
                 **,
             }
             filter .number = "1"
             '''
-        ))
+            )
+        )
         # Make sure the explicit properties aren't included
         self.assertNotIn('tags', res[0])
         self.assertNotIn('related_to', res[0])
@@ -2020,14 +2102,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             create future no_linkful_computed_splats
         ''')
 
-        res = json.loads(await self.con.query_json(
-            r'''
+        res = json.loads(
+            await self.con.query_json(
+                r'''
             select Issue {
                 **,
             }
             filter .number = "1"
             '''
-        ))
+            )
+        )
         # With the future, none should exist
         self.assertNotIn('tags', res[0])
         self.assertNotIn('related_to', res[0])
@@ -2043,7 +2127,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT
                 (INTROSPECT TYPEOF User.<owner).name;
             ''',
-            ['std::BaseObject']
+            ['std::BaseObject'],
         )
 
     async def test_edgeql_select_reverse_link_02(self):
@@ -2120,10 +2204,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             '''
                 SELECT (SELECT (SELECT Issue { watchers: {name} }).watchers);
             ''',
-            tb.bag([
-                {'name': 'Elvis'},
-                {'name': 'Yury'},
-            ]),
+            tb.bag(
+                [
+                    {'name': 'Elvis'},
+                    {'name': 'Yury'},
+                ]
+            ),
         )
 
     async def test_edgeql_select_tvariant_01(self):
@@ -2137,24 +2223,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } ORDER BY Issue.number;
             ''',
             [
-                {
-                    'number': '1',
-                    'related_to': []
-                },
-                {
-                    'number': '2',
-                    'related_to': []
-                },
-                {
-                    'number': '3',
-                    'related_to': [
-                        {'number': '2'}
-                    ]
-                },
-                {
-                    'number': '4',
-                    'related_to': []
-                }
+                {'number': '1', 'related_to': []},
+                {'number': '2', 'related_to': []},
+                {'number': '3', 'related_to': [{'number': '2'}]},
+                {'number': '4', 'related_to': []},
             ],
         )
 
@@ -2171,17 +2243,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } ORDER BY User.name;
             ''',
             [
-                {
-                    'name': 'Elvis',
-                    'owner_of': [{
-                        'number': '4'
-                    }]
-                }, {
-                    'name': 'Yury',
-                    'owner_of': [{
-                        'number': '3'
-                    }]
-                }
+                {'name': 'Elvis', 'owner_of': [{'number': '4'}]},
+                {'name': 'Yury', 'owner_of': [{'number': '3'}]},
             ],
         )
 
@@ -2200,19 +2263,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 {
                     'name': 'Elvis',
-                    'owner_of': [{
-                        'number': '4'
-                    }, {
-                        'number': '1'
-                    }]
-                }, {
+                    'owner_of': [{'number': '4'}, {'number': '1'}],
+                },
+                {
                     'name': 'Yury',
-                    'owner_of': [{
-                        'number': '3'
-                    }, {
-                        'number': '2'
-                    }]
-                }
+                    'owner_of': [{'number': '3'}, {'number': '2'}],
+                },
             ],
         )
 
@@ -2249,22 +2305,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             };
             """,
-            tb.bag([
-                {
-                    'name': 'Elvis',
-                    'foo': [
-                        {'bar': 'Elvis', 'number': '1'},
-                        {'bar': 'Elvis', 'number': '4'}
-                    ],
-                },
-                {
-                    'name': 'Yury',
-                    'foo': [
-                        {'bar': 'Yury', 'number': '2'},
-                        {'bar': 'Yury', 'number': '3'}
-                    ],
-                },
-            ]),
+            tb.bag(
+                [
+                    {
+                        'name': 'Elvis',
+                        'foo': [
+                            {'bar': 'Elvis', 'number': '1'},
+                            {'bar': 'Elvis', 'number': '4'},
+                        ],
+                    },
+                    {
+                        'name': 'Yury',
+                        'foo': [
+                            {'bar': 'Yury', 'number': '2'},
+                            {'bar': 'Yury', 'number': '3'},
+                        ],
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_select_tvariant_06(self):
@@ -2513,18 +2571,25 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     body  # body should appear in the duck type
                 };
             """,
-            tb.bag([
-                {'body': 'EdgeDB needs to happen soon.'},
-                {'body': 'Fix regression introduced by lexer tweak.',
-                 'name': 'Regression.'},
-                {'body': 'Initial public release of EdgeDB.',
-                 'name': 'Release EdgeDB'},
-                {'body': 'Minor lexer tweaks.',
-                 'name': 'Repl tweak.'},
-                {'body': 'We need to be able to render data '
-                         'in tabular format.',
-                 'name': 'Improve EdgeDB repl output rendering.'}
-            ]),
+            tb.bag(
+                [
+                    {'body': 'EdgeDB needs to happen soon.'},
+                    {
+                        'body': 'Fix regression introduced by lexer tweak.',
+                        'name': 'Regression.',
+                    },
+                    {
+                        'body': 'Initial public release of EdgeDB.',
+                        'name': 'Release EdgeDB',
+                    },
+                    {'body': 'Minor lexer tweaks.', 'name': 'Repl tweak.'},
+                    {
+                        'body': 'We need to be able to render data '
+                        'in tabular format.',
+                        'name': 'Improve EdgeDB repl output rendering.',
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_select_setops_02(self):
@@ -2537,14 +2602,18 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 [IS Text].body
             };
             ''',
-            tb.bag([
-                {'body': 'EdgeDB needs to happen soon.'},
-                {'body': 'Fix regression introduced by lexer tweak.'},
-                {'body': 'Initial public release of EdgeDB.'},
-                {'body': 'Minor lexer tweaks.'},
-                {'body': 'We need to be able to render '
-                         'data in tabular format.'}
-            ]),
+            tb.bag(
+                [
+                    {'body': 'EdgeDB needs to happen soon.'},
+                    {'body': 'Fix regression introduced by lexer tweak.'},
+                    {'body': 'Initial public release of EdgeDB.'},
+                    {'body': 'Minor lexer tweaks.'},
+                    {
+                        'body': 'We need to be able to render '
+                        'data in tabular format.'
+                    },
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -2561,8 +2630,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {'body': 'Initial public release of EdgeDB.'},
                 {'body': 'Minor lexer tweaks.'},
-                {'body': 'We need to be able to render '
-                         'data in tabular format.'}
+                {
+                    'body': 'We need to be able to render '
+                    'data in tabular format.'
+                },
             ],
         )
 
@@ -2581,19 +2652,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             """,
-            [{
-                'number': '1',
-                'open': 'yes',
-            }, {
-                'number': '2',
-                'open': 'yes',
-            }, {
-                'number': '3',
-                'open': 'no',
-            }, {
-                'number': '4',
-                'open': 'no',
-            }],
+            [
+                {
+                    'number': '1',
+                    'open': 'yes',
+                },
+                {
+                    'number': '2',
+                    'open': 'yes',
+                },
+                {
+                    'number': '3',
+                    'open': 'no',
+                },
+                {
+                    'number': '4',
+                    'open': 'no',
+                },
+            ],
         )
 
     @tb.needs_factoring_weakly  # XXX(factor): WE WOULD PREFER NOT
@@ -2718,9 +2794,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY _.number;
             """,
             [
-                {'number': '1'}, {'number': '1'}, {'number': '1'},
-                {'number': '1'}, {'number': '1'},
-                {'number': '4'}, {'number': '4'}, {'number': '4'},
+                {'number': '1'},
+                {'number': '1'},
+                {'number': '1'},
+                {'number': '1'},
+                {'number': '1'},
+                {'number': '4'},
+                {'number': '4'},
+                {'number': '4'},
             ],
         )
 
@@ -2762,7 +2843,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY _.number;
             """,
             [
-                {'number': '1'}, {'number': '4'},
+                {'number': '1'},
+                {'number': '4'},
             ],
         )
 
@@ -2874,7 +2956,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             edgedb.SchemaError,
             "it is illegal to create a type union that causes "
             "a computed property 'number' to mix with other "
-            "versions of the same property 'number'"
+            "versions of the same property 'number'",
         ):
             await self.con.execute(
                 r"""
@@ -2889,7 +2971,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             edgedb.SchemaError,
             "it is illegal to create a type union that causes "
             "a computed property 'number' to mix with other "
-            "versions of the same property 'number'"
+            "versions of the same property 'number'",
         ):
             await self.con.execute(
                 r"""
@@ -2910,7 +2992,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_setops_17(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r"has no link or property 'number'"):
+            edgedb.QueryError, r"has no link or property 'number'"
+        ):
             await self.con.query(r"""
                 # UNION between Issue and empty set Named should be
                 # duck-typed to be effectively equivalent to Issue[IS Named].
@@ -3000,10 +3083,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                  foo := X union Y,
             select foo { title1 };
             """,
-            tb.bag([
-                {'title1': 'x'},
-                {'title1': 'y'},
-            ])
+            tb.bag(
+                [
+                    {'title1': 'x'},
+                    {'title1': 'y'},
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -3013,10 +3098,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                  foo := X union Y,
             select foo { title1 };
             """,
-            tb.bag([
-                {'title1': 'x'},
-                {'title1': 'y'},
-            ])
+            tb.bag(
+                [
+                    {'title1': 'x'},
+                    {'title1': 'y'},
+                ]
+            ),
         )
 
         await self.assert_query_result(
@@ -3034,9 +3121,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             with A := Owned except {LogEntry, Comment}
             select all(A in Issue) and all(Issue in A)
             """,
-            {
-                True
-            },
+            {True},
         )
 
         await self.assert_query_result(
@@ -3044,9 +3129,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             with A := Owned intersect Issue
             select all(A in Owned[is Issue]) and all(Owned[is Issue] in A)
             """,
-            {
-                True
-            },
+            {True},
         )
 
     async def test_edgeql_select_setops_25(self):
@@ -3143,9 +3226,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
               intersect {1, 2, 2, 3, 3, 3, 7, 7, 7, 7, 7, 7, 7}
             order by _
             """,
-            [
-                2, 2, 3, 7, 7, 7, 7, 7, 7
-            ],
+            [2, 2, 3, 7, 7, 7, 7, 7, 7],
         )
 
         await self.assert_query_result(
@@ -3215,7 +3296,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'name': 'Release EdgeDB'},
                 {'name': 'Improve EdgeDB repl output rendering.'},
                 {'name': 'Repl tweak.'},
-            ]
+            ],
         )
 
     async def test_edgeql_select_order_02(self):
@@ -3225,14 +3306,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY len(Text.body) DESC;
             ''',
             [
-                {'body': 'We need to be able to render '
-                         'data in tabular format.'},
+                {
+                    'body': 'We need to be able to render '
+                    'data in tabular format.'
+                },
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {'body': 'Initial public release of EdgeDB.'},
                 {'body': 'EdgeDB needs to happen soon.'},
                 {'body': 'Rewriting everything.'},
-                {'body': 'Minor lexer tweaks.'}
-            ]
+                {'body': 'Minor lexer tweaks.'},
+            ],
         )
 
     async def test_edgeql_select_order_03(self):
@@ -3246,15 +3329,15 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 {'name': 'Yury'},
                 {'name': 'Elvis'},
-            ]
+            ],
         )
 
     async def test_edgeql_select_order_04(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed'):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+        ):
             await self.con.query("""
                 SELECT
                     User { name }
@@ -3299,17 +3382,20 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } FILTER len(Issue.status.name) = 4
             ORDER BY Issue.number;
             ''',
-            [{
-                'owner': {'name': 'Elvis'},
-                'status': {'name': 'Open'},
-                'name': 'Release EdgeDB',
-                'number': '1'
-            }, {
-                'owner': {'name': 'Yury'},
-                'status': {'name': 'Open'},
-                'name': 'Improve EdgeDB repl output rendering.',
-                'number': '2'
-            }],
+            [
+                {
+                    'owner': {'name': 'Elvis'},
+                    'status': {'name': 'Open'},
+                    'name': 'Release EdgeDB',
+                    'number': '1',
+                },
+                {
+                    'owner': {'name': 'Yury'},
+                    'status': {'name': 'Open'},
+                    'name': 'Improve EdgeDB repl output rendering.',
+                    'number': '2',
+                },
+            ],
         )
 
     @tb.needs_factoring
@@ -3326,7 +3412,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT std::sum(<std::int64>Issue.number);
             ''',
-            [10]
+            [10],
         )
 
     async def test_edgeql_select_func_05(self):
@@ -3347,23 +3433,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             } FILTER schema::Function.name = 'default::concat1';
             ''',
-            [{'params': [
+            [
                 {
-                    'num': 0,
-                    'kind': 'VariadicParam',
-                    'type': {
-                        'name': 'array<anytype>'
-                    }
+                    'params': [
+                        {
+                            'num': 0,
+                            'kind': 'VariadicParam',
+                            'type': {'name': 'array<anytype>'},
+                        }
+                    ]
                 }
-            ]}]
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
-                await self.con.query(
-                    "SELECT concat1('aaa', 'bbb', 2);")
+                await self.con.query("SELECT concat1('aaa', 'bbb', 2);")
 
         await self.con.execute(r'''
             DROP FUNCTION concat1(VARIADIC s: anytype);
@@ -3378,8 +3465,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             await self.con.execute(r'SELECT concat2(123);')
 
     async def test_edgeql_select_func_07(self):
@@ -3416,45 +3503,42 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 return_typemod
             } FILTER schema::Function.name = 'default::concat3';
             ''',
-            [{
-                'params': [
-                    {
-                        'num': 0,
-                        'name': 'sep',
-                        'kind': 'PositionalParam',
-                        'type': {
-                            'name': 'std::str',
-                            'element_type': None
+            [
+                {
+                    'params': [
+                        {
+                            'num': 0,
+                            'name': 'sep',
+                            'kind': 'PositionalParam',
+                            'type': {'name': 'std::str', 'element_type': None},
+                            'typemod': 'OptionalType',
                         },
-                        'typemod': 'OptionalType'
-                    },
-                    {
-                        'num': 1,
-                        'name': 's',
-                        'kind': 'VariadicParam',
-                        'type': {
-                            'name': 'array<std::str>',
-                            'element_type': {'name': 'std::str'}
+                        {
+                            'num': 1,
+                            'name': 's',
+                            'kind': 'VariadicParam',
+                            'type': {
+                                'name': 'array<std::str>',
+                                'element_type': {'name': 'std::str'},
+                            },
+                            'typemod': 'SingletonType',
                         },
-                        'typemod': 'SingletonType'
-                    }
-                ],
-                'return_type': {
-                    'name': 'std::str'
-                },
-                'return_typemod': 'SingletonType'
-            }]
+                    ],
+                    'return_type': {'name': 'std::str'},
+                    'return_typemod': 'SingletonType',
+                }
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'SELECT concat3(123);')
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'SELECT concat3("a", 123);')
 
@@ -3471,8 +3555,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_func_08(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function "sum\(arg0: std::str\)" does not exist'):
+            edgedb.QueryError,
+            r'function "sum\(arg0: std::str\)" does not exist',
+        ):
             async with self.con.transaction():
                 await self.con.query(r"with x := 'a', select sum(x);")
 
@@ -3755,15 +3840,19 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             ''',
-            [{'kind': 'Open'}, {'kind': 'High'},
-             {'kind': 'Low'}, {'kind': 'Closed'}],
+            [
+                {'kind': 'Open'},
+                {'kind': 'High'},
+                {'kind': 'Low'},
+                {'kind': 'Closed'},
+            ],
         )
 
     async def test_edgeql_select_coalesce_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '\?\?' cannot.*'std::str' and 'std::int64'"):
-
+            edgedb.QueryError,
+            r"operator '\?\?' cannot.*'std::str' and 'std::int64'",
+        ):
             await self.con.execute(r'''
                 SELECT Issue{
                     kind := Issue.priority.name ?? 1
@@ -3793,7 +3882,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY
                 Issue.priority.name EMPTY LAST THEN Issue.number;
             ''',
-            [{'number': o.number} for o in [*issues_h, *issues_n]]
+            [{'number': o.number} for o in [*issues_h, *issues_n]],
         )
 
     async def test_edgeql_select_equivalence_01(self):
@@ -3808,31 +3897,36 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             ''',
-            [{
-                'number': '1',
-                'h1': None,
-                'h2': False,
-                'l1': None,
-                'l2': True,
-            }, {
-                'number': '2',
-                'h1': True,
-                'h2': True,
-                'l1': False,
-                'l2': False,
-            }, {
-                'number': '3',
-                'h1': False,
-                'h2': False,
-                'l1': True,
-                'l2': True,
-            }, {
-                'number': '4',
-                'h1': None,
-                'h2': False,
-                'l1': None,
-                'l2': True,
-            }],
+            [
+                {
+                    'number': '1',
+                    'h1': None,
+                    'h2': False,
+                    'l1': None,
+                    'l2': True,
+                },
+                {
+                    'number': '2',
+                    'h1': True,
+                    'h2': True,
+                    'l1': False,
+                    'l2': False,
+                },
+                {
+                    'number': '3',
+                    'h1': False,
+                    'h2': False,
+                    'l1': True,
+                    'l2': True,
+                },
+                {
+                    'number': '4',
+                    'h1': None,
+                    'h2': False,
+                    'l1': None,
+                    'l2': True,
+                },
+            ],
         )
 
     @tb.needs_factoring
@@ -3917,7 +4011,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 ORDER BY T.name
             ).name;
             ''',
-            ['Release EdgeDB']
+            ['Release EdgeDB'],
         )
 
     async def test_edgeql_select_and_01(self):
@@ -4071,27 +4165,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 )
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [False, False],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [True],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [False, True],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [False, False],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [True],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [False, True],
+                },
+            ],
         )
 
     async def test_edgeql_select_and_12(self):
@@ -4106,27 +4206,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 )
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [True, True],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [False],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [False, True],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [True, True],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [False],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [False, True],
+                },
+            ],
         )
 
     @tb.needs_factoring_weakly  # XXX(factor): WE WOULD PREFER NOT
@@ -4155,7 +4261,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 Issue.priority.name = 'Low'
             ORDER BY Issue.priority.name THEN Issue.number;
             ''',
-            [{'number': o.number} for o in [*issues_h, *issues_l]]
+            [{'number': o.number} for o in [*issues_h, *issues_l]],
         )
 
     @tb.needs_factoring_weakly  # XXX(factor): WE WOULD PREFER NOT
@@ -4262,8 +4368,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 NOT EXISTS Issue.<issue         # has no Comment [2, 3, 4]
             ORDER BY Issue.number;
             ''',
-            [{'number': '1'}, {'number': '2'}, {'number': '3'},
-             {'number': '4'}],
+            [
+                {'number': '1'},
+                {'number': '2'},
+                {'number': '3'},
+                {'number': '4'},
+            ],
         )
 
     async def test_edgeql_select_or_09(self):
@@ -4276,8 +4386,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 NOT EXISTS Issue.<issue         # has no Comment [2, 3, 4]
             ORDER BY Issue.number;
             ''',
-            [{'number': '1'}, {'number': '2'}, {'number': '3'},
-             {'number': '4'}],
+            [
+                {'number': '1'},
+                {'number': '2'},
+                {'number': '3'},
+                {'number': '4'},
+            ],
         )
 
     async def test_edgeql_select_or_10(self):
@@ -4421,27 +4535,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 )
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [False, True],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [True],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [True, True],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [False, True],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [True],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [True, True],
+                },
+            ],
         )
 
     async def test_edgeql_select_or_19(self):
@@ -4456,27 +4576,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 )
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [False, True],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [False],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [False, False],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [False, True],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [False],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [False, False],
+                },
+            ],
         )
 
     async def test_edgeql_select_not_01(self):
@@ -4582,27 +4708,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 x := (select _ := not (.tags = 'red') order by _)
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [False, True],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [False],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [False, True],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [False, True],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [False],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [False, True],
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -4613,27 +4745,33 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 x := (select _ := not not (.tags = 'red') order by _)
             } order by .name;
             ''',
-            [{
-                'name': 'circle',
-                'tags': {'red', 'black'},
-                'x': [False, True],
-            }, {
-                'name': 'hexagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'pentagon',
-                'tags': [],
-                'x': [],
-            }, {
-                'name': 'square',
-                'tags': {'red'},
-                'x': [True],
-            }, {
-                'name': 'triangle',
-                'tags': {'red', 'green'},
-                'x': [False, True],
-            }],
+            [
+                {
+                    'name': 'circle',
+                    'tags': {'red', 'black'},
+                    'x': [False, True],
+                },
+                {
+                    'name': 'hexagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'pentagon',
+                    'tags': [],
+                    'x': [],
+                },
+                {
+                    'name': 'square',
+                    'tags': {'red'},
+                    'x': [True],
+                },
+                {
+                    'name': 'triangle',
+                    'tags': {'red', 'green'},
+                    'x': [False, True],
+                },
+            ],
         )
 
     async def test_edgeql_select_empty_01(self):
@@ -4804,8 +4942,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT User.name ++ Issue.number
             ORDER BY User.name THEN Issue.number;
             """,
-            ['Elvis1', 'Elvis2', 'Elvis3', 'Elvis4',
-             'Yury1', 'Yury2', 'Yury3', 'Yury4'],
+            [
+                'Elvis1',
+                'Elvis2',
+                'Elvis3',
+                'Elvis4',
+                'Yury1',
+                'Yury2',
+                'Yury3',
+                'Yury4',
+            ],
         )
 
     @tb.needs_factoring
@@ -5120,8 +5266,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT
                 Issue.number ++ sub;
             """,
-            {'11', '12', '13', '14', '21', '22', '23', '24',
-             '31', '32', '33', '34', '41', '42', '43', '44'},
+            {
+                '11',
+                '12',
+                '13',
+                '14',
+                '21',
+                '22',
+                '23',
+                '24',
+                '31',
+                '32',
+                '33',
+                '34',
+                '41',
+                '42',
+                '43',
+                '44',
+            },
         )
 
     async def test_edgeql_select_subqueries_11(self):
@@ -5180,13 +5342,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 )
             ORDER BY Issue.number;
             """,
-            [{
-                'number': '1',
-                'body_length': 33,
-            }, {
-                'number': '3',
-                'body_length': 19,
-            }],
+            [
+                {
+                    'number': '1',
+                    'body_length': 33,
+                },
+                {
+                    'number': '3',
+                    'body_length': 19,
+                },
+            ],
         )
 
     async def test_edgeql_select_subqueries_13(self):
@@ -5247,10 +5412,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ORDER BY
                 Issue.number;
             """,
-            [
-                {'number': '2'},
-                {'number': '3'}
-            ],
+            [{'number': '2'}, {'number': '3'}],
         )
 
     async def test_edgeql_select_subqueries_16(self):
@@ -5455,11 +5617,13 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                         ORDER BY U.friends.foo)
                  };
             """,
-            [{
-                'my_issues': ['1', '4'],
-                'friends_foos': 'Yury!',
-                'friends_issues': ['2', '3']
-            }]
+            [
+                {
+                    'my_issues': ['1', '4'],
+                    'friends_foos': 'Yury!',
+                    'friends_issues': ['2', '3'],
+                }
+            ],
         )
 
     async def test_edgeql_select_alias_indirection_09(self):
@@ -5485,13 +5649,15 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_text_shape': {
-                    'body': 'Minor lexer tweaks.',
-                    'foo': 'Minor lexer tweaks.!',
-                },
-            }]
+            [
+                {
+                    'name': 'Elvis',
+                    'shortest_text_shape': {
+                        'body': 'Minor lexer tweaks.',
+                        'foo': 'Minor lexer tweaks.!',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_select_alias_indirection_10(self):
@@ -5514,10 +5680,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
             FILTER User.name = 'Elvis';
             ''',
-            [{
-                'name': 'Elvis',
-                'shortest_text_foo': 'Minor lexer tweaks.!'
-            }]
+            [{'name': 'Elvis', 'shortest_text_foo': 'Minor lexer tweaks.!'}],
         )
 
     async def test_edgeql_select_alias_indirection_11(self):
@@ -5560,16 +5723,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     'open_issues': [
                         {'number': '1', 'spent_time': 50000},
                         {'number': '4', 'spent_time': 0},
-                    ]
+                    ],
                 },
                 {
                     'name': 'Yury',
                     'open_issues': [
                         {'number': '2', 'spent_time': 0},
-                        {'number': '3', 'spent_time': 0}
-                    ]
-                }
-            ]
+                        {'number': '3', 'spent_time': 0},
+                    ],
+                },
+            ],
         )
 
     async def test_edgeql_select_slice_01(self):
@@ -5757,17 +5920,18 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             FILTER Issue.number = '1';
             """,
-            [{
-                'name': 'Release EdgeDB',
-                'type_name': 'default::Issue',
-                'a': 'l',
-                'b': 'lease EdgeD',
-                'c': 'fault::Issu',
-            }],
+            [
+                {
+                    'name': 'Release EdgeDB',
+                    'type_name': 'default::Issue',
+                    'a': 'l',
+                    'b': 'lease EdgeD',
+                    'c': 'fault::Issu',
+                }
+            ],
         )
 
     async def test_edgeql_select_slice_04(self):
-
         await self.assert_query_result(
             r"""
             select [1,2,3,4,5][1:];
@@ -5948,7 +6112,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_bigint_index_01(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -5995,7 +6158,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_bigint_index_02(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -6042,7 +6204,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_bigint_index_03(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -6112,7 +6273,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT (Status.name, count(Status.<status))
             ORDER BY Status.name;
             """,
-            [['Closed', 2], ['Open', 2]]
+            [['Closed', 2], ['Open', 2]],
         )
 
     @tb.needs_factoring
@@ -6138,7 +6299,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 ['Elvis', ['Open', 1]],
                 ['Yury', ['Closed', 1]],
                 ['Yury', ['Open', 1]],
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -6159,7 +6320,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 {'name': 'Elvis'},
                 {'name': 'Yury'},
-            ]
+            ],
         )
 
     async def test_edgeql_select_tuple_04(self):
@@ -6176,7 +6337,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """,
             [
                 {'t': [[1, 2], [3, 4]]},
-            ]
+            ],
         )
 
     async def test_edgeql_select_tuple_05(self):
@@ -6236,11 +6397,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     user := (SELECT User{name} FILTER User.name = 'Yury')
                 );
             """,
-            [{
-                'user': {
-                    'name': 'Yury'
-                }
-            }],
+            [{'user': {'name': 'Yury'}}],
         )
 
     async def test_edgeql_select_tuple_09(self):
@@ -6291,7 +6448,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT User.todo@rank + <int64>User.todo.number
             ORDER BY User.todo.number;
             """,
-            [43, 44, 45, 46]
+            [43, 44, 45, 46],
         )
 
     @tb.needs_factoring
@@ -6301,7 +6458,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             SELECT Issue.<todo[IS User]@rank + <int64>Issue.number
             ORDER BY Issue.number;
             """,
-            [43, 44, 45, 46]
+            [43, 44, 45, 46],
         )
 
     async def test_edgeql_select_linkproperty_03(self):
@@ -6316,25 +6473,34 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY User.name;
             """,
-            [{
-                'name': 'Elvis',
-                'todo': [{
-                    'number': '1',
-                    '@rank': 42,
-                }, {
-                    'number': '2',
-                    '@rank': 42,
-                }]
-            }, {
-                'name': 'Yury',
-                'todo': [{
-                    'number': '3',
-                    '@rank': 42,
-                }, {
-                    'number': '4',
-                    '@rank': 42,
-                }]
-            }],
+            [
+                {
+                    'name': 'Elvis',
+                    'todo': [
+                        {
+                            'number': '1',
+                            '@rank': 42,
+                        },
+                        {
+                            'number': '2',
+                            '@rank': 42,
+                        },
+                    ],
+                },
+                {
+                    'name': 'Yury',
+                    'todo': [
+                        {
+                            'number': '3',
+                            '@rank': 42,
+                        },
+                        {
+                            'number': '4',
+                            '@rank': 42,
+                        },
+                    ],
+                },
+            ],
         )
 
     async def test_edgeql_select_linkproperty_04(self):
@@ -6382,11 +6548,15 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 .name = "Elvis"
             ''',
-            [{
-                "todo": [{
-                    "@rank": 10,
-                }],
-            }],
+            [
+                {
+                    "todo": [
+                        {
+                            "@rank": 10,
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_select_if_else_01(self):
@@ -6398,19 +6568,24 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             """,
-            [{
-                'number': '1',
-                'open': 'yes',
-            }, {
-                'number': '2',
-                'open': 'yes',
-            }, {
-                'number': '3',
-                'open': 'no',
-            }, {
-                'number': '4',
-                'open': 'no',
-            }],
+            [
+                {
+                    'number': '1',
+                    'open': 'yes',
+                },
+                {
+                    'number': '2',
+                    'open': 'yes',
+                },
+                {
+                    'number': '3',
+                    'open': 'no',
+                },
+                {
+                    'number': '4',
+                    'open': 'no',
+                },
+            ],
         )
 
     async def test_edgeql_select_if_else_02(self):
@@ -6423,25 +6598,30 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             """,
-            [{
-                'number': '1',
-                'foo': 'bar',
-            }, {
-                'number': '2',
-                'foo': 'Open',
-            }, {
-                'number': '3',
-                'foo': 'Closed',
-            }, {
-                'number': '4',
-                'foo': 'Closed',
-            }],
+            [
+                {
+                    'number': '1',
+                    'foo': 'bar',
+                },
+                {
+                    'number': '2',
+                    'foo': 'Open',
+                },
+                {
+                    'number': '3',
+                    'foo': 'Closed',
+                },
+                {
+                    'number': '4',
+                    'foo': 'Closed',
+                },
+            ],
         )
 
     async def test_edgeql_select_if_else_03(self):
-        with self.assertRaisesRegex(edgedb.QueryError,
-                                    r'operator.*IF.*cannot be applied'):
-
+        with self.assertRaisesRegex(
+            edgedb.QueryError, r'operator.*IF.*cannot be applied'
+        ):
             await self.con.execute(r"""
                 SELECT Issue {
                     foo := 'bar' IF Issue.number = '1' ELSE 123
@@ -6458,8 +6638,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             """,
-            [{'kind': 'Open'}, {'kind': 'High'},
-             {'kind': 'Low'}, {'kind': 'Closed'}],
+            [
+                {'kind': 'Open'},
+                {'kind': 'High'},
+                {'kind': 'Low'},
+                {'kind': 'Closed'},
+            ],
         )
 
         await self.assert_query_result(
@@ -6470,8 +6654,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             }
             ORDER BY Issue.number;
             """,
-            [{'kind': 'Open'}, {'kind': 'High'},
-             {'kind': 'Low'}, {'kind': 'Closed'}],
+            [
+                {'kind': 'Open'},
+                {'kind': 'High'},
+                {'kind': 'Low'},
+                {'kind': 'Closed'},
+            ],
         )
 
     async def test_edgeql_select_if_else_05(self):
@@ -6554,9 +6742,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 .number = '1';
             ''',
-            [{
-                'number': '1'
-            }]
+            [{'number': '1'}],
         )
 
     async def test_edgeql_partial_02(self):
@@ -6569,9 +6755,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             FILTER
                 .name = 'Yury';
             ''',
-            [{
-                'name': 'Yury'
-            }]
+            [{'name': 'Yury'}],
         )
 
     async def test_edgeql_partial_03(self):
@@ -6585,13 +6769,17 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 } FILTER .name = 'Yury'
             } FILTER .status.name = 'Open' AND .owner.name = 'Elvis';
             ''',
-            [{
-                'number': '1',
-                'watchers': [{
-                    'name': 'Yury',
-                    'name_upper': 'YURY',
-                }]
-            }]
+            [
+                {
+                    'number': '1',
+                    'watchers': [
+                        {
+                            'name': 'Yury',
+                            'name_upper': 'YURY',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_partial_04(self):
@@ -6606,25 +6794,28 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {'number': '4'},
                 {'number': '3'},
                 {'number': '2'},
-            ]
+            ],
         )
 
     async def test_edgeql_partial_05(self):
-        await self.assert_query_result('''
+        await self.assert_query_result(
+            '''
             SELECT
                 Issue{
                     sub := (SELECT .number)
                 }
             FILTER .number = '1';
-        ''', [
-            {'sub': '1'},
-        ])
+        ''',
+            [
+                {'sub': '1'},
+            ],
+        )
 
     async def test_edgeql_partial_06(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
             "invalid property reference on an expression of primitive type "
-            "'default::issue_num_t'"
+            "'default::issue_num_t'",
         ):
             await self.con.execute('''
                 SELECT Issue.number FILTER .number > '1';
@@ -6639,9 +6830,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } FILTER EXISTS (.references)
               ORDER BY .number DESC;
             ''',
-            [{
-                'number': '2'
-            }],
+            [{'number': '2'}],
         )
 
         await self.assert_query_result(
@@ -6651,9 +6840,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } FILTER .references[IS URL].address = 'https://edgedb.com'
               ORDER BY .number DESC;
             ''',
-            [{
-                'number': '2'
-            }],
+            [{'number': '2'}],
         )
 
         await self.assert_query_result(
@@ -6663,9 +6850,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } FILTER .references[IS Named].name = 'screenshot.png'
               ORDER BY .number DESC;
             ''',
-            [{
-                'number': '2'
-            }],
+            [{'number': '2'}],
         )
 
         await self.assert_query_result(
@@ -6682,23 +6867,21 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             } FILTER EXISTS (.references)
               ORDER BY .number DESC;
             ''',
-            [{
-                'number': '2',
-                'references': [
-                    {
-                        'name': 'edgedb.com',
-                        '__type__': {
-                            'name': 'default::URL'
-                        }
-                    },
-                    {
-                        'name': 'screenshot.png',
-                        '__type__': {
-                            'name': 'default::File'
-                        }
-                    }
-                ]
-            }]
+            [
+                {
+                    'number': '2',
+                    'references': [
+                        {
+                            'name': 'edgedb.com',
+                            '__type__': {'name': 'default::URL'},
+                        },
+                        {
+                            'name': 'screenshot.png',
+                            '__type__': {'name': 'default::File'},
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_select_for_01(self):
@@ -6720,7 +6903,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 {'name': 'Release EdgeDB'},
                 {'name': 'Regression.'},
-            ]
+            ],
         )
 
     async def test_edgeql_select_for_02(self):
@@ -6742,21 +6925,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 {
                     'name': 'Improve EdgeDB repl output rendering.',
-                    'number': '2'
+                    'number': '2',
                 },
-                {
-                    'name': 'Repl tweak.',
-                    'number': '3'
-                },
-                {
-                    'name': 'Regression.',
-                    'number': '4'
-                },
-                {
-                    'name': 'Regression.',
-                    'number': '4'
-                },
-            ]
+                {'name': 'Repl tweak.', 'number': '3'},
+                {'name': 'Regression.', 'number': '4'},
+                {'name': 'Regression.', 'number': '4'},
+            ],
         )
 
     async def test_edgeql_select_for_03(self):
@@ -6775,20 +6949,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 LIMIT 2
             );
             ''',
-            tb.bag([
-                {
-                    'name': 'Improve EdgeDB repl output rendering.',
-                    'number': '2'
-                },
-                {
-                    'name': 'Repl tweak.',
-                    'number': '3'
-                },
-                {
-                    'name': 'Regression.',
-                    'number': '4'
-                },
-            ]),
+            tb.bag(
+                [
+                    {
+                        'name': 'Improve EdgeDB repl output rendering.',
+                        'number': '2',
+                    },
+                    {'name': 'Repl tweak.', 'number': '3'},
+                    {'name': 'Regression.', 'number': '4'},
+                ]
+            ),
         )
 
     async def test_edgeql_select_for_04(self):
@@ -6801,11 +6971,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 }
                 FILTER .name = 'Release EdgeDB';
             ''',
-            [
-                {
-                    'asdf': None
-                }
-            ],
+            [{'asdf': None}],
         )
 
     @tb.needs_factoring
@@ -6873,46 +7039,45 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_bad_reference_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"object type or alias 'default::Usr' does not exist",
-                _hint="did you mean one of these: User, URL?"):
-
+            edgedb.QueryError,
+            r"object type or alias 'default::Usr' does not exist",
+            _hint="did you mean one of these: User, URL?",
+        ):
             await self.con.query("""
                 SELECT Usr;
             """)
 
     async def test_edgeql_select_bad_reference_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'default::User' has no link or property 'nam'",
-                _hint="did you mean 'name'?"):
-
+            edgedb.QueryError,
+            r"'default::User' has no link or property 'nam'",
+            _hint="did you mean 'name'?",
+        ):
             await self.con.query("""
                 SELECT User.nam;
             """)
 
     async def test_edgeql_select_bad_reference_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"object type or alias 'default::number' does not exist",
-                _hint="did you mean '.number'?"):
-
+            edgedb.QueryError,
+            r"object type or alias 'default::number' does not exist",
+            _hint="did you mean '.number'?",
+        ):
             await self.con.query("""
                 select Issue filter number = '4418';
             """)
 
     async def test_edgeql_select_bad_reference_04(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"object type or alias 'default::referrnce' does not exist",
-                _hint="did you mean '.references'?"):
-
+            edgedb.QueryError,
+            r"object type or alias 'default::referrnce' does not exist",
+            _hint="did you mean '.references'?",
+        ):
             await self.con.query("""
                 select Issue filter referrnce = '#4418';
             """)
 
     async def test_edgeql_select_bad_reference_05(self):
-
         with self.assertRaisesRegex(
             edgedb.QueryError,
             "object type 'default::Issue' has no link or property 'referrnce'",
@@ -6926,8 +7091,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_precedence_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'index indirection cannot.*int64.*'):
-
+            edgedb.QueryError, r'index indirection cannot.*int64.*'
+        ):
             await self.con.query("""
                 # index access is higher precedence than cast
                 SELECT <str>1[0];
@@ -6935,8 +7100,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_precedence_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'index indirection cannot.*int64.*'):
-
+            edgedb.QueryError, r'index indirection cannot.*int64.*'
+        ):
             await self.con.query("""
                 # index access is higher precedence than cast
                 SELECT <str>Issue.time_estimate[0];
@@ -7073,7 +7238,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_is_03(self):
-
         await self.assert_query_result(
             r'''SELECT Issue.time_estimate IS int64 LIMIT 1;''',
             [True],
@@ -7120,7 +7284,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_is_04(self):
-
         await self.assert_query_result(
             r'''SELECT Issue.number IS int64 LIMIT 1;''',
             [False],
@@ -7167,7 +7330,6 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
     async def test_edgeql_select_is_05(self):
-
         await self.assert_query_result(
             r'''SELECT Issue.status IS int64 LIMIT 1;''',
             [False],
@@ -7218,7 +7380,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT 5 IS anytype;
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_07(self):
@@ -7226,7 +7388,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT 5 IS anyint;
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_08(self):
@@ -7234,7 +7396,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT 5.5 IS anyfloat;
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_09(self):
@@ -7242,7 +7404,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT Issue.time_estimate IS anytype LIMIT 1;
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_10(self):
@@ -7250,7 +7412,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT [5] IS (array<anytype>);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_11(self):
@@ -7258,7 +7420,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT (5, 'hello') IS (tuple<anytype, str>);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_select_is_12(self):
@@ -7298,10 +7460,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
-                r"with property 'foo' using incompatible types std::int64, "
-                r"std::str"):
+            edgedb.SchemaError,
+            r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
+            r"with property 'foo' using incompatible types std::int64, "
+            r"std::str",
+        ):
             await self.con.query(
                 r'''
                     SELECT Object is Dummy1 | Dummy2;
@@ -7416,16 +7579,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         # Test for a range of lengths
         for n in (2, 4, 10, 25):
             s = list(range(n))
-            await self.assert_query_result(
-                f"SELECT {set(s)}",
-                s
-            )
+            await self.assert_query_result(f"SELECT {set(s)}", s)
 
             us = ' union '.join(str(i) for i in s)
-            await self.assert_query_result(
-                f"SELECT {us}",
-                s
-            )
+            await self.assert_query_result(f"SELECT {us}", s)
 
     async def test_edgeql_select_shape_on_scalar(self):
         with self.assertRaisesRegex(
@@ -7458,7 +7615,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                     'referrers': [
                         {
                             'name': 'Improve EdgeDB repl output rendering.',
-                            'number': '2'
+                            'number': '2',
                         }
                     ]
                 }
@@ -7499,7 +7656,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     @tb.needs_factoring_weakly
     async def test_edgeql_select_expr_objects_04a(self):
@@ -7518,9 +7675,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 SELECT (items, items[0], items[0].name,
                         items[0] IS Status);
             ''',
-            [
-                [[{}], {}, "Closed", True]
-            ],
+            [[[{}], {}, "Closed", True]],
         )
 
     @tb.needs_factoring
@@ -7531,17 +7686,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 SELECT _ := (items.0, items.1, items.1[0].name) ORDER BY _.0;
             ''',
             [
-                [
-                    "Elvis",
-                    [{}, {}],
-                    "Improve EdgeDB repl output rendering."
-                ],
-                [
-                    "Yury",
-                    [{}, {}],
-                    "Regression."
-                ],
-            ]
+                ["Elvis", [{}, {}], "Improve EdgeDB repl output rendering."],
+                ["Yury", [{}, {}], "Regression."],
+            ],
         )
 
     @tb.needs_factoring
@@ -7555,7 +7702,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 [['x', {}], ['x', {}]],
                 [['x', {}], ['x', {}]],
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -7567,7 +7714,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 [{}, {'name': 'Elvis'}],
                 [{}, {'name': 'Yury'}],
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -7594,7 +7741,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 [['x', {'id': str(user.id)}], {'name': user.name}]
                 for user in res
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -7607,7 +7754,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             [
                 [{'name': user.name}, ['x', {'id': str(user.id)}]]
                 for user in res
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -7619,7 +7766,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''',
             [
                 [{'number': '1', 'name': 'Release EdgeDB'}],
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -7630,7 +7777,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''',
             [
                 [{'number': '1', 'name': 'Release EdgeDB'}, "Open"],
-            ]
+            ],
         )
 
     async def test_edgeql_select_banned_free_shape_01(self):
@@ -7638,7 +7785,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             edgedb.QueryError,
             "it is illegal to create a type union that causes a "
             "computed property 'z' to mix with other versions of the "
-            "same property 'z'"
+            "same property 'z'",
         ):
             await self.con.execute("""
                 SELECT DISTINCT {{ z := 1 }, { z := 2 }};
@@ -7653,17 +7800,23 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             """)
 
     async def test_edgeql_select_array_common_type_01(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT [User, Issue];
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
         for row in res:
             self.assertEqual(row[0].__tname__, "default::User")
             self.assertEqual(row[1].__tname__, "default::Issue")
 
     async def test_edgeql_select_array_common_type_02(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT [Object];
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
         for row in res:
             self.assertTrue(row[0].__tname__.startswith("default::"))
 
@@ -7676,7 +7829,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
                 SELECT _ := (User { tag := User.name }) ORDER BY _.name;
             ''',
-            [{"tag": "Elvis"}, {"tag": "Yury"}]
+            [{"tag": "Elvis"}, {"tag": "Yury"}],
         )
 
     async def test_edgeql_select_result_alias_binding_02(self):
@@ -7766,9 +7919,10 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"cannot follow backlink 'whatever' because link 'whatever' "
-                r"of object type 'default::Dummy2' is computed"):
+            edgedb.QueryError,
+            r"cannot follow backlink 'whatever' because link 'whatever' "
+            r"of object type 'default::Dummy2' is computed",
+        ):
             await self.con.query(
                 r'''
                     SELECT User.<whatever
@@ -7786,10 +7940,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
-                r"with property 'foo' using incompatible types std::int64, "
-                r"std::str"):
+            edgedb.SchemaError,
+            r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
+            r"with property 'foo' using incompatible types std::int64, "
+            r"std::str",
+        ):
             await self.con.query(
                 r'''
                     SELECT Dummy1 union Dummy2;
@@ -7808,10 +7963,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
-                r"with link 'foo' using incompatible types default::Bar, "
-                r"std::int64"):
+            edgedb.SchemaError,
+            r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
+            r"with link 'foo' using incompatible types default::Bar, "
+            r"std::int64",
+        ):
             await self.con.query(
                 r'''
                     SELECT Dummy1 union Dummy2;
@@ -7834,10 +7990,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
-                r"with link 'foo' with property 'baz' using incompatible types "
-                r"std::int64, std::str"):
+            edgedb.SchemaError,
+            r"cannot create union \(default::Dummy1 \| default::Dummy2\) "
+            r"with link 'foo' with property 'baz' using incompatible types "
+            r"std::int64, std::str",
+        ):
             await self.con.query(
                 r'''
                     SELECT Dummy1 union Dummy2;
@@ -8038,14 +8195,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
                 SELECT [(User,)][0]
             ''',
-            [[{"id": str}], [{"id": str}]]
+            [[{"id": str}], [{"id": str}]],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT [((SELECT User {name} ORDER BY .name),)][0]
             ''',
-            [[{"name": "Elvis"}], [{"name": "Yury"}]]
+            [[{"name": "Elvis"}], [{"name": "Yury"}]],
         )
 
     async def test_edgeql_collection_shape_05(self):
@@ -8053,14 +8210,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
                 SELECT ([User],).0
             ''',
-            [[{"id": str}], [{"id": str}]]
+            [[{"id": str}], [{"id": str}]],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT ([(SELECT User {name} ORDER BY .name)],).0
             ''',
-            [[{"name": "Elvis"}], [{"name": "Yury"}]]
+            [[{"name": "Elvis"}], [{"name": "Yury"}]],
         )
 
     async def test_edgeql_collection_shape_06(self):
@@ -8068,9 +8225,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
                 SELECT { z := ([User],).0 }
             ''',
-            [
-                {"z": [[{"id": str}], [{"id": str}]]}
-            ]
+            [{"z": [[{"id": str}], [{"id": str}]]}],
         )
 
     @tb.needs_factoring
@@ -8080,7 +8235,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 WITH Z := (<array<User>>{} IF false ELSE [User]),
                 SELECT (Z, array_agg(array_unpack(Z))).1;
             ''',
-            [[{"id": str}], [{"id": str}]]
+            [[{"id": str}], [{"id": str}]],
         )
 
         await self.assert_query_result(
@@ -8088,7 +8243,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 WITH Z := (SELECT assert_exists([User]))
                 SELECT (Z, array_agg(array_unpack(Z))).1;
             ''',
-            [[{"id": str}], [{"id": str}]]
+            [[{"id": str}], [{"id": str}]],
         )
 
     async def test_edgeql_collection_shape_08(self):
@@ -8096,14 +8251,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
                 SELECT X := array_agg(User) FILTER X[0].name != 'Sully';
             ''',
-            [[{"id": str}, {"id": str}]]
+            [[{"id": str}, {"id": str}]],
         )
 
         await self.assert_query_result(
             r'''
             SELECT X := [User] FILTER X[0].name = 'Elvis';
             ''',
-            [[{"id": str}]]
+            [[{"id": str}]],
         )
 
     async def test_edgeql_assert_fail_object_computed_01(self):
@@ -8241,9 +8396,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             select Foo { y, z }
             ''',
-            [
-                {'y': None, 'z': None}
-            ],
+            [{'y': None, 'z': None}],
         )
 
     async def test_edgeql_select_null_tuple_02(self):
@@ -8251,18 +8404,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             SELECT { lol := array_get([(1, '2')], 1) }
             ''',
-            [
-                {'lol': None}
-            ],
+            [{'lol': None}],
         )
 
         await self.assert_query_result(
             r'''
             SELECT { lol := array_get([(a := 1, b := '2')], 1) }
             ''',
-            [
-                {'lol': None}
-            ],
+            [{'lol': None}],
         )
 
     async def test_edgeql_select_nested_order_01(self):
@@ -8279,8 +8428,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {"key": {"name": "Improve EdgeDB repl output rendering."}},
                 {"key": {"name": "Regression."}},
                 {"key": {"name": "Release EdgeDB"}},
-                {"key": {"name": "Repl tweak."}}
-            ]
+                {"key": {"name": "Repl tweak."}},
+            ],
         )
 
     async def test_edgeql_select_nested_order_02(self):
@@ -8298,12 +8447,12 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                 {
                     "key": {
                         "name": "Improve EdgeDB repl output rendering.",
-                        "number": "2"
+                        "number": "2",
                     }
                 },
                 {"key": {"name": "Repl tweak.", "number": "3"}},
                 {"key": {"name": "Regression.", "number": "4"}},
-            ]
+            ],
         )
 
     async def test_edgeql_select_scalar_views_01(self):
@@ -8374,7 +8523,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             '''
             for x in 2 union (select {1,x} filter random() > 0)
             ''',
-            {1, 2}
+            {1, 2},
         )
 
     async def test_edgeql_with_rebind_01(self):
@@ -8383,9 +8532,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             WITH Z := (SELECT User { name })
             SELECT Z
             ''',
-            [
-                {'id': str}, {'id': str}
-            ],
+            [{'id': str}, {'id': str}],
         )
 
     async def test_edgeql_select_free_object_distinct_01(self):
@@ -8402,7 +8549,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
               lol := assert_distinct((for x in {1,2,3} select { x := x }))
             };
             ''',
-            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}]
+            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}],
         )
         # This was always supposed to work but was broken forever :(
         await self.assert_query_result(
@@ -8411,7 +8558,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
               lol := (for x in {1,2,3} select { x := x })
             };
             ''',
-            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}]
+            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}],
         )
 
     @test.xerror('''
@@ -8423,7 +8570,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             with X := { lol := ((for x in {1,2,3} select { x := x })) },
             select X {lol: { x }};
             ''',
-            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}]
+            [{"lol": [{"x": 1}, {"x": 2}, {"x": 3}]}],
         )
 
     async def test_edgeql_select_shadow_computable_01(self):
@@ -8435,8 +8582,8 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''',
             [
                 {"is_elvis": False, "name": "Yury"},
-                {"is_elvis": True, "name": "Elvis"}
-            ]
+                {"is_elvis": True, "name": "Elvis"},
+            ],
         )
 
     async def test_edgeql_select_card_blowup_01(self):
@@ -8462,23 +8609,29 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             select schema::Type {is_abstract} filter .name = 'std::Object';
             ''',
-            [{"is_abstract": True}]
+            [{"is_abstract": True}],
         )
 
     async def test_edgeql_select_tname_overriden_type_01(self):
         # Test that overriding type doesn't break __tname__
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT User { __type__ := introspect Issue }
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
         for row in res:
             self.assertEqual(row.__tname__, "default::User")
 
     async def test_edgeql_select_tid_position_01(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT Issue {
               *, lol := 1, sigh := 2,
             };
-        """, __typeids__=True)
+        """,
+            __typeids__=True,
+        )
         val = res[0]
         # dir(val) returns them sorted by name, but __dataclass_fields__ has
         # them in protocol order!
@@ -8487,11 +8640,14 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_tid_position_02(self):
         # Test that __tid__ comes first even in some weird situations
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             FOR issue IN Issue SELECT issue {
               *, lol := 1, sigh := 2,
             };
-        """, __typeids__=True)
+        """,
+            __typeids__=True,
+        )
         val = res[0]
         # dir(val) returns them sorted by name, but __dataclass_fields__ has
         # them in protocol order!
@@ -8500,11 +8656,15 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_tid_position_03(self):
         # Well, actually, __tname__ comes first.
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             FOR issue IN Issue SELECT issue {
               *, lol := 1, sigh := 2,
             };
-        """, __typeids__=True, __typenames__=True)
+        """,
+            __typeids__=True,
+            __typenames__=True,
+        )
         val = res[0]
         # dir(val) returns them sorted by name, but __dataclass_fields__ has
         # them in protocol order!
@@ -8513,13 +8673,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         self.assertEqual(ptrs[1], '__tid__')
 
     async def test_edgeql_select_tid_position_04(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             FOR issue IN Issue SELECT issue {
               *,
               owner := issue.owner { *, test := 3 },
               lol := 1, sigh := 2,
             };
-        """, __typeids__=True)
+        """,
+            __typeids__=True,
+        )
         val = res[0]
         owner = val.owner
         ptrs = list(owner.__dataclass_fields__.keys())
@@ -8529,12 +8692,15 @@ class TestEdgeQLSelect(tb.QueryTestCase):
         self.assertEqual(ptrs[0], '__tid__')
 
     async def test_edgeql_select_tid_position_05(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             FOR issue IN Issue SELECT issue {
               **,
               lol := 1, sigh := 2,
             };
-        """, __typeids__=True)
+        """,
+            __typeids__=True,
+        )
         val = res[0]
         owner = val.owner
         ptrs = list(owner.__dataclass_fields__.keys())
@@ -8559,13 +8725,16 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             If we name the field `owner2` we get a "has no property" error!!
     """)
     async def test_edgeql_select_tid_position_06(self):
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             FOR issue IN Issue SELECT issue {
               *,
               owner := (for owner in issue.owner select owner { * }),
               lol := 1, sigh := 2,
             };
-        """, __typeids__=True)
+        """,
+            __typeids__=True,
+        )
         val = res[0]
         owner = val.owner
         ptrs = list(owner.__dataclass_fields__.keys())
@@ -8586,8 +8755,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
 
     async def test_edgeql_select_where_order_dml(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "INSERT statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "INSERT statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } filter
                         (INSERT User {
@@ -8596,8 +8766,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UPDATE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "UPDATE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } filter
                         (UPDATE User set {
@@ -8606,16 +8777,18 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "DELETE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "DELETE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } filter
                         (DELETE User filter .name = 't1')
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "INSERT statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "INSERT statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } order by
                         (INSERT User {
@@ -8624,8 +8797,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UPDATE statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "UPDATE statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } order by
                         (UPDATE User set {
@@ -8634,8 +8808,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "DELETE statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "DELETE statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 select { foo := 1 } order by
                         (DELETE User filter .name = 't1')
@@ -8686,8 +8861,9 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             await self.con.query("select ($0, <std::int64>$0)")
 
     async def test_edgeql_select_params_04(self):
-        with self.assertRaisesRegex(edgedb.QueryError,
-                                    "cannot apply a shape to the parameter"):
+        with self.assertRaisesRegex(
+            edgedb.QueryError, "cannot apply a shape to the parameter"
+        ):
             await self.con.query("select <std::int64>$0 { id }")
 
     async def test_edgeql_type_pointer_inlining_01(self):
@@ -8704,7 +8880,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             )
             select items;
             ''',
-            __typenames__=True
+            __typenames__=True,
         )
 
     async def test_edgeql_type_pointer_inlining_02(self):
@@ -8716,7 +8892,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
               pointers_2 := (select pointers limit 1),
             select pointers_2;
             ''',
-            __typenames__=True
+            __typenames__=True,
         )
 
     async def test_edgeql_select_policies_subquery_args_01(self):
@@ -8739,7 +8915,7 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             select XR
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_type_pointer_backlink_01(self):
@@ -8748,5 +8924,5 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             r'''
             select schema::Type {name, refs := .<target[is schema::Pointer]};
             ''',
-            __typenames__=True
+            __typenames__=True,
         )

@@ -43,11 +43,11 @@ from . import pathctx
 def compile_SelectStmt(
     stmt: irast.SelectStmt, *, ctx: context.CompilerContextLevel
 ) -> pgast.BaseExpr:
-
     if ctx.singleton_mode:
         if not irutils.is_trivial_select(stmt):
             raise errors.UnsupportedFeatureError(
-                'Clause on SELECT statement in simple expression')
+                'Clause on SELECT statement in simple expression'
+            )
 
         return dispatch.compile(stmt.result, ctx=ctx)
 
@@ -80,7 +80,8 @@ def compile_SelectStmt(
                 with ctx.new() as ictx:
                     clauses.setup_iterator_volatility(last_iterator, ctx=ictx)
                     iterator_rvar = clauses.compile_iterator_expr(
-                        query, iterator_set, is_dml=False, ctx=ictx)
+                        query, iterator_set, is_dml=False, ctx=ictx
+                    )
                 for aspect in {pgce.PathAspect.IDENTITY, pgce.PathAspect.VALUE}:
                     pathctx.put_path_rvar(
                         query,
@@ -105,13 +106,16 @@ def compile_SelectStmt(
                 query.where_clause = astutils.extend_binop(
                     query.where_clause,
                     clauses.compile_filter_clause(
-                        stmt.where, stmt.where_card, ctx=ictx))
+                        stmt.where, stmt.where_card, ctx=ictx
+                    ),
+                )
 
             # The ORDER BY clause
             if stmt.orderby is not None:
                 with ictx.new() as octx:
                     query.sort_clause = clauses.compile_orderby_clause(
-                        stmt.orderby, ctx=octx)
+                        stmt.orderby, ctx=octx
+                    )
 
         # Need to filter out NULLs in certain cases:
         if outvar.nullable and (
@@ -125,16 +129,19 @@ def compile_SelectStmt(
             or stmt.offset
         ):
             valvar = pathctx.get_path_value_var(
-                query, stmt.result.path_id, env=ctx.env)
+                query, stmt.result.path_id, env=ctx.env
+            )
             output.add_null_test(valvar, query)
 
         # The OFFSET clause
         query.limit_offset = clauses.compile_limit_offset_clause(
-            stmt.offset, ctx=ctx)
+            stmt.offset, ctx=ctx
+        )
 
         # The LIMIT clause
         query.limit_count = clauses.compile_limit_offset_clause(
-            stmt.limit, ctx=ctx)
+            stmt.limit, ctx=ctx
+        )
 
     return query
 
@@ -150,7 +157,6 @@ def compile_GroupStmt(
 def compile_InsertStmt(
     stmt: irast.InsertStmt, *, ctx: context.CompilerContextLevel
 ) -> pgast.Query:
-
     parent_ctx = ctx
     with parent_ctx.substmt() as ctx:
         # Common DML bootstrap.
@@ -178,7 +184,6 @@ def compile_InsertStmt(
 def compile_UpdateStmt(
     stmt: irast.UpdateStmt, *, ctx: context.CompilerContextLevel
 ) -> pgast.Query:
-
     parent_ctx = ctx
     with parent_ctx.substmt() as ctx:
         # Common DML bootstrap.
@@ -207,7 +212,6 @@ def compile_UpdateStmt(
 def compile_DeleteStmt(
     stmt: irast.DeleteStmt, *, ctx: context.CompilerContextLevel
 ) -> pgast.Query:
-
     parent_ctx = ctx
     with parent_ctx.substmt() as ctx:
         # Common DML bootstrap

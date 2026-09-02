@@ -57,30 +57,39 @@ class ObjectTypeRefMixin(so.Object):
         attr='access_policies',
         requires_explicit_overloaded=True,
         backref_attr='subject',
-        ref_cls=policies.AccessPolicy)
+        ref_cls=policies.AccessPolicy,
+    )
 
     access_policies = so.SchemaField(
         so.ObjectIndexByUnqualifiedName[policies.AccessPolicy],
-        inheritable=False, ephemeral=True, coerce=True, compcoef=0.857,
-        default=so.DEFAULT_CONSTRUCTOR)
+        inheritable=False,
+        ephemeral=True,
+        coerce=True,
+        compcoef=0.857,
+        default=so.DEFAULT_CONSTRUCTOR,
+    )
 
     triggers_refs = so.RefDict(
         attr='triggers',
         requires_explicit_overloaded=True,
         backref_attr='subject',
-        ref_cls=triggers.Trigger)
+        ref_cls=triggers.Trigger,
+    )
 
     triggers = so.SchemaField(
         so.ObjectIndexByUnqualifiedName[triggers.Trigger],
-        inheritable=False, ephemeral=True, coerce=True, compcoef=0.857,
-        default=so.DEFAULT_CONSTRUCTOR)
+        inheritable=False,
+        ephemeral=True,
+        coerce=True,
+        compcoef=0.857,
+        default=so.DEFAULT_CONSTRUCTOR,
+    )
 
 
 class ObjectType(
     sources.Source,
     constraints.ConsistencySubject,
     s_types.InheritingType,
-
     so.InheritingObject,  # Help reflection figure out the right db MRO
     s_types.Type,  # Help reflection figure out the right db MRO
     s_anno.AnnotationSubject,  # Help reflection figure out the right db MRO
@@ -88,7 +97,6 @@ class ObjectType(
     qlkind=qltypes.SchemaObjectClass.TYPE,
     data_safe=False,
 ):
-
     union_of = so.SchemaField(
         so.ObjectSet["ObjectType"],
         default=so.DEFAULT_CONSTRUCTOR,
@@ -117,7 +125,8 @@ class ObjectType(
             return True
 
         FreeObject = schema.get(
-            'std::FreeObject', type=ObjectType, default=None)
+            'std::FreeObject', type=ObjectType, default=None
+        )
         if FreeObject is None:
             # Possible in bootstrap before FreeObject is declared
             return False
@@ -156,20 +165,30 @@ class ObjectType(
                 return std_obj.get_displayname(schema)
             else:
                 comp_dns = sorted(
-                    (c.get_displayname(schema)
-                     for c in union_of.objects(schema)))
+                    (
+                        c.get_displayname(schema)
+                        for c in union_of.objects(schema)
+                    )
+                )
                 return '(' + ' | '.join(comp_dns) + ')'
         else:
             intersection_of = mtype.get_intersection_of(schema)
             if intersection_of:
                 comp_dns = sorted(
-                    (c.get_displayname(schema)
-                     for c in intersection_of.objects(schema)))
+                    (
+                        c.get_displayname(schema)
+                        for c in intersection_of.objects(schema)
+                    )
+                )
                 # Elide BaseObject from display, because `& BaseObject`
                 # is a nop.
-                return '(' + ' & '.join(
-                    dn for dn in comp_dns if dn != 'std::BaseObject'
-                ) + ')'
+                return (
+                    '('
+                    + ' & '.join(
+                        dn for dn in comp_dns if dn != 'std::BaseObject'
+                    )
+                    + ')'
+                )
             elif mtype == self:
                 return super().get_displayname(schema)
             else:
@@ -180,11 +199,12 @@ class ObjectType(
         schema: s_schema.Schema,
         name: str,
         *,
-        sources: Iterable[so.Object] = ()
+        sources: Iterable[so.Object] = (),
     ) -> set[links.Link]:
         if sn.is_qualified(name):
             raise ValueError(
-                'references to concrete pointers must not be qualified')
+                'references to concrete pointers must not be qualified'
+            )
 
         ptrs: set[links.Link] = set()
 
@@ -192,12 +212,15 @@ class ObjectType(
 
         for obj in (self,) + ancestor_objects:
             ptrs.update(
-                lnk for lnk in schema.get_referrers(
-                    obj, scls_type=links.Link, field_name='target')
+                lnk
+                for lnk in schema.get_referrers(
+                    obj, scls_type=links.Link, field_name='target'
+                )
                 if (
                     lnk.get_shortname(schema).name == name
                     and lnk.get_source_type(schema).is_material_object_type(
-                        schema)
+                        schema
+                    )
                     # Only grab the "base" pointers
                     and all(
                         b.is_non_concrete(schema)
@@ -211,7 +234,8 @@ class ObjectType(
             ptrs.update(intersection.getrptrs(schema, name, sources=sources))
 
         unions = schema.get_referrers(
-            self, scls_type=ObjectType, field_name='union_of')
+            self, scls_type=ObjectType, field_name='union_of'
+        )
 
         for union in unions:
             ptrs.update(union.getrptrs(schema, name, sources=sources))
@@ -222,7 +246,8 @@ class ObjectType(
         self, kind: qltypes.TriggerKind, schema: s_schema.Schema
     ) -> list[triggers.Trigger]:
         return [
-            t for t in self.get_triggers(schema).objects(schema)
+            t
+            for t in self.get_triggers(schema).objects(schema)
             if kind in t.get_kinds(schema)
         ]
 
@@ -244,7 +269,8 @@ class ObjectType(
         )
         # We arbitrarily select the first nearest common ancestor
         nearest_common_ancestor = (
-            nearest_common_ancestors[0] if nearest_common_ancestors else None)
+            nearest_common_ancestors[0] if nearest_common_ancestors else None
+        )
 
         if nearest_common_ancestor is not None:
             assert isinstance(nearest_common_ancestor, ObjectType)
@@ -272,14 +298,12 @@ class ObjectType(
             return True
 
         if (
-            (my_union := self.get_union_of(schema))
-            and not self.get_is_opaque_union(schema)
-        ):
+            my_union := self.get_union_of(schema)
+        ) and not self.get_is_opaque_union(schema):
             # A union is considered a subclass of a type, if
             # ALL its components are subclasses of that type.
             return all(
-                t._issubclass(schema, parent)
-                for t in my_union.objects(schema)
+                t._issubclass(schema, parent) for t in my_union.objects(schema)
             )
 
         if my_intersection := self.get_intersection_of(schema):
@@ -296,17 +320,13 @@ class ObjectType(
 
         elif isinstance(parent, ObjectType):
             if (
-                (parent_union := parent.get_union_of(schema))
-                and not parent.get_is_opaque_union(schema)
-            ):
+                parent_union := parent.get_union_of(schema)
+            ) and not parent.get_is_opaque_union(schema):
                 # A type is considered a subclass of a union type,
                 # if it is a subclass of ANY of the union components.
-                return (
-                    parent.get_is_opaque_union(schema)
-                    or any(
-                        self._issubclass(schema, t)
-                        for t in parent_union.objects(schema)
-                    )
+                return parent.get_is_opaque_union(schema) or any(
+                    self._issubclass(schema, t)
+                    for t in parent_union.objects(schema)
                 )
 
             if parent_intersection := parent.get_intersection_of(schema):
@@ -339,8 +359,7 @@ class ObjectType(
         # Compound types also need to be deleted when their last
         # referrer goes.
         if (
-            self.is_view(schema)
-            and self.get_alias_is_persistent(schema)
+            self.is_view(schema) and self.get_alias_is_persistent(schema)
         ) or self.is_compound_type(schema):
             return self.init_delta_command(
                 schema,
@@ -367,7 +386,6 @@ def get_or_create_union_type(
     opaque: bool = False,
     module: Optional[str] = None,
 ) -> tuple[s_schema.Schema, ObjectType, bool]:
-
     name = s_types.get_union_type_name(
         (c.get_name(schema) for c in components),
         opaque=opaque,
@@ -393,7 +411,6 @@ def get_or_create_union_type(
         )
 
         if not opaque:
-
             schema = sources.populate_pointer_set_for_source_union(
                 schema,
                 cast(list[sources.Source], components),
@@ -411,7 +428,6 @@ def get_or_create_intersection_type(
     module: Optional[str] = None,
     transient: bool = False,
 ) -> tuple[s_schema.Schema, ObjectType, bool]:
-
     name = s_types.get_intersection_type_name(
         (c.get_name(schema) for c in components),
         module=module,
@@ -495,12 +511,11 @@ class ObjectTypeCommand(
         ):
             for base in self.scls.get_bases(schema).objects(schema):
                 name = base.get_name(schema)
-                if (
-                    sn.UnqualName(name.module) in s_schema.STD_MODULES
-                    and name not in (
-                        sn.QualName('std', 'BaseObject'),
-                        sn.QualName('std', 'Object'),
-                    )
+                if sn.UnqualName(
+                    name.module
+                ) in s_schema.STD_MODULES and name not in (
+                    sn.QualName('std', 'BaseObject'),
+                    sn.QualName('std', 'Object'),
                 ):
                     raise errors.SchemaDefinitionError(
                         f"cannot extend system type '{name}'",
@@ -537,8 +552,9 @@ class CreateObjectType(
         *,
         parent_node: Optional[qlast.DDLOperation] = None,
     ) -> Optional[qlast.DDLOperation]:
-        if (self.get_attribute_value('expr_type')
-                and not self.get_attribute_value('expr')):
+        if self.get_attribute_value(
+            'expr_type'
+        ) and not self.get_attribute_value('expr'):
             # This is a nested view type, e.g
             # __FooAlias_bar produced by  FooAlias := (SELECT Foo { bar: ... })
             # and should obviously not appear as a top level definition.
@@ -559,10 +575,7 @@ class CreateObjectType(
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> s_schema.Schema:
-        if (
-            not context.canonical
-            and self.scls.is_material_object_type(schema)
-        ):
+        if not context.canonical and self.scls.is_material_object_type(schema):
             # Propagate changes to any functions that depend on
             # ancestor types in order to recompute the inheritance
             # situation.
@@ -605,11 +618,11 @@ class AlterObjectType(
     ) -> s_schema.Schema:
         schema = super()._alter_begin(schema, context)
 
-        if (
-            not context.canonical
-            and bool(self.get_subcommands(type=policies.AccessPolicyCommand))
+        if not context.canonical and bool(
+            self.get_subcommands(type=policies.AccessPolicyCommand)
         ):
             from . import functions
+
             # If we have any policy commands, we need to propagate to update
             # functions. We also need to propagate to anything that updates
             # an ancestor.
@@ -634,13 +647,13 @@ class AlterObjectType(
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> s_schema.Schema:
-
         if not context.canonical:
             # If this type is contained in any unions, we need to
             # update them with any additions or alterations made to
             # this type. (Deletions are already handled in DeletePointer.)
             unions = schema.get_referrers(
-                self.scls, scls_type=ObjectType, field_name='union_of')
+                self.scls, scls_type=ObjectType, field_name='union_of'
+            )
 
             orig_disable = context.disable_dep_verification
 
@@ -723,10 +736,7 @@ class DeleteObjectType(
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> s_schema.Schema:
-        if (
-            not context.canonical
-            and self.scls.is_material_object_type(schema)
-        ):
+        if not context.canonical and self.scls.is_material_object_type(schema):
             # Propagate changes to any functions that depend on
             # ancestor types in order to recompute the inheritance
             # situation.

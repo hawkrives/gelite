@@ -38,7 +38,6 @@ class CType:
 
 
 class Scalar(CType):
-
     cname = None
 
     def __init__(
@@ -65,17 +64,15 @@ class Scalar(CType):
 
         if self.default and isinstance(self.default, int):
             buf.write(
-                f'{cname.ljust(_PAD - 1)} {fieldname} = {self.default:#x};')
+                f'{cname.ljust(_PAD - 1)} {fieldname} = {self.default:#x};'
+            )
         elif self.default:
-            buf.write(
-                f'{cname.ljust(_PAD - 1)} {fieldname} = {self.default};')
+            buf.write(f'{cname.ljust(_PAD - 1)} {fieldname} = {self.default};')
         else:
-            buf.write(
-                f'{cname.ljust(_PAD - 1)} {fieldname};')
+            buf.write(f'{cname.ljust(_PAD - 1)} {fieldname};')
 
 
 class UInt8(Scalar):
-
     cname = 'uint8'
 
     def validate(self, val: typing.Any) -> bool:
@@ -89,11 +86,10 @@ class UInt8(Scalar):
 
 
 class UInt16(Scalar):
-
     cname = 'uint16'
 
     def validate(self, val: typing.Any) -> bool:
-        return isinstance(val, int) and (0 <= val <= 2 ** 16 - 1)
+        return isinstance(val, int) and (0 <= val <= 2**16 - 1)
 
     def parse(self, buffer: binwrapper.BinWrapper) -> any:
         return buffer.read_ui16()
@@ -103,11 +99,10 @@ class UInt16(Scalar):
 
 
 class UInt32(Scalar):
-
     cname = 'uint32'
 
     def validate(self, val: typing.Any) -> bool:
-        return isinstance(val, int) and (0 <= val <= 2 ** 32 - 1)
+        return isinstance(val, int) and (0 <= val <= 2**32 - 1)
 
     def parse(self, buffer: binwrapper.BinWrapper) -> any:
         return buffer.read_ui32()
@@ -117,11 +112,10 @@ class UInt32(Scalar):
 
 
 class UInt64(Scalar):
-
     cname = 'uint64'
 
     def validate(self, val: typing.Any) -> bool:
-        return isinstance(val, int) and (0 <= val <= 2 ** 64 - 1)
+        return isinstance(val, int) and (0 <= val <= 2**64 - 1)
 
     def parse(self, buffer: binwrapper.BinWrapper) -> any:
         return buffer.read_ui64()
@@ -131,7 +125,6 @@ class UInt64(Scalar):
 
 
 class Bytes(Scalar):
-
     cname = 'bytes'
 
     def validate(self, val: typing.Any) -> bool:
@@ -145,7 +138,6 @@ class Bytes(Scalar):
 
 
 class String(Scalar):
-
     cname = 'string'
 
     def validate(self, val: typing.Any) -> bool:
@@ -159,7 +151,6 @@ class String(Scalar):
 
 
 class UUID(Scalar):
-
     cname = 'uuid'
 
     def validate(self, val: typing.Any) -> bool:
@@ -174,7 +165,6 @@ class UUID(Scalar):
 
 
 class ArrayOf(CType):
-
     def __init__(
         self,
         length_in: type[CType],
@@ -214,12 +204,11 @@ class ArrayOf(CType):
 
 
 class FixedArrayOf(CType):
-
     def __init__(
         self,
         length: int,
         element: CType | type[Struct],
-        doc: typing.Optional[str]=None
+        doc: typing.Optional[str] = None,
     ) -> None:
         self.length = length
         self.element = element
@@ -253,12 +242,11 @@ class FixedArrayOf(CType):
 
 
 class EnumOf(CType):
-
     def __init__(
         self,
         value_in: type[Scalar],
         enum: type[enum.Enum],
-        doc: typing.Optional[str]=None,
+        doc: typing.Optional[str] = None,
     ) -> None:
         self.value_in = value_in()
         self.enum = enum
@@ -291,7 +279,6 @@ class EnumOf(CType):
 
 
 class Struct:
-
     _fields: dict[str, CType | type[Struct]] = {}
 
     def __init_subclass__(cls, *, abstract=False):
@@ -306,8 +293,7 @@ class Struct:
                 continue
 
             if not isinstance(attr, CType):
-                raise TypeError(
-                    f'field {cls.__name__}.{name!r} must be a Type')
+                raise TypeError(f'field {cls.__name__}.{name!r} must be a Type')
             else:
                 fields[name] = attr
 
@@ -319,7 +305,8 @@ class Struct:
                 raise ValueError(
                     f'cannot construct instance of {type(self).__name__}: '
                     f'{fieldname!r} field is not supposed to be passed to '
-                    f'the constructor')
+                    f'the constructor'
+                )
 
         for fieldname, field in type(self)._fields.items():
             if fieldname in ['mtype', 'message_length']:
@@ -329,14 +316,18 @@ class Struct:
             except KeyError:
                 raise ValueError(
                     f'cannot construct instance of {type(self).__name__}: '
-                    f'the {fieldname!r} field is missing')
+                    f'the {fieldname!r} field is missing'
+                )
             if (
-                isinstance(field, CType) and not field.validate(arg) or
-                isinstance(field, type) and not isinstance(arg, field)
+                isinstance(field, CType)
+                and not field.validate(arg)
+                or isinstance(field, type)
+                and not isinstance(arg, field)
             ):
                 raise ValueError(
                     f'cannot construct instance of {type(self).__name__}: '
-                    f'invalid value {arg!r} for the {fieldname!r} field')
+                    f'invalid value {arg!r} for the {fieldname!r} field'
+                )
 
             setattr(self, fieldname, arg)
 
@@ -407,8 +398,9 @@ KeyValues = ArrayOf(UInt16, KeyValue, 'A set of key-value pairs.')
 Annotations = ArrayOf(UInt16, Annotation, 'A set of annotations.')
 MessageLength = UInt32('Length of message contents in bytes, including self.')
 
-MessageType = (lambda letter: UInt8(f"Message type ('{letter}').",
-                                    default=ord(letter)))
+MessageType = lambda letter: UInt8(
+    f"Message type ('{letter}').", default=ord(letter)
+)
 
 
 class Message(Struct, abstract=True):
@@ -416,7 +408,6 @@ class Message(Struct, abstract=True):
 
 
 class ServerMessage(Message, abstract=True):
-
     index: dict[int, list[type[ServerMessage]]] = {}
 
     def __init_subclass__(cls):
@@ -450,13 +441,13 @@ class ServerMessage(Message, abstract=True):
 
         if len(iobuf.read(1)):
             raise ValueError(
-                f'buffer is not empty after parsing {chr(mtype)!r} message')
+                f'buffer is not empty after parsing {chr(mtype)!r} message'
+            )
 
         return msg_type(**kwargs)
 
 
 class ClientMessage(Message, abstract=True):
-
     def __init_subclass__(cls):
         super().__init_subclass__()
 
@@ -477,9 +468,9 @@ class ClientMessage(Message, abstract=True):
 
         dumped = iobuf.getvalue()
         return (
-            fields['mtype'].default.to_bytes(1, 'big') +
-            (len(dumped) + 4).to_bytes(4, 'big') +
-            dumped
+            fields['mtype'].default.to_bytes(1, 'big')
+            + (len(dumped) + 4).to_bytes(4, 'big')
+            + dumped
         )
 
 
@@ -489,39 +480,34 @@ class ClientMessage(Message, abstract=True):
 
 
 class InputLanguage(enum.Enum):
-
     EDGEQL = 0x45  # b'E'
     SQL = 0x53  # b'S'
 
 
 class OutputFormat(enum.Enum):
-
     BINARY = 0x62
-    JSON = 0x6a
-    JSON_ELEMENTS = 0x4a
-    NONE = 0x6e
+    JSON = 0x6A
+    JSON_ELEMENTS = 0x4A
+    NONE = 0x6E
 
 
 class Capability(enum.IntFlag):
-
-    MODIFICATIONS     = 1 << 0    # noqa
-    SESSION_CONFIG    = 1 << 1    # noqa
-    TRANSACTION       = 1 << 2    # noqa
-    DDL               = 1 << 3    # noqa
-    PERSISTENT_CONFIG = 1 << 4    # noqa
-    ALL               = 0xFFFFFFFFFFFFFFFF  # noqa
+    MODIFICATIONS = 1 << 0  # noqa
+    SESSION_CONFIG = 1 << 1  # noqa
+    TRANSACTION = 1 << 2  # noqa
+    DDL = 1 << 3  # noqa
+    PERSISTENT_CONFIG = 1 << 4  # noqa
+    ALL = 0xFFFFFFFFFFFFFFFF  # noqa
 
 
 class CompilationFlag(enum.IntFlag):
-
-    INJECT_OUTPUT_TYPE_IDS   = 1 << 0    # noqa
-    INJECT_OUTPUT_TYPE_NAMES = 1 << 1    # noqa
-    INJECT_OUTPUT_OBJECT_IDS = 1 << 2    # noqa
+    INJECT_OUTPUT_TYPE_IDS = 1 << 0  # noqa
+    INJECT_OUTPUT_TYPE_NAMES = 1 << 1  # noqa
+    INJECT_OUTPUT_OBJECT_IDS = 1 << 2  # noqa
 
 
 class DumpFlag(enum.IntFlag):
-
-    DUMP_SECRETS = 1 << 0    # noqa
+    DUMP_SECRETS = 1 << 0  # noqa
 
 
 class ErrorSeverity(enum.Enum):
@@ -531,7 +517,6 @@ class ErrorSeverity(enum.Enum):
 
 
 class ErrorResponse(ServerMessage):
-
     mtype = MessageType('E')
     message_length = MessageLength
     severity = EnumOf(UInt8, ErrorSeverity, 'Message severity.')
@@ -548,7 +533,6 @@ class MessageSeverity(enum.Enum):
 
 
 class LogMessage(ServerMessage):
-
     mtype = MessageType('L')
     message_length = MessageLength
     severity = EnumOf(UInt8, MessageSeverity, 'Message severity.')
@@ -558,14 +542,12 @@ class LogMessage(ServerMessage):
 
 
 class TransactionState(enum.Enum):
-
     NOT_IN_TRANSACTION = 0x49
     IN_TRANSACTION = 0x54
     IN_FAILED_TRANSACTION = 0x45
 
 
 class ReadyForCommand(ServerMessage):
-
     mtype = MessageType('Z')
     message_length = MessageLength
     annotations = Annotations
@@ -573,7 +555,6 @@ class ReadyForCommand(ServerMessage):
 
 
 class RestoreReady(ServerMessage):
-
     mtype = MessageType('+')
     message_length = MessageLength
     annotations = Annotations
@@ -581,17 +562,16 @@ class RestoreReady(ServerMessage):
 
 
 class DataElement(Struct):
-
     data = ArrayOf(UInt32, UInt8(), 'Encoded output data.')
 
 
 class CommandComplete(ServerMessage):
-
     mtype = MessageType('C')
     message_length = MessageLength
     annotations = Annotations
-    capabilities = EnumOf(UInt64, Capability,
-                          'A bit mask of allowed capabilities.')
+    capabilities = EnumOf(
+        UInt64, Capability, 'A bit mask of allowed capabilities.'
+    )
     status = String('Command status.')
 
     state_typedesc_id = UUID('State data descriptor ID.')
@@ -599,14 +579,15 @@ class CommandComplete(ServerMessage):
 
 
 class CommandDataDescription(ServerMessage):
-
     mtype = MessageType('T')
     message_length = MessageLength
     annotations = Annotations
-    capabilities = EnumOf(UInt64, Capability,
-                          'A bit mask of allowed capabilities.')
+    capabilities = EnumOf(
+        UInt64, Capability, 'A bit mask of allowed capabilities.'
+    )
     result_cardinality = EnumOf(
-        UInt8, Cardinality, 'Actual result cardinality.')
+        UInt8, Cardinality, 'Actual result cardinality.'
+    )
     input_typedesc_id = UUID('Argument data descriptor ID.')
     input_typedesc = Bytes('Argument data descriptor.')
     output_typedesc_id = UUID('Output data descriptor ID.')
@@ -614,7 +595,6 @@ class CommandDataDescription(ServerMessage):
 
 
 class StateDataDescription(ServerMessage):
-
     mtype = MessageType('s')
     message_length = MessageLength
     typedesc_id = UUID('Updated state data descriptor ID.')
@@ -622,33 +602,29 @@ class StateDataDescription(ServerMessage):
 
 
 class Data(ServerMessage):
-
     mtype = MessageType('D')
     message_length = MessageLength
 
     data = ArrayOf(
         UInt16,
         DataElement,
-        'Encoded output data array. The array is currently always of size 1.'
+        'Encoded output data array. The array is currently always of size 1.',
     )
 
 
 class DumpTypeInfo(Struct):
-
     type_name = String()
     type_class = String()
     type_id = UUID()
 
 
 class DumpObjectDesc(Struct):
-
     object_id = UUID()
     description = Bytes()
     dependencies = ArrayOf(UInt16, UUID())
 
 
 class DumpHeader(ServerMessage):
-
     mtype = MessageType('@')
     message_length = MessageLength
     attributes = KeyValues
@@ -660,21 +636,18 @@ class DumpHeader(ServerMessage):
 
 
 class DumpBlock(ServerMessage):
-
     mtype = MessageType('=')
     message_length = MessageLength
     attributes = KeyValues
 
 
 class ServerKeyData(ServerMessage):
-
     mtype = MessageType('K')
     message_length = MessageLength
     data = FixedArrayOf(32, UInt8(), 'Key data.')
 
 
 class ParameterStatus(ServerMessage):
-
     mtype = MessageType('S')
     message_length = MessageLength
     name = Bytes('Parameter name.')
@@ -682,72 +655,74 @@ class ParameterStatus(ServerMessage):
 
 
 class ParameterStatus_SystemConfig(Struct):
-
-    typedesc = ArrayOf(UInt32, UInt8(), 'Type descriptor prefixed with '
-                                        'type descriptor uuid.')
+    typedesc = ArrayOf(
+        UInt32, UInt8(), 'Type descriptor prefixed with type descriptor uuid.'
+    )
     data = FixedArrayOf(1, DataElement, 'Configuration settings data.')
 
 
 class ProtocolExtension(Struct):
-
     name = String('Extension name.')
     annotations = ArrayOf(UInt16, Annotation, 'A set of extension annotaions.')
 
 
 class ServerHandshake(ServerMessage):
-
     mtype = MessageType('v')
     message_length = MessageLength
-    major_ver = UInt16('maximum supported or client-requested '
-                       'protocol major version, whichever is greater.')
-    minor_ver = UInt16('maximum supported or client-requested '
-                       'protocol minor version, whichever is greater.')
+    major_ver = UInt16(
+        'maximum supported or client-requested '
+        'protocol major version, whichever is greater.'
+    )
+    minor_ver = UInt16(
+        'maximum supported or client-requested '
+        'protocol minor version, whichever is greater.'
+    )
     extensions = ArrayOf(
-        UInt16, ProtocolExtension, 'Supported protocol extensions.')
+        UInt16, ProtocolExtension, 'Supported protocol extensions.'
+    )
 
 
 class AuthenticationOK(ServerMessage):
-
     mtype = MessageType('R')
     message_length = MessageLength
-    auth_status = UInt32('Specifies that this message contains '
-                         'a successful authentication indicator.',
-                         default=0x0)
+    auth_status = UInt32(
+        'Specifies that this message contains '
+        'a successful authentication indicator.',
+        default=0x0,
+    )
 
 
 class AuthenticationRequiredSASLMessage(ServerMessage):
-
     mtype = MessageType('R')
     message_length = MessageLength
-    auth_status = UInt32('Specifies that this message contains '
-                         'a SASL authentication request.',
-                         default=0x0A)
-    methods = ArrayOf(UInt32, String(),
-                      'A list of supported SASL authentication methods.')
+    auth_status = UInt32(
+        'Specifies that this message contains a SASL authentication request.',
+        default=0x0A,
+    )
+    methods = ArrayOf(
+        UInt32, String(), 'A list of supported SASL authentication methods.'
+    )
 
 
 class AuthenticationSASLContinue(ServerMessage):
-
     mtype = MessageType('R')
     message_length = MessageLength
-    auth_status = UInt32('Specifies that this message contains '
-                         'a SASL challenge.',
-                         default=0x0B)
+    auth_status = UInt32(
+        'Specifies that this message contains a SASL challenge.', default=0x0B
+    )
     sasl_data = Bytes('Mechanism-specific SASL data.')
 
 
 class AuthenticationSASLFinal(ServerMessage):
-
     mtype = MessageType('R')
     message_length = MessageLength
-    auth_status = UInt32('Specifies that SASL authentication '
-                         'has completed.',
-                         default=0x0C)
+    auth_status = UInt32(
+        'Specifies that SASL authentication has completed.', default=0x0C
+    )
     sasl_data = Bytes()
 
 
 class Dump(ClientMessage):
-
     mtype = MessageType('>')
     message_length = MessageLength
     annotations = Annotations
@@ -755,75 +730,75 @@ class Dump(ClientMessage):
 
 
 class Sync(ClientMessage):
-
     mtype = MessageType('S')
     message_length = MessageLength
 
 
 class Flush(ClientMessage):
-
     mtype = MessageType('H')
     message_length = MessageLength
 
 
 class Restore(ClientMessage):
-
     mtype = MessageType('<')
     message_length = MessageLength
     attributes = KeyValues
-    jobs = UInt16(
-        'Number of parallel jobs for restore (only "1" is supported)')
+    jobs = UInt16('Number of parallel jobs for restore (only "1" is supported)')
     header_data = Bytes(
-        'Original DumpHeader packet data excluding mtype and message_length')
+        'Original DumpHeader packet data excluding mtype and message_length'
+    )
 
 
 class RestoreBlock(ClientMessage):
-
     mtype = MessageType('=')
     message_length = MessageLength
     block_data = Bytes(
-        'Original DumpBlock packet data excluding mtype and message_length')
+        'Original DumpBlock packet data excluding mtype and message_length'
+    )
 
 
 class RestoreEof(ClientMessage):
-
     mtype = MessageType('.')
     message_length = MessageLength
 
 
 class Parse(ClientMessage):
-
     mtype = MessageType('P')
     message_length = MessageLength
     annotations = Annotations
-    allowed_capabilities = EnumOf(UInt64, Capability,
-                                  'A bit mask of allowed capabilities.')
-    compilation_flags = EnumOf(UInt64, CompilationFlag,
-                               'A bit mask of query options.')
+    allowed_capabilities = EnumOf(
+        UInt64, Capability, 'A bit mask of allowed capabilities.'
+    )
+    compilation_flags = EnumOf(
+        UInt64, CompilationFlag, 'A bit mask of query options.'
+    )
     implicit_limit = UInt64('Implicit LIMIT clause on returned sets.')
     input_language = EnumOf(UInt8, InputLanguage, 'Command source language.')
     output_format = EnumOf(UInt8, OutputFormat, 'Data output format.')
-    expected_cardinality = EnumOf(UInt8, Cardinality,
-                                  'Expected result cardinality.')
+    expected_cardinality = EnumOf(
+        UInt8, Cardinality, 'Expected result cardinality.'
+    )
     command_text = String('Command text.')
     state_typedesc_id = UUID('State data descriptor ID.')
     state_data = Bytes('Encoded state data.')
 
 
 class Execute(ClientMessage):
-
     mtype = MessageType('O')
     message_length = MessageLength
     annotations = Annotations
-    allowed_capabilities = EnumOf(UInt64, Capability,
-                                  'A bit mask of allowed capabilities.')
-    compilation_flags = EnumOf(UInt64, CompilationFlag,
-                               'A bit mask of query options.')
+    allowed_capabilities = EnumOf(
+        UInt64, Capability, 'A bit mask of allowed capabilities.'
+    )
+    compilation_flags = EnumOf(
+        UInt64, CompilationFlag, 'A bit mask of query options.'
+    )
     implicit_limit = UInt64('Implicit LIMIT clause on returned sets.')
     input_language = EnumOf(UInt8, InputLanguage, 'Command source language.')
     output_format = EnumOf(UInt8, OutputFormat, 'Data output format.')
-    expected_cardinality = EnumOf(UInt8, Cardinality,
-                                  'Expected result cardinality.')
+    expected_cardinality = EnumOf(
+        UInt8, Cardinality, 'Expected result cardinality.'
+    )
     command_text = String('Command text.')
     state_typedesc_id = UUID('State data descriptor ID.')
     state_data = Bytes('Encoded state data.')
@@ -834,39 +809,36 @@ class Execute(ClientMessage):
 
 
 class ConnectionParam(Struct):
-
     name = String()
     value = String()
 
 
 class ClientHandshake(ClientMessage):
-
     mtype = MessageType('V')
     message_length = MessageLength
     major_ver = UInt16('Requested protocol major version.')
     minor_ver = UInt16('Requested protocol minor version.')
     params = ArrayOf(UInt16, ConnectionParam, 'Connection parameters.')
     extensions = ArrayOf(
-        UInt16, ProtocolExtension, 'Requested protocol extensions.')
+        UInt16, ProtocolExtension, 'Requested protocol extensions.'
+    )
 
 
 class Terminate(ClientMessage):
-
     mtype = MessageType('X')
     message_length = MessageLength
 
 
 class AuthenticationSASLInitialResponse(ClientMessage):
-
     mtype = MessageType('p')
     message_length = MessageLength
-    method = String('Name of the SASL authentication mechanism '
-                    'that the client selected.')
+    method = String(
+        'Name of the SASL authentication mechanism that the client selected.'
+    )
     sasl_data = Bytes('Mechanism-specific "Initial Response" data.')
 
 
 class AuthenticationSASLResponse(ClientMessage):
-
     mtype = MessageType('r')
     message_length = MessageLength
     sasl_data = Bytes('Mechanism-specific response data.')

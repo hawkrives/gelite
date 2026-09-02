@@ -59,7 +59,8 @@ class Dark16(StylesTable):
 
     unknown_object = Style(color='blue', bold=True)
     serialization_error = unknown_markup = overflow = Style(
-        color='white', bgcolor='red')
+        color='white', bgcolor='red'
+    )
 
     diff_anno = Style(color='white')
     diff_after = Style(color='green')

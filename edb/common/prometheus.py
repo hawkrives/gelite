@@ -79,9 +79,10 @@ def calc_buckets(
 
 
 def per_order_buckets(
-    start: float, end: float,
+    start: float,
+    end: float,
     *,
-    base: float=10.0,
+    base: float = 10.0,
     entries_per_order=4,
 ) -> tuple[float, ...]:
     # See https://amplitude.com/blog/2014/08/06/optimal-streaming-histograms
@@ -101,7 +102,6 @@ def per_order_buckets(
 
 
 class Unit(enum.Enum):
-
     # https://prometheus.io/docs/practices/naming/#base-units
 
     SECONDS = 'seconds'
@@ -116,7 +116,6 @@ class Unit(enum.Enum):
 
 
 class Registry:
-
     _metrics: list[BaseMetric]
     _metrics_names: set[str]
     _prefix: str | None
@@ -130,7 +129,8 @@ class Registry:
         name = metric.get_name()
         if name in self._metrics_names:
             raise ValueError(
-                f'a metric with a name {name!r} has already been registered')
+                f'a metric with a name {name!r} has already been registered'
+            )
         self._metrics.append(metric)
         self._metrics_names.add(name)
 
@@ -228,7 +228,6 @@ class Registry:
 
 
 class BaseMetric:
-
     _type: str
 
     _name: str
@@ -239,17 +238,23 @@ class BaseMetric:
     _registry: Registry
 
     PROHIBITED_SUFFIXES = (
-        '_count', '_created', '_total', '_sum', '_bucket',
-        '_gcount', '_gsum', '_info',
+        '_count',
+        '_created',
+        '_total',
+        '_sum',
+        '_bucket',
+        '_gcount',
+        '_gsum',
+        '_info',
     )
 
     PROHIBITED_PREFIXES = (
-        '_', 'python_', 'prometheus_',
+        '_',
+        'python_',
+        'prometheus_',
     )
 
-    PROHIBITED_LABELS = (
-        'quantile', 'le'
-    )
+    PROHIBITED_LABELS = ('quantile', 'le')
 
     def __init__(
         self,
@@ -278,8 +283,9 @@ class BaseMetric:
         return self._name
 
     def _validate_name(self, name: str) -> None:
-        if (name.startswith(self.PROHIBITED_PREFIXES) or
-                name.endswith(self.PROHIBITED_SUFFIXES)):
+        if name.startswith(self.PROHIBITED_PREFIXES) or name.endswith(
+            self.PROHIBITED_SUFFIXES
+        ):
             raise ValueError(f'invalid metrics name: {name!r}')
 
     def _validate_label_names(self, labels: tuple[str, ...]) -> None:
@@ -292,7 +298,8 @@ class BaseMetric:
     ) -> None:
         if len(values) != len(labels):
             raise ValueError(
-                f'missing values for labels: {labels[len(values):]!r}')
+                f'missing values for labels: {labels[len(values) :]!r}'
+            )
         for name, val in zip(labels, values):
             if not val:
                 raise ValueError(f'empty value for label {name!r}')
@@ -326,7 +333,6 @@ class BaseMetric:
 
 
 class Info(BaseMetric):
-
     _type = 'info'
 
     _name: str
@@ -356,7 +362,6 @@ class Info(BaseMetric):
 
 
 class BaseCounter(BaseMetric):
-
     _type = 'counter'
 
     _suffix = '_total'
@@ -371,7 +376,8 @@ class BaseCounter(BaseMetric):
     def inc(self, value: float = 1.0) -> None:
         if value < 0:
             raise ValueError(
-                'counter cannot be incremented with a negative value')
+                'counter cannot be incremented with a negative value'
+            )
         self._value += value
 
     def _generate(self, buffer: list[str], **label_filters: str) -> None:
@@ -391,7 +397,6 @@ class BaseCounter(BaseMetric):
 
 
 class BaseLabeledCounter(BaseMetric):
-
     _type = 'counter'
 
     _suffix = '_total'
@@ -412,7 +417,8 @@ class BaseLabeledCounter(BaseMetric):
         self._validate_label_values(self._labels, labels)
         if value < 0:
             raise ValueError(
-                'counter cannot be incremented with a negative value')
+                'counter cannot be incremented with a negative value'
+            )
         try:
             self._metric_values[labels] += value
         except KeyError:
@@ -460,12 +466,11 @@ class BaseLabeledCounter(BaseMetric):
 
 
 class _TotalMixin(BaseMetric):
-
     def _augment_metric_name(self, name: str) -> str:
         name = super()._augment_metric_name(name)
         if not name.endswith('_total'):
             raise TypeError('counter metric name require the "_total" suffix')
-        name = name[:-len('_total')]
+        name = name[: -len('_total')]
         return name
 
 
@@ -478,7 +483,6 @@ class LabeledCounter(_TotalMixin, BaseLabeledCounter):
 
 
 class Gauge(BaseCounter):
-
     _type = 'gauge'
 
     _render_created = False
@@ -495,7 +499,6 @@ class Gauge(BaseCounter):
 
 
 class LabeledGauge(BaseLabeledCounter):
-
     _type = 'gauge'
 
     _render_created = False
@@ -522,15 +525,26 @@ class LabeledGauge(BaseLabeledCounter):
 
 
 class BaseHistogram(BaseMetric):
-
     _type = 'histogram'
 
     _buckets: list[float]
 
     # Default buckets that many standard prometheus client libraries use.
     DEFAULT_BUCKETS = [
-        0.005, 0.01, 0.025, 0.05, 0.075, 0.1, 0.25, 0.5, 0.75,
-        1.0, 2.5, 5.0, 7.5, 10.0,
+        0.005,
+        0.01,
+        0.025,
+        0.05,
+        0.075,
+        0.1,
+        0.25,
+        0.5,
+        0.75,
+        1.0,
+        2.5,
+        5.0,
+        7.5,
+        10.0,
     ]
 
     def __init__(
@@ -554,7 +568,6 @@ class BaseHistogram(BaseMetric):
 
 
 class Histogram(BaseHistogram):
-
     _values: list[float]
     _sum: float
 
@@ -602,7 +615,6 @@ class Histogram(BaseHistogram):
 
 
 class LabeledHistogram(BaseHistogram):
-
     _labels: tuple[str, ...]
     _metric_values: dict[tuple[str, ...], list[float | list[float]]]
     _metric_created: dict[tuple[str, ...], float]
@@ -687,6 +699,4 @@ def _format_desc(desc: str) -> str:
 
 @functools.lru_cache(maxsize=1024)
 def _format_label_val(desc: str) -> str:
-    return (
-        desc.replace('\\', r'\\').replace('\n', r'\n').replace('"', r'\"')
-    )
+    return desc.replace('\\', r'\\').replace('\n', r'\n').replace('"', r'\"')

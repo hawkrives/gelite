@@ -65,14 +65,16 @@ class Object(BaseObject):
 
 class List(BaseObject):
     items = Field(  # type: ignore[assignment]
-        base.MarkupList, default=base.MarkupList, coerce=True)
+        base.MarkupList, default=base.MarkupList, coerce=True
+    )
     trimmed = Field(bool, default=False)
     brackets = Field(str, default="[]")
 
 
 class Dict(BaseObject):
     items = Field(  # type: ignore[assignment]
-        base.MarkupMapping, default=base.MarkupMapping, coerce=True)
+        base.MarkupMapping, default=base.MarkupMapping, coerce=True
+    )
     trimmed = Field(bool, default=False)
 
 
@@ -87,7 +89,8 @@ TreeNodeChildrenList = checked.CheckedList[TreeNodeChild]
 class TreeNode(BaseObject):
     name = Field(str)
     children = Field(
-        TreeNodeChildrenList, default=TreeNodeChildrenList, coerce=True)
+        TreeNodeChildrenList, default=TreeNodeChildrenList, coerce=True
+    )
 
     def add_child(self, *, label=None, node):
         self.children.append(TreeNodeChild(label=label, node=node))
@@ -128,10 +131,14 @@ class TracebackPoint(BaseObject):
     def load_source(self, window=3, lines=None):
         self.lines = self.line_numbers = None
 
-        if (self.lineno and
-                ((self.filename and not self.filename.startswith('<') and
-                    not self.filename.endswith('>')) or lines)):
-
+        if self.lineno and (
+            (
+                self.filename
+                and not self.filename.startswith('<')
+                and not self.filename.endswith('>')
+            )
+            or lines
+        ):
             lineno = self.lineno
 
             if not lines:
@@ -159,7 +166,8 @@ TracebackPointList = checked.CheckedList[TracebackPoint]
 
 class Traceback(BaseObject):
     items = Field(  # type: ignore[assignment]
-        TracebackPointList, default=TracebackPointList, coerce=True)
+        TracebackPointList, default=TracebackPointList, coerce=True
+    )
 
 
 class ExceptionContext(BaseObject):

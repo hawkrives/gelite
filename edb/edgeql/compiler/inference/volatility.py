@@ -78,8 +78,7 @@ def _common_volatility(
     args: Iterable[irast.Base],
     env: context.Environment,
 ) -> InferredVolatility:
-    return _max_volatility(
-        _infer_volatility(a, env) for a in args)
+    return _max_volatility(_infer_volatility(a, env) for a in args)
 
 
 @functools.singledispatch
@@ -165,10 +164,12 @@ def _infer_pointer(
     # the schema, we need to actually infer it, since it won't
     # have been processed at a shape declaration.
     if ir.expr is not None and not ir.ptrref.defined_here:
-        vol = _max_volatility((
-            vol,
-            _infer_volatility(ir.expr, env),
-        ))
+        vol = _max_volatility(
+            (
+                vol,
+                _infer_volatility(ir.expr, env),
+            )
+        )
 
     # If source is an object, then a pointer reference implies
     # a table scan, and so we can assume STABLE at the minimum.
@@ -202,12 +203,14 @@ def __infer_set(
     env.inferred_volatility[ir] = vol
 
     if ir.shape:
-        vol = _max_volatility([
-            _common_volatility(
-                (el.expr.expr for el, _ in ir.shape if el.expr.expr), env
-            ),
-            vol,
-        ])
+        vol = _max_volatility(
+            [
+                _common_volatility(
+                    (el.expr.expr for el, _ in ir.shape if el.expr.expr), env
+                ),
+                vol,
+            ]
+        )
 
     if ir.is_binding and ir.is_binding != irast.BindingKind.Schema:
         vol = IMMUTABLE
@@ -225,10 +228,12 @@ def __infer_func_call(
     )
 
     if ir.args:
-        return _max_volatility([
-            _common_volatility((arg.expr for arg in ir.args.values()), env),
-            func_volatility
-        ])
+        return _max_volatility(
+            [
+                _common_volatility((arg.expr for arg in ir.args.values()), env),
+                func_volatility,
+            ]
+        )
     else:
         return func_volatility
 
@@ -239,10 +244,12 @@ def __infer_oper_call(
     env: context.Environment,
 ) -> InferredVolatility:
     if ir.args:
-        return _max_volatility([
-            _common_volatility((arg.expr for arg in ir.args.values()), env),
-            ir.volatility
-        ])
+        return _max_volatility(
+            [
+                _common_volatility((arg.expr for arg in ir.args.values()), env),
+                ir.volatility,
+            ]
+        )
     else:
         return ir.volatility
 
@@ -407,8 +414,7 @@ def __infer_tuple(
     ir: irast.Tuple,
     env: context.Environment,
 ) -> InferredVolatility:
-    return _common_volatility(
-        [el.val for el in ir.elements], env)
+    return _common_volatility([el.val for el in ir.elements], env)
 
 
 def _infer_volatility(
@@ -430,14 +436,14 @@ def infer_volatility(
     ir: irast.Base,
     env: context.Environment,
     *,
-    exclude_dml: bool=False,
+    exclude_dml: bool = False,
 ) -> qltypes.Volatility:
     result = _normalize_volatility(_infer_volatility(ir, env))[exclude_dml]
 
     if result not in {VOLATILE, STABLE, IMMUTABLE, MODIFYING}:
         raise errors.QueryError(
-            'could not determine the volatility of '
-            'set produced by expression',
-            span=ir.span)
+            'could not determine the volatility of set produced by expression',
+            span=ir.span,
+        )
 
     return result

@@ -34,12 +34,11 @@ from edb.tools import test
 
 
 class TestEdgeQLFunctions(tb.DDLTestCase):
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
-
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'issues_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'issues_setup.edgeql'
+    )
 
     async def test_edgeql_functions_count_01(self):
         await self.assert_query_result(
@@ -54,7 +53,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     )
                 SELECT x.count = count(x.all_issues);
             """,
-            [True]
+            [True],
         )
 
     async def test_edgeql_functions_count_02(self):
@@ -70,7 +69,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     )
                 SELECT x.count = count(x.all_issues);
             """,
-            [True]
+            [True],
         )
 
     async def test_edgeql_functions_count_03(self):
@@ -86,7 +85,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     )
                 SELECT x.count = count(x.all_issues);
             """,
-            [True]
+            [True],
         )
 
     async def test_edgeql_functions_array_agg_01(self):
@@ -165,9 +164,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_agg_05(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'expression returns value of indeterminate type'):
-
+            edgedb.QueryError, r'expression returns value of indeterminate type'
+        ):
             await self.con.execute("""
                 SELECT array_agg({});
             """)
@@ -188,7 +186,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             r'''
                 SELECT array_agg((SELECT schema::ObjectType FILTER False));
             ''',
-            [[]]
+            [[]],
         )
 
         await self.assert_query_result(
@@ -198,7 +196,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                      FILTER <str>schema::ObjectType.id = '~')
                 );
             ''',
-            [[]]
+            [[]],
         )
 
     async def test_edgeql_functions_array_agg_08(self):
@@ -207,7 +205,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 WITH x := <int64>{}
                 SELECT array_agg(x);
             ''',
-            [[]]
+            [[]],
         )
 
         await self.assert_query_result(
@@ -215,7 +213,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 WITH x := (SELECT schema::ObjectType FILTER False)
                 SELECT array_agg(x);
             ''',
-            [[]]
+            [[]],
         )
 
         await self.assert_query_result(
@@ -226,7 +224,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 )
                 SELECT array_agg(x);
             ''',
-            [[]]
+            [[]],
         )
 
     async def test_edgeql_functions_array_agg_09(self):
@@ -248,9 +246,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 FILTER
                     ObjectType.name = 'schema::Object';
             """,
-            [{
-                'l': ['id', 'name']
-            }]
+            [{'l': ['id', 'name']}],
         )
 
     async def test_edgeql_functions_array_agg_10(self):
@@ -262,7 +258,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     ORDER BY issue.number
                 ));
             ''',
-            [[['1', 'Open'], ['2', 'Open'], ['3', 'Closed'], ['4', 'Closed']]]
+            [[['1', 'Open'], ['2', 'Open'], ['3', 'Closed'], ['4', 'Closed']]],
         )
 
     @tb.needs_factoring
@@ -274,7 +270,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     ORDER BY Issue.number
                 )[1];
             """,
-            [['2', 'Open']]
+            [['2', 'Open']],
         )
 
     async def test_edgeql_functions_array_agg_12(self):
@@ -283,7 +279,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 SELECT
                     array_agg(User{name} ORDER BY User.name);
             ''',
-            [[{'name': 'Elvis'}, {'name': 'Yury'}]]
+            [[{'name': 'Elvis'}, {'name': 'Yury'}]],
         )
 
         result = await self.con.query(r'''
@@ -310,8 +306,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [
                 {'number': '1', 'watchers_array': [{'name': 'Yury'}]},
                 {'number': '2', 'watchers_array': [{'name': 'Elvis'}]},
-                {'number': '3', 'watchers_array': [{'name': 'Elvis'}]}
-            ]
+                {'number': '3', 'watchers_array': [{'name': 'Elvis'}]},
+            ],
         )
 
     async def test_edgeql_functions_array_agg_14(self):
@@ -319,7 +315,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             r'''
                 SELECT array_agg(array_agg(User.name));
             ''',
-            [[['Elvis', 'Yury']]]
+            [[['Elvis', 'Yury']]],
         )
 
     @tb.needs_factoring
@@ -330,11 +326,12 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     ([([User.name],)],) ORDER BY User.name
                 );
             ''',
-            [       # result set
-                [   # array_agg
-                    [[[['Elvis']]]], [[[['Yury']]]],
+            [  # result set
+                [  # array_agg
+                    [[[['Elvis']]]],
+                    [[[['Yury']]]],
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_functions_array_agg_16(self):
@@ -350,11 +347,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     )
                 );
             ''',
-            [       # result set
-                [   # outer array_agg
+            [  # result set
+                [  # outer array_agg
                     [[[['Elvis', 'Yury']]]]
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_functions_array_agg_17(self):
@@ -365,8 +362,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_agg_18(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'expression returns value of indeterminate type'):
+            edgedb.QueryError, r'expression returns value of indeterminate type'
+        ):
             await self.con.execute(
                 '''SELECT array_agg({})''',
             )
@@ -403,9 +400,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 SELECT Issue { te := array_agg(.time_estimate UNION 3000) };
             ''',
             tb.bag(
-                [{"te": [3000, 3000]}, {"te": [3000]},
-                 {"te": [3000]}, {"te": [3000]}],
-            )
+                [
+                    {"te": [3000, 3000]},
+                    {"te": [3000]},
+                    {"te": [3000]},
+                    {"te": [3000]},
+                ],
+            ),
         )
 
     async def test_edgeql_functions_array_agg_21(self):
@@ -454,10 +455,12 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [([[11, 12], [13, 14]], [['AA', 'AB'], ['AC', 'AD']])],
                 [([[21, 22], [23, 24]], [['BA', 'BB'], ['BC', 'BD']])],
             });''',
-            [[
-                [([[11, 12], [13, 14]], [['AA', 'AB'], ['AC', 'AD']])],
-                [([[21, 22], [23, 24]], [['BA', 'BB'], ['BC', 'BD']])],
-            ]],
+            [
+                [
+                    [([[11, 12], [13, 14]], [['AA', 'AB'], ['AC', 'AD']])],
+                    [([[21, 22], [23, 24]], [['BA', 'BB'], ['BC', 'BD']])],
+                ]
+            ],
         )
 
     async def test_edgeql_functions_array_unpack_01(self):
@@ -509,7 +512,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 {'number': '3'},
                 {'number': '4'},
             ],
-            sort=lambda x: x['number']
+            sort=lambda x: x['number'],
         )
 
     async def test_edgeql_functions_array_unpack_05(self):
@@ -651,22 +654,19 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_fill_04(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            "array size exceeds the maximum allowed"
+            edgedb.InvalidValueError, "array size exceeds the maximum allowed"
         ):
             async with self.con.transaction():
                 await self.con.query(r'select array_fill(0, 2147480000);')
 
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            "array size exceeds the maximum allowed"
+            edgedb.InvalidValueError, "array size exceeds the maximum allowed"
         ):
             async with self.con.transaction():
                 await self.con.query(r'select array_fill(0, 2147483647);')
 
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            "array size exceeds the maximum allowed"
+            edgedb.InvalidValueError, "array size exceeds the maximum allowed"
         ):
             async with self.con.transaction():
                 await self.con.query(r'select array_fill(0, 12147480000);')
@@ -741,12 +741,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 (a := 0, b := 'a'), (a := 99, b := '!')
             );
             ''',
-            [[
-                {"a": 99, "b": "!"},
-                {"a": 10, "b": "b"},
-                {"a": 3, "b": "hello"},
-                {"a": 99, "b": "!"}
-            ]],
+            [
+                [
+                    {"a": 99, "b": "!"},
+                    {"a": 10, "b": "b"},
+                    {"a": 3, "b": "hello"},
+                    {"a": 99, "b": "!"},
+                ]
+            ],
         )
 
         await self.assert_query_result(
@@ -761,12 +763,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 (a := 1, b := 'a'), (a := 99, b := '!')
             );
             ''',
-            [[
-                {"a": 0, "b": "a"},
-                {"a": 10, "b": "b"},
-                {"a": 3, "b": "hello"},
-                {"a": 0, "b": "a"}
-            ]],
+            [
+                [
+                    {"a": 0, "b": "a"},
+                    {"a": 10, "b": "b"},
+                    {"a": 3, "b": "hello"},
+                    {"a": 0, "b": "a"},
+                ]
+            ],
         )
 
     async def test_edgeql_functions_array_replace_05(self):
@@ -784,11 +788,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [(2, 'B'), (3, 'C')],
                 [(9, 'I')],
             );''',
-            [[
-                [(1, 'A')],
-                [(9, 'I')],
-                [(4, 'D'), (5, 'E'), (6, 'F')],
-            ]],
+            [
+                [
+                    [(1, 'A')],
+                    [(9, 'I')],
+                    [(4, 'D'), (5, 'E'), (6, 'F')],
+                ]
+            ],
         )
 
     async def test_edgeql_functions_enumerate_01(self):
@@ -872,20 +878,21 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_enumerate_04(self):
         self.assertEqual(
-            await self.con.query(
-                'select <json>enumerate({(1, 2), (3, 4)})'),
-            ['[0, [1, 2]]', '[1, [3, 4]]'])
+            await self.con.query('select <json>enumerate({(1, 2), (3, 4)})'),
+            ['[0, [1, 2]]', '[1, [3, 4]]'],
+        )
 
         self.assertEqual(
             await self.con.query_json(
-                'select <json>enumerate({(1, 2), (3, 4)})'),
-            '[[0, [1, 2]], [1, [3, 4]]]')
+                'select <json>enumerate({(1, 2), (3, 4)})'
+            ),
+            '[[0, [1, 2]], [1, [3, 4]]]',
+        )
 
     async def test_edgeql_functions_enumerate_05(self):
         await self.assert_query_result(
             r'''SELECT enumerate(User { name } ORDER BY .name);''',
-            [[0, {"name": "Elvis"}],
-             [1, {"name": "Yury"}]],
+            [[0, {"name": "Elvis"}], [1, {"name": "Yury"}]],
         )
 
         await self.assert_query_result(
@@ -909,7 +916,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                  Y := enumerate(Z),
             SELECT (Y.1.0, Y.1.1) ORDER BY Y.0;
             ''',
-            [[0, 10], [1, 20]]
+            [[0, 10], [1, 20]],
         )
 
     async def test_edgeql_functions_enumerate_08(self):
@@ -919,36 +926,36 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ''',
             tb.bag(
                 [{"te": [0, 3000]}, {"te": None}, {"te": None}, {"te": None}]
-            )
+            ),
         )
 
         await self.assert_query_result(
             r'''
             SELECT Issue { te := enumerate(.time_estimate UNION 3000) };
             ''',
-            tb.bag([
-                {"te": [[0, 3000], [1, 3000]]},
-                {"te": [[0, 3000]]},
-                {"te": [[0, 3000]]},
-                {"te": [[0, 3000]]}
-            ])
+            tb.bag(
+                [
+                    {"te": [[0, 3000], [1, 3000]]},
+                    {"te": [[0, 3000]]},
+                    {"te": [[0, 3000]]},
+                    {"te": [[0, 3000]]},
+                ]
+            ),
         )
 
     async def test_edgeql_functions_enumerate_09(self):
         await self.assert_query_result(
-            'SELECT enumerate(sum({1,2,3}))',
-            [[0, 6]]
+            'SELECT enumerate(sum({1,2,3}))', [[0, 6]]
         )
         await self.assert_query_result(
-            'SELECT enumerate(count(Issue))',
-            [[0, 4]]
+            'SELECT enumerate(count(Issue))', [[0, 4]]
         )
         await self.assert_query_result(
             '''
             WITH x := (SELECT enumerate(array_agg((select User)))),
             SELECT (x.0, array_unpack(x.1).name)
             ''',
-            [[0, 'Elvis'], [0, 'Yury']]
+            [[0, 'Elvis'], [0, 'Yury']],
         )
 
     async def test_edgeql_functions_array_get_01(self):
@@ -1011,20 +1018,17 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            r'''SELECT array_get(array_agg(Issue.number), 20);''',
-            []
+            r'''SELECT array_get(array_agg(Issue.number), 20);''', []
         )
 
         await self.assert_query_result(
-            r'''SELECT array_get(array_agg(Issue.number), -20);''',
-            []
+            r'''SELECT array_get(array_agg(Issue.number), -20);''', []
         )
 
     async def test_edgeql_functions_array_get_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function "array_get.+" does not exist'):
-
+            edgedb.QueryError, r'function "array_get.+" does not exist'
+        ):
             await self.con.query(r'''
                 SELECT array_get([1, 2, 3], 2^40);
             ''')
@@ -1240,8 +1244,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_02(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 4 is out of bounds'
+            edgedb.InvalidValueError, 'array index 4 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set([1, 2, 3, 4], 4, 9);''',
@@ -1249,8 +1252,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_03(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -5 is out of bounds'
+            edgedb.InvalidValueError, 'array index -5 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set([1, 2, 3, 4], -5, 9);''',
@@ -1258,8 +1260,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_04(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 1 is out of bounds'
+            edgedb.InvalidValueError, 'array index 1 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set([1], 1, 9);''',
@@ -1267,8 +1268,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_05(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -2 is out of bounds'
+            edgedb.InvalidValueError, 'array index -2 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set([1], -2, 9);''',
@@ -1276,8 +1276,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_06(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 0 is out of bounds'
+            edgedb.InvalidValueError, 'array index 0 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set(<array<int64>>[], 0, 9);''',
@@ -1285,8 +1284,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_set_07(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -1 is out of bounds'
+            edgedb.InvalidValueError, 'array index -1 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_set(<array<int64>>[], -1, 9);''',
@@ -1440,8 +1438,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_02(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 5 is out of bounds'
+            edgedb.InvalidValueError, 'array index 5 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert([1, 2, 3, 4], 5, 9);''',
@@ -1449,8 +1446,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_03(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -5 is out of bounds'
+            edgedb.InvalidValueError, 'array index -5 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert([1, 2, 3, 4], -5, 9);''',
@@ -1458,8 +1454,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_04(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 2 is out of bounds'
+            edgedb.InvalidValueError, 'array index 2 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert([1], 2, 9);''',
@@ -1467,8 +1462,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_05(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -2 is out of bounds'
+            edgedb.InvalidValueError, 'array index -2 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert([1], -2, 9);''',
@@ -1476,8 +1470,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_06(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index 1 is out of bounds'
+            edgedb.InvalidValueError, 'array index 1 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert(<array<int64>>[], 1, 9);''',
@@ -1485,8 +1478,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_array_insert_07(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            'array index -1 is out of bounds'
+            edgedb.InvalidValueError, 'array index -1 is out of bounds'
         ):
             await self.con.query(
                 r'''SELECT array_insert(<array<int64>>[], -1, 9);''',
@@ -1494,7 +1486,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_functions_re_match_01(self):
         await self.assert_query_result(
@@ -1573,8 +1565,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_re_match_03(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            "invalid regular expression"
+            edgedb.InvalidValueError, "invalid regular expression"
         ):
             await self.con.query(r'''
                 select re_match('\\', 'asdf')
@@ -1582,7 +1573,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_functions_re_match_all_01(self):
         await self.assert_query_result(
@@ -1866,7 +1857,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                             <cal::date_duration>"10 days"})
             ''',
             ["P15D"],
-            [gel.DateDuration(days=15)]
+            [gel.DateDuration(days=15)],
         )
 
     async def test_edgeql_functions_unix_to_datetime_01(self):
@@ -1876,15 +1867,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         self.assertEqual('2020-05-27T15:59:44.584+00:00', dt)
 
     async def test_edgeql_functions_unix_to_datetime_02(self):
-        dt = await self.con.query_single(
-            'SELECT <str>to_datetime(1590595184);'
-        )
+        dt = await self.con.query_single('SELECT <str>to_datetime(1590595184);')
         self.assertEqual('2020-05-27T15:59:44+00:00', dt)
 
     async def test_edgeql_functions_unix_to_datetime_03(self):
-        dt = await self.con.query_single(
-            'SELECT <str>to_datetime(517795200);'
-        )
+        dt = await self.con.query_single('SELECT <str>to_datetime(517795200);')
         self.assertEqual('1986-05-30T00:00:00+00:00', dt)
 
     async def test_edgeql_functions_unix_to_datetime_04(self):
@@ -1895,12 +1882,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_unix_to_datetime_05(self):
         with self.assertRaisesRegex(
-            edgedb.InvalidValueError,
-            "'std::datetime' value out of range"
+            edgedb.InvalidValueError, "'std::datetime' value out of range"
         ):
-            await self.con.query_single(
-                'SELECT to_datetime(999999999999)'
-            )
+            await self.con.query_single('SELECT to_datetime(999999999999)')
 
     async def test_edgeql_functions_datetime_current_01(self):
         # make sure that datetime as a str gets serialized to a
@@ -1956,8 +1940,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
         # every dt_n is already in chronological order
         self.assertEqual(
-            [t['dt_n'] for t in batches],
-            sorted([t['dt_n'] for t in batches])
+            [t['dt_n'] for t in batches], sorted([t['dt_n'] for t in batches])
         )
         # the first dt_n is strictly earlier than the last
         self.assertTrue(batches[0]['dt_n'] < batches[-1]['dt_n'])
@@ -2092,8 +2075,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_datetime_get_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::datetime_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::datetime_get'
+        ):
             await self.con.query('''
                 SELECT datetime_get(
                     <cal::local_datetime>'2018-05-07T15:01:22.306916',
@@ -2103,8 +2086,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_datetime_get_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::datetime_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::datetime_get'
+        ):
             await self.con.query('''
                 SELECT datetime_get(
                     <datetime>'2018-05-07T15:01:22.306916-05',
@@ -2113,13 +2096,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_datetime_get_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::datetime_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::datetime_get'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>datetime_get(
                     <datetime>'2018-05-07T15:01:22.306916-05', 'epoch');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_01(self):
         await self.assert_query_result(
@@ -2290,85 +2274,93 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_duration_get_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <duration>'15:01:22.306916', 'days');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <duration>'15:01:22.306916', 'epoch');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_06(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <duration>'15:01:22.306916', 'epochseconds');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_07(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <cal::relative_duration>'15:01:22.306916', 'epoch'
                 );
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_08(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <cal::relative_duration>'15:01:22.306916', 'epochseconds'
                 );
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_09(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <cal::date_duration>'1 day', 'hours');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_10(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <cal::date_duration>'1 day', 'epoch');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_get_11(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_get'
+        ):
             await self.con.execute(
                 r'''
                 select duration_get(
                     <cal::date_duration>'1 day', 'epochseconds');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_date_get_01(self):
         await self.assert_query_result(
@@ -2391,13 +2383,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_date_get_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::date_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::date_get'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>cal::date_get(
                     <cal::local_date>'2018-05-07', 'epoch');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_time_get_01(self):
         await self.assert_query_result(
@@ -2431,13 +2424,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_time_get_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::time_get'):
+            edgedb.InvalidValueError, 'invalid unit for std::time_get'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>cal::time_get(
                     <cal::local_time>'15:01:22.306916', 'epoch');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_datetime_trunc_01(self):
         await self.assert_query_result(
@@ -2522,13 +2516,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_datetime_trunc_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::datetime_truncate'):
+            edgedb.InvalidValueError, 'invalid unit for std::datetime_truncate'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>datetime_truncate(
                     <datetime>'2018-05-07T15:01:22.306916-05', 'second');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_trunc_01(self):
         await self.assert_query_result(
@@ -2574,13 +2569,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_duration_trunc_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_truncate'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_truncate'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>duration_truncate(
                     <duration>'73 hours', 'day');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_duration_trunc_03(self):
         await self.assert_query_result(
@@ -2771,13 +2767,14 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_duration_trunc_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                'invalid unit for std::duration_truncate'):
+            edgedb.InvalidValueError, 'invalid unit for std::duration_truncate'
+        ):
             await self.con.execute(
                 r'''
                 SELECT <str>duration_truncate(
                     <cal::date_duration>'42 days', 'hours');
-                ''')
+                '''
+            )
 
     async def test_edgeql_functions_to_datetime_01(self):
         await self.assert_query_result(
@@ -2796,8 +2793,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ['2018-05-07T20:01:22.306916+00:00'],
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('SELECT to_datetime("2017-10-10", "")')
 
@@ -2842,8 +2840,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [True],
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'missing required time zone in format'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'missing required time zone in format'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     SELECT
@@ -2853,8 +2852,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 ''')
 
     async def test_edgeql_functions_to_datetime_04(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'missing required time zone in input'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'missing required time zone in input'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     SELECT
@@ -2863,8 +2863,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 ''')
 
     async def test_edgeql_functions_to_datetime_05(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'invalid input syntax'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'invalid input syntax'
+        ):
             async with self.con.transaction():
                 # omitting time zone
                 await self.con.query(r'''
@@ -2941,8 +2942,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
     async def test_edgeql_functions_to_local_datetime_04(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'unexpected time zone in format'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'unexpected time zone in format'
+        ):
             async with self.con.transaction():
                 await self.con.query(
                     r'''
@@ -2950,7 +2952,8 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                           cal::to_local_datetime('2019/01/01 00:00:00 0715',
                                                  'YYYY/MM/DD H24:MI:SS TZH') =
                           <cal::local_datetime>'2019-01-01T00:00:00';
-                    ''')
+                    '''
+                )
 
     async def test_edgeql_functions_to_local_datetime_05(self):
         await self.assert_query_result(
@@ -2962,14 +2965,19 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                                                     'YYYY/MM/DD H24:MI:SS'),
                         <str><cal::local_datetime>'2019-02-01 00:00:00');
             ''',
-            [['2019-01-01T00:00:00',
-              '2019-01-01T00:00:00',
-              '2019-02-01T00:00:00']],
+            [
+                [
+                    '2019-01-01T00:00:00',
+                    '2019-01-01T00:00:00',
+                    '2019-02-01T00:00:00',
+                ]
+            ],
         )
 
     async def test_edgeql_functions_to_local_datetime_06(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'invalid input syntax'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'invalid input syntax'
+        ):
             async with self.con.transaction():
                 # including time zone
                 await self.con.query(r'''
@@ -3010,11 +3018,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ['2018-05-07'],
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(
-                    'SELECT cal::to_local_date("2017-10-10", "")')
+                    'SELECT cal::to_local_date("2017-10-10", "")'
+                )
 
     async def test_edgeql_functions_to_local_date_02(self):
         await self.assert_query_result(
@@ -3027,8 +3037,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
     async def test_edgeql_functions_to_local_date_03(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'unexpected time zone in format'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'unexpected time zone in format'
+        ):
             async with self.con.transaction():
                 await self.con.query(
                     r'''
@@ -3036,11 +3047,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                             cal::to_local_date('2019/01/01 00:00:00 0715',
                                                'YYYY/MM/DD H24:MI:SS TZH') =
                             <cal::local_date>'2019-01-01';
-                    ''')
+                    '''
+                )
 
     async def test_edgeql_functions_to_local_date_04(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'invalid input syntax'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'invalid input syntax'
+        ):
             async with self.con.transaction():
                 # including too much
                 await self.con.query(r'''
@@ -3081,11 +3094,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ['15:01:22.306916'],
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(
-                    'SELECT cal::to_local_time("12:00:00", "")')
+                    'SELECT cal::to_local_time("12:00:00", "")'
+                )
 
     async def test_edgeql_functions_to_local_time_02(self):
         await self.assert_query_result(
@@ -3098,8 +3113,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
     async def test_edgeql_functions_to_local_time_03(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'unexpected time zone in format'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'unexpected time zone in format'
+        ):
             async with self.con.transaction():
                 await self.con.query(
                     r'''
@@ -3107,11 +3123,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                             cal::to_local_time('00:00:00 0715',
                                           'H24:MI:SS TZH') =
                             <cal::local_time>'00:00:00';
-                    ''')
+                    '''
+                )
 
     async def test_edgeql_functions_to_local_time_04(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'invalid input syntax'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'invalid input syntax'
+        ):
             async with self.con.transaction():
                 # including time zone
                 await self.con.query(r'''
@@ -3122,7 +3140,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
     async def test_edgeql_functions_to_local_time_05(self):
         with self.assertRaisesRegex(
             edgedb.InvalidValueError,
-            'std::cal::local_time field value out of range'
+            'std::cal::local_time field value out of range',
         ):
             async with self.con.transaction():
                 # including time zone
@@ -3134,7 +3152,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
     async def test_edgeql_functions_to_local_time_06(self):
         with self.assertRaisesRegex(
             edgedb.InvalidValueError,
-            'std::cal::local_time field value out of range'
+            'std::cal::local_time field value out of range',
         ):
             async with self.con.transaction():
                 # including time zone
@@ -3146,7 +3164,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
     async def test_edgeql_functions_to_local_time_07(self):
         with self.assertRaisesRegex(
             edgedb.InvalidValueError,
-            'std::cal::local_time field value out of range'
+            'std::cal::local_time field value out of range',
         ):
             async with self.con.transaction():
                 # including time zone
@@ -3158,7 +3176,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
     async def test_edgeql_functions_to_local_time_08(self):
         with self.assertRaisesRegex(
             edgedb.InvalidValueError,
-            'std::cal::local_time field value out of range'
+            'std::cal::local_time field value out of range',
         ):
             async with self.con.transaction():
                 # including time zone
@@ -3317,26 +3335,29 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         # Empty format string shouldn't produce an empty set.
         #
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''SELECT to_str(1, "")''')
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''SELECT to_str(1.1, "")''')
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''SELECT to_str(1.1n, "")''')
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
-                await self.con.query(
-                    r'''SELECT to_str(to_json('{}'), "")''')
+                await self.con.query(r'''SELECT to_str(to_json('{}'), "")''')
 
     async def test_edgeql_functions_to_str_02(self):
         await self.assert_query_result(
@@ -3392,19 +3413,21 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             WITH DT := <datetime>'2018-05-07 15:01:22.306916-05'
             SELECT to_str(DT, ' ');
             ''',
-            {' '}
+            {' '},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     WITH DT := <datetime>'2018-05-07 15:01:22.306916-05'
                     SELECT to_str(DT, '');
                 ''')
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     WITH DT := to_duration(hours:=20)
@@ -3471,16 +3494,18 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {'foo'},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     WITH DT := <cal::local_time>'12:00:00'
                     SELECT to_str(DT, '');
                 ''')
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     WITH DT := <cal::local_date>'2018-05-07'
@@ -3558,10 +3583,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {'987654321st'},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
-                await self.con.query(r'''SELECT to_str(987654321, '');''',)
+                await self.con.query(
+                    r'''SELECT to_str(987654321, '');''',
+                )
 
     async def test_edgeql_functions_to_str_06(self):
         await self.assert_query_result(
@@ -3619,11 +3647,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {' 1.2346e+22'},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
-                await self.con.query(
-                    r'''SELECT to_str(123.456789e20, '');''')
+                await self.con.query(r'''SELECT to_str(123.456789e20, '');''')
 
     async def test_edgeql_functions_to_str_07(self):
         await self.assert_query_result(
@@ -3646,11 +3674,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {' '},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query(
-                    r'''SELECT to_str(<cal::local_time>'15:01:22', '');''',)
+                    r'''SELECT to_str(<cal::local_time>'15:01:22', '');''',
+                )
 
     async def test_edgeql_functions_string_bytes_conversion(self):
         string = "Паляниця"
@@ -3687,7 +3717,6 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 json.dumps({"a": [1, 2, 3], "b": "foo"}),
                 json.dumps({"a": [1, 2, 3], "b": "foo"}),
             ),
-
             # Without ensure_ascii=False, json.dumps will escape unicode to
             # ascii characters. For example, the character '數' (U+6578)
             # is encoded as b'\\u6578' instead of b'\xe6\x95\xb8'.
@@ -3695,22 +3724,18 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             # to utf-8 encoded bytes.
             (
                 json.dumps(
-                    {"數": [1, 2, 3], "言": "你好世界！"},
-                    ensure_ascii=True
+                    {"數": [1, 2, 3], "言": "你好世界！"}, ensure_ascii=True
                 ),
                 json.dumps(
-                    {"數": [1, 2, 3], "言": "你好世界！"},
-                    ensure_ascii=False
+                    {"數": [1, 2, 3], "言": "你好世界！"}, ensure_ascii=False
                 ),
             ),
             (
                 json.dumps(
-                    {"數": [1, 2, 3], "言": "你好世界！"},
-                    ensure_ascii=False
+                    {"數": [1, 2, 3], "言": "你好世界！"}, ensure_ascii=False
                 ),
                 json.dumps(
-                    {"數": [1, 2, 3], "言": "你好世界！"},
-                    ensure_ascii=False
+                    {"數": [1, 2, 3], "言": "你好世界！"}, ensure_ascii=False
                 ),
             ),
         ]
@@ -3758,7 +3783,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                         "val_l": int.from_bytes(raw, 'little', signed=True),
                         "bin": raw,
                     },
-                    msg=f'Failed to convert {raw!r} to int or vice versa'
+                    msg=f'Failed to convert {raw!r} to int or vice versa',
                 )
 
     async def test_edgeql_functions_int_bytes_conversion_02(self):
@@ -4034,8 +4059,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             variables=('FM999999999th',),
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_int64('1', '')''')
 
@@ -4111,8 +4137,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             variables=('FM999999999th',),
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_int32('1', '')''')
 
@@ -4188,8 +4215,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             variables=('FM999999999th',),
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_int16('1', '')''')
 
@@ -4216,11 +4244,12 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         await self.assert_query_result(
             r'''SELECT to_float64('123.456789', <str>$0);''',
             {123.456789},
-            variables=('FM999.999999999',)
+            variables=('FM999.999999999',),
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_float64('1', '')''')
 
@@ -4245,8 +4274,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {123.457},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_float32('1', '')''')
 
@@ -4256,14 +4286,16 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {123},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_bigint('1', '')''')
 
     async def test_edgeql_functions_to_bigint_02(self):
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    'invalid input syntax'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, 'invalid input syntax'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_bigint('1.02')''')
 
@@ -4291,8 +4323,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             exp_result_binary={decimal.Decimal('123.456789')},
         )
 
-        with self.assertRaisesRegex(edgedb.InvalidValueError,
-                                    '"fmt" argument must be'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidValueError, '"fmt" argument must be'
+        ):
             async with self.con.transaction():
                 await self.con.query('''SELECT to_decimal('1', '')''')
 
@@ -4304,9 +4337,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 'FM999999999999999999999999999.999999999999999999999999999');
             ''',
             exp_result_json={
-                123456789123456789123456789.123456789123456789123456789},
-            exp_result_binary={decimal.Decimal(
-                '123456789123456789123456789.123456789123456789123456789')},
+                123456789123456789123456789.123456789123456789123456789
+            },
+            exp_result_binary={
+                decimal.Decimal(
+                    '123456789123456789123456789.123456789123456789123456789'
+                )
+            },
         )
 
     async def test_edgeql_functions_len_01(self):
@@ -4321,8 +4358,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            r'''SELECT __std__::len({'hello', 'world'});''',
-            [5, 5]
+            r'''SELECT __std__::len({'hello', 'world'});''', [5, 5]
         )
 
     async def test_edgeql_functions_len_02(self):
@@ -4337,8 +4373,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            r'''SELECT len({b'hello', b'world'});''',
-            [5, 5]
+            r'''SELECT len({b'hello', b'world'});''', [5, 5]
         )
 
     async def test_edgeql_functions_len_03(self):
@@ -4374,7 +4409,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_functions_min_01(self):
         await self.assert_query_result(
@@ -4953,15 +4988,9 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [1],
         )
 
-        await self.assert_query_result(
-            r'''SELECT round(<decimal>1.5);''',
-            [2]
-        )
+        await self.assert_query_result(r'''SELECT round(<decimal>1.5);''', [2])
 
-        await self.assert_query_result(
-            r'''SELECT round(<decimal>2.5);''',
-            [3]
-        )
+        await self.assert_query_result(r'''SELECT round(<decimal>2.5);''', [3])
 
     async def test_edgeql_functions_round_02(self):
         await self.assert_query_result(
@@ -5946,12 +5975,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                     '5061504188819374941008712642322484363157605603774399306239'
                     '59705844189509050047074217568'
                 )
-            }
+            },
         )
 
         await self.assert_query_result(
-            r'''SELECT math::exp(<decimal>100);''',
-            {math.e ** 100}
+            r'''SELECT math::exp(<decimal>100);''', {math.e**100}
         )
 
         await self.assert_query_result(
@@ -5960,9 +5988,7 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {math.inf},
         )
         await self.assert_query_result(
-            r'''SELECT math::exp(<float64>'nan');''',
-            {'NaN'},
-            {math.nan}
+            r'''SELECT math::exp(<float64>'nan');''', {'NaN'}, {math.nan}
         )
 
     async def test_edgeql_functions_math_log_01(self):
@@ -5983,18 +6009,15 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_log_02(self):
         async with self.assertRaisesRegexTx(
-            edgedb.errors.InvalidValueError,
-            ''
+            edgedb.errors.InvalidValueError, ''
         ):
             await self.con.query('SELECT math::ln(-1)')
         async with self.assertRaisesRegexTx(
-            edgedb.errors.InvalidValueError,
-            ''
+            edgedb.errors.InvalidValueError, ''
         ):
             await self.con.query('SELECT math::lg(-1)')
         async with self.assertRaisesRegexTx(
-            edgedb.errors.InvalidValueError,
-            ''
+            edgedb.errors.InvalidValueError, ''
         ):
             await self.con.query('SELECT math::log(-1, base := 10)')
 
@@ -6172,9 +6195,10 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_mean_09(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to mean\(\): "
-                r"not enough elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to mean\(\): "
+            r"not enough elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::mean(<int64>{});
             ''')
@@ -6238,18 +6262,20 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_stddev_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to stddev\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to stddev\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::stddev(<int64>{});
             ''')
 
     async def test_edgeql_functions_math_stddev_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to stddev\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to stddev\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::stddev(1);
             ''')
@@ -6313,9 +6339,10 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_stddev_pop_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to stddev_pop\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to stddev_pop\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::stddev_pop(<int64>{});
             ''')
@@ -6432,18 +6459,20 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_var_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to var\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to var\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::var(<int64>{});
             ''')
 
     async def test_edgeql_functions_math_var_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to var\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to var\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::var(1);
             ''')
@@ -6528,9 +6557,10 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_var_pop_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"invalid input to var_pop\(\): not enough "
-                r"elements in input set"):
+            edgedb.InvalidValueError,
+            r"invalid input to var_pop\(\): not enough "
+            r"elements in input set",
+        ):
             await self.con.query(r'''
                 SELECT math::var_pop(<int64>{});
             ''')
@@ -6584,32 +6614,32 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_acos_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::acos(-1.001);
             ''')
 
     async def test_edgeql_functions_math_acos_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::acos(1.001);
             ''')
 
     async def test_edgeql_functions_math_acos_04(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::acos(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_acos_05(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::acos(<float64>"inf");
             ''')
@@ -6651,32 +6681,32 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_asin_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::asin(-1.001);
             ''')
 
     async def test_edgeql_functions_math_asin_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::asin(1.001);
             ''')
 
     async def test_edgeql_functions_math_asin_04(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::asin(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_asin_05(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::asin(<float64>"inf");
             ''')
@@ -7002,16 +7032,16 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_cos_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::cos(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_cos_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::cos(<float64>"inf");
             ''')
@@ -7093,16 +7123,16 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_cot_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::cot(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_cot_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::cot(<float64>"inf");
             ''')
@@ -7204,16 +7234,16 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_sin_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::sin(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_sin_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::sin(<float64>"inf");
             ''')
@@ -7295,16 +7325,16 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_math_tan_02(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::tan(<float64>"-inf");
             ''')
 
     async def test_edgeql_functions_math_tan_03(self):
         with self.assertRaisesRegex(
-                edgedb.NumericOutOfRangeError,
-                r"input is out of range"):
+            edgedb.NumericOutOfRangeError, r"input is out of range"
+        ):
             await self.con.query(r'''
                 SELECT math::tan(<float64>"inf");
             ''')
@@ -7314,28 +7344,28 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             r'''
             SELECT _gen_series(1, 10)
             ''',
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         )
 
         await self.assert_query_result(
             r'''
             SELECT _gen_series(1, 10, 2)
             ''',
-            [1, 3, 5, 7, 9]
+            [1, 3, 5, 7, 9],
         )
 
         await self.assert_query_result(
             r'''
             SELECT _gen_series(1n, 10n)
             ''',
-            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
         )
 
         await self.assert_query_result(
             r'''
             SELECT _gen_series(1n, 10n, 2n)
             ''',
-            [1, 3, 5, 7, 9]
+            [1, 3, 5, 7, 9],
         )
 
     async def test_edgeql_functions_sequence_next_reset(self):
@@ -7475,48 +7505,54 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
 
     async def test_edgeql_functions_bitwise_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_lshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_lshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_lshift(<int16>5, -2);
                 ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_lshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_lshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_lshift(<int32>5, -2);
                 ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_lshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_lshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_lshift(<int64>5, -2);
                 ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_rshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_rshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_rshift(<int16>5, -2);
                 ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_rshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_rshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_rshift(<int32>5, -2);
                 ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"bit_rshift.*: cannot shift by negative amount"):
+            edgedb.InvalidValueError,
+            r"bit_rshift.*: cannot shift by negative amount",
+        ):
             async with self.con.transaction():
                 await self.con.query(r'''
                     select bit_rshift(<int64>5, -2);
@@ -9404,24 +9440,28 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                         urlsafe_unpadded_decoded = value,
                 }
                 """,
-                [{
-                    "standard_encoded":
-                        base64.b64encode(value)
-                              .decode("utf-8"),
-                    "standard_crosscheck": True,
-                    "standard_unpadded_encoded":
-                        base64.b64encode(value)
-                              .decode("utf-8").rstrip('='),
-                    "standard_unpadded_crosscheck": True,
-                    "urlsafe_encoded":
-                        base64.urlsafe_b64encode(value)
-                              .decode("utf-8"),
-                    "urlsafe_crosscheck": True,
-                    "urlsafe_unpadded_encoded":
-                        base64.urlsafe_b64encode(value)
-                              .decode("utf-8").rstrip('='),
-                    "urlsafe_unpadded_crosscheck": True,
-                }],
+                [
+                    {
+                        "standard_encoded": base64.b64encode(value).decode(
+                            "utf-8"
+                        ),
+                        "standard_crosscheck": True,
+                        "standard_unpadded_encoded": base64.b64encode(value)
+                        .decode("utf-8")
+                        .rstrip('='),
+                        "standard_unpadded_crosscheck": True,
+                        "urlsafe_encoded": base64.urlsafe_b64encode(
+                            value
+                        ).decode("utf-8"),
+                        "urlsafe_crosscheck": True,
+                        "urlsafe_unpadded_encoded": base64.urlsafe_b64encode(
+                            value
+                        )
+                        .decode("utf-8")
+                        .rstrip('='),
+                        "urlsafe_unpadded_crosscheck": True,
+                    }
+                ],
                 variables={
                     "value": value,
                 },
@@ -9432,17 +9472,13 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             edgedb.InvalidValueError,
             r'invalid symbol "~" found while decoding base64 sequence',
         ):
-            await self.con.execute(
-                'select std::enc::base64_decode("~")'
-            )
+            await self.con.execute('select std::enc::base64_decode("~")')
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r'invalid base64 end sequence',
         ):
-            await self.con.execute(
-                'select std::enc::base64_decode("AA")'
-            )
+            await self.con.execute('select std::enc::base64_decode("AA")')
 
     async def test_edgeql_call_type_as_function_01(self):
         async with self.assertRaisesRegexTx(

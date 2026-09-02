@@ -50,69 +50,129 @@ from . import styles
 from . import results
 
 
-__all__ = ('async_timeout', 'not_implemented', 'xerror', 'xfail', '_xfail',
-           'skip')
+__all__ = (
+    'async_timeout',
+    'not_implemented',
+    'xerror',
+    'xfail',
+    '_xfail',
+    'skip',
+)
 
 
 @edbcommands.command()
 @click.argument('files', nargs=-1, metavar='[file or directory]...')
-@click.option('-v', '--verbose', is_flag=True,
-              help='increase verbosity')
-@click.option('-q', '--quiet', is_flag=True,
-              help='decrease verbosity')
-@click.option('--debug', is_flag=True,
-              help='output internal debug logs')
-@click.option('--output-format',
-              type=click.Choice(runner.OutputFormat),  # type: ignore
-              help='test progress output style',
-              default=runner.OutputFormat.auto)
-@click.option('--warnings/--no-warnings',
-              help='enable or disable warnings (enabled by default)',
-              default=True)
-@click.option('-j', '--jobs', type=int,
-              default=0,
-              help='number of parallel processes to use, default is 0, which '
-                   'means choose automatically based on the number of '
-                   'available CPU cores')
-@click.option('-s', '--shard', type=str,
-              default='1/1',
-              help='run tests in shards (current/total)')
-@click.option('-k', '--include', type=str, multiple=True, metavar='REGEXP',
-              help='only run tests which match the given regular expression')
-@click.option('-e', '--exclude', type=str, multiple=True, metavar='REGEXP',
-              help='do not run tests which match the given regular expression')
-@click.option('-x', '--failfast', is_flag=True,
-              help='stop tests after a first failure/error')
-@click.option('--shuffle', is_flag=True,
-              help='shuffle the order in which tests are run')
-@click.option('--repeat', type=int, default=1,
-              help='repeat tests N times or until first unsuccessful run')
-@click.option('--cov', type=str, multiple=True,
-              help='package name to measure code coverage for, '
-                   'can be specified multiple times '
-                   '(e.g --cov edb.common --cov edb.server)')
-@click.option('--running-times-log', 'running_times_log_file',
-              type=click.File('a+'), metavar='FILEPATH',
-              help='maintain a running time log file at FILEPATH')
-@click.option('--result-log', type=str, metavar='FILEPATH',
-              help='write the test result to a log file. '
-                'If the path contains %TIMESTAMP%, it will be replaced by '
-                'ISO8601 date and time. '
-                'Empty string means not to write the log at all.',
-              default='build/test-results/%TIMESTAMP%.json')
-@click.option('--include-unsuccessful', is_flag=True,
-              help='include the tests that were not successful in the last run')
-@click.option('--list', 'list_tests', is_flag=True,
-              help='list all the tests and exit')
-@click.option('--backend-dsn', type=str,
-              help='use the specified backend cluster instead of starting a '
-                   'temporary local one.')
-@click.option('--use-db-cache', is_flag=True,
-              help='attempt to use a cache of the test databases (unsound!)')
-@click.option('--data-dir', type=str,
-              help='use a specified data dir')
-@click.option('--use-data-dir-dbs', is_flag=True,
-              help='attempt to use setup databases in the data-dir')
+@click.option('-v', '--verbose', is_flag=True, help='increase verbosity')
+@click.option('-q', '--quiet', is_flag=True, help='decrease verbosity')
+@click.option('--debug', is_flag=True, help='output internal debug logs')
+@click.option(
+    '--output-format',
+    type=click.Choice(runner.OutputFormat),  # type: ignore
+    help='test progress output style',
+    default=runner.OutputFormat.auto,
+)
+@click.option(
+    '--warnings/--no-warnings',
+    help='enable or disable warnings (enabled by default)',
+    default=True,
+)
+@click.option(
+    '-j',
+    '--jobs',
+    type=int,
+    default=0,
+    help='number of parallel processes to use, default is 0, which '
+    'means choose automatically based on the number of '
+    'available CPU cores',
+)
+@click.option(
+    '-s',
+    '--shard',
+    type=str,
+    default='1/1',
+    help='run tests in shards (current/total)',
+)
+@click.option(
+    '-k',
+    '--include',
+    type=str,
+    multiple=True,
+    metavar='REGEXP',
+    help='only run tests which match the given regular expression',
+)
+@click.option(
+    '-e',
+    '--exclude',
+    type=str,
+    multiple=True,
+    metavar='REGEXP',
+    help='do not run tests which match the given regular expression',
+)
+@click.option(
+    '-x',
+    '--failfast',
+    is_flag=True,
+    help='stop tests after a first failure/error',
+)
+@click.option(
+    '--shuffle', is_flag=True, help='shuffle the order in which tests are run'
+)
+@click.option(
+    '--repeat',
+    type=int,
+    default=1,
+    help='repeat tests N times or until first unsuccessful run',
+)
+@click.option(
+    '--cov',
+    type=str,
+    multiple=True,
+    help='package name to measure code coverage for, '
+    'can be specified multiple times '
+    '(e.g --cov edb.common --cov edb.server)',
+)
+@click.option(
+    '--running-times-log',
+    'running_times_log_file',
+    type=click.File('a+'),
+    metavar='FILEPATH',
+    help='maintain a running time log file at FILEPATH',
+)
+@click.option(
+    '--result-log',
+    type=str,
+    metavar='FILEPATH',
+    help='write the test result to a log file. '
+    'If the path contains %TIMESTAMP%, it will be replaced by '
+    'ISO8601 date and time. '
+    'Empty string means not to write the log at all.',
+    default='build/test-results/%TIMESTAMP%.json',
+)
+@click.option(
+    '--include-unsuccessful',
+    is_flag=True,
+    help='include the tests that were not successful in the last run',
+)
+@click.option(
+    '--list', 'list_tests', is_flag=True, help='list all the tests and exit'
+)
+@click.option(
+    '--backend-dsn',
+    type=str,
+    help='use the specified backend cluster instead of starting a '
+    'temporary local one.',
+)
+@click.option(
+    '--use-db-cache',
+    is_flag=True,
+    help='attempt to use a cache of the test databases (unsound!)',
+)
+@click.option('--data-dir', type=str, help='use a specified data dir')
+@click.option(
+    '--use-data-dir-dbs',
+    is_flag=True,
+    help='attempt to use setup databases in the data-dir',
+)
 def test(
     *,
     files: typing.Sequence[str],
@@ -147,7 +207,9 @@ def test(
         if verbose:
             click.secho(
                 'Warning: both --quiet and --verbose are '
-                'specified, assuming --quiet.', fg='yellow')
+                'specified, assuming --quiet.',
+                fg='yellow',
+            )
         verbosity = 0
     elif verbose:
         verbosity = 2
@@ -161,13 +223,14 @@ def test(
 
     if verbosity > 1 and output_format is runner.OutputFormat.stacked:
         click.secho(
-            'Error: cannot use stacked output format in verbose mode.',
-            fg='red')
+            'Error: cannot use stacked output format in verbose mode.', fg='red'
+        )
         sys.exit(1)
 
     if repeat < 1:
         click.secho(
-            'Error: --repeat must be a positive non-zero number.', fg='red')
+            'Error: --repeat must be a positive non-zero number.', fg='red'
+        )
         sys.exit(1)
 
     if not files:
@@ -177,13 +240,13 @@ def test(
         else:
             click.secho(
                 'Error: no test path specified and no "tests" directory found',
-                fg='red')
+                fg='red',
+            )
             sys.exit(1)
 
     for file in files:
         if not os.path.exists(file):
-            click.secho(
-                f'Error: test path {file!r} does not exist', fg='red')
+            click.secho(f'Error: test path {file!r} does not exist', fg='red')
             sys.exit(1)
 
     try:
@@ -224,7 +287,9 @@ def test(
             if '\\' in pkg or '/' in pkg or pkg.endswith('.py'):
                 click.secho(
                     f'Error: --cov argument {pkg!r} looks like a path, '
-                    f'expected a Python package name', fg='red')
+                    f'expected a Python package name',
+                    fg='red',
+                )
                 sys.exit(1)
 
         with _coverage_wrapper(cov):
@@ -241,8 +306,8 @@ def _coverage_wrapper(paths):
         import coverage  # NoQA
     except ImportError:
         click.secho(
-            'Error: "coverage" package is missing, cannot run tests '
-            'with --cov')
+            'Error: "coverage" package is missing, cannot run tests with --cov'
+        )
         sys.exit(1)
 
     for path in edb.__path__:
@@ -254,9 +319,8 @@ def _coverage_wrapper(paths):
 
     with tempfile.TemporaryDirectory() as td:
         cov_config = devmode.CoverageConfig(
-            paths=paths,
-            config=str(cov_rc),
-            datadir=td)
+            paths=paths, config=str(cov_rc), datadir=td
+        )
         cov_config.save_to_environ()
 
         main_cov = cov_config.new_coverage_object()
@@ -333,9 +397,11 @@ def _run(
             nonlocal total, total_unfiltered
             total += n
             total_unfiltered += unfiltered_n
-            click.echo(styles.status(
-                f'Collected {total}/{total_unfiltered} tests.\r'),
-                nl=False, err=list_tests)
+            click.echo(
+                styles.status(f'Collected {total}/{total_unfiltered} tests.\r'),
+                nl=False,
+                err=list_tests,
+            )
     else:
         _update_progress = None
 
@@ -354,8 +420,9 @@ def _run(
 
     for file in files:
         if not os.path.exists(file) and verbosity > 0:
-            click.echo(styles.warning(
-                f'Warning: {file}: no such file or directory.'))
+            click.echo(
+                styles.warning(f'Warning: {file}: no such file or directory.')
+            )
 
         if os.path.isdir(file):
             start_dir = file
@@ -396,25 +463,32 @@ def _run(
     if verbosity > 0:
         click.echo()
         if jobs > 1:
-            click.echo(styles.status(
-                f'Using up to {jobs} processes to run tests.'))
+            click.echo(
+                styles.status(f'Using up to {jobs} processes to run tests.')
+            )
 
     for rnum in range(repeat):
         if repeat > 1:
-            click.echo(styles.status(
-                f'Repeat #{rnum + 1} out of {repeat}.'))
+            click.echo(styles.status(f'Repeat #{rnum + 1} out of {repeat}.'))
 
         test_runner = runner.ParallelTextTestRunner(
-            verbosity=verbosity, output_format=output_format,
-            warnings=warnings, num_workers=jobs,
-            failfast=failfast, shuffle=shuffle, backend_dsn=backend_dsn,
+            verbosity=verbosity,
+            output_format=output_format,
+            warnings=warnings,
+            num_workers=jobs,
+            failfast=failfast,
+            shuffle=shuffle,
+            backend_dsn=backend_dsn,
             try_cached_db=try_cached_db,
             data_dir=data_dir,
             use_data_dir_dbs=use_data_dir_dbs,
         )
 
         result = test_runner.run(
-            suite, selected_shard, total_shards, running_times_log_file,
+            suite,
+            selected_shard,
+            total_shards,
+            running_times_log_file,
         )
 
         if verbosity > 0:

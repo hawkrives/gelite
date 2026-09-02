@@ -270,13 +270,9 @@ def _compile_constraint_data(
         )
         except_data = _edgeql_tree_to_expr_data(except_sql.ast)
 
-    terminal_refs: set[irast.Set] = (
-        ir_utils.get_longest_paths(ir.expr.expr)
-    )
+    terminal_refs: set[irast.Set] = ir_utils.get_longest_paths(ir.expr.expr)
     if except_ir is not None:
-        terminal_refs.update(
-            ir_utils.get_longest_paths(except_ir.expr)
-        )
+        terminal_refs.update(ir_utils.get_longest_paths(except_ir.expr))
     ref_tables = get_ref_storage_info(ir.schema, terminal_refs)
 
     if len(ref_tables) > 1:
@@ -300,7 +296,9 @@ def _compile_constraint_data(
 
         assert subject_table
         subject_db_name = common.get_backend_name(
-            schema, subject_table, catenate=False,
+            schema,
+            subject_table,
+            catenate=False,
         )
         subject_table_type = 'ObjectType'
 
@@ -324,8 +322,8 @@ def _get_compiled_constraint_expr_data(
 
     constraint_subject = (
         constraint_data.subject
-        if constraint_data.subject != primary_subject else
-        None
+        if constraint_data.subject != primary_subject
+        else None
     )
 
     assert constraint_data.exclusive_expr_refs is not None
@@ -398,9 +396,7 @@ def compile_constraint(
     )
 
     if constraint_data.exclusive_expr_refs:
-        origin_expr_datas: dict[
-            s_constraints.Constraint, list[ExprData]
-        ] = {}
+        origin_expr_datas: dict[s_constraints.Constraint, list[ExprData]] = {}
         for origin in constraint_origins:
             if origin == constraint:
                 origin_data = constraint_data
@@ -429,19 +425,18 @@ def compile_constraint(
 
         # Set relative expressions
         # These are only needed for constraint triggers.
-        if (
-            not isinstance(constraint.get_subject(schema), s_scalars.ScalarType)
-            and table_constraint_requires_triggers(
-                constraint, schema, 'unique'
-            )
-        ):
-            relatives = list(set(
-                descendant
-                for origin in constraint_origins
-                for descendant in itertools.chain(
-                    [origin], origin.descendants(schema)
+        if not isinstance(
+            constraint.get_subject(schema), s_scalars.ScalarType
+        ) and table_constraint_requires_triggers(constraint, schema, 'unique'):
+            relatives = list(
+                set(
+                    descendant
+                    for origin in constraint_origins
+                    for descendant in itertools.chain(
+                        [origin], origin.descendants(schema)
+                    )
                 )
-            ))
+            )
 
             relative_expressions: list[ExprData] = []
             for relative in relatives:
@@ -476,8 +471,8 @@ def compile_constraint(
                 schema,
                 is_optional,
             )
-            if constraint_origins[0] != constraint else
-            constraint_data
+            if constraint_origins[0] != constraint
+            else constraint_data
         )
         exprdata = _edgeql_ref_to_pg_constr(
             subject, origin_data.subject, constraint_data.ir
@@ -526,15 +521,14 @@ class SchemaDomainConstraint:
 
         domconstr = self._domain_constraint(self)
         add_constr = dbops.AlterDomainAddConstraint(
-            name=domconstr.get_subject_name(quote=False), constraint=domconstr)
+            name=domconstr.get_subject_name(quote=False), constraint=domconstr
+        )
 
         ops.add_command(add_constr)
 
         return ops
 
-    def alter_ops(
-        self, orig_constr: SchemaConstraint
-    ):
+    def alter_ops(self, orig_constr: SchemaConstraint):
         ops = dbops.CommandGroup()
         return ops
 
@@ -543,7 +537,8 @@ class SchemaDomainConstraint:
 
         domconstr = self._domain_constraint(self)
         add_constr = dbops.AlterDomainDropConstraint(
-            name=domconstr.get_subject_name(quote=False), constraint=domconstr)
+            name=domconstr.get_subject_name(quote=False), constraint=domconstr
+        )
 
         ops.add_command(add_constr)
 
@@ -604,9 +599,7 @@ class SchemaTableConstraint:
 
         return ops
 
-    def alter_ops(
-        self, orig_constr: SchemaConstraint
-    ):
+    def alter_ops(self, orig_constr: SchemaConstraint):
         ops = dbops.CommandGroup()
 
         tabconstr = self._table_constraint(self)
@@ -644,8 +637,7 @@ class SchemaTableConstraint:
         raw_constr_name = tabconstr.constraint_name(quote=False)
 
         for expr, relative_expr in zip(
-            itertools.cycle(tabconstr._exprdata),
-            tabconstr._relative_exprdata
+            itertools.cycle(tabconstr._exprdata), tabconstr._relative_exprdata
         ):
             exprdata = expr.exprdata
             relative_exprdata = relative_expr.exprdata
@@ -656,8 +648,10 @@ class SchemaTableConstraint:
             schemaname, tablename = relative_expr.subject_db_name
             real_tablename = tabconstr.get_subject_name(quote=False)
 
-            errmsg = 'duplicate key value violates unique ' \
-                     'constraint {constr}'.format(constr=constr_name)
+            errmsg = (
+                'duplicate key value violates unique '
+                'constraint {constr}'.format(constr=constr_name)
+            )
             detail = common.quote_literal(
                 f"Key ({relative_exprdata.plain}) already exists."
             )
@@ -747,8 +741,7 @@ def ptr_default_to_col_default(schema, ptr, expr):
         eql = ql_parser.parse_query(expr.text)
         eql = ql_astutils.ensure_ql_query(
             qlast.TypeCast(
-                type=s_utils.typeref_to_ast(
-                    schema, ptr.get_target(schema)),
+                type=s_utils.typeref_to_ast(schema, ptr.get_target(schema)),
                 expr=eql,
             )
         )
@@ -819,8 +812,7 @@ def get_ref_storage_info(
             assert rptr and rptr.source
             assert isinstance(rptr.source.expr, irast.Pointer)
             srcref = rptr.source.expr.ptrref
-            schema, src = irtyputils.ptrcls_from_ptrref(
-                srcref, schema=schema)
+            schema, src = irtyputils.ptrcls_from_ptrref(srcref, schema=schema)
             if src.get_is_derived(schema):
                 # This specialized pointer was derived specifically
                 # for the purposes of constraint expr compilation.
@@ -839,7 +831,8 @@ def get_ref_storage_info(
 
     for ref, (ptr, src) in ref_ptrs.items():
         ptr_info = types.get_pointer_storage_info(
-            ptr, source=src, resolve_type=False, schema=schema)  # type: ignore
+            ptr, source=src, resolve_type=False, schema=schema
+        )  # type: ignore
 
         # See if any of the refs are hosted in pointer tables and others
         # are not...
@@ -855,7 +848,8 @@ def get_ref_storage_info(
         for ref in objtype_biased.copy():
             ptr, src = ref_ptrs[ref]
             ptr_info = types.get_pointer_storage_info(
-                ptr, source=src,  # type: ignore
+                ptr,
+                source=src,  # type: ignore
                 resolve_type=False,
                 link_bias=True,
                 schema=schema,
@@ -868,7 +862,8 @@ def get_ref_storage_info(
     ref_tables: RefTables = {}
 
     for ref, ptr_info in itertools.chain(
-            objtype_biased.items(), link_biased.items()):
+        objtype_biased.items(), link_biased.items()
+    ):
         ptr, src = ref_ptrs[ref]
 
         try:

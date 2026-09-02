@@ -101,23 +101,23 @@ class Base(ast.AST):
 
 class GrammarEntryPoint(Base):
     """Mixin denoting nodes that are entry points for EdgeQL grammar"""
+
     __abstract_node__ = True
 
 
 class OptionValue(Base):
     """An option value resulting from a syntax."""
+
     __abstract_node__ = True
 
     name: str
 
 
 class OptionFlag(OptionValue):
-
     val: bool
 
 
 class Options(Base):
-
     options: dict[str, OptionValue] = ast.field(factory=dict)
 
     def get_flag(self, k: str) -> OptionFlag:
@@ -187,14 +187,16 @@ class ObjectRef(BaseObjectRef, GroupingAtom):
 
 class PseudoObjectRef(BaseObjectRef):
     '''anytype, anytuple or anyobject'''
+
     name: str
 
 
 class Anchor(Expr):
     '''Identifier that resolves to some pre-compiled expression.
-       For example in shapes, the anchor __subject__ refers to object that the
-       shape is defined on.
+    For example in shapes, the anchor __subject__ refers to object that the
+    shape is defined on.
     '''
+
     __abstract_node__ = True
     name: str
 
@@ -221,7 +223,7 @@ class SpecialAnchor(Anchor):
 
 class Cursor(Expr):
     '''A special node that halts compilation and returns all names visible in
-       the current scope. Used for LSP completions.
+    the current scope. Used for LSP completions.
     '''
 
 
@@ -281,11 +283,13 @@ class StrInterp(Expr):
 
 class BaseConstant(Expr):
     """Constant (a literal value)."""
+
     __abstract_node__ = True
 
 
 class Constant(BaseConstant):
     """Constant whose value we can store in a string."""
+
     kind: ConstantKind
     value: str
 
@@ -475,6 +479,7 @@ class Set(Expr):
 
 # Statements
 #
+
 
 class Command(Base):
     """
@@ -693,17 +698,14 @@ class RollbackTransaction(Transaction):
 
 
 class DeclareSavepoint(Transaction):
-
     name: str
 
 
 class RollbackToSavepoint(Transaction):
-
     name: str
 
 
 class ReleaseSavepoint(Transaction):
-
     name: str
 
 
@@ -713,6 +715,7 @@ class ReleaseSavepoint(Transaction):
 
 class DDL(Base):
     '''A mixin denoting DDL nodes.'''
+
     __abstract_node__ = True
 
 
@@ -734,6 +737,7 @@ class DDLCommand(DDLOperation, Command):
 
 class DDLQuery(DDLCommand):
     '''A query wrapped in DDL. Appears in migrations.'''
+
     query: Query
 
 
@@ -829,18 +833,15 @@ class Rename(ObjectDDL):
 
 
 class NestedQLBlock(DDL):
-
     commands: list[DDLOperation]
     text: typing.Optional[str] = None
 
 
 class MigrationCommand(DDLCommand):
-
     __abstract_node__ = True
 
 
 class CreateMigration(CreateObject, MigrationCommand, GrammarEntryPoint):
-
     body: NestedQLBlock
     parent: typing.Optional[ObjectRef] = None
     metadata_only: bool = False
@@ -855,7 +856,6 @@ class CommittedSchema(DDL):
 
 
 class StartMigration(MigrationCommand):
-
     target: Schema | CommittedSchema
 
 
@@ -872,7 +872,6 @@ class AlterCurrentMigrationRejectProposed(MigrationCommand):
 
 
 class DescribeCurrentMigration(MigrationCommand):
-
     language: qltypes.DescribeLanguage
 
 
@@ -889,7 +888,6 @@ class DropMigration(DropObject, MigrationCommand):
 
 
 class ResetSchema(MigrationCommand):
-
     target: ObjectRef
 
 
@@ -906,12 +904,10 @@ class CommitMigrationRewrite(MigrationCommand):
 
 
 class UnqualifiedObjectCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
 class GlobalObjectCommand(UnqualifiedObjectCommand):
-
     __abstract_node__ = True
 
 
@@ -923,13 +919,11 @@ class BranchType(s_enum.StrEnum):
 
 
 class DatabaseCommand(GlobalObjectCommand, NonTransactionalDDLCommand):
-
     __abstract_node__ = True
     flavor: qltypes.SchemaObjectClass = qltypes.SchemaObjectClass.BRANCH
 
 
 class CreateDatabase(CreateObject, DatabaseCommand):
-
     template: typing.Optional[ObjectRef] = None
     branch_type: BranchType
 
@@ -943,13 +937,11 @@ class DropDatabase(DropObject, DatabaseCommand):
 
 
 class ExtensionPackageCommand(GlobalObjectCommand):
-
     __abstract_node__ = True
     version: Constant
 
 
 class CreateExtensionPackage(CreateObject, ExtensionPackageCommand):
-
     body: NestedQLBlock
 
 
@@ -994,7 +986,6 @@ class DropExtension(DropObject, ExtensionCommand):
 
 
 class FutureCommand(UnqualifiedObjectCommand):
-
     __abstract_node__ = True
 
 
@@ -1007,7 +998,6 @@ class DropFuture(DropObject, FutureCommand):
 
 
 class ModuleCommand(UnqualifiedObjectCommand):
-
     __abstract_node__ = True
 
 
@@ -1041,7 +1031,6 @@ class DropRole(DropObject, RoleCommand):
 
 
 class AnnotationCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1059,7 +1048,6 @@ class DropAnnotation(DropObject, AnnotationCommand):
 
 
 class PseudoTypeCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1068,7 +1056,6 @@ class CreatePseudoType(CreateObject, PseudoTypeCommand):
 
 
 class ScalarTypeCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1085,7 +1072,6 @@ class DropScalarType(DropObject, ScalarTypeCommand):
 
 
 class PropertyCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1132,7 +1118,6 @@ class DropConcreteProperty(DropObject, PropertyCommand):
 
 
 class ObjectTypeCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1149,7 +1134,6 @@ class DropObjectType(DropObject, ObjectTypeCommand):
 
 
 class AliasCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1166,7 +1150,6 @@ class DropAlias(DropObject, AliasCommand):
 
 
 class GlobalCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1193,7 +1176,6 @@ class SetGlobalType(SetField):
 
 
 class PermissionCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1210,7 +1192,6 @@ class DropPermission(DropObject, PermissionCommand):
 
 
 class LinkCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1243,7 +1224,6 @@ class DropConcreteLink(DropObject, LinkCommand):
 
 
 class ConstraintCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1265,7 +1245,6 @@ class DropConstraint(DropObject, ConstraintCommand):
 
 
 class ConcreteConstraintOp(ConstraintCommand):
-
     __abstract_node__ = True
     args: list[Expr]
     subjectexpr: typing.Optional[Expr]
@@ -1291,7 +1270,6 @@ class IndexType(DDL):
 
 
 class IndexCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1319,7 +1297,6 @@ class DropIndex(DropObject, IndexCommand):
 
 
 class IndexMatchCommand(ObjectDDL):
-
     __abstract_node__ = True
     valid_type: TypeName
 
@@ -1336,7 +1313,6 @@ class DropIndexMatch(DropObject, IndexMatchCommand):
 
 
 class ConcreteIndexCommand(IndexCommand):
-
     __abstract_node__ = True
     kwargs: dict[str, Expr] = ast.field(factory=dict)
     expr: Expr
@@ -1369,7 +1345,6 @@ class DropAnnotationValue(AnnotationCommand, DropObject):
 
 
 class AccessPolicyCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1394,7 +1369,6 @@ class DropAccessPolicy(DropObject, AccessPolicyCommand):
 
 
 class TriggerCommand(ObjectDDL):
-
     __abstract_node__ = True
 
 
@@ -1456,13 +1430,11 @@ class FunctionCode(DDL):
 
 
 class FunctionCommand(DDLCommand):
-
     __abstract_node__ = True
     params: list[FuncParamDecl] = ast.field(factory=list)
 
 
 class CreateFunction(CreateObject, FunctionCommand):
-
     returning: TypeExpr
     code: FunctionCode
     nativecode: typing.Optional[Expr]
@@ -1470,7 +1442,6 @@ class CreateFunction(CreateObject, FunctionCommand):
 
 
 class AlterFunction(AlterObject, FunctionCommand):
-
     code: FunctionCode = FunctionCode  # type: ignore
     nativecode: typing.Optional[Expr]
 
@@ -1488,7 +1459,6 @@ class OperatorCode(DDL):
 
 
 class OperatorCommand(DDLCommand):
-
     __abstract_node__ = True
     kind: qltypes.OperatorKind
     params: list[FuncParamDecl] = ast.field(factory=list)
@@ -1517,7 +1487,6 @@ class CastCode(DDL):
 
 
 class CastCommand(ObjectDDL):
-
     __abstract_node__ = True
     from_type: TypeName
     to_type: TypeName
@@ -1555,12 +1524,10 @@ class ConfigOp(Base):
 
 
 class ConfigSet(ConfigOp):
-
     expr: Expr
 
 
 class ConfigInsert(ConfigOp):
-
     shape: list[ShapeElement]
 
 
@@ -1574,7 +1541,6 @@ class ConfigReset(ConfigOp):
 
 
 class DescribeStmt(Command):
-
     language: qltypes.DescribeLanguage
     object: ObjectRef | DescribeGlobal
     options: Options
@@ -1586,7 +1552,6 @@ class DescribeStmt(Command):
 
 
 class ExplainStmt(Command):
-
     args: typing.Optional[NamedTuple]
     query: Query
 
@@ -1597,7 +1562,6 @@ class ExplainStmt(Command):
 
 
 class AdministerStmt(Command):
-
     expr: FunctionCall
 
 

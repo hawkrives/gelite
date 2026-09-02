@@ -151,10 +151,11 @@ def main(casts):
             elif assn_cast.get((source, target)):
                 val = '``:=``'
             elif expl_cast.get((source, target)):
-                if source in {
-                    'std::float32', 'std::float64'
-                } and target in {
-                    'std::int16', 'std::int32', 'std::int64', 'std::bigint'
+                if source in {'std::float32', 'std::float64'} and target in {
+                    'std::int16',
+                    'std::int32',
+                    'std::int64',
+                    'std::bigint',
                 }:
                     val = '``<>*``'
                 else:
@@ -176,13 +177,13 @@ def gen_cast_table():
     """
 
     try:
-        res = subprocess.run([
-            'edb',
-            'cli',
-            'query',
-            '-Fjson',
-
-            r"""
+        res = subprocess.run(
+            [
+                'edb',
+                'cli',
+                'query',
+                '-Fjson',
+                r"""
             WITH MODULE schema
             SELECT Cast {
                 source := .from_type.name,
@@ -192,7 +193,9 @@ def gen_cast_table():
             }
             FILTER all({.from_type, .to_type} IS ScalarType | ObjectType)
             """,
-        ], capture_output=True)
+            ],
+            capture_output=True,
+        )
 
         if res.returncode != 0:
             die('Could not connect to the dev Gel instance')

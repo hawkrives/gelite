@@ -19,9 +19,7 @@
 
 from __future__ import annotations
 
-from typing import (
-    AbstractSet, Any, Callable, Collection, Optional, Iterable
-)
+from typing import AbstractSet, Any, Callable, Collection, Optional, Iterable
 
 from edb.common import typeutils
 

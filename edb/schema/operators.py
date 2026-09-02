@@ -40,51 +40,48 @@ class Operator(
     qlkind=ft.SchemaObjectClass.OPERATOR,
     data_safe=True,
 ):
-
-    operator_kind = so.SchemaField(
-        ft.OperatorKind, coerce=True, compcoef=0.4)
+    operator_kind = so.SchemaField(ft.OperatorKind, coerce=True, compcoef=0.4)
 
     language = so.SchemaField(
-        qlast.Language, default=None, compcoef=0.4, coerce=True)
+        qlast.Language, default=None, compcoef=0.4, coerce=True
+    )
 
     from_operator = so.SchemaField(
-        checked.CheckedList[str], coerce=True,
-        default=None, compcoef=0.4)
+        checked.CheckedList[str], coerce=True, default=None, compcoef=0.4
+    )
 
     from_function = so.SchemaField(
-        checked.CheckedList[str], coerce=True,
-        default=None, compcoef=0.4)
+        checked.CheckedList[str], coerce=True, default=None, compcoef=0.4
+    )
 
-    from_expr = so.SchemaField(
-        bool, default=False, compcoef=0.4)
+    from_expr = so.SchemaField(bool, default=False, compcoef=0.4)
 
-    force_return_cast = so.SchemaField(
-        bool, default=False, compcoef=0.9)
+    force_return_cast = so.SchemaField(bool, default=False, compcoef=0.9)
 
-    code = so.SchemaField(
-        str, default=None, compcoef=0.4)
+    code = so.SchemaField(str, default=None, compcoef=0.4)
 
     # An unused dummy field. We have this here to make it easier to
     # test the *removal* of internal schema fields during in-place
     # upgrades.
-    _dummy_field = so.SchemaField(
-        str, default=None)
+    _dummy_field = so.SchemaField(str, default=None)
 
     # If this is a derivative operator, *derivative_of* would
     # contain the name of the origin operator.
     # For example, the `std::IN` operator has `std::=`
     # as its origin.
     derivative_of = so.SchemaField(
-        sn.QualName, coerce=True, default=None, compcoef=0.4)
+        sn.QualName, coerce=True, default=None, compcoef=0.4
+    )
 
     commutator = so.SchemaField(
-        sn.QualName, coerce=True, default=None, compcoef=0.99)
+        sn.QualName, coerce=True, default=None, compcoef=0.99
+    )
 
     negator = so.SchemaField(
-        sn.QualName, coerce=True, default=None, compcoef=0.99)
+        sn.QualName, coerce=True, default=None, compcoef=0.99
+    )
 
-    recursive = so.SchemaField(
-        bool, default=False, compcoef=0.4)
+    recursive = so.SchemaField(bool, default=False, compcoef=0.4)
 
     def get_display_signature(self, schema: s_schema.Schema) -> str:
         params = [
@@ -118,7 +115,6 @@ class OperatorCommand(
     s_func.CallableCommand[Operator],
     context_class=OperatorCommandContext,
 ):
-
     def get_ast_attr_for_field(
         self,
         field: str,
@@ -140,8 +136,7 @@ class OperatorCommand(
     ) -> sd.Command:
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
-                'user-defined operators are not supported',
-                span=astnode.span
+                'user-defined operators are not supported', span=astnode.span
             )
 
         return super()._cmd_tree_from_ast(schema, astnode, context)
@@ -158,9 +153,11 @@ class OperatorCommand(
         name = super()._classname_from_ast(schema, astnode, context)
 
         params = cls._get_param_desc_from_ast(
-            schema, context.modaliases, astnode)
+            schema, context.modaliases, astnode
+        )
         fqname = cls.get_schema_metaclass().get_fqname(
-            schema, name, params, astnode.kind)
+            schema, name, params, astnode.kind
+        )
         assert isinstance(fqname, sn.QualName)
         return fqname
 
@@ -187,7 +184,8 @@ class CreateOperator(
                 f'cannot create the `{signature}` operator: '
                 f'an operator with the same signature '
                 f'is already defined',
-                span=self.span)
+                span=self.span,
+            )
 
         schema = super()._create_begin(schema, context)
 
@@ -204,7 +202,8 @@ class CreateOperator(
             raise errors.InvalidOperatorDefinitionError(
                 f'cannot create the `{signature}` operator: '
                 f'an operator must have operands',
-                span=self.span)
+                span=self.span,
+            )
 
         # We'll need to make sure that there's no mix of recursive and
         # non-recursive operators being overloaded.
@@ -213,8 +212,9 @@ class CreateOperator(
             ptype = param.get_type(schema)
             all_arrays = all_arrays and ptype.is_array()
             all_tuples = all_tuples and ptype.is_tuple(schema)
-            all_ranges = all_ranges and (ptype.is_range()
-                                         or ptype.is_multirange())
+            all_ranges = all_ranges and (
+                ptype.is_range() or ptype.is_multirange()
+            )
 
         # It's illegal to declare an operator as recursive unless all
         # of its operands are the same basic type of collection.
@@ -223,7 +223,8 @@ class CreateOperator(
                 f'cannot create the `{signature}` operator: '
                 f'operands of a recursive operator must either be '
                 f'all arrays or all tuples',
-                span=self.span)
+                span=self.span,
+            )
 
         for oper in lookup_operators(shortname, (), schema=schema):
             if oper == self.scls:
@@ -236,7 +237,8 @@ class CreateOperator(
                     f'operator: overloading another operator with different '
                     f'return type {oper_return_typemod.to_edgeql()} '
                     f'{oper.get_return_type(schema).name}',
-                    span=self.span)
+                    span=self.span,
+                )
 
             oper_derivative_of = oper.get_derivative_of(schema)
             if oper_derivative_of:
@@ -244,13 +246,15 @@ class CreateOperator(
                     f'cannot create the `{signature}` '
                     f'operator: there exists a derivative operator of the '
                     f'same name',
-                    span=self.span)
+                    span=self.span,
+                )
             elif derivative_of:
                 raise errors.DuplicateOperatorDefinitionError(
                     f'cannot create `{signature}` '
                     f'as a derivative operator: there already exists an '
                     f'operator of the same name',
-                    span=self.span)
+                    span=self.span,
+                )
 
             # Check if there is a recursive/non-recursive operator
             # overloading.
@@ -261,27 +265,28 @@ class CreateOperator(
                 for param in oper.get_params(schema).objects(schema):
                     ptype = param.get_type(schema)
                     oper_all_arrays = oper_all_arrays and ptype.is_array()
-                    oper_all_tuples = (
-                        oper_all_tuples
-                        and ptype.is_tuple(schema)
-                    )
+                    oper_all_tuples = oper_all_tuples and ptype.is_tuple(schema)
                     oper_all_ranges = oper_all_ranges and (
                         ptype.is_range() or ptype.is_multirange()
                     )
 
-                if (all_arrays == oper_all_arrays and
-                        all_tuples == oper_all_tuples and
-                        all_ranges == oper_all_ranges):
+                if (
+                    all_arrays == oper_all_arrays
+                    and all_tuples == oper_all_tuples
+                    and all_ranges == oper_all_ranges
+                ):
                     new_rec = 'recursive' if recursive else 'non-recursive'
-                    oper_rec = \
+                    oper_rec = (
                         'recursive' if oper_recursive else 'non-recursive'
+                    )
 
                     raise errors.InvalidOperatorDefinitionError(
                         f'cannot create the {new_rec} `{signature}` operator: '
                         f'overloading a {oper_rec} operator '
                         f'`{oper_signature}` with a {new_rec} one '
                         f'is not allowed',
-                        span=self.span)
+                        span=self.span,
+                    )
 
         return schema
 
@@ -317,9 +322,7 @@ class CreateOperator(
                 )
             if astnode.code.code is not None:
                 # TODO: Make operators from code strict when we can?
-                cmd.set_attribute_value(
-                    'impl_is_strict', False
-                )
+                cmd.set_attribute_value('impl_is_strict', False)
                 cmd.set_attribute_value(
                     'code',
                     astnode.code.code,

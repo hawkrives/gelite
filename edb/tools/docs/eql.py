@@ -197,7 +197,6 @@ To reference a keyword use a ":eql:kw:" role.  For instance:
 
 """
 
-
 from __future__ import annotations
 
 import io
@@ -234,7 +233,6 @@ from . import shared
 
 
 class EQLField(s_docfields.Field):
-
     def __init__(
         self,
         name,
@@ -262,7 +260,6 @@ class EQLField(s_docfields.Field):
         inliner=None,
         location=None,
     ):
-
         if not rolename:
             return contnode or innernode(target, target)
 
@@ -272,10 +269,14 @@ class EQLField(s_docfields.Field):
             if target in EQLTypedField.ignored_types:
                 return d_nodes.Text(title)
 
-        refnode = s_nodes.pending_xref('', refdomain=domain,
-                                       refexplicit=title != target,
-                                       reftype=rolename, reftarget=target,
-                                       location=location)
+        refnode = s_nodes.pending_xref(
+            '',
+            refdomain=domain,
+            refexplicit=title != target,
+            reftype=rolename,
+            reftarget=target,
+            location=location,
+        )
         refnode += contnode or innernode(title, title)
         if env:
             env.domains[domain].process_field_xref(refnode)
@@ -315,26 +316,29 @@ class EQLField(s_docfields.Field):
             if delims_re.match(sub_target):
                 results.append(contnode or innernode(sub_target, sub_target))
             else:
-                results.append(self.make_xref(rolename, domain, sub_target,
-                                              innernode, contnode, env,
-                                              inliner=inliner,
-                                              location=location))
+                results.append(
+                    self.make_xref(
+                        rolename,
+                        domain,
+                        sub_target,
+                        innernode,
+                        contnode,
+                        env,
+                        inliner=inliner,
+                        location=location,
+                    )
+                )
 
         return results
 
 
 INDEX_FIELD = EQLField(
-    'index',
-    label='Index Keywords',
-    names=('index',),
-    has_arg=False)
+    'index', label='Index Keywords', names=('index',), has_arg=False
+)
 
 
 class EQLTypedField(EQLField):
-
-    ignored_types = {
-        'type'
-    }
+    ignored_types = {'type'}
 
     def __init__(
         self,
@@ -356,17 +360,32 @@ class EQLTypedField(EQLField):
 
         body = d_nodes.paragraph()
         if fieldarg:
-            body.extend(self.make_xrefs(self.rolename, domain, fieldarg,
-                                        s_nodes.literal_strong, env=env,
-                                        inliner=inliner, location=location))
+            body.extend(
+                self.make_xrefs(
+                    self.rolename,
+                    domain,
+                    fieldarg,
+                    s_nodes.literal_strong,
+                    env=env,
+                    inliner=inliner,
+                    location=location,
+                )
+            )
 
             body += d_nodes.Text('--')
 
-        typename = u''.join(n.astext() for n in fieldtype)
+        typename = ''.join(n.astext() for n in fieldtype)
         body.extend(
-            self.make_xrefs(self.typerolename, domain, typename,
-                            s_nodes.literal_emphasis, env=env,
-                            inliner=inliner, location=location))
+            self.make_xrefs(
+                self.typerolename,
+                domain,
+                typename,
+                s_nodes.literal_emphasis,
+                env=env,
+                inliner=inliner,
+                location=location,
+            )
+        )
 
         fieldname = d_nodes.field_name('', self.label)
         fieldbody = d_nodes.field_body('', body)
@@ -380,7 +399,6 @@ class EQLTypedField(EQLField):
 
 
 class EQLTypedParamField(EQLField):
-
     is_typed = True
 
     def __init__(
@@ -403,9 +421,16 @@ class EQLTypedParamField(EQLField):
 
         fieldarg, content = item
         body = d_nodes.paragraph()
-        body.extend(self.make_xrefs(self.rolename, domain, fieldarg,
-                                    s_nodes.literal_strong, env=env,
-                                    inliner=inliner))
+        body.extend(
+            self.make_xrefs(
+                self.rolename,
+                domain,
+                fieldarg,
+                s_nodes.literal_strong,
+                env=env,
+                inliner=inliner,
+            )
+        )
 
         typename = None
         if fieldarg in types:
@@ -416,11 +441,17 @@ class EQLTypedParamField(EQLField):
             # inconsistencies later when references are resolved
             fieldtype = types.pop(fieldarg)
             if len(fieldtype) == 1 and isinstance(fieldtype[0], d_nodes.Text):
-                typename = u''.join(n.astext() for n in fieldtype)
+                typename = ''.join(n.astext() for n in fieldtype)
                 body.extend(
-                    self.make_xrefs(self.typerolename, domain, typename,
-                                    s_nodes.literal_emphasis, env=env,
-                                    inliner=inliner))
+                    self.make_xrefs(
+                        self.typerolename,
+                        domain,
+                        typename,
+                        s_nodes.literal_emphasis,
+                        env=env,
+                        inliner=inliner,
+                    )
+                )
             else:
                 body += fieldtype
             body += d_nodes.Text(')')
@@ -439,12 +470,10 @@ class EQLTypedParamField(EQLField):
 
 
 class BaseEQLDirective(s_directives.ObjectDescription):
-
     @staticmethod
     def strip_ws(text):
         text = text.strip()
-        text = ' '.join(
-            line.strip() for line in text.split() if line.strip())
+        text = ' '.join(line.strip() for line in text.split() if line.strip())
         return text
 
     def _validate_and_extract_summary(self, node):
@@ -476,13 +505,15 @@ class BaseEQLDirective(s_directives.ObjectDescription):
 
         if not isinstance(first_node, d_nodes.paragraph):
             raise self.error(
-                'there must be a short text paragraph after directive fields')
+                'there must be a short text paragraph after directive fields'
+            )
 
         summary = self.strip_ws(first_node.astext())
         if len(summary) > 79:
             raise self.error(
                 f'First paragraph is expected to be shorter than 80 '
-                f'characters, got {len(summary)}: {summary!r}')
+                f'characters, got {len(summary)}: {summary!r}'
+            )
 
         node['summary'] = summary
 
@@ -523,7 +554,8 @@ class BaseEQLDirective(s_directives.ObjectDescription):
         for child in desc_cnt.children[1:]:
             if isinstance(child, d_nodes.field_list):
                 raise self.error(
-                    f'fields must be specified before all other content')
+                    f'fields must be specified before all other content'
+                )
 
         if fields:
             for field in fields:
@@ -572,26 +604,23 @@ class BaseEQLDirective(s_directives.ObjectDescription):
         target = name.replace(' ', '-')
 
         if target in self.state.document.ids:
-            raise self.error(
-                f'duplicate {self.objtype} {name} description')
+            raise self.error(f'duplicate {self.objtype} {name} description')
 
         signode['names'].append(target)
         signode['ids'].append(target)
-        signode['first'] = (not self.names)
+        signode['first'] = not self.names
         self.state.document.note_explicit_target(signode)
 
         objects = self.env.domaindata['eql']['objects']
 
         if target in objects:
-            raise self.error(
-                f'duplicate {self.objtype} {name} description')
+            raise self.error(f'duplicate {self.objtype} {name} description')
         objects[target] = (self.env.docname, self.objtype)
 
         self.__eql_target = target
 
 
 class EQLTypeDirective(BaseEQLDirective):
-
     doc_field_types = [
         INDEX_FIELD,
     ]
@@ -617,12 +646,10 @@ class EQLTypeDirective(BaseEQLDirective):
         return fullname
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'type::{name}', sig, signode)
+        return super().add_target_and_index(f'type::{name}', sig, signode)
 
 
 class EQLKeywordDirective(BaseEQLDirective):
-
     def handle_signature(self, sig, signode):
         signode['eql-name'] = sig
         signode['eql-fullname'] = sig
@@ -635,12 +662,10 @@ class EQLKeywordDirective(BaseEQLDirective):
         return sig
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'keyword::{name}', sig, signode)
+        return super().add_target_and_index(f'keyword::{name}', sig, signode)
 
 
 class EQLSynopsisDirective(shared.CodeBlock):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 0
@@ -654,7 +679,6 @@ class EQLSynopsisDirective(shared.CodeBlock):
 
 
 class EQLReactElement(d_rst.Directive):
-
     has_content = False
     optional_arguments = 0
     required_arguments = 1
@@ -666,7 +690,6 @@ class EQLReactElement(d_rst.Directive):
 
 
 class EQLSectionIntroPage(d_rst.Directive):
-
     has_content = False
     optional_arguments = 0
     required_arguments = 1
@@ -678,7 +701,6 @@ class EQLSectionIntroPage(d_rst.Directive):
 
 
 class EQLStructElement(d_rst.Directive):
-
     has_content = False
     optional_arguments = 0
     required_arguments = 1
@@ -698,22 +720,18 @@ class EQLStructElement(d_rst.Directive):
 
 
 class EQLOperatorDirective(BaseEQLDirective):
-
     doc_field_types = [
         INDEX_FIELD,
-
         EQLTypedField(
-            'operand',
-            label='Operand',
-            names=('optype',),
-            typerolename='type'),
-
+            'operand', label='Operand', names=('optype',), typerolename='type'
+        ),
         EQLTypedField(
             'resulttype',
             label='Result',
             has_arg=False,
             names=('resulttype',),
-            typerolename='type'),
+            typerolename='type',
+        ),
     ]
 
     def handle_signature(self, sig, signode):
@@ -744,12 +762,10 @@ class EQLOperatorDirective(BaseEQLDirective):
         return name
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'operator::{name}', sig, signode)
+        return super().add_target_and_index(f'operator::{name}', sig, signode)
 
 
 class EQLFunctionDirective(BaseEQLDirective):
-
     doc_field_types = [
         INDEX_FIELD,
     ]
@@ -779,24 +795,29 @@ class EQLFunctionDirective(BaseEQLDirective):
                 f'{ex.__class__.__name__}({ex.args[0]!r})'
             ) from ex
 
-        if (not isinstance(astnode, ql_ast.CreateFunction) or
-                not isinstance(astnode.name, ql_ast.ObjectRef)):
+        if not isinstance(astnode, ql_ast.CreateFunction) or not isinstance(
+            astnode.name, ql_ast.ObjectRef
+        ):
             raise self.error(f'EdgeQL parser returned unsupported AST')
 
         modname = astnode.name.module
         funcname = astnode.name.name
         if not modname:
             raise self.error(
-                f'EdgeQL function declaration is missing namespace')
+                f'EdgeQL function declaration is missing namespace'
+            )
 
         func_repr = ql_gen.generate_source(astnode)
-        m = re.match(r'''(?xs)
+        m = re.match(
+            r'''(?xs)
             ^
             create\sfunction\s
             (?P<f>.*?)
             \susing\ssql\sfunction
             .*$
-        ''', func_repr)
+        ''',
+            func_repr,
+        )
         if not m or not m.group('f'):
             raise self.error(f'could not recreate function signature from AST')
         func_repr = m.group('f')
@@ -820,12 +841,10 @@ class EQLFunctionDirective(BaseEQLDirective):
         return fullname
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'function::{name}', sig, signode)
+        return super().add_target_and_index(f'function::{name}', sig, signode)
 
 
 class EQLConstraintDirective(BaseEQLDirective):
-
     doc_field_types = [
         INDEX_FIELD,
     ]
@@ -850,29 +869,34 @@ class EQLConstraintDirective(BaseEQLDirective):
             )[0]
         except Exception as ex:
             raise self.error(
-                f'could not parse constraint signature {sig!r}') from ex
+                f'could not parse constraint signature {sig!r}'
+            ) from ex
 
-        if (not isinstance(astnode, ql_ast.CreateConstraint) or
-                not isinstance(astnode.name, ql_ast.ObjectRef)):
+        if not isinstance(astnode, ql_ast.CreateConstraint) or not isinstance(
+            astnode.name, ql_ast.ObjectRef
+        ):
             raise self.error(f'EdgeQL parser returned unsupported AST')
 
         modname = astnode.name.module
         constr_name = astnode.name.name
         if not modname:
-            raise self.error(
-                f'Missing module in EdgeQL constraint declaration')
+            raise self.error(f'Missing module in EdgeQL constraint declaration')
 
         constr_repr = ql_gen.generate_source(astnode)
 
-        m = re.match(r'''(?xs)
+        m = re.match(
+            r'''(?xs)
             ^
             create\sabstract\sconstraint\s
             (?P<f>.*?)(?:\s*on(?P<subj>.*))?
             $
-        ''', constr_repr)
+        ''',
+            constr_repr,
+        )
         if not m or not m.group('f'):
             raise self.error(
-                f'could not recreate constraint signature from AST')
+                f'could not recreate constraint signature from AST'
+            )
         constr_repr = m.group('f')
 
         signode['eql-module'] = modname
@@ -892,12 +916,10 @@ class EQLConstraintDirective(BaseEQLDirective):
         return fullname
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'constraint::{name}', sig, signode)
+        return super().add_target_and_index(f'constraint::{name}', sig, signode)
 
 
 class EQLPermissionDirective(BaseEQLDirective):
-
     doc_field_types = [
         INDEX_FIELD,
     ]
@@ -923,17 +945,19 @@ class EQLPermissionDirective(BaseEQLDirective):
         return fullname
 
     def add_target_and_index(self, name, sig, signode):
-        return super().add_target_and_index(
-            f'permission::{name}', sig, signode)
+        return super().add_target_and_index(f'permission::{name}', sig, signode)
 
 
 class EQLTypeXRef(s_roles.XRefRole):
-
     @staticmethod
     def filter_target(target):
-        new_target = re.sub(r'''(?xi)
+        new_target = re.sub(
+            r'''(?xi)
             ^ \s*\bSET\s+OF\s+ | \s*\bOPTIONAL\s+
-        ''', '', target)
+        ''',
+            '',
+            target,
+        )
 
         if '<' in new_target:
             new_target, _ = new_target.split('<', 1)
@@ -945,16 +969,17 @@ class EQLTypeXRef(s_roles.XRefRole):
         if not has_explicit_title:
             title = target.replace('-', ' ')
         return super().process_link(
-            env, refnode, has_explicit_title, title, new_target)
+            env, refnode, has_explicit_title, title, new_target
+        )
 
 
 class EQLFunctionXRef(s_roles.XRefRole):
-
     def process_link(self, env, refnode, has_explicit_title, title, target):
         if not has_explicit_title:
             title += '()'
         return super().process_link(
-            env, refnode, has_explicit_title, title, target)
+            env, refnode, has_explicit_title, title, target
+        )
 
 
 class EQLFunctionDescXRef(s_roles.XRefRole):
@@ -974,7 +999,6 @@ class EQLPermissionXRef(s_roles.XRefRole):
 
 
 class GitHubLinkRole:
-
     DEFAULT_REPO = 'edgedb/edgedb'
     BASE_URL = 'https://github.com/'
 
@@ -993,7 +1017,8 @@ class GitHubLinkRole:
                 (?P<commit>[A-Fa-f\d]{8,40})
             )
         ''',
-        re.X)
+        re.X,
+    )
 
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
@@ -1046,7 +1071,6 @@ class GitHubLinkRole:
 
 
 class EdgeQLDomain(s_domains.Domain):
-
     name = "eql"
     label = "EdgeQL"
 
@@ -1061,8 +1085,7 @@ class EdgeQLDomain(s_domains.Domain):
     }
 
     _role_to_object_type = {
-        role: tn
-        for tn, td in object_types.items() for role in td.roles
+        role: tn for tn, td in object_types.items() for role in td.roles
     }
 
     directives = {
@@ -1074,7 +1097,6 @@ class EdgeQLDomain(s_domains.Domain):
         'permission': EQLPermissionDirective,
         'synopsis': EQLSynopsisDirective,
         'struct': EQLStructElement,
-
         # TODO: Move to edb domain
         'react-element': EQLReactElement,
         'section-intro-page': EQLSectionIntroPage,
@@ -1090,7 +1112,6 @@ class EdgeQLDomain(s_domains.Domain):
         'op-desc': EQLOperatorDescXRef(),
         'permission': EQLPermissionXRef(),
         'stmt': s_roles.XRefRole(),
-
         # TODO: Move to edb domain
         'gh': GitHubLinkRole(),
     }
@@ -1107,7 +1128,6 @@ class EdgeQLDomain(s_domains.Domain):
     def resolve_xref(
         self, env, fromdocname, builder, type, target, node, contnode
     ):
-
         objects = self.data['objects']
         expected_type = self._role_to_object_type[type]
 
@@ -1158,8 +1178,10 @@ class EdgeQLDomain(s_domains.Domain):
                         continue
 
                     newnode = d_nodes.reference(
-                        '', '',
-                        internal=False, refuri=ref[2],
+                        '',
+                        '',
+                        internal=False,
+                        refuri=ref[2],
                     )
                     if node.get('refexplicit'):
                         newnode.append(d_nodes.Text(contnode.astext()))
@@ -1167,14 +1189,15 @@ class EdgeQLDomain(s_domains.Domain):
                         title = contnode.astext()
                         newnode.append(
                             contnode.__class__(
-                                title[len(docset_name) + 1:],
-                                title[len(docset_name) + 1:]
+                                title[len(docset_name) + 1 :],
+                                title[len(docset_name) + 1 :],
                             )
                         )
                     return newnode
 
                 raise shared.DomainError(
-                    f'cannot resolve :eql:{type}: targeting {target!r}')
+                    f'cannot resolve :eql:{type}: targeting {target!r}'
+                )
             else:
                 return
 
@@ -1182,13 +1205,15 @@ class EdgeQLDomain(s_domains.Domain):
             raise shared.DomainError(
                 f'cannot resolve :eql:{type}: targeting {target!r}: '
                 f'the type of referred object {expected_type!r} '
-                f'does not match the reftype')
+                f'does not match the reftype'
+            )
 
         if node['reftype'] in self.desc_roles:
             node = d_nodes.Text(obj_desc)
         else:
             node = s_nodes_utils.make_refnode(
-                builder, fromdocname, docname, target, contnode, None)
+                builder, fromdocname, docname, target, contnode, None
+            )
             node['eql-type'] = obj_type
 
         return node
@@ -1222,7 +1247,6 @@ class EdgeQLDomain(s_domains.Domain):
 
 
 class StatementTransform(s_transforms.SphinxTransform):
-
     default_priority = 5  # before ReferencesResolver
 
     def apply(self):
@@ -1239,16 +1263,19 @@ class StatementTransform(s_transforms.SphinxTransform):
                 page_titles = x.xpath(
                     '''//field_list/field/field_name[text()="edb-alt-title"]
                         /parent::field/field_body/paragraph/text()
-                    ''')
+                    '''
+                )
                 if page_titles:
                     page_title = page_titles[0]
 
             if page_title:
-                if (not section.children or
-                        not isinstance(section.children[0], d_nodes.title)):
+                if not section.children or not isinstance(
+                    section.children[0], d_nodes.title
+                ):
                     raise shared.EdgeSphinxExtensionError(
                         f'cannot apply :edb-alt-title: field to the {title!r} '
-                        f'section')
+                        f'section'
+                    )
 
                 section.children[0]['edb-alt-title'] = page_title
 
@@ -1256,27 +1283,32 @@ class StatementTransform(s_transforms.SphinxTransform):
                 continue
 
             nested_statements = x.xpath(
-                '//field_list/field/field_name[text()="eql-statement"]')
+                '//field_list/field/field_name[text()="eql-statement"]'
+            )
             if len(nested_statements) > 1:
                 raise shared.EdgeSphinxExtensionError(
                     f'section {title!r} has a nested section with '
-                    f'a :eql-statement: field set')
+                    f'a :eql-statement: field set'
+                )
 
             first_para = x.xpath('paragraph[1]/descendant-or-self::*/text()')
             if not len(first_para):
                 raise shared.EdgeSphinxExtensionError(
                     f'section {title!r} is marked with an :eql-statement: '
-                    f'and is required to have at least one paragraph')
+                    f'and is required to have at least one paragraph'
+                )
             first_para = ''.join(first_para)
             summary = BaseEQLDirective.strip_ws(first_para)
             if len(summary) > 79:
                 raise shared.EdgeSphinxExtensionError(
                     f'section {title!r} is marked with an :eql-statement: '
-                    f'and its first paragraph is longer than 79 characters')
+                    f'and its first paragraph is longer than 79 characters'
+                )
 
             section['eql-statement'] = 'true'
-            section['eql-haswith'] = ('true' if 'eql-haswith' in fields
-                                      else 'false')
+            section['eql-haswith'] = (
+                'true' if 'eql-haswith' in fields else 'false'
+            )
             section['summary'] = summary
 
             objects = self.env.domaindata['eql']['objects']
@@ -1286,7 +1318,8 @@ class StatementTransform(s_transforms.SphinxTransform):
 
             if target in objects:
                 raise shared.EdgeSphinxExtensionError(
-                    f'duplicate {title!r} statement')
+                    f'duplicate {title!r} statement'
+                )
 
             objects[target] = (self.env.docname, 'statement', summary)
 
@@ -1305,13 +1338,9 @@ def setup_domain(app):
     app.add_lexer("edgeql-synopsis", EdgeQLLexer)
     app.add_lexer("edgeql-result", pygments.lexers.special.TextLexer)
 
-    app.add_role(
-        'eql:synopsis',
-        shared.InlineCodeRole('edgeql-synopsis'))
+    app.add_role('eql:synopsis', shared.InlineCodeRole('edgeql-synopsis'))
 
-    app.add_role(
-        'eql:code',
-        shared.InlineCodeRole('edgeql'))
+    app.add_role('eql:code', shared.InlineCodeRole('edgeql'))
 
     app.add_domain(EdgeQLDomain)
 

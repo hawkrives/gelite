@@ -23,14 +23,13 @@ from edb.testbase import server as tb
 
 
 class TestEdgeQLFilter(tb.QueryTestCase):
-    """The test DB is designed to test certain non-trivial FILTER clauses.
-    """
+    """The test DB is designed to test certain non-trivial FILTER clauses."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'issues_filter_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'issues_filter_setup.edgeql'
+    )
 
     async def test_edgeql_filter_two_scalar_conditions01(self):
         await self.assert_query_result(
@@ -325,11 +324,15 @@ class TestEdgeQLFilter(tb.QueryTestCase):
                 ORDER BY _;
             ''',
             [
-                '1Closed', '1Open',
-                '2Closed', '2Open',
-                '3Closed', '3Open',
-                '4Closed', '4Open',
-            ]
+                '1Closed',
+                '1Open',
+                '2Closed',
+                '2Open',
+                '3Closed',
+                '3Open',
+                '4Closed',
+                '4Open',
+            ],
         )
 
         await self.assert_query_result(

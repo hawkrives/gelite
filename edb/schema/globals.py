@@ -47,7 +47,6 @@ class Global(
     qlkind=qltypes.SchemaObjectClass.GLOBAL,
     data_safe=True,
 ):
-
     target = so.SchemaField(
         s_types.Type,
         compcoef=0.85,
@@ -106,8 +105,7 @@ class Global(
 
 
 class GlobalCommandContext(
-    sd.ObjectCommandContext[so.Object],
-    s_anno.AnnotationSubjectCommandContext
+    sd.ObjectCommandContext[so.Object], s_anno.AnnotationSubjectCommandContext
 ):
     pass
 
@@ -141,10 +139,12 @@ class GlobalCommand(
 
         required, card = expression.irast.cardinality.to_schema_value()
 
-        spec_required: Optional[bool] = (
-            self.get_specified_attribute_value('required', schema, context))
+        spec_required: Optional[bool] = self.get_specified_attribute_value(
+            'required', schema, context
+        )
         spec_card: Optional[qltypes.SchemaCardinality] = (
-            self.get_specified_attribute_value('cardinality', schema, context))
+            self.get_specified_attribute_value('cardinality', schema, context)
+        )
 
         glob_name = self.get_verbosename()
 
@@ -155,7 +155,7 @@ class GlobalCommand(
                 f'expression for the computed '
                 f'{glob_name} '
                 f"explicitly declared as 'required'",
-                span=span
+                span=span,
             )
 
         if (
@@ -168,7 +168,7 @@ class GlobalCommand(
                 f'expression for the computed '
                 f'{glob_name} '
                 f"explicitly declared as 'single'",
-                span=span
+                span=span,
             )
 
         if spec_card is None:
@@ -190,7 +190,8 @@ class GlobalCommand(
             schema = self._check_expr(schema, context)
 
         schema = s_types.materialize_type_in_attribute(
-            schema, context, self, 'target')
+            schema, context, self, 'target'
+        )
 
         return schema
 
@@ -205,10 +206,7 @@ class GlobalCommand(
         target = scls.get_target(schema)
 
         if not is_computable:
-            if (
-                scls.get_required(schema)
-                and not scls.get_default(schema)
-            ):
+            if scls.get_required(schema) and not scls.get_default(schema):
                 raise errors.SchemaDefinitionError(
                     "required globals must have a default",
                     span=self.span,
@@ -249,11 +247,14 @@ class GlobalCommand(
                 )
 
             ptr_cardinality = scls.get_cardinality(schema)
-            default_required, default_cardinality = \
+            default_required, default_cardinality = (
                 default_expr.irast.cardinality.to_schema_value()
+            )
 
-            if (ptr_cardinality is qltypes.SchemaCardinality.One
-                    and default_cardinality != ptr_cardinality):
+            if (
+                ptr_cardinality is qltypes.SchemaCardinality.One
+                and default_cardinality != ptr_cardinality
+            ):
                 raise errors.SchemaDefinitionError(
                     f'possibly more than one element returned by '
                     f'the default expression for '
@@ -284,7 +285,7 @@ class GlobalCommand(
         context: sd.CommandContext,
         field: so.Field[Any],
         value: s_expr.Expression,
-        track_schema_ref_exprs: bool=False,
+        track_schema_ref_exprs: bool = False,
     ) -> s_expr.CompiledExpression:
         if field.name in {'default', 'expr'}:
             ptr_name = self.get_verbosename()
@@ -305,7 +306,8 @@ class GlobalCommand(
             )
         else:
             return super().compile_expr_field(
-                schema, context, field, value, track_schema_ref_exprs)
+                schema, context, field, value, track_schema_ref_exprs
+            )
 
 
 class CreateGlobal(
@@ -319,15 +321,9 @@ class CreateGlobal(
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field == 'required'
-            and issubclass(astnode, qlast.CreateGlobal)
-        ):
+        if field == 'required' and issubclass(astnode, qlast.CreateGlobal):
             return 'is_required'
-        elif (
-            field == 'cardinality'
-            and issubclass(astnode, qlast.CreateGlobal)
-        ):
+        elif field == 'cardinality' and issubclass(astnode, qlast.CreateGlobal):
             return 'cardinality'
         else:
             return super().get_ast_attr_for_field(field, astnode)
@@ -342,8 +338,8 @@ class CreateGlobal(
         assert isinstance(node, qlast.CreateGlobal)
         if op.property == 'target':
             if not node.target:
-                expr: Optional[s_expr.Expression] = (
-                    self.get_attribute_value('expr')
+                expr: Optional[s_expr.Expression] = self.get_attribute_value(
+                    'expr'
                 )
                 if expr is not None:
                     node.target = expr.parse()
@@ -398,21 +394,20 @@ class CreateGlobal(
         else:
             # computable
             qlcompiler.normalize(
-                astnode.target,
-                schema=schema,
-                modaliases=context.modaliases
+                astnode.target, schema=schema, modaliases=context.modaliases
             )
             cmd.set_attribute_value(
                 'expr',
                 s_expr.Expression.from_ast(
-                    astnode.target, schema, context.modaliases,
+                    astnode.target,
+                    schema,
+                    context.modaliases,
                     context.localnames,
                 ),
             )
 
-        if (
-            cmd.has_attribute_value('expr')
-            and cmd.has_attribute_value('target')
+        if cmd.has_attribute_value('expr') and cmd.has_attribute_value(
+            'target'
         ):
             raise errors.UnsupportedFeatureError(
                 "cannot specify a type and an expression for a global",
@@ -462,12 +457,8 @@ class AlterGlobal(
 
             # Produce an error when setting a type on something with
             # an expression
-            if (
-                self.get_attribute_value('target')
-                and (
-                    (self.scls.get_expr(schema) or has_expr)
-                    and not clears_expr
-                )
+            if self.get_attribute_value('target') and (
+                (self.scls.get_expr(schema) or has_expr) and not clears_expr
             ):
                 raise errors.UnsupportedFeatureError(
                     "cannot specify a type and an expression for a global",
@@ -501,7 +492,6 @@ class SetGlobalType(
     sd.AlterSpecialObjectField[Global],
     field='target',
 ):
-
     cast_expr = struct.Field(s_expr.Expression, default=None)
     reset_value = struct.Field(bool, default=False)
 
@@ -517,8 +507,7 @@ class SetGlobalType(
         schema = super()._alter_begin(schema, context)
         scls = self.scls
 
-        orig_target = scls.get_explicit_field_value(
-            orig_schema, 'target', None)
+        orig_target = scls.get_explicit_field_value(orig_schema, 'target', None)
         new_target = scls.get_target(schema)
 
         if not orig_target or orig_target == new_target:
@@ -611,10 +600,9 @@ class SetGlobalType(
         if orig_schema is None:
             return
 
-        if (
-            not self.get_orig_attribute_value('expr')
-            and not self.get_attribute_value('expr')
-        ):
+        if not self.get_orig_attribute_value(
+            'expr'
+        ) and not self.get_attribute_value('expr'):
             self.reset_value = True
 
 

@@ -25,7 +25,6 @@ from edb.tools import test
 
 
 class TestEdgeQLFuncCalls(tb.QueryTestCase):
-
     async def test_edgeql_calls_01(self):
         await self.con.execute('''
             CREATE FUNCTION call1(
@@ -138,13 +137,14 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
 
         for c in cases:
             with self.assertRaisesRegex(
-                    edgedb.QueryError,
-                    r'function .+ does not exist'):
+                edgedb.QueryError, r'function .+ does not exist'
+            ):
                 async with self.con.transaction():
                     await self.con.execute(c)
 
     @test.not_implemented(
-        'type of the "[]" default cannot be determined for array<anytype>')
+        'type of the "[]" default cannot be determined for array<anytype>'
+    )
     async def test_edgeql_calls_04(self):
         await self.con.execute('''
             CREATE FUNCTION call4(
@@ -314,8 +314,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
 
         for c in cases:
             with self.assertRaisesRegex(
-                    edgedb.QueryError,
-                    r'function .+ does not exist'):
+                edgedb.QueryError, r'function .+ does not exist'
+            ):
                 async with self.con.transaction():
                     await self.con.execute(c)
 
@@ -359,8 +359,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function call8 is not unique'):
+            edgedb.QueryError, r'function call8 is not unique'
+        ):
             async with self.con.transaction():
                 await self.con.execute('SELECT call8();')
 
@@ -506,15 +506,16 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
 
         for c in cases:
             with self.assertRaisesRegex(
-                    edgedb.QueryError,
-                    r'function .+ does not exist'):
+                edgedb.QueryError, r'function .+ does not exist'
+            ):
                 async with self.con.transaction():
                     await self.con.execute(c)
 
     @test.not_implemented(
         "this results in 2 PG functions: `(anynonarray)->bigint` and "
         "`(bigint)->bigint`; PG fails with 'function is not unique' "
-        "at the call site")
+        "at the call site"
+    )
     async def test_edgeql_calls_12(self):
         await self.con.execute('''
             CREATE FUNCTION call12(
@@ -653,8 +654,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         )
 
         self.assertEqual(
-            await self.con.query(r'''SELECT call14(b'aaaa');'''),
-            [[b'aaaa']]
+            await self.con.query(r'''SELECT call14(b'aaaa');'''), [[b'aaaa']]
         )
 
         await self.assert_query_result(
@@ -787,14 +787,14 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
-
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
                 await self.con.execute('SELECT call18(1, 2, "a");')
 
     @test.not_implemented(
-        "PG fails with 'return type record[] is not supported'")
+        "PG fails with 'return type record[] is not supported'"
+    )
     async def test_edgeql_calls_19(self):
         # XXX: Postgres raises the following error for this:
         #    return type record[] is not supported for SQL functions
@@ -814,7 +814,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
     @test.xerror(
         "Polymorphic callable matching is currently too dumb to realize "
         "that `+` _is_ defined for 'anyreal', even though there are multiple "
-        "actual forms defined.")
+        "actual forms defined."
+    )
     async def test_edgeql_calls_20(self):
         await self.con.execute('''
             CREATE FUNCTION call20_1(
@@ -848,8 +849,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
                 await self.con.execute('SELECT call20_1(1, "1");')
 
@@ -909,7 +910,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
             r'''SELECT call22(['a'], ['b']);''',
             [
                 ['a', 'b'],
-            ]
+            ],
         )
 
     async def test_edgeql_calls_23(self):
@@ -943,12 +944,16 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
 
         self.assertEqual(
             await self.con.query_single(
-                r'''SELECT call23(to_json('[{"a":"b"}]'), 0);'''),
-            '{"a": "b"}')
+                r'''SELECT call23(to_json('[{"a":"b"}]'), 0);'''
+            ),
+            '{"a": "b"}',
+        )
         self.assertEqual(
             await self.con.query_json(
-                r'''SELECT call23(to_json('[{"a":"b"}]'), 0);'''),
-            '[{"a": "b"}]')
+                r'''SELECT call23(to_json('[{"a":"b"}]'), 0);'''
+            ),
+            '[{"a": "b"}]',
+        )
 
     async def test_edgeql_calls_24(self):
         await self.con.execute('''
@@ -996,8 +1001,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'function .+ does not exist'):
+            edgedb.QueryError, r'function .+ does not exist'
+        ):
             async with self.con.transaction():
                 await self.con.execute('SELECT call26([(1, 2)]);')
 
@@ -1030,13 +1035,14 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
 
         for c in cases:
             with self.assertRaisesRegex(
-                    edgedb.QueryError,
-                    r'function .+ does not exist'):
+                edgedb.QueryError, r'function .+ does not exist'
+            ):
                 async with self.con.transaction():
                     await self.con.execute(c)
 
     @test.not_implemented(
-        "we get two `(anynonarray)->bigint` PG functions which is ambiguous")
+        "we get two `(anynonarray)->bigint` PG functions which is ambiguous"
+    )
     async def test_edgeql_calls_28(self):
         await self.con.execute('''
             CREATE FUNCTION call28(
@@ -1183,7 +1189,8 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         "This fails in Postgres with "
         "'function edgedb_test.call32(bigint[], smallint[]) does not exist'. "
         "To fix, polymorphic function calls must cast into a common type "
-        "before calling.")
+        "before calling."
+    )
     async def test_edgeql_calls_32(self):
         await self.con.execute('''
             CREATE FUNCTION call32(
@@ -1198,7 +1205,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
             r'''SELECT call32([1], [<int16>2]);''',
             [
                 [1, 2],
-            ]
+            ],
         )
 
     async def test_edgeql_calls_33(self):
@@ -1218,7 +1225,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
             r'''SELECT call33((1, (2,)), (foo := 10, bar := 'bar'));''',
             [
                 11,
-            ]
+            ],
         )
 
     async def test_edgeql_calls_34(self):
@@ -1237,7 +1244,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
             r'''SELECT call34([(1, 2), (3, 4)]);''',
             [
                 1,
-            ]
+            ],
         )
 
     async def test_edgeql_calls_35a(self):
@@ -1253,18 +1260,10 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''SELECT call35(1);''',
-            [
-                [1, {'foo': 2}]
-            ]
+            r'''SELECT call35(1);''', [[1, {'foo': 2}]]
         )
 
-        await self.assert_query_result(
-            r'''SELECT call35(1).1.foo;''',
-            [
-                2
-            ]
-        )
+        await self.assert_query_result(r'''SELECT call35(1).1.foo;''', [2])
 
     async def test_edgeql_calls_35b(self):
         # Tuple return with a deep and unavoidable implicit cast
@@ -1279,17 +1278,11 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''SELECT call35((1, [(2,)]));''',
-            [
-                [1, [{'foo': 2}]]
-            ]
+            r'''SELECT call35((1, [(2,)]));''', [[1, [{'foo': 2}]]]
         )
 
         await self.assert_query_result(
-            r'''SELECT call35((1, [(2,)])).1[0].foo;''',
-            [
-                2
-            ]
+            r'''SELECT call35((1, [(2,)])).1[0].foo;''', [2]
         )
 
     async def test_edgeql_calls_35c(self):
@@ -1316,12 +1309,7 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
                 $$;
         ''')
 
-        await self.assert_query_result(
-            r'''SELECT call36(1);''',
-            [
-                [[1]]
-            ]
-        )
+        await self.assert_query_result(r'''SELECT call36(1);''', [[[1]]])
 
     async def test_edgeql_calls_37(self):
         # define a function with positional arguments with defaults
@@ -1465,13 +1453,16 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
                 }
                 ORDER BY .tn
             """,
-            [{
-                "tn": "default::Circle",
-                "area": 314.0,
-            }, {
-                "tn": "default::Rectangle",
-                "area": 200.0,
-            }]
+            [
+                {
+                    "tn": "default::Circle",
+                    "area": 314.0,
+                },
+                {
+                    "tn": "default::Rectangle",
+                    "area": 200.0,
+                },
+            ],
         )
 
         # Non-polymorphic calls should work also.
@@ -1545,13 +1536,16 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
                 }
                 ORDER BY .tn
             """,
-            [{
-                "tn": "default::Circle",
-                "dimensions": [5],
-            }, {
-                "tn": "default::Rectangle",
-                "dimensions": [10, 20],
-            }]
+            [
+                {
+                    "tn": "default::Circle",
+                    "dimensions": [5],
+                },
+                {
+                    "tn": "default::Rectangle",
+                    "dimensions": [10, 20],
+                },
+            ],
         )
 
         # Non-polymorphic calls should work also.
@@ -1726,8 +1720,11 @@ class TestEdgeQLFuncCalls(tb.QueryTestCase):
             """,
         )
 
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT get_obj('std::BaseObject')
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].__tname__, "schema::ObjectType")

@@ -26,8 +26,7 @@ from edb.testbase import server as tb
 class TestEdgeQLPermissions(tb.QueryTestCase):
     '''Tests for permissions.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
     SETUP = '''
     CREATE FUNCTION is_game_admin() -> bool using(global GameAdmin);
@@ -135,7 +134,7 @@ class TestEdgeQLPermissions(tb.QueryTestCase):
             # can't just match the start of the string. Match anything
             # without spaces.
             '(?m)^[^ ]*globals may not be used when converting/populating '
-            'data in migrations'
+            'data in migrations',
         ):
             await self.con.execute('''
                 ALTER TYPE T ALTER PROPERTY foo

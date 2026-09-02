@@ -9,7 +9,6 @@
 See README.md in this package for more details.
 """
 
-
 from __future__ import annotations
 from typing import (
     Any,
@@ -111,6 +110,7 @@ def tracing_singledispatch[T: Callable[..., Any]](func: T) -> T:
 
             # only import typing if annotation parsing is necessary
             from typing import get_type_hints
+
             argname, cls = next(iter(get_type_hints(func).items()))
             if not isinstance(cls, type):
                 raise TypeError(
@@ -125,8 +125,9 @@ def tracing_singledispatch[T: Callable[..., Any]](func: T) -> T:
 
     def sd_wrapper(*args, **kw):
         if not args:
-            raise TypeError(f'{funcname} requires at least '
-                            '1 positional argument')
+            raise TypeError(
+                f'{funcname} requires at least 1 positional argument'
+            )
 
         impl = dispatch(args[0].__class__)
         if profiling_in_progress.is_set():

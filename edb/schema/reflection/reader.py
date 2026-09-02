@@ -78,8 +78,7 @@ def parse_schema(
         dict[tuple[type[s_obj.Object], str], dict[uuid.UUID, None]],
     ] = functools.partial(collections.defaultdict, dict)
     refs_to: dict[
-        uuid.UUID,
-        dict[tuple[type[s_obj.Object], str], dict[uuid.UUID, None]]
+        uuid.UUID, dict[tuple[type[s_obj.Object], str], dict[uuid.UUID, None]]
     ] = collections.defaultdict(dict_of_dicts)
 
     objects: dict[uuid.UUID, tuple[s_obj.Object, dict[str, Any]]] = {}
@@ -89,8 +88,7 @@ def parse_schema(
         _, _, clsname = entry['_tname'].rpartition('::')
         mcls = s_obj.ObjectMeta.maybe_get_schema_class(clsname)
         if mcls is None:
-            raise ValueError(
-                f'unexpected type in schema reflection: {clsname}')
+            raise ValueError(f'unexpected type in schema reflection: {clsname}')
         objid = uuidgen.UUID(entry['id'])
         objects[objid] = (mcls._create_from_id(objid), entry)
 
@@ -101,9 +99,8 @@ def parse_schema(
         name = s_name.name_from_string(entry['name__internal'])
         layout = schema_class_layout[mcls]
 
-        if (
-            base_schema.has_object(objid)
-            and not isinstance(obj, s_ver.BaseSchemaVersion)
+        if base_schema.has_object(objid) and not isinstance(
+            obj, s_ver.BaseSchemaVersion
         ):
             continue
 
@@ -152,12 +149,14 @@ def parse_schema(
                     ftype = mcls.get_field(fn).type
                     if issubclass(ftype, s_obj.ObjectDict):
                         refids = ftype._container(
-                            uuidgen.UUID(e['value']) for e in v)
+                            uuidgen.UUID(e['value']) for e in v
+                        )
                         refkeys = tuple(e['name'] for e in v)
                         val = ftype(refids, refkeys, _private_init=True)
                     else:
                         refids = ftype._container(
-                            uuidgen.UUID(e['id']) for e in v)
+                            uuidgen.UUID(e['id']) for e in v
+                        )
                         val = ftype(refids, _private_init=True)
                     objdata[findex] = val.schema_reduce()
                     for refid in refids:
@@ -183,8 +182,7 @@ def parse_schema(
                         elif issubclass(ftype, s_expr.ExpressionDict):
                             expr_dict = dict()
                             for e_dict in val:
-                                e = _parse_expression(
-                                    e_dict['expr'], objid, k)
+                                e = _parse_expression(e_dict['expr'], objid, k)
                                 assert e.refs is not None
                                 for refid in e.refs.ids():
                                     refs_to[refid][mcls, fn][objid] = None
@@ -220,8 +218,7 @@ def parse_schema(
                             # type.
                             # XXX: Or should we do it in the container?
                             subtyp = ftype.types[0]
-                            objdata[findex] = ftype(
-                                subtyp(x) for x in v)  # type: ignore
+                            objdata[findex] = ftype(subtyp(x) for x in v)  # type: ignore
                         else:
                             objdata[findex] = ftype(v)
                     else:
@@ -238,7 +235,8 @@ def parse_schema(
                 if desc.properties:
                     for e_dict in v:
                         refdict_updates[uuidgen.UUID(e_dict['id'])] = {
-                            p: pv for p in desc.properties
+                            p: pv
+                            for p in desc.properties
                             if (pv := e_dict[f'@{p}']) is not None
                         }
 
@@ -255,17 +253,17 @@ def parse_schema(
 
     refs_to_im = {}
     for referred_id, ref_data in refs_to.items():
-        refs_to_im[referred_id] = immutables.Map((
-            (k, immutables.Map(r)) for k, r in ref_data.items()
-        ))
+        refs_to_im[referred_id] = immutables.Map(
+            ((k, immutables.Map(r)) for k, r in ref_data.items())
+        )
 
     return s_schema.FlatSchema()._replace(
         id_to_type=immutables.Map(id_to_type),
         id_to_data=immutables.Map(id_to_data),
         name_to_id=immutables.Map(name_to_id),
-        shortname_to_id=immutables.Map({
-            (k, frozenset(v)) for k, v in shortname_to_id.items()
-        }),
+        shortname_to_id=immutables.Map(
+            {(k, frozenset(v)) for k, v in shortname_to_id.items()}
+        ),
         globalname_to_id=immutables.Map(globalname_to_id),
         refs_to=immutables.Map(refs_to_im),
     )
@@ -274,9 +272,7 @@ def parse_schema(
 def _parse_expression(
     val: dict[str, Any], id: uuid.UUID, field: str
 ) -> s_expr.Expression:
-    refids = frozenset(
-        uuidgen.UUID(r) for r in val['refs']
-    )
+    refids = frozenset(uuidgen.UUID(r) for r in val['refs'])
     expr = s_expr.Expression(
         text=val['text'],
         refs=s_obj.ObjectSet(

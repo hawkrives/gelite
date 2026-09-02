@@ -23,7 +23,6 @@ from edb.common import debug
 
 
 class DebugTests(unittest.TestCase):
-
     def test_common_debug_flags(self):
         flags = {flag.name: flag for flag in debug.flags}
         self.assertIn('edgeql_compile', flags)

@@ -58,7 +58,6 @@ InputLanguage = protocol.InputLanguage
 
 
 class BaseTransaction(abc.ABC):
-
     ID_COUNTER = 0
 
     def __init__(self, owner):
@@ -76,34 +75,38 @@ class BaseTransaction(abc.ABC):
     def __check_state_base(self, opname):
         if self._state is TransactionState.COMMITTED:
             raise errors.InterfaceError(
-                f'cannot {opname}; the transaction is already committed')
+                f'cannot {opname}; the transaction is already committed'
+            )
         if self._state is TransactionState.ROLLEDBACK:
             raise errors.InterfaceError(
-                f'cannot {opname}; the transaction is already rolled back')
+                f'cannot {opname}; the transaction is already rolled back'
+            )
         if self._state is TransactionState.FAILED:
             raise errors.InterfaceError(
-                f'cannot {opname}; the transaction is in error state')
+                f'cannot {opname}; the transaction is in error state'
+            )
 
     def __check_state(self, opname):
         if self._state is not TransactionState.STARTED:
             if self._state is TransactionState.NEW:
                 raise errors.InterfaceError(
-                    f'cannot {opname}; the transaction is not yet started')
+                    f'cannot {opname}; the transaction is not yet started'
+                )
             self.__check_state_base(opname)
 
     def _make_start_query(self):
         self.__check_state_base('start')
         if self._state is TransactionState.STARTED:
             raise errors.InterfaceError(
-                'cannot start; the transaction is already started')
+                'cannot start; the transaction is already started'
+            )
         qry = self._make_start_query_inner()
         if self._connection._top_xact is None:
             self._connection._top_xact = self
         return qry
 
     @abc.abstractmethod
-    def _make_start_query_inner(self):
-        ...
+    def _make_start_query_inner(self): ...
 
     def _make_commit_query(self):
         self.__check_state('commit')
@@ -139,7 +142,8 @@ class BaseTransaction(abc.ABC):
     async def commit(self) -> None:
         if self._managed:
             raise errors.InterfaceError(
-                'cannot manually commit from within an `async with` block')
+                'cannot manually commit from within an `async with` block'
+            )
         await self._commit()
 
     async def _commit(self) -> None:
@@ -160,7 +164,8 @@ class BaseTransaction(abc.ABC):
     async def rollback(self) -> None:
         if self._managed:
             raise errors.InterfaceError(
-                'cannot manually rollback from within an `async with` block')
+                'cannot manually rollback from within an `async with` block'
+            )
         await self._rollback()
 
     async def _rollback(self) -> None:
@@ -208,7 +213,8 @@ class RawTransaction(BaseTransaction):
     async def __aenter__(self):
         if self._managed:
             raise errors.InterfaceError(
-                'cannot enter context: already in an `async with` block')
+                'cannot enter context: already in an `async with` block'
+            )
         self._managed = True
         await self.start()
         return self
@@ -227,7 +233,7 @@ class _Executor(abstract.AsyncIOExecutor):
     # TODO: Remove this, once we land this in gel-python and update
     # our bindings.
     def _get_active_tx_options(
-        self
+        self,
     ) -> typing.Optional[options.TransactionOptions]:
         raise NotImplementedError
 
@@ -243,7 +249,8 @@ class Iteration(BaseTransaction, _Executor):
     async def __aenter__(self):
         if self._managed:
             raise errors.InterfaceError(
-                'cannot enter context: already in an `async with` block')
+                'cannot enter context: already in an `async with` block'
+            )
         self._managed = True
         return self
 
@@ -273,9 +280,9 @@ class Iteration(BaseTransaction, _Executor):
             # on_log_message for it?
 
         if (
-            extype is not None and
-            issubclass(extype, errors.EdgeDBError) and
-            ex.has_tag(errors.SHOULD_RETRY)
+            extype is not None
+            and issubclass(extype, errors.EdgeDBError)
+            and ex.has_tag(errors.SHOULD_RETRY)
         ):
             return self.__retry._retry(ex)
 
@@ -284,9 +291,7 @@ class Iteration(BaseTransaction, _Executor):
         # affects IsolationLevel.PreferRepeatableRead, which nothing here
         # uses, and gel's own retry loop starts every attempt with it off,
         # so False reproduces the query this used to build.
-        return self._options.start_transaction_query(
-            optimistic_isolation=False
-        )
+        return self._options.start_transaction_query(optimistic_isolation=False)
 
     def _get_query_cache(self) -> abstract.QueryCache:
         return self._connection._query_cache
@@ -317,7 +322,7 @@ class Iteration(BaseTransaction, _Executor):
         return options.RetryOptions.defaults()
 
     def _get_active_tx_options(
-        self
+        self,
     ) -> typing.Optional[options.TransactionOptions]:
         return self._options
 
@@ -365,11 +370,14 @@ class Retry:
 
 
 class Connection(options._OptionsMixin, _Executor):
-
     _top_xact: RawTransaction | None = None
 
     def __init__(
-        self, connect_args, *, test_no_tls=False, server_hostname=None,
+        self,
+        connect_args,
+        *,
+        test_no_tls=False,
+        server_hostname=None,
         admin_unix_path=None,
     ):
         super().__init__()
@@ -400,7 +408,7 @@ class Connection(options._OptionsMixin, _Executor):
         return self._options.retry_options
 
     def _get_active_tx_options(
-        self
+        self,
     ) -> typing.Optional[options.TransactionOptions]:
         return self._options.transaction_options
 
@@ -473,8 +481,7 @@ class Connection(options._OptionsMixin, _Executor):
                 if i >= 10 or self.is_in_transaction():
                     raise
                 await asyncio.sleep(
-                    min((2 ** i) * 0.1, 10)
-                    + random.randrange(100) * 0.001
+                    min((2**i) * 0.1, 10) + random.randrange(100) * 0.001
                 )
 
     def _prohibit_state(self, state) -> None:
@@ -515,7 +522,8 @@ class Connection(options._OptionsMixin, _Executor):
 
         async def _inner():
             ctx = query_context.lower(
-                allow_capabilities=edgedb_enums.Capability.ALL)
+                allow_capabilities=edgedb_enums.Capability.ALL
+            )
             res = await self._protocol.query(ctx)
             if ctx.warnings:
                 res = query_context.warning_handler(ctx.warnings, res)
@@ -539,7 +547,8 @@ class Connection(options._OptionsMixin, _Executor):
         __typeids__: bool = False,
         __typenames__: bool = False,
         __allow_capabilities__: edgedb_enums.Capability = (
-            edgedb_enums.Capability.ALL),
+            edgedb_enums.Capability.ALL
+        ),
         **kwargs,
     ):
         return await self._fetchall_generic(
@@ -643,9 +652,8 @@ class Connection(options._OptionsMixin, _Executor):
                         f" {client_config.connect_timeout} sec"
                     ) from e
             except errors.ClientConnectionError as e:
-                if (
-                    not e.has_tag(errors.SHOULD_RECONNECT) or
-                    (iteration > 1 and time.monotonic() >= max_time)
+                if not e.has_tag(errors.SHOULD_RECONNECT) or (
+                    iteration > 1 and time.monotonic() >= max_time
                 ):
                     nice_err = e.__class__(
                         con_utils.render_client_no_connection_error(
@@ -653,7 +661,8 @@ class Connection(options._OptionsMixin, _Executor):
                             addr,
                             attempts=iteration,
                             duration=time.monotonic() - start,
-                        ))
+                        )
+                    )
                     raise nice_err from e.__cause__
             else:
                 return

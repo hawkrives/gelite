@@ -32,7 +32,6 @@ from . import shared
 
 
 class CLISynopsisDirective(shared.CodeBlock):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 0
@@ -46,7 +45,6 @@ class CLISynopsisDirective(shared.CodeBlock):
 
 
 class CLIDomain(s_domains.Domain):
-
     name = "cli"
     label = "Command Line Interface"
 
@@ -64,8 +62,6 @@ def setup_domain(app):
     app.add_lexer("cli", EdgeQLLexer)
     app.add_lexer("cli-synopsis", EdgeQLLexer)
 
-    app.add_role(
-        'cli:synopsis',
-        shared.InlineCodeRole('cli-synopsis'))
+    app.add_role('cli:synopsis', shared.InlineCodeRole('cli-synopsis'))
 
     app.add_domain(CLIDomain)

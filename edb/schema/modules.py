@@ -59,7 +59,6 @@ class ModuleCommand(
     sd.ObjectCommand[Module],
     context_class=ModuleCommandContext,
 ):
-
     def _validate_legal_command(
         self,
         schema: s_schema.Schema,
@@ -75,20 +74,24 @@ class ModuleCommand(
             enclosing, _, last = str(self.classname).rpartition('::')
             if not schema.has_module(enclosing):
                 raise errors.UnknownModuleError(
-                    f'module {enclosing!r} is not in this schema')
+                    f'module {enclosing!r} is not in this schema'
+                )
 
         if last in RESERVED_MODULE_NAMES:
             raise errors.SchemaDefinitionError(
-                f"module {last!r} is a reserved module name")
+                f"module {last!r} is a reserved module name"
+            )
 
         if (
-            not context.stdmode and not context.testmode
+            not context.stdmode
+            and not context.testmode
             and sn.UnqualName(first) in s_schema.STD_MODULES
         ):
             raise errors.SchemaDefinitionError(
                 f'cannot {self._delta_action} {self.get_verbosename()}: '
                 f'module {first} is read-only',
-                span=self.span)
+                span=self.span,
+            )
 
 
 class CreateModule(ModuleCommand, sd.CreateObject[Module]):
@@ -100,7 +103,6 @@ class AlterModule(ModuleCommand, sd.AlterObject[Module]):
 
 
 class RenameModule(ModuleCommand, sd.RenameObject[Module]):
-
     def apply(
         self,
         schema: s_schema.Schema,
@@ -127,10 +129,14 @@ class DeleteModule(ModuleCommand, sd.DeleteObject[Module]):
         # Modules aren't actually stored with any direct linkage
         # to the objects in them, so explicitly search for objects
         # in the module (excluding the module itself).
-        has_objects = bool(any(schema.get_objects(
-            included_modules=[self.classname],
-            excluded_items=[self.classname],
-        )))
+        has_objects = bool(
+            any(
+                schema.get_objects(
+                    included_modules=[self.classname],
+                    excluded_items=[self.classname],
+                )
+            )
+        )
 
         if has_objects:
             vn = self.scls.get_verbosename(schema)

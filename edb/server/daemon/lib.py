@@ -70,7 +70,8 @@ def change_working_directory(path: str):
         os.chdir(path)
     except OSError as ex:
         raise DaemonError(
-            'Unable to change working directory to {!r}'.format(path)) from ex
+            'Unable to change working directory to {!r}'.format(path)
+        ) from ex
 
 
 def change_process_gid(gid: int):
@@ -82,7 +83,8 @@ def change_process_gid(gid: int):
         os.setgid(gid)
     except OSError as ex:
         raise DaemonError(
-            'Unable to change the owning GID to {!r}'.format(gid)) from ex
+            'Unable to change the owning GID to {!r}'.format(gid)
+        ) from ex
 
 
 def change_process_uid(uid: int):
@@ -94,7 +96,8 @@ def change_process_uid(uid: int):
         os.setuid(uid)
     except OSError as ex:
         raise DaemonError(
-            'Unable to change the owning UID to {!r}'.format(uid)) from ex
+            'Unable to change the owning UID to {!r}'.format(uid)
+        ) from ex
 
 
 def change_umask(mask: int):
@@ -102,8 +105,9 @@ def change_umask(mask: int):
     try:
         os.umask(mask)
     except (OSError, OverflowError) as ex:
-        raise DaemonError('Unable to set process umask to {:#o}'.format(
-            mask)) from ex
+        raise DaemonError(
+            'Unable to set process umask to {:#o}'.format(mask)
+        ) from ex
 
 
 def prevent_core_dump():
@@ -115,7 +119,8 @@ def prevent_core_dump():
     except ValueError as ex:
         raise DaemonError(
             'Unable to limit core dump size: '
-            'system does not support RLIMIT_CORE resource limit') from ex
+            'system does not support RLIMIT_CORE resource limit'
+        ) from ex
 
     # Set hard & soft limits to 0, i.e. no core dump at all
     resource.setrlimit(core_resource, (0, 0))
@@ -143,6 +148,7 @@ def detach_process_context():
     Reference: “Advanced Programming in the Unix Environment”,
     section 13.3, by W. Richard Stevens.
     """
+
     def fork_and_exit_parent(error_message):
         try:
             if os.fork() > 0:
@@ -151,8 +157,8 @@ def detach_process_context():
                 os._exit(0)
         except OSError as ex:
             raise DaemonError(
-                '{}: [{}] {}'.format(error_message, ex.errno,
-                                     ex.strerror)) from ex
+                '{}: [{}] {}'.format(error_message, ex.errno, ex.strerror)
+            ) from ex
 
     fork_and_exit_parent(error_message='Failed the first fork')
     os.setsid()
@@ -197,11 +203,13 @@ def is_detach_process_context_required():
         - Process was started by `init`; or
         - Process was started by `inetd`.
     """
-    return not is_process_started_by_init(
-    ) and not is_process_started_by_superserver()
+    return (
+        not is_process_started_by_init()
+        and not is_process_started_by_superserver()
+    )
 
 
-def get_max_fileno(default: int=2048):
+def get_max_fileno(default: int = 2048):
     """Return the maximum number of open file descriptors."""
     limit = resource.getrlimit(resource.RLIMIT_NOFILE)[1]
     if limit == resource.RLIM_INFINITY:
@@ -216,7 +224,8 @@ def try_close_fileno(fileno: int):
     except OSError as ex:
         if ex.errno != errno.EBADF:
             raise DaemonError(
-                'Failed to close file descriptor {}'.format(fileno))
+                'Failed to close file descriptor {}'.format(fileno)
+            )
 
 
 def close_all_open_files(exclude: Optional[set] = None):
@@ -250,8 +259,10 @@ def validate_stream(stream, *, stream_name):
     """Check if `stream` is an open io.IOBase instance."""
     if not isinstance(stream, io.IOBase):
         raise DaemonError(
-            'Invalid {} stream object, an instance of io.IOBase is expected'.
-            format(stream_name))
+            'Invalid {} stream object, an instance of io.IOBase is expected'.format(
+                stream_name
+            )
+        )
 
     if stream.closed:
         raise DaemonError('Stream {} is already closed'.format(stream_name))

@@ -25,15 +25,20 @@ from edb.common import prometheus as prom
 registry = prom.Registry(prefix='edgedb_server')
 
 COUNT_BUCKETS = prom.per_order_buckets(
-    1, 10000, entries_per_order=2,
+    1,
+    10000,
+    entries_per_order=2,
 )
 BYTES_BUCKETS = prom.per_order_buckets(
-    32, 2**20, entries_per_order=1, base=2,
+    32,
+    2**20,
+    entries_per_order=1,
+    base=2,
 )
 
 compiler_process_spawns = registry.new_counter(
     'compiler_process_spawns_total',
-    'Total number of compiler processes spawned.'
+    'Total number of compiler processes spawned.',
 )
 
 compiler_process_kills = registry.new_counter(
@@ -42,8 +47,7 @@ compiler_process_kills = registry.new_counter(
 )
 
 current_compiler_processes = registry.new_gauge(
-    'compiler_processes_current',
-    'Current number of active compiler processes.'
+    'compiler_processes_current', 'Current number of active compiler processes.'
 )
 
 compiler_process_memory = registry.new_labeled_gauge(
@@ -66,15 +70,13 @@ compiler_process_branches = registry.new_labeled_gauge(
 
 compiler_process_branch_actions = registry.new_labeled_counter(
     'compiler_process_branch_actions_total',
-    'Number of different branch actions happened in each '
-    'compiler process.',
+    'Number of different branch actions happened in each compiler process.',
     labels=('pid', 'client', 'action'),
 )
 
 compiler_process_client_actions = registry.new_labeled_counter(
     'compiler_process_client_actions_total',
-    'Number of different client actions happened in each '
-    'compiler process.',
+    'Number of different client actions happened in each compiler process.',
     labels=('pid', 'action'),
 )
 
@@ -130,7 +132,7 @@ backend_connection_establishment_latency = registry.new_labeled_histogram(
 backend_connection_aborted = registry.new_labeled_counter(
     'backend_connections_aborted_total',
     'Number of aborted backend connections.',
-    labels=('tenant', 'pgcode')
+    labels=('tenant', 'pgcode'),
 )
 
 backend_query_duration = registry.new_labeled_histogram(
@@ -168,7 +170,7 @@ client_connection_duration = registry.new_labeled_histogram(
 edgeql_query_compilations = registry.new_labeled_counter(
     'edgeql_query_compilations_total',
     'Number of compiled/cached queries or scripts.',
-    labels=('tenant', 'path')
+    labels=('tenant', 'path'),
 )
 
 edgeql_query_compilation_duration = registry.new_labeled_histogram(
@@ -186,15 +188,11 @@ query_compilation_duration = registry.new_labeled_histogram(
 )
 
 sql_queries = registry.new_labeled_counter(
-    'sql_queries_total',
-    'Number of SQL queries.',
-    labels=('tenant',)
+    'sql_queries_total', 'Number of SQL queries.', labels=('tenant',)
 )
 
 sql_compilations = registry.new_labeled_counter(
-    'sql_compilations_total',
-    'Number of SQL compilations.',
-    labels=('tenant',)
+    'sql_compilations_total', 'Number of SQL compilations.', labels=('tenant',)
 )
 
 queries_per_connection = registry.new_labeled_histogram(
@@ -215,19 +213,19 @@ query_size = registry.new_labeled_histogram(
 background_errors = registry.new_labeled_counter(
     'background_errors_total',
     'Number of unhandled errors in background server routines.',
-    labels=('tenant', 'source')
+    labels=('tenant', 'source'),
 )
 
 transaction_serialization_errors = registry.new_labeled_counter(
     'transaction_serialization_errors_total',
     'Number of transaction serialization errors.',
-    labels=('tenant',)
+    labels=('tenant',),
 )
 
 connection_errors = registry.new_labeled_counter(
     'connection_errors_total',
     'Number of network connection errors.',
-    labels=('tenant',)
+    labels=('tenant',),
 )
 
 extension_used = registry.new_labeled_gauge(
@@ -313,6 +311,7 @@ if os.name == 'posix' and (sys.platform == 'linux' or sys.platform == 'darwin'):
 
 def monitor_open_fds_linux():
     import time
+
     while True:
         max_open_fds.set(os.sysconf('SC_OPEN_MAX'))
         # To get the current number of open files, stat /proc/self/fd/
@@ -335,6 +334,7 @@ def monitor_open_fds_linux():
 
 def monitor_open_fds_macos():
     import time
+
     while True:
         max_open_fds.set(os.sysconf('SC_OPEN_MAX'))
         # Iterate the contents of /dev/fd to list all entries.
@@ -357,13 +357,13 @@ def start_monitoring_open_fds():
             threading.Thread(
                 target=monitor_open_fds_macos,
                 name='open_fds_monitor',
-                daemon=True
+                daemon=True,
             ).start()
         elif sys.platform == 'linux':
             threading.Thread(
                 target=monitor_open_fds_linux,
                 name='open_fds_monitor',
-                daemon=True
+                daemon=True,
             ).start()
 
 

@@ -66,9 +66,11 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Person.name, Person.name)
             """,
-            {('Phil Emarg', 'Phil Emarg'),
-             ('Madeline Hatch', 'Madeline Hatch'),
-             ('Emmanuel Villip', 'Emmanuel Villip')}
+            {
+                ('Phil Emarg', 'Phil Emarg'),
+                ('Madeline Hatch', 'Madeline Hatch'),
+                ('Emmanuel Villip', 'Emmanuel Villip'),
+            },
         )
 
     def test_model_link_dedup(self):
@@ -84,8 +86,11 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT Person.name ++ "-" ++ Person.notes.name
             """,
-            {'Phil Emarg-boxing', 'Phil Emarg-unboxing',
-             'Madeline Hatch-unboxing'}
+            {
+                'Phil Emarg-boxing',
+                'Phil Emarg-unboxing',
+                'Madeline Hatch-unboxing',
+            },
         )
 
     def test_model_optional_prop_01(self):
@@ -93,7 +98,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Note.note ?= "lolol", Note.name)
             """,
-            {(False, 'boxing'), (True, 'unboxing'), (False, 'dynamic')}
+            {(False, 'boxing'), (True, 'unboxing'), (False, 'dynamic')},
         )
 
     def test_model_optional_prop_02(self):
@@ -101,7 +106,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Note.note = "lolol", Note.name)
             """,
-            {(False, 'dynamic'), (True, 'unboxing')}
+            {(False, 'dynamic'), (True, 'unboxing')},
         )
 
     def test_model_optional_prop_03(self):
@@ -109,8 +114,11 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Note.name, ('SOME "' ++ Note.note ++ '"') ?? 'NONE')
             """,
-            {('boxing', 'NONE'), ('unboxing', 'SOME "lolol"'),
-             ('dynamic', 'SOME "blarg"')}
+            {
+                ('boxing', 'NONE'),
+                ('unboxing', 'SOME "lolol"'),
+                ('dynamic', 'SOME "blarg"'),
+            },
         )
 
     def test_model_optional_prop_04(self):
@@ -118,7 +126,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Note.name, EXISTS Note.note)
             """,
-            {('boxing', False), ('unboxing', True), ('dynamic', True)}
+            {('boxing', False), ('unboxing', True), ('dynamic', True)},
         )
 
     def test_model_optional_prop_05(self):
@@ -150,7 +158,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT count(((SELECT Person), (SELECT Person)))
             """,
-            [9]
+            [9],
         )
 
     def test_model_subqueries_02(self):
@@ -158,7 +166,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             WITH X := {true, false, true} SELECT (any(X), all(X))
             """,
-            [(True, False)]
+            [(True, False)],
         )
 
     def test_model_subqueries_03(self):
@@ -196,7 +204,7 @@ class TestModelSmokeTests(unittest.TestCase):
                     (Publication ?!= Publication)
                 )
             ''',
-            [(True, False)]
+            [(True, False)],
         )
 
     def test_edgeql_select_clauses_01(self):
@@ -219,7 +227,7 @@ class TestModelSmokeTests(unittest.TestCase):
                  ORDER BY Person.notes.name DESC
                  LIMIT (0 if Person.name = "Madeline Hatch" ELSE 1)));
             ''',
-            [('Phil Emarg', 'unboxing')]
+            [('Phil Emarg', 'unboxing')],
         )
 
     def test_edgeql_select_clauses_03(self):
@@ -256,7 +264,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             WITH X := {1, 2} SELECT ((SELECT X), (SELECT X));
             ''',
-            {(1, 1), (1, 2), (2, 1), (2, 2)}
+            {(1, 1), (1, 2), (2, 1), (2, 2)},
         )
 
     def test_edgeql_with_02(self):
@@ -267,7 +275,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             WITH X := {1, 2}, Y := X+1 SELECT (X, Y);
             ''',
-            {(1, 2), (1, 3), (2, 2), (2, 3)}
+            {(1, 2), (1, 3), (2, 2), (2, 3)},
         )
 
     def test_edgeql_array_01(self):
@@ -283,7 +291,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             SELECT array_unpack({[1,2,3],[3,4,5]});
             ''',
-            [1, 2, 3, 3, 4, 5]
+            [1, 2, 3, 3, 4, 5],
         )
 
     def test_edgeql_array_03(self):
@@ -291,7 +299,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             SELECT array_agg(Person.name ORDER BY Person.name);
             ''',
-            [['Emmanuel Villip', 'Madeline Hatch', 'Phil Emarg']]
+            [['Emmanuel Villip', 'Madeline Hatch', 'Phil Emarg']],
         )
 
     def test_edgeql_lprop_01(self):
@@ -311,8 +319,8 @@ class TestModelSmokeTests(unittest.TestCase):
             {
                 ("Alice", ("Bob", "Swampy")),
                 ("Alice", ("Carol", "Firefighter")),
-                ("Alice", ("Dave", "Grumpy"))
-            }
+                ("Alice", ("Dave", "Grumpy")),
+            },
         )
 
     def test_edgeql_lprop_03(self):
@@ -323,19 +331,21 @@ class TestModelSmokeTests(unittest.TestCase):
                     array_agg(
                         (SELECT (User.friends.name, User.friends@nickname))));
             ''',
-            bag([
-                (
-                    'Alice',
-                    [
-                        ('Bob', 'Swampy'),
-                        ('Carol', 'Firefighter'),
-                        ('Dave', 'Grumpy')
-                    ],
-                ),
-                ('Bob', []),
-                ('Carol', []),
-                ('Dave', []),
-            ])
+            bag(
+                [
+                    (
+                        'Alice',
+                        [
+                            ('Bob', 'Swampy'),
+                            ('Carol', 'Firefighter'),
+                            ('Dave', 'Grumpy'),
+                        ],
+                    ),
+                    ('Bob', []),
+                    ('Carol', []),
+                    ('Dave', []),
+                ]
+            ),
         )
 
     def test_edgeql_lprop_04(self):
@@ -343,7 +353,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
                 SELECT count(Card.<deck[IS User]@count);
             ''',
-            [22]
+            [22],
         )
 
     def test_edgeql_lprop_reverse_01(self):
@@ -355,7 +365,7 @@ class TestModelSmokeTests(unittest.TestCase):
                     Card.<deck[IS User]@count,
                 ));
             ''',
-            [22]
+            [22],
         )
 
     def test_edgeql_lprop_reverse_02(self):
@@ -367,10 +377,17 @@ class TestModelSmokeTests(unittest.TestCase):
                     z := .<deck[IS User] { name, @count }
                 } FILTER .name = 'Dragon'
             ''',
-            bag([{"name": ["Dragon"], "z": [
-                {"name": ["Alice"], "@count": [2]},
-                {"name": ["Dave"], "@count": [1]},
-            ]}])
+            bag(
+                [
+                    {
+                        "name": ["Dragon"],
+                        "z": [
+                            {"name": ["Alice"], "@count": [2]},
+                            {"name": ["Dave"], "@count": [1]},
+                        ],
+                    }
+                ]
+            ),
         )
 
     def test_edgeql_partial_path_01(self):
@@ -378,7 +395,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             SELECT (SELECT User FILTER User.deck != .deck).name;
             ''',
-            []
+            [],
         )
 
     def test_edgeql_partial_path_02(self):
@@ -386,7 +403,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             SELECT count((SELECT X := User FILTER User.deck != .deck));
             ''',
-            [4]
+            [4],
         )
 
     def test_edgeql_partial_path_03(self):
@@ -394,7 +411,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r'''
             SELECT count((SELECT X := User FILTER X.deck != .deck));
             ''',
-            [0]
+            [0],
         )
 
     def test_edgeql_shape_01(self):
@@ -535,9 +552,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT User { name } FILTER .name = 'Alice';
             """,
-            [
-                {'name': 'Alice'}
-            ],
+            [{'name': 'Alice'}],
             singleton_cheating=True,
         )
 
@@ -561,12 +576,16 @@ class TestModelSmokeTests(unittest.TestCase):
             SELECT User { deck: {name, @total_cost} ORDER BY .name}
             FILTER .name = 'Alice';
             """,
-            [{"deck": [
-                {"name": "Bog monster", "@total_cost": 6},
-                {"name": "Dragon", "@total_cost": 10},
-                {"name": "Giant turtle", "@total_cost": 9},
-                {"name": "Imp", "@total_cost": 2},
-            ]}],
+            [
+                {
+                    "deck": [
+                        {"name": "Bog monster", "@total_cost": 6},
+                        {"name": "Dragon", "@total_cost": 10},
+                        {"name": "Giant turtle", "@total_cost": 9},
+                        {"name": "Imp", "@total_cost": 2},
+                    ]
+                }
+            ],
             singleton_cheating=True,
         )
 
@@ -575,7 +594,7 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (Note.name, EXISTS (WITH W := Note.note SELECT W))
             """,
-            {('boxing', False), ('unboxing', True), ('dynamic', True)}
+            {('boxing', False), ('unboxing', True), ('dynamic', True)},
         )
 
     def test_model_alias_shadowing_01(self):
@@ -583,16 +602,18 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             SELECT (User.name, (WITH User := {1,2} SELECT User))
             """,
-            bag([
-                ["Alice", 1],
-                ["Alice", 2],
-                ["Bob", 1],
-                ["Bob", 2],
-                ["Carol", 1],
-                ["Carol", 2],
-                ["Dave", 1],
-                ["Dave", 2],
-            ])
+            bag(
+                [
+                    ["Alice", 1],
+                    ["Alice", 2],
+                    ["Bob", 1],
+                    ["Bob", 2],
+                    ["Carol", 1],
+                    ["Carol", 2],
+                    ["Dave", 1],
+                    ["Dave", 2],
+                ]
+            ),
         )
 
     def test_model_alias_computable_correlate(self):
@@ -600,14 +621,16 @@ class TestModelSmokeTests(unittest.TestCase):
             r"""
             WITH X := (SELECT Obj {m := {1, 2}}) SELECT (X {n, m}, X.m);
             """,
-            bag([
-                [{"n": [1], "m": [1]}, 1],
-                [{"n": [1], "m": [2]}, 2],
-                [{"n": [2], "m": [1]}, 1],
-                [{"n": [2], "m": [2]}, 2],
-                [{"n": [3], "m": [1]}, 1],
-                [{"n": [3], "m": [2]}, 2],
-            ]),
+            bag(
+                [
+                    [{"n": [1], "m": [1]}, 1],
+                    [{"n": [1], "m": [2]}, 2],
+                    [{"n": [2], "m": [1]}, 1],
+                    [{"n": [2], "m": [2]}, 2],
+                    [{"n": [3], "m": [1]}, 1],
+                    [{"n": [3], "m": [2]}, 2],
+                ]
+            ),
         )
 
     def test_model_for_optional_01(self):

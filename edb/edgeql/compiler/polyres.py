@@ -19,7 +19,6 @@
 
 """EdgeQL compiler routines for polymorphic call resolution."""
 
-
 from __future__ import annotations
 
 from typing import (
@@ -70,6 +69,7 @@ class BoundArg:
 @dataclasses.dataclass(kw_only=True, frozen=True)
 class DefaultBitmask(BoundArg):
     """The default bitmask argument, if defaults are present."""
+
     pass
 
 
@@ -93,6 +93,7 @@ class ValueArg(BoundArg):
 @dataclasses.dataclass(kw_only=True, frozen=True)
 class DefaultArg(ValueArg):
     """A bound argument whose value comes from a default."""
+
     pass
 
 
@@ -106,14 +107,12 @@ class PassedArg(ValueArg):
 
 @dataclasses.dataclass(frozen=True)
 class MissingArg:
-
     param: Optional[s_func.ParameterLike]
     param_type: s_types.Type
 
 
 @dataclasses.dataclass(kw_only=True, frozen=True)
 class BoundCall:
-
     func: s_func.CallableLike
     args: list[BoundArg]
     null_args: set[str]
@@ -122,10 +121,12 @@ class BoundCall:
     variadic_arg_count: Optional[int]
     return_polymorphism: ft.Polymorphism = ft.Polymorphism.NotUsed
 
-    server_param_conversions: Optional[dict[
-        str,
-        dict[str, context.ServerParamConversion],
-    ]] = None
+    server_param_conversions: Optional[
+        dict[
+            str,
+            dict[str, context.ServerParamConversion],
+        ]
+    ] = None
 
 
 _VARIADIC = ft.ParameterKind.VariadicParam
@@ -175,7 +176,8 @@ def find_callable_typemods(
                     raise errors.QueryError(
                         f'argument could be SET OF or not in call to '
                         f'{candidates[0].get_verbosename(ctx.env.schema)}: '
-                        f'seems like a stdlib bug!')
+                        f'seems like a stdlib bug!'
+                    )
                 else:
                     # If there is a mix between OPTIONAL and SINGLETON
                     # arguments in possible call sites, we just call it
@@ -196,18 +198,16 @@ def find_callable(
     basic_matching_only: bool = False,
     ctx: context.ContextLevel,
 ) -> list[BoundCall]:
-
     implicit_cast_distance = None
     matched = []
 
     candidates = list(candidates)
     for candidate in candidates:
         call = None
-        if (
-            not basic_matching_only
-            and (conversion := _check_server_arg_conversion(
+        if not basic_matching_only and (
+            conversion := _check_server_arg_conversion(
                 candidate, args, kwargs, ctx=ctx
-            ))
+            )
         ):
             # If there is a server param conversion, the argument should be
             # treated as if it has already been converted.
@@ -233,7 +233,8 @@ def find_callable(
 
         else:
             call = try_bind_call_args(
-                args, kwargs, candidate, basic_matching_only, ctx=ctx)
+                args, kwargs, candidate, basic_matching_only, ctx=ctx
+            )
 
         if call is None:
             continue
@@ -299,7 +300,6 @@ def try_bind_call_args(
         dict[str, dict[str, context.ServerParamConversion]]
     ] = None,
 ) -> Optional[BoundCall]:
-
     return_type = func.get_return_type(ctx.env.schema)
     is_abstract = func.get_abstract(ctx.env.schema)
     resolved_poly_base_type: Optional[s_types.Type] = None
@@ -371,7 +371,8 @@ def try_bind_call_args(
                 # to handle the reverse case.
                 if resolved.is_polymorphic(schema):
                     ct = resolved.resolve_polymorphic(
-                        schema, resolved_poly_base_type)
+                        schema, resolved_poly_base_type
+                    )
 
             if ct is not None:
                 return s_types.MAX_TYPE_DISTANCE if is_abstract else 0
@@ -386,21 +387,18 @@ def try_bind_call_args(
     schema = ctx.env.schema
 
     in_polymorphic_func = (
-        ctx.env.options.func_params is not None and
-        ctx.env.options.func_params.has_polymorphic(schema)
+        ctx.env.options.func_params is not None
+        and ctx.env.options.func_params.has_polymorphic(schema)
     )
 
     variadic_arg_id: Optional[int] = None
     variadic_arg_count: Optional[int] = None
     no_args_call = not args and not kwargs
-    has_inlined_defaults = (
-        func.has_inlined_defaults(schema)
-        and not (
-            isinstance(func, s_func.Function)
-            and (
-                func.get_volatility(schema) == ft.Volatility.Modifying
-                or func.get_is_inlined(schema)
-            )
+    has_inlined_defaults = func.has_inlined_defaults(schema) and not (
+        isinstance(func, s_func.Function)
+        and (
+            func.get_volatility(schema) == ft.Volatility.Modifying
+            or func.get_is_inlined(schema)
         )
     )
 
@@ -413,12 +411,14 @@ def try_bind_call_args(
             bargs: list[BoundArg] = []
             if has_inlined_defaults:
                 bytes_t = ctx.env.get_schema_type_and_track(
-                    sn.QualName('std', 'bytes'))
+                    sn.QualName('std', 'bytes')
+                )
                 typeref = typegen.type_to_typeref(bytes_t, env=ctx.env)
                 argval = setgen.ensure_set(
                     irast.BytesConstant(value=b'\x00', typeref=typeref),
                     typehint=bytes_t,
-                    ctx=ctx)
+                    ctx=ctx,
+                )
                 bargs = [
                     DefaultBitmask(
                         val=argval,
@@ -628,7 +628,8 @@ def try_bind_call_args(
                 if prep_barg.param is None:
                     # Shouldn't be possible; the code above takes care of this.
                     raise RuntimeError(
-                        f'failed to resolve the parameter for the arg #{i}')
+                        f'failed to resolve the parameter for the arg #{i}'
+                    )
 
                 param = prep_barg.param
                 param_shortname = param.get_parameter_name(schema)
@@ -646,11 +647,11 @@ def try_bind_call_args(
                     )
                     assert param_default is not None
                     default = compile_arg(
-                        param_default.parse(), param_typemod, ctx=ctx)
+                        param_default.parse(), param_typemod, ctx=ctx
+                    )
 
-                empty_default = (
-                    has_inlined_defaults or
-                    irutils.is_empty(default)
+                empty_default = has_inlined_defaults or irutils.is_empty(
+                    default
                 )
 
                 if empty_default and not basic_matching_only:
@@ -660,7 +661,8 @@ def try_bind_call_args(
                         if resolved_poly_base_type is None:
                             raise errors.QueryError(
                                 f'could not resolve "anytype" type for the '
-                                f'${param_shortname} parameter')
+                                f'${param_shortname} parameter'
+                            )
                         else:
                             default_type = resolved_poly_base_type
                     else:
@@ -710,13 +712,14 @@ def try_bind_call_args(
     if has_inlined_defaults:
         # If we are compiling an EdgeQL function, inject the defaults
         # bit-mask as a first argument.
-        bytes_t = ctx.env.get_schema_type_and_track(
-            sn.QualName('std', 'bytes'))
+        bytes_t = ctx.env.get_schema_type_and_track(sn.QualName('std', 'bytes'))
         bm = defaults_mask.to_bytes(nparams // 8 + 1, 'little')
         typeref = typegen.type_to_typeref(bytes_t, env=ctx.env)
         bm_set = setgen.ensure_set(
             irast.BytesConstant(value=bm, typeref=typeref),
-            typehint=bytes_t, ctx=ctx)
+            typehint=bytes_t,
+            ctx=ctx,
+        )
         bound_param_args.insert(
             0,
             DefaultBitmask(
@@ -730,7 +733,8 @@ def try_bind_call_args(
 
         if resolved_poly_base_type is not None:
             ctx.env.schema, return_type = return_type.to_nonpolymorphic(
-                ctx.env.schema, resolved_poly_base_type)
+                ctx.env.schema, resolved_poly_base_type
+            )
         elif not in_polymorphic_func and not basic_matching_only:
             return None
 
@@ -738,12 +742,12 @@ def try_bind_call_args(
     # bodies of polymorphic functions
     if resolved_poly_base_type is not None:
         for i, barg in enumerate(bound_param_args):
-            if (
-                isinstance(barg, ValueArg)
-                and barg.param_type.is_polymorphic(schema)
+            if isinstance(barg, ValueArg) and barg.param_type.is_polymorphic(
+                schema
             ):
                 ctx.env.schema, ptype = barg.param_type.to_nonpolymorphic(
-                    ctx.env.schema, resolved_poly_base_type)
+                    ctx.env.schema, resolved_poly_base_type
+                )
                 polymorphism = ft.Polymorphism.from_schema_type(barg.param_type)
                 bound_param_args[i] = dataclasses.replace(
                     barg,
@@ -769,11 +773,13 @@ def _check_server_arg_conversion(
     kwargs: dict[str, tuple[s_types.Type, irast.Set]],
     *,
     ctx: context.ContextLevel,
-) -> Optional[tuple[
-    Sequence[tuple[s_types.Type, irast.Set]],
-    Mapping[str, tuple[s_types.Type, irast.Set]],
-    dict[str, dict[str, context.ServerParamConversion]],
-]]:
+) -> Optional[
+    tuple[
+        Sequence[tuple[s_types.Type, irast.Set]],
+        Mapping[str, tuple[s_types.Type, irast.Set]],
+        dict[str, dict[str, context.ServerParamConversion]],
+    ]
+]:
     """Check if there is a server param conversion and get the effective args.
 
     Server param conversion allows the server to replace a function arg with
@@ -847,10 +853,7 @@ def _check_server_arg_conversion(
                     f"must be a constant or query parameter",
                     span=arg[1].expr.span,
                 )
-            elif (
-                original_type.is_array()
-                and not is_param_query_parameter
-            ):
+            elif original_type.is_array() and not is_param_query_parameter:
                 # Array literals are normalized as expressions
                 # For now, don't support them as constants
                 raise errors.QueryError(
@@ -870,7 +873,7 @@ def _check_server_arg_conversion(
                         conversion_info
                         if isinstance(conversion_info, list)
                         else None
-                    )
+                    ),
                 )
             )
 
@@ -894,9 +897,9 @@ def _check_server_arg_conversion(
                         f'Unsupported constant argument: {arg_name}'
                     )
                 # Use a hash of the text value as the name
-                value_hash = (
-                    hashlib.sha1(constant_expr.value.encode()).hexdigest()
-                )
+                value_hash = hashlib.sha1(
+                    constant_expr.value.encode()
+                ).hexdigest()
                 query_param_name = f'const_{value_hash}'
             elif isinstance(arg[1].expr, irast.QueryParameter):
                 query_param_name = arg[1].expr.name
@@ -906,13 +909,12 @@ def _check_server_arg_conversion(
             # Create a substitute parameter set with the correct type
             existing_converted_path_id = None
             if (
-                (curr_conversions := (
+                curr_conversions := (
                     ctx.env.server_param_conversions.get(query_param_name, None)
-                ))
-                and (
-                    existing_param_conversion := (
-                        curr_conversions.get(conversion_name, None)
-                    )
+                )
+            ) and (
+                existing_param_conversion := (
+                    curr_conversions.get(conversion_name, None)
                 )
             ):
                 # If the param was converted in another call, reuse its path id
@@ -923,9 +925,7 @@ def _check_server_arg_conversion(
                 isinstance(arg[1].expr, irast.QueryParameter)
                 and arg[1].expr.required
             )
-            converted_typeref = typegen.type_to_typeref(
-                converted_type, ctx.env
-            )
+            converted_typeref = typegen.type_to_typeref(converted_type, ctx.env)
             conversion_set: irast.Set = setgen.ensure_set(
                 irast.QueryParameter(
                     name=converted_param_name,
@@ -939,9 +939,7 @@ def _check_server_arg_conversion(
 
             if query_param_name not in curr_server_param_conversions:
                 curr_server_param_conversions[query_param_name] = {}
-            curr_conversions = (
-                curr_server_param_conversions[query_param_name]
-            )
+            curr_conversions = curr_server_param_conversions[query_param_name]
 
             if existing_converted_path_id is None:
                 # If this is the first time this conversion was applied to this
@@ -957,7 +955,7 @@ def _check_server_arg_conversion(
                     typeref=converted_typeref,
                     pt=converted_type,
                     is_func_param=True,
-                    ctx=ctx
+                    ctx=ctx,
                 )
 
                 curr_conversions[conversion_name] = (
@@ -976,8 +974,8 @@ def _check_server_arg_conversion(
                             list(ctx.env.script_params.keys()).index(
                                 query_param_name
                             )
-                            if query_param_name in ctx.env.script_params else
-                            None
+                            if query_param_name in ctx.env.script_params
+                            else None
                         ),
                         constant_value=constant_value,
                     )
@@ -1028,30 +1026,22 @@ def _resolve_server_param_conversion(
     conversion_volatility: ft.Volatility
 
     if conversion_name == 'cast_int64_to_str':
-        converted_type = schema.get(
-            'std::str', type=s_scalars.ScalarType
-        )
+        converted_type = schema.get('std::str', type=s_scalars.ScalarType)
         conversion_volatility = ft.Volatility.Immutable
 
     elif conversion_name == 'cast_int64_to_str_volatile':
-        converted_type = schema.get(
-            'std::str', type=s_scalars.ScalarType
-        )
+        converted_type = schema.get('std::str', type=s_scalars.ScalarType)
         conversion_volatility = ft.Volatility.Volatile
 
     elif conversion_name == 'cast_int64_to_float64':
-        converted_type = schema.get(
-            'std::float64', type=s_scalars.ScalarType
-        )
+        converted_type = schema.get('std::float64', type=s_scalars.ScalarType)
         conversion_volatility = ft.Volatility.Immutable
 
     elif conversion_name == 'join_str_array':
         assert conversion_info is not None
         separator = conversion_info[1]
 
-        converted_type = schema.get(
-            'std::str', type=s_scalars.ScalarType
-        )
+        converted_type = schema.get('std::str', type=s_scalars.ScalarType)
         additional_info = (separator,)
         conversion_volatility = ft.Volatility.Immutable
 
@@ -1082,9 +1072,7 @@ def _get_arg(
 ]:
     param = func_params.get_by_name(name=param_name, schema=schema)
     if param is None:
-        raise RuntimeError(
-            f'{error_msg}: missing param "{param_name}"'
-        )
+        raise RuntimeError(f'{error_msg}: missing param "{param_name}"')
 
     param_kind = param.get_kind(schema)
     if param_kind == ft.ParameterKind.PositionalParam:
@@ -1102,7 +1090,7 @@ def compile_arg(
     arg_ql: qlast.Expr,
     typemod: ft.TypeModifier,
     *,
-    prefer_subquery_args: bool=False,
+    prefer_subquery_args: bool = False,
     ctx: context.ContextLevel,
 ) -> irast.Set:
     fenced = typemod is ft.TypeModifier.SetOfType
@@ -1123,8 +1111,11 @@ def compile_arg(
 
         if fenced:
             arg_ql = qlast.SelectQuery(
-                result=arg_ql, span=arg_ql.span,
-                implicit=True, rptr_passthrough=True)
+                result=arg_ql,
+                span=arg_ql.span,
+                implicit=True,
+                rptr_passthrough=True,
+            )
 
         argctx.implicit_limit = 0
 

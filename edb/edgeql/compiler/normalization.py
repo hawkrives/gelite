@@ -19,7 +19,6 @@
 
 """EdgeQL expression normalization functions."""
 
-
 from __future__ import annotations
 from typing import (
     Any,
@@ -72,25 +71,21 @@ def renormalize_compat(
     orig_qltree = qlparser.parse_fragment(orig_text)
 
     norm_aliases: dict[Optional[str], str] = {}
-    assert isinstance(norm_qltree, (
-        qlast.Query, qlast.Command, qlast.DDLCommand
-    ))
-    for alias in (norm_qltree.aliases or ()):
+    assert isinstance(
+        norm_qltree, (qlast.Query, qlast.Command, qlast.DDLCommand)
+    )
+    for alias in norm_qltree.aliases or ():
         if isinstance(alias, qlast.ModuleAliasDecl):
             norm_aliases[alias.alias] = alias.module
 
-    if isinstance(orig_qltree, (
-        qlast.Query, qlast.Command, qlast.DDLCommand
-    )):
+    if isinstance(orig_qltree, (qlast.Query, qlast.Command, qlast.DDLCommand)):
         orig_aliases: dict[Optional[str], str] = {}
-        for alias in (orig_qltree.aliases or ()):
+        for alias in orig_qltree.aliases or ():
             if isinstance(alias, qlast.ModuleAliasDecl):
                 orig_aliases[alias.alias] = alias.module
 
         modaliases = {
-            k: v
-            for k, v in norm_aliases.items()
-            if k not in orig_aliases
+            k: v for k, v in norm_aliases.items() if k not in orig_aliases
         }
     else:
         modaliases = norm_aliases
@@ -187,18 +182,17 @@ def normalize_ObjectRef(
 def _normalize_with_block(
     node: qlast.Query,
     *,
-    field: str='aliases',
+    field: str = 'aliases',
     schema: s_schema.Schema,
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> tuple[Mapping[Optional[str], str], AbstractSet[str]]:
-
     # Update the default aliases, modaliases, and localnames.
     modaliases = dict(modaliases)
     newaliases: list[qlast.AliasedExpr | qlast.ModuleAliasDecl] = []
 
     aliases: Optional[list[qlast.AliasedExpr]] = getattr(node, field)
-    for alias in (aliases or ()):
+    for alias in aliases or ():
         if isinstance(alias, qlast.ModuleAliasDecl):
             if alias.alias:
                 modaliases[alias.alias] = alias.module
@@ -228,7 +222,6 @@ def _normalize_aliased_field(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> AbstractSet[str]:
-
     # Potentially the result defines an alias that is visible in other
     # clauses
     val = getattr(node, fname)
@@ -253,7 +246,6 @@ def normalize_SelectQuery(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> None:
-
     # Process WITH block
     modaliases, localnames = _normalize_with_block(
         node,
@@ -290,7 +282,6 @@ def normalize_DML(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> None:
-
     # Process WITH block
     modaliases, localnames = _normalize_with_block(
         node,
@@ -316,7 +307,6 @@ def normalize_ForQuery(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> None:
-
     # Process WITH block
     modaliases, localnames = _normalize_with_block(
         node,
@@ -394,14 +384,17 @@ def normalize_FunctionCall(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> None:
-
     if node.func not in localnames:
         name = (
-            sn.UnqualName(node.func) if isinstance(node.func, str)
+            sn.UnqualName(node.func)
+            if isinstance(node.func, str)
             else sn.QualName(*node.func)
         )
         funcs = s_func.lookup_functions(
-            name, default=tuple(), module_aliases=modaliases, schema=schema,
+            name,
+            default=tuple(),
+            module_aliases=modaliases,
+            schema=schema,
         )
         if funcs:
             # As long as we found some functions, they will be from
@@ -455,15 +448,18 @@ def compile_TypeName(
     modaliases: Mapping[Optional[str], str],
     localnames: AbstractSet[str] = frozenset(),
 ) -> None:
-
     # Resolve the main type
     if isinstance(node.maintype, qlast.ObjectRef):
         # This is a specific path root, resolve it.
         if (
             # maintype names 'array', 'tuple', 'range', and 'multirange'
             # specifically should also be ignored
-            node.maintype.name not in {
-                'array', 'tuple', 'range', 'multirange',
+            node.maintype.name
+            not in {
+                'array',
+                'tuple',
+                'range',
+                'multirange',
             }
         ):
             normalize(

@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
 
 class WorkerScope:
-
     def __init__(self, initializer, destructor):
         self.initializer = initializer
         self.destructor = destructor
@@ -56,7 +55,8 @@ def multiprocessing_pool_worker(
     # original unpatched version.
     try:
         multiprocessing.pool.worker(
-            inqueue, outqueue, initializer, *args, **kwargs)
+            inqueue, outqueue, initializer, *args, **kwargs
+        )
     except KeyboardInterrupt:
         # Try to exit with less noise when ctrl+c is pressed
         return
@@ -76,15 +76,15 @@ def multiprocessing_worker_handler(*args):
         # ... and in others it's a staticmethod or a classmethod taking
         # 12-14 positional arguments.
         for arg in args:
-            if (isinstance(arg, list) and arg
-                    and isinstance(
-                        arg[0],
-                        multiprocessing.process.BaseProcess)):
+            if (
+                isinstance(arg, list)
+                and arg
+                and isinstance(arg[0], multiprocessing.process.BaseProcess)
+            ):
                 workers = arg
                 break
         else:
-            logger.error(
-                'unable to patch multiprocessing.Pool._handle_workers')
+            logger.error('unable to patch multiprocessing.Pool._handle_workers')
             return
 
     for worker_process in workers:
@@ -122,5 +122,6 @@ def patch_multiprocessing(debug: bool):
     multiprocessing.pool.Pool._handle_workers = multiprocessing_worker_handler
 
     _orig_pool_join_exited_workers = (
-        multiprocessing.pool.Pool._join_exited_workers)
+        multiprocessing.pool.Pool._join_exited_workers
+    )
     multiprocessing.pool.Pool._join_exited_workers = join_exited_workers

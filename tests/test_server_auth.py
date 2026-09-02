@@ -37,7 +37,6 @@ from edb.testbase import server as tb
 
 
 class TestServerAuth(tb.ConnectedTestCase):
-
     PARALLELISM_GRANULARITY = 'system'
     TRANSACTION_ISOLATION = False
 
@@ -54,8 +53,8 @@ class TestServerAuth(tb.ConnectedTestCase):
 
         # bad password
         with self.assertRaisesRegex(
-                edgedb.AuthenticationError,
-                'authentication failed'):
+            edgedb.AuthenticationError, 'authentication failed'
+        ):
             await self.connect(
                 user='foo',
                 password='wrong',
@@ -71,7 +70,7 @@ class TestServerAuth(tb.ConnectedTestCase):
         with self.assertRaisesRegex(
             edgedb.AuthenticationError,
             "authentication failed: user does not have permission for "
-            "database branch 'auth_failure'"
+            "database branch 'auth_failure'",
         ):
             await self.connect(
                 user='foo',
@@ -106,9 +105,7 @@ class TestServerAuth(tb.ConnectedTestCase):
                 }
                 FILTER any(.user = 'foo')
             """,
-            [
-                {'method': {'transports': ['SIMPLE_HTTP']}}
-            ],
+            [{'method': {'transports': ['SIMPLE_HTTP']}}],
         )
 
         await self.con.query('''
@@ -194,17 +191,18 @@ class TestServerAuth(tb.ConnectedTestCase):
 
             # bad (old) password
             with self.assertRaisesRegex(
-                    edgedb.AuthenticationError,
-                    'authentication failed'):
+                edgedb.AuthenticationError, 'authentication failed'
+            ):
                 await self.connect(
                     user='bar',
                     password='bar-pass',
                 )
 
             with self.assertRaisesRegex(
-                    edgedb.EdgeQLSyntaxError,
-                    'cannot specify both `password` and `password_hash`'
-                    ' in the same statement'):
+                edgedb.EdgeQLSyntaxError,
+                'cannot specify both `password` and `password_hash`'
+                ' in the same statement',
+            ):
                 await self.con.query('''
                     CREATE SUPERUSER ROLE bar1 {
                         SET password := 'hello';
@@ -213,8 +211,8 @@ class TestServerAuth(tb.ConnectedTestCase):
                 ''')  # noqa
 
             with self.assertRaisesRegex(
-                    edgedb.InvalidValueError,
-                    'invalid SCRAM verifier'):
+                edgedb.InvalidValueError, 'invalid SCRAM verifier'
+            ):
                 await self.con.query('''
                     CREATE SUPERUSER ROLE bar2 {
                         SET password_hash := 'SCRAM-BLAKE2B$4096:SHzNmIppMwXnPSWgY2yMvg==$5zmnXMm9+mn2nseKPF1NTKvuoBPVSWgxHrnptxpQgcU=:/c1vJV+MmS7v9vv6CDVo56OyOJkNd3F+m3JIBB1U7ho=';
@@ -259,10 +257,7 @@ class TestServerAuth(tb.ConnectedTestCase):
 
             # good password but Auth is not configured
             # (should default to SCRAM and succeed)
-            conn2 = await self.connect(
-                user='bar',
-                password='bar-pass'
-            )
+            conn2 = await self.connect(user='bar', password='bar-pass')
             await conn2.aclose()
         finally:
             await self.con.query('''
@@ -377,11 +372,13 @@ class TestServerAuth(tb.ConnectedTestCase):
 
     async def test_long_role_name(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'Role names longer than \d+ '
-                r'characters are not supported'):
+            edgedb.SchemaDefinitionError,
+            r'Role names longer than \d+ '
+            r'characters are not supported',
+        ):
             await self.con.execute(
-                f'CREATE SUPERUSER ROLE myrole_{"x" * s_def.MAX_NAME_LENGTH};')
+                f'CREATE SUPERUSER ROLE myrole_{"x" * s_def.MAX_NAME_LENGTH};'
+            )
 
     async def test_server_auth_jwt_1(self):
         jwk_fd, jwk_file = tempfile.mkstemp()
@@ -464,15 +461,16 @@ class TestServerAuth(tb.ConnectedTestCase):
                     await conn.aclose()
 
             bad_keys = {
-                (("roles", ("bad-role",)),):
-                    'secret key does not authorize access '
-                    + 'in role "admin"',
-                (("databases", ("bad-database",)),):
-                    'secret key does not authorize access '
-                    + 'to database "main"',
-                (("instances", ("bad-instance",)),):
-                    'secret key does not authorize access '
-                    + 'to this instance',
+                (
+                    ("roles", ("bad-role",)),
+                ): 'secret key does not authorize access ' + 'in role "admin"',
+                (
+                    ("databases", ("bad-database",)),
+                ): 'secret key does not authorize access '
+                + 'to database "main"',
+                (
+                    ("instances", ("bad-instance",)),
+                ): 'secret key does not authorize access ' + 'to this instance',
             }
 
             for params, msg in bad_keys.items():
@@ -502,9 +500,7 @@ class TestServerAuth(tb.ConnectedTestCase):
         subject = "test"
         key_id = "foobar"
 
-        with self.assertRaisesRegex(
-            edbcluster.ClusterError, "cannot load JWT"
-        ):
+        with self.assertRaisesRegex(edbcluster.ClusterError, "cannot load JWT"):
             async with tb.start_edgedb_server(
                 jws_key_file=jwk_file,
                 jwt_sub_allowlist_file='/tmp/non_existant',
@@ -517,7 +513,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             jwt_sub_allowlist_file=allowlist_file,
             jwt_revocation_list_file=revokelist_file,
         ) as sd:
-
             jwk = load_secret_key(pathlib.Path(jwk_file))
 
             # enable JWT
@@ -578,16 +573,18 @@ class TestServerAuth(tb.ConnectedTestCase):
         jwk = load_secret_key(pathlib.Path(jwk_file))
         async with tb.start_edgedb_server(
             jws_key_file=pathlib.Path(jwk_file),
-            default_auth_method=args.ServerAuthMethods({
-                args.ServerConnTransport.TCP: [
-                    args.ServerAuthMethod.JWT,
-                    args.ServerAuthMethod.Scram,
-                ],
-                args.ServerConnTransport.SIMPLE_HTTP: [
-                    args.ServerAuthMethod.Password,
-                    args.ServerAuthMethod.JWT,
-                ],
-            }),
+            default_auth_method=args.ServerAuthMethods(
+                {
+                    args.ServerConnTransport.TCP: [
+                        args.ServerAuthMethod.JWT,
+                        args.ServerAuthMethod.Scram,
+                    ],
+                    args.ServerConnTransport.SIMPLE_HTTP: [
+                        args.ServerAuthMethod.Password,
+                        args.ServerAuthMethod.JWT,
+                    ],
+                }
+            ),
         ) as sd:
             base_sk = generate_gel_token(jwk)
             conn = await sd.connect(secret_key=base_sk)
@@ -630,7 +627,7 @@ class TestServerAuth(tb.ConnectedTestCase):
     @unittest.skipIf(
         platform.system() == "Darwin" and platform.machine() == 'x86_64',
         "Postgres is not getting getting enough shared memory on macos-14 "
-        "GitHub runner by default"
+        "GitHub runner by default",
     )
     async def test_server_auth_mtls(self):
         if not self.has_create_role:
@@ -649,7 +646,8 @@ class TestServerAuth(tb.ConnectedTestCase):
             try:
                 await conn.query("CREATE SUPERUSER ROLE ssl_user;")
                 await self._test_mtls(
-                    sd, client_ssl_cert_file, client_ssl_key_file, False)
+                    sd, client_ssl_cert_file, client_ssl_key_file, False
+                )
                 await conn.query("""
                     CONFIGURE INSTANCE INSERT Auth {
                         comment := 'test',
@@ -665,7 +663,8 @@ class TestServerAuth(tb.ConnectedTestCase):
                     }
                 """)
                 await self._test_mtls(
-                    sd, client_ssl_cert_file, client_ssl_key_file, True)
+                    sd, client_ssl_cert_file, client_ssl_key_file, True
+                )
             finally:
                 await conn.aclose()
 
@@ -688,11 +687,13 @@ class TestServerAuth(tb.ConnectedTestCase):
                 keep_alive=False,
             ) as con:
                 msgs, _, status = self.http_con_binary_request(
-                    con, "select 42", user="ssl_user")
+                    con, "select 42", user="ssl_user"
+                )
             self.assertEqual(status, 200)
             self.assertIsInstance(msgs[0], protocol.ErrorResponse)
             self.assertEqual(
-                msgs[0].error_code, errors.AuthenticationError.get_code())
+                msgs[0].error_code, errors.AuthenticationError.get_code()
+            )
         with self.http_con(
             sd,
             keep_alive=False,
@@ -700,7 +701,8 @@ class TestServerAuth(tb.ConnectedTestCase):
             client_key_file=client_ssl_key_file,
         ) as con:
             msgs, _, status = self.http_con_binary_request(
-                con, "select 42", user="ssl_user")
+                con, "select 42", user="ssl_user"
+            )
         if granted:
             self.assertEqual(status, 200)
             self.assertIsInstance(msgs[0], protocol.CommandDataDescription)
@@ -713,7 +715,8 @@ class TestServerAuth(tb.ConnectedTestCase):
             self.assertEqual(status, 200)
             self.assertIsInstance(msgs[0], protocol.ErrorResponse)
             self.assertEqual(
-                msgs[0].error_code, errors.AuthenticationError.get_code())
+                msgs[0].error_code, errors.AuthenticationError.get_code()
+            )
 
         # Verifies mTLS authentication on emulated Postgres protocol
         try:
@@ -742,7 +745,8 @@ class TestServerAuth(tb.ConnectedTestCase):
                 ):
                     await asyncpg.connect(**conargs)
             tls_context.load_cert_chain(
-                client_ssl_cert_file, client_ssl_key_file)
+                client_ssl_cert_file, client_ssl_key_file
+            )
             if granted:
                 conn = await asyncpg.connect(**conargs)
                 self.assertEqual(await conn.fetchval("select 42"), 42)

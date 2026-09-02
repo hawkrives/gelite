@@ -19,7 +19,6 @@
 
 """EdgeQL compiler path scope helpers."""
 
-
 from __future__ import annotations
 
 from typing import Literal, Optional, AbstractSet
@@ -47,7 +46,8 @@ def get_path_id(
         stype,
         typename=typename,
         env=ctx.env,
-        namespace=ctx.path_id_namespace)
+        namespace=ctx.path_id_namespace,
+    )
 
 
 def get_tuple_indirection_path_id(
@@ -57,9 +57,9 @@ def get_tuple_indirection_path_id(
     *,
     ctx: context.ContextLevel,
 ) -> irast.PathId:
-
     ctx.env.schema, src_t = irtyputils.ir_typeref_to_type(
-        ctx.env.schema, tuple_path_id.target)
+        ctx.env.schema, tuple_path_id.target
+    )
     ptrcls = irast.TupleIndirectionLink(
         src_t,
         element_type,
@@ -147,12 +147,13 @@ def extend_path_id(
     *,
     ptrcls: s_pointers.PointerLike,
     direction: s_pointers.PointerDirection = (
-        s_pointers.PointerDirection.Outbound),
+        s_pointers.PointerDirection.Outbound
+    ),
     ns: AbstractSet[str] = frozenset(),
     ctx: context.ContextLevel,
 ) -> irast.PathId:
     """A wrapper over :meth:`ir.pathid.PathId.extend` that also ensures
-       the cardinality of *ptrcls* is known at the end of compilation.
+    the cardinality of *ptrcls* is known at the end of compilation.
     """
 
     ptrref = irtyputils.ptrref_from_ptrcls(
@@ -171,7 +172,6 @@ def ban_inserting_path(
     location: Literal['body'] | Literal['else'],
     ctx: context.ContextLevel,
 ) -> None:
-
     ctx.inserting_paths = ctx.inserting_paths.copy()
     ctx.inserting_paths[path_id] = location
 
@@ -179,7 +179,6 @@ def ban_inserting_path(
 def path_is_inserting(
     path_id: irast.PathId, *, ctx: context.ContextLevel
 ) -> bool:
-
     node = ctx.path_scope.find_visible(path_id)
     return bool(
         node

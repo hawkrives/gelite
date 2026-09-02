@@ -28,15 +28,13 @@ from edb.tools import test
 
 class TestInsert(tb.DDLTestCase):
     '''The scope of the tests is testing various modes of Object creation.'''
+
     INTERNAL_TESTMODE = False
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'insert.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'insert.esdl')
 
     def assertRaisesRegex(self, exc, r, **kwargs):
-        if (
-            "cannot reference correlated set" in r
-        ):
+        if "cannot reference correlated set" in r:
             r = ""
         return super().assertRaisesRegex(exc, r, **kwargs)
 
@@ -88,8 +86,7 @@ class TestInsert(tb.DDLTestCase):
     async def test_edgeql_insert_fail_05(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            "INSERT only works with object types, not arbitrary "
-            "expressions"
+            "INSERT only works with object types, not arbitrary expressions",
         ):
             await self.con.execute('''
                 INSERT Person.notes { name := "note1" };
@@ -97,9 +94,7 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_fail_06(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            r"could not resolve partial path",
-            _hint=None
+            edgedb.QueryError, r"could not resolve partial path", _hint=None
         ):
             await self.con.execute('''
                 INSERT Person { name := .name };
@@ -117,8 +112,7 @@ class TestInsert(tb.DDLTestCase):
     async def test_edgeql_insert_fail_08(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            "INSERT only works with object types, not arbitrary "
-            "expressions"
+            "INSERT only works with object types, not arbitrary expressions",
         ):
             await self.con.execute("""
                 insert Note {name := 'bad note'} union DerivedNote;
@@ -127,8 +121,7 @@ class TestInsert(tb.DDLTestCase):
     async def test_edgeql_insert_fail_09(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            "INSERT only works with object types, not conditional "
-            "expressions"
+            "INSERT only works with object types, not conditional expressions",
         ):
             await self.con.execute("""
                 insert Note {
@@ -189,8 +182,8 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'l2': 3,
                     'l3': '''"Test'3'"''',
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_insert_simple_02(self):
@@ -255,7 +248,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'l2': 0,
                 },
-            ]
+            ],
         )
 
         await self.con.execute(r"""
@@ -284,7 +277,7 @@ class TestInsert(tb.DDLTestCase):
                 {'l2': 0},
                 {'l2': 1},
                 {'l2': 2},
-            ]
+            ],
         )
 
     async def test_edgeql_insert_nested_01(self):
@@ -318,15 +311,20 @@ class TestInsert(tb.DDLTestCase):
                 FILTER
                     InsertTest.name = 'insert nested';
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'subtest 1',
-                    '@comment': None,
-                }, {
-                    'name': 'subtest 2',
-                    '@comment': None,
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {
+                            'name': 'subtest 1',
+                            '@comment': None,
+                        },
+                        {
+                            'name': 'subtest 2',
+                            '@comment': None,
+                        },
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_02(self):
@@ -362,15 +360,20 @@ class TestInsert(tb.DDLTestCase):
                 FILTER
                     InsertTest.name = 'insert nested 2';
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'subtest 3',
-                    '@comment': 'comment subtest 3',
-                }, {
-                    'name': 'subtest 4',
-                    '@comment': 'comment subtest 4',
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {
+                            'name': 'subtest 3',
+                            '@comment': 'comment subtest 3',
+                        },
+                        {
+                            'name': 'subtest 4',
+                            '@comment': 'comment subtest 4',
+                        },
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_03(self):
@@ -394,11 +397,7 @@ class TestInsert(tb.DDLTestCase):
                 FILTER
                     InsertTest.name = 'insert nested 3';
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'nested sub 3.1'
-                }]
-            }]
+            [{'subordinates': [{'name': 'nested sub 3.1'}]}],
         )
 
     async def test_edgeql_insert_nested_04(self):
@@ -424,12 +423,13 @@ class TestInsert(tb.DDLTestCase):
                 FILTER
                     InsertTest.name = 'insert nested 4';
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'nested sub 4.1',
-                    '@comment': 'comment 4.1'
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {'name': 'nested sub 4.1', '@comment': 'comment 4.1'}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_05(self):
@@ -462,13 +462,13 @@ class TestInsert(tb.DDLTestCase):
                     }
                 } FILTER InsertTest.name = 'insert nested 5';
             ''',
-            [{
-                'name': 'insert nested 5',
-                'l2': 0,
-                'subordinates': [{
-                    'name': 'only subordinate'
-                }]
-            }],
+            [
+                {
+                    'name': 'insert nested 5',
+                    'l2': 0,
+                    'subordinates': [{'name': 'only subordinate'}],
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_06(self):
@@ -500,18 +500,22 @@ class TestInsert(tb.DDLTestCase):
                 FILTER
                     InsertTest.name = 'insert nested 6';
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'linkprop test target 6',
-                    '@comment': 'comment 6'
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {
+                            'name': 'linkprop test target 6',
+                            '@comment': 'comment 6',
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_07(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                "Unexpected 'Subordinate'"):
+            edgedb.EdgeQLSyntaxError, "Unexpected 'Subordinate'"
+        ):
             await self.con.execute('''
                 INSERT InsertTest {
                     subordinates: Subordinate {
@@ -522,7 +526,8 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
     async def test_edgeql_insert_nested_08(self):
-        await self.assert_query_result(r'''
+        await self.assert_query_result(
+            r'''
             WITH
                 x1 := (
                     INSERT InsertTest {
@@ -541,10 +546,14 @@ class TestInsert(tb.DDLTestCase):
                     name
                 }
             };
-        ''', [{
-            'name': 'insert nested 8',
-            'subordinates': [{'name': 'nested sub 8.1'}]
-        }])
+        ''',
+            [
+                {
+                    'name': 'insert nested 8',
+                    'subordinates': [{'name': 'nested sub 8.1'}],
+                }
+            ],
+        )
 
     async def test_edgeql_insert_nested_09(self):
         # test a single link with a link property
@@ -561,7 +570,8 @@ class TestInsert(tb.DDLTestCase):
             }
         ''')
 
-        await self.assert_query_result(r'''
+        await self.assert_query_result(
+            r'''
             SELECT InsertTest {
                 name,
                 sub: {
@@ -570,13 +580,17 @@ class TestInsert(tb.DDLTestCase):
                 }
             } FILTER
                 .name = 'insert nested 9'
-        ''', [{
-            'name': 'insert nested 9',
-            'sub': {
-                'name': 'nested sub 9',
-                '@note': 'sub note 9',
-            }
-        }])
+        ''',
+            [
+                {
+                    'name': 'insert nested 9',
+                    'sub': {
+                        'name': 'nested sub 9',
+                        '@note': 'sub note 9',
+                    },
+                }
+            ],
+        )
 
     async def test_edgeql_insert_nested_10(self):
         # test a single link with a link property
@@ -599,7 +613,8 @@ class TestInsert(tb.DDLTestCase):
             }
         ''')
 
-        await self.assert_query_result(r'''
+        await self.assert_query_result(
+            r'''
             SELECT InsertTest {
                 name,
                 sub: {
@@ -608,13 +623,17 @@ class TestInsert(tb.DDLTestCase):
                 }
             } FILTER
                 .name = 'insert nested 10'
-        ''', [{
-            'name': 'insert nested 10',
-            'sub': {
-                'name': 'nested sub 10',
-                '@note': 'sub note 10',
-            }
-        }])
+        ''',
+            [
+                {
+                    'name': 'insert nested 10',
+                    'sub': {
+                        'name': 'nested sub 10',
+                        '@note': 'sub note 10',
+                    },
+                }
+            ],
+        )
 
     async def test_edgeql_insert_nested_11(self):
         await self.con.execute('''
@@ -639,12 +658,16 @@ class TestInsert(tb.DDLTestCase):
                     subordinates: { name, @comment }
                 }
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'linkprop test target 6',
-                    '@comment': 'comment 6'
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {
+                            'name': 'linkprop test target 6',
+                            '@comment': 'comment 6',
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_nested_12(self):
@@ -676,12 +699,13 @@ class TestInsert(tb.DDLTestCase):
                     subordinates: { name, @comment }
                 }
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'linkprop test target 6',
-                    '@comment': '!!!'
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {'name': 'linkprop test target 6', '@comment': '!!!'}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_01(self):
@@ -699,9 +723,11 @@ class TestInsert(tb.DDLTestCase):
                     num := 2,
                 }) {foo};
             ''',
-            [{
-                'foo': 'ret2',
-            }],
+            [
+                {
+                    'foo': 'ret2',
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -722,9 +748,11 @@ class TestInsert(tb.DDLTestCase):
                     num := 1,
                 };
             ''',
-            [{
-                'id': uuid.UUID,
-            }],
+            [
+                {
+                    'id': uuid.UUID,
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -734,9 +762,11 @@ class TestInsert(tb.DDLTestCase):
                     num := 2,
                 }) {foo};
             ''',
-            [{
-                'foo': 'ret2',
-            }],
+            [
+                {
+                    'foo': 'ret2',
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -790,13 +820,13 @@ class TestInsert(tb.DDLTestCase):
                     }
                 };
             ''',
-            [{
-                'name': 'insert nested returning 3',
-                'l2': 0,
-                'subordinates': [{
-                    'name': 'sub returning 3'
-                }]
-            }],
+            [
+                {
+                    'name': 'insert nested returning 3',
+                    'l2': 0,
+                    'subordinates': [{'name': 'sub returning 3'}],
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_04(self):
@@ -807,10 +837,12 @@ class TestInsert(tb.DDLTestCase):
                     num := 33,
                 }) {foo, num};
             ''',
-            [{
-                'foo': 'DT returning 4',
-                'num': 33,
-            }],
+            [
+                {
+                    'foo': 'DT returning 4',
+                    'num': 33,
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -838,10 +870,12 @@ class TestInsert(tb.DDLTestCase):
                     DefaultTest1 {foo, num}
                     FILTER DefaultTest1.num > I.l2;
             ''',
-            [{
-                'foo': 'DT returning 4',
-                'num': 33,
-            }],
+            [
+                {
+                    'foo': 'DT returning 4',
+                    'num': 33,
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_05(self):
@@ -855,10 +889,12 @@ class TestInsert(tb.DDLTestCase):
                     num,
                 };
             ''',
-            [{
-                'foo': 'DT returning 5',
-                'num': 42,
-            }],
+            [
+                {
+                    'foo': 'DT returning 5',
+                    'num': 42,
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_06(self):
@@ -880,12 +916,14 @@ class TestInsert(tb.DDLTestCase):
                     },
                 };
             ''',
-            [{
-                'name': 'ret6/DT5',
-                'other': {
-                    'name': 'DefaultTest5/Sub',
+            [
+                {
+                    'name': 'ret6/DT5',
+                    'other': {
+                        'name': 'DefaultTest5/Sub',
+                    },
                 }
-            }],
+            ],
         )
 
     async def test_edgeql_insert_returning_07(self):
@@ -910,15 +948,17 @@ class TestInsert(tb.DDLTestCase):
                     },
                 };
             ''',
-            [{
-                'name': 'ret7/DT6',
-                'other': {
-                    'name': 'DefaultTest6/5',
+            [
+                {
+                    'name': 'ret7/DT6',
                     'other': {
-                        'name': 'DefaultTest5/Sub',
-                    }
+                        'name': 'DefaultTest6/5',
+                        'other': {
+                            'name': 'DefaultTest5/Sub',
+                        },
+                    },
                 }
-            }],
+            ],
         )
 
     async def test_edgeql_insert_returning_08(self):
@@ -946,18 +986,20 @@ class TestInsert(tb.DDLTestCase):
                     },
                 };
             ''',
-            [{
-                'name': 'ret8/DT7',
-                'other': {
-                    'name': 'DefaultTest7/6',
+            [
+                {
+                    'name': 'ret8/DT7',
                     'other': {
-                        'name': 'DefaultTest6/5',
+                        'name': 'DefaultTest7/6',
                         'other': {
-                            'name': 'DefaultTest5/Sub',
-                        }
-                    }
+                            'name': 'DefaultTest6/5',
+                            'other': {
+                                'name': 'DefaultTest5/Sub',
+                            },
+                        },
+                    },
                 }
-            }],
+            ],
         )
 
     async def test_edgeql_insert_returning_09(self):
@@ -973,10 +1015,12 @@ class TestInsert(tb.DDLTestCase):
                 )) { name, notes: {name} };
 
             ''',
-            [{
-                'name': 'Phil Emarg',
-                'notes': [{'name': '!'}],
-            }],
+            [
+                {
+                    'name': 'Phil Emarg',
+                    'notes': [{'name': '!'}],
+                }
+            ],
         )
 
         # make sure it works when *doubly* nested!
@@ -992,10 +1036,12 @@ class TestInsert(tb.DDLTestCase):
                 )) { name, notes: {name, subject[IS Subordinate]: {name}} };
 
             ''',
-            [{
-                'name': 'Madeline Hatch',
-                'notes': [{'name': '!', 'subject': {'name': "sub"}}],
-            }],
+            [
+                {
+                    'name': 'Madeline Hatch',
+                    'notes': [{'name': '!', 'subject': {'name': "sub"}}],
+                }
+            ],
         )
 
         # ... *doubly* nested, but the inner insert is a multi link
@@ -1010,12 +1056,14 @@ class TestInsert(tb.DDLTestCase):
                 INSERT PersonWrapper { person := P }
             )) { person: { name, notes: {name} } };
             ''',
-            [{
-                'person': {
-                    'name': 'Emmanuel Villip',
-                    'notes': [{'name': '!'}],
-                },
-            }],
+            [
+                {
+                    'person': {
+                        'name': 'Emmanuel Villip',
+                        'notes': [{'name': '!'}],
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_10(self):
@@ -1028,10 +1076,12 @@ class TestInsert(tb.DDLTestCase):
                      subject := (INSERT Subordinate { name := "sub" })})
                 { name, subject };
             ''',
-            [{
-                'name': 'test',
-                'subject': {'id': str},
-            }],
+            [
+                {
+                    'name': 'test',
+                    'subject': {'id': str},
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_11(self):
@@ -1052,10 +1102,12 @@ class TestInsert(tb.DDLTestCase):
                 })
                 { name, notes: {note} };
             ''',
-            [{
-                'name': 'test',
-                'notes': [{'note': "b"}],
-            }],
+            [
+                {
+                    'name': 'test',
+                    'notes': [{'note': "b"}],
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_12(self):
@@ -1076,10 +1128,12 @@ class TestInsert(tb.DDLTestCase):
                 })
                 { name, notes: {note} };
             ''',
-            [{
-                'name': 'test',
-                'notes': [{'note': "b"}],
-            }],
+            [
+                {
+                    'name': 'test',
+                    'notes': [{'note': "b"}],
+                }
+            ],
         )
 
     async def test_edgeql_insert_returning_13(self):
@@ -1108,10 +1162,10 @@ class TestInsert(tb.DDLTestCase):
                     "notes": [
                         {"name": "anote", "note": "some note"},
                         {"name": "dnote", "note": "b"},
-                        {"name": "new note", "note": "hi"}
-                    ]
+                        {"name": "new note", "note": "hi"},
+                    ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_insert_returning_14(self):
@@ -1145,10 +1199,10 @@ class TestInsert(tb.DDLTestCase):
                     "dnotes": [
                         {"name": "anote", "note": "some note"},
                         {"name": "dnote", "note": "b"},
-                        {"name": "new note", "note": "hi"}
-                    ]
+                        {"name": "new note", "note": "hi"},
+                    ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_insert_returning_15(self):
@@ -1210,8 +1264,8 @@ class TestInsert(tb.DDLTestCase):
         await self.con.execute(Q)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(Q)
 
         Q = '''
@@ -1223,8 +1277,8 @@ class TestInsert(tb.DDLTestCase):
         await self.con.execute(Q)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(Q)
 
     async def test_edgeql_insert_policy_cast(self):
@@ -1245,15 +1299,15 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.AccessPolicyError,
-                "violation on insert of default::Note"):
+            edgedb.AccessPolicyError, "violation on insert of default::Note"
+        ):
             await self.con.execute('''
                 insert Person { notes := (insert Note { name := "" }) };
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.AccessPolicyError,
-                "violation on insert of default::Note"):
+            edgedb.AccessPolicyError, "violation on insert of default::Note"
+        ):
             await self.con.execute('''
                 insert Person {
                     notes := (insert Note {
@@ -1264,9 +1318,12 @@ class TestInsert(tb.DDLTestCase):
                 };
             ''')
 
-        await self.con.execute('''
+        await self.con.execute(
+            '''
             set global sub_id := <uuid>$0
-        ''', sub.id)
+        ''',
+            sub.id,
+        )
 
         await self.con.execute('''
             insert Person {
@@ -1344,7 +1401,7 @@ class TestInsert(tb.DDLTestCase):
                     'l2': 7,
                     'l3': 'test',
                 },
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -1365,7 +1422,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT count(
                     DefaultTest3 FILTER DefaultTest3.foo != DT3.foo) > 0;
             ''',
-            {True}
+            {True},
         )
 
     async def test_edgeql_insert_for_03(self):
@@ -1383,7 +1440,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT DefaultTest4.bar
                 ORDER BY DefaultTest4.bar;
             ''',
-            [0, 0, 0, 0, 0]
+            [0, 0, 0, 0, 0],
         )
 
     async def test_edgeql_insert_for_04(self):
@@ -1411,15 +1468,20 @@ class TestInsert(tb.DDLTestCase):
                 }
                 FILTER .name = 'nested-insert-for'
             ''',
-            [{
-                'subordinates': [{
-                    'name': 'sub1',
-                    '@comment': 'first',
-                }, {
-                    'name': 'sub2',
-                    '@comment': 'second',
-                }]
-            }]
+            [
+                {
+                    'subordinates': [
+                        {
+                            'name': 'sub1',
+                            '@comment': 'first',
+                        },
+                        {
+                            'name': 'sub2',
+                            '@comment': 'second',
+                        },
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_insert_for_06(self):
@@ -1435,7 +1497,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["c", "c", "d", "d"]
+            ["c", "c", "d", "d"],
         )
 
     async def test_edgeql_insert_for_07(self):
@@ -1451,7 +1513,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["ac", "ad", "bc", "bd"]
+            ["ac", "ad", "bc", "bd"],
         )
 
     async def test_edgeql_insert_for_08(self):
@@ -1468,7 +1530,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"]
+            ["aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"],
         )
 
     async def test_edgeql_insert_for_09(self):
@@ -1485,7 +1547,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"]
+            ["aaa", "aab", "aba", "abb", "baa", "bab", "bba", "bbb"],
         )
 
     async def test_edgeql_insert_for_10(self):
@@ -1503,7 +1565,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["aa", "aa", "ab", "ab", "ba", "ba", "bb", "bb"]
+            ["aa", "aa", "ab", "ab", "ba", "ba", "bb", "bb"],
         )
 
     async def test_edgeql_insert_for_11(self):
@@ -1521,7 +1583,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["a", "a", "a", "a", "b", "b", "b", "b"]
+            ["a", "a", "a", "a", "b", "b", "b", "b"],
         )
 
     async def test_edgeql_insert_for_12(self):
@@ -1541,7 +1603,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["bar", "foo"]
+            ["bar", "foo"],
         )
 
     async def test_edgeql_insert_for_13(self):
@@ -1552,7 +1614,7 @@ class TestInsert(tb.DDLTestCase):
                 )
             ''',
             [{"name": "bar"}, {"name": "foo"}],
-            sort=lambda x: x['name']
+            sort=lambda x: x['name'],
         )
 
         await self.assert_query_result(
@@ -1560,7 +1622,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["bar", "foo"]
+            ["bar", "foo"],
         )
 
     async def test_edgeql_insert_for_14(self):
@@ -1579,7 +1641,7 @@ class TestInsert(tb.DDLTestCase):
                 ["b", "c", "bc"],
                 ["b", "d", "bd"],
             ],
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -1587,7 +1649,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT Note.name
                 ORDER BY Note.name;
             ''',
-            ["ac", "ad", "bc", "bd"]
+            ["ac", "ad", "bc", "bd"],
         )
 
     async def test_edgeql_insert_for_15(self):
@@ -1600,10 +1662,13 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name DESC",
-            [{"name": "Phil Emarg!",
-              "notes": [{"name": "Phil Emarg"}]},
-             {"name": "Madeline Hatch!",
-              "notes": [{"name": "Madeline Hatch"}]}],
+            [
+                {"name": "Phil Emarg!", "notes": [{"name": "Phil Emarg"}]},
+                {
+                    "name": "Madeline Hatch!",
+                    "notes": [{"name": "Madeline Hatch"}],
+                },
+            ],
         )
 
     async def test_edgeql_insert_for_16(self):
@@ -1620,12 +1685,17 @@ class TestInsert(tb.DDLTestCase):
             """SELECT Person {
                name, notes: {name} ORDER BY .name DESC} ORDER BY .name DESC""",
             [
-                {"name": "Phil Emarg",
-                 "notes": [{"name": "Phil Emarg?"},
-                           {"name": "Phil Emarg!"}]},
-                {"name": "Madeline Hatch",
-                 "notes": [{"name": "Madeline Hatch?"},
-                           {"name": "Madeline Hatch!"}]},
+                {
+                    "name": "Phil Emarg",
+                    "notes": [{"name": "Phil Emarg?"}, {"name": "Phil Emarg!"}],
+                },
+                {
+                    "name": "Madeline Hatch",
+                    "notes": [
+                        {"name": "Madeline Hatch?"},
+                        {"name": "Madeline Hatch!"},
+                    ],
+                },
             ],
         )
 
@@ -1645,12 +1715,17 @@ class TestInsert(tb.DDLTestCase):
             """SELECT Person {
                name, notes: {name} ORDER BY .name DESC} ORDER BY .name DESC""",
             [
-                {"name": "Phil Emarg",
-                 "notes": [{"name": "Phil Emarg?"},
-                           {"name": "Phil Emarg!"}]},
-                {"name": "Madeline Hatch",
-                 "notes": [{"name": "Madeline Hatch?"},
-                           {"name": "Madeline Hatch!"}]},
+                {
+                    "name": "Phil Emarg",
+                    "notes": [{"name": "Phil Emarg?"}, {"name": "Phil Emarg!"}],
+                },
+                {
+                    "name": "Madeline Hatch",
+                    "notes": [
+                        {"name": "Madeline Hatch?"},
+                        {"name": "Madeline Hatch!"},
+                    ],
+                },
             ],
         )
 
@@ -1664,10 +1739,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, note: {name} } ORDER BY .name DESC",
-            [{"name": "Phil Emarg!",
-              "note": {"name": "Phil Emarg"}},
-             {"name": "Madeline Hatch!",
-              "note": {"name": "Madeline Hatch"}}],
+            [
+                {"name": "Phil Emarg!", "note": {"name": "Phil Emarg"}},
+                {"name": "Madeline Hatch!", "note": {"name": "Madeline Hatch"}},
+            ],
         )
 
     async def test_edgeql_insert_for_19(self):
@@ -1869,7 +1944,7 @@ class TestInsert(tb.DDLTestCase):
                 SELECT count(
                     DefaultTest3 FILTER DefaultTest3.foo != DT3.foo) > 0;
             ''',
-            {True}
+            {True},
         )
 
     async def test_edgeql_insert_default_02(self):
@@ -1903,8 +1978,8 @@ class TestInsert(tb.DDLTestCase):
                 },
                 {
                     'bar': 4,
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_insert_default_03(self):
@@ -1930,8 +2005,8 @@ class TestInsert(tb.DDLTestCase):
                 },
                 {
                     'bar': 10,
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_insert_default_04(self):
@@ -1965,8 +2040,8 @@ class TestInsert(tb.DDLTestCase):
                 },
                 {
                     'bar': 4,
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_insert_default_05(self):
@@ -2125,7 +2200,7 @@ class TestInsert(tb.DDLTestCase):
                 {'a': 1, 'b': 2, 'c': 1},
                 {'a': 1, 'b': 2, 'c': 4},
                 {'a': 1, 'b': 2, 'c': 2},
-            ]
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -2210,7 +2285,7 @@ class TestInsert(tb.DDLTestCase):
             ''',
             [
                 {'a': [4]},
-            ]
+            ],
         )
 
     async def test_edgeql_insert_dunder_default_03(self):
@@ -2228,7 +2303,7 @@ class TestInsert(tb.DDLTestCase):
             r'''
                 SELECT DunderDefaultTest03_A { x };
             ''',
-            [{'x': 2}]
+            [{'x': 2}],
         )
 
         # prop has __default
@@ -2243,7 +2318,7 @@ class TestInsert(tb.DDLTestCase):
             r'''
                 SELECT DunderDefaultTest03_B { x };
             ''',
-            [{'x': 2}]
+            [{'x': 2}],
         )
 
         # inner statement does not have __default
@@ -2275,7 +2350,7 @@ class TestInsert(tb.DDLTestCase):
             r'''
                 SELECT DunderDefaultTest04_B { x, l: { x } };
             ''',
-            [{'x': 2, 'l': {'x': 1}}]
+            [{'x': 2, 'l': {'x': 1}}],
         )
 
     async def test_edgeql_insert_as_expr_01(self):
@@ -2336,12 +2411,9 @@ class TestInsert(tb.DDLTestCase):
                     'name': 'insert expr 1',
                     'l2': 7,
                     'l3': 'test',
-                    'subject': [{
-                        'name': 'insert expr 1',
-                        'note': 'largest 7'
-                    }]
+                    'subject': [{'name': 'insert expr 1', 'note': 'largest 7'}],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_polymorphic_01(self):
@@ -2361,9 +2433,11 @@ class TestInsert(tb.DDLTestCase):
                     }
                 };
             ''',
-            [{
-                'args': [{'val': 'something'}],
-            }]
+            [
+                {
+                    'args': [{'val': 'something'}],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -2374,7 +2448,7 @@ class TestInsert(tb.DDLTestCase):
                     }
                 };
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -2385,9 +2459,11 @@ class TestInsert(tb.DDLTestCase):
                     }
                 };
             ''',
-            [{
-                'args': [{'val': 'something'}],
-            }],
+            [
+                {
+                    'args': [{'val': 'something'}],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -2396,9 +2472,11 @@ class TestInsert(tb.DDLTestCase):
                     val
                 };
             ''',
-            [{
-                'val': 'something',
-            }],
+            [
+                {
+                    'val': 'something',
+                }
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -2431,23 +2509,25 @@ class TestInsert(tb.DDLTestCase):
                     } ORDER BY InsertTest.subordinates.name
                 } FILTER .l2 = 99;
             """,
-            [{
-                'l2': 99,
-                'subordinates': [
-                    {
-                        'name': 'linkproptest 1',
-                        '@comment': 'a',
-                    },
-                    {
-                        'name': 'linkproptest 2',
-                        '@comment': 'b',
-                    },
-                    {
-                        'name': 'linkproptest 3',
-                        '@comment': 'c',
-                    }
-                ],
-            }],
+            [
+                {
+                    'l2': 99,
+                    'subordinates': [
+                        {
+                            'name': 'linkproptest 1',
+                            '@comment': 'a',
+                        },
+                        {
+                            'name': 'linkproptest 2',
+                            '@comment': 'b',
+                        },
+                        {
+                            'name': 'linkproptest 3',
+                            '@comment': 'c',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_insert_empty_01(self):
@@ -2468,17 +2548,20 @@ class TestInsert(tb.DDLTestCase):
                     l3
                 };
             """,
-            [{
-                'l1': None,
-                'l2': 99,
-                'l3': None,
-            }],
+            [
+                {
+                    'l1': None,
+                    'l2': 99,
+                    'l3': None,
+                }
+            ],
         )
 
     async def test_edgeql_insert_empty_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid target.*std::datetime.*expecting 'std::int64'"):
+            edgedb.InvalidPropertyTargetError,
+            r"invalid target.*std::datetime.*expecting 'std::int64'",
+        ):
             await self.con.execute(r"""
                 INSERT InsertTest {
                     l1 := <datetime>{},
@@ -2488,8 +2571,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_empty_03(self):
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required property"):
+            edgedb.MissingRequiredError, r"missing value for required property"
+        ):
             await self.con.execute(
                 r"""
                     INSERT InsertTest {
@@ -2513,17 +2596,20 @@ class TestInsert(tb.DDLTestCase):
                     subordinates
                 };
             """,
-            [{
-                'l2': 99,
-                'subordinates': [],
-            }],
+            [
+                {
+                    'l2': 99,
+                    'subordinates': [],
+                }
+            ],
         )
 
     async def test_edgeql_insert_empty_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link.*std::Object.*"
-                r"expecting 'default::Subordinate'"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link.*std::Object.*"
+            r"expecting 'default::Subordinate'",
+        ):
             await self.con.execute(r"""
                 INSERT InsertTest {
                     l2 := 99,
@@ -2533,9 +2619,10 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_abstract(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"cannot insert into abstract object type 'std::Object'",
-                _position=23):
+            edgedb.QueryError,
+            r"cannot insert into abstract object type 'std::Object'",
+            _position=23,
+        ):
             await self.con.execute("""\
                 INSERT Object;
             """)
@@ -2546,9 +2633,10 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"cannot insert into expression alias 'default::Foo'",
-                _position=23):
+            edgedb.QueryError,
+            r"cannot insert into expression alias 'default::Foo'",
+            _position=23,
+        ):
             await self.con.execute("""\
                 INSERT Foo;
             """)
@@ -2565,8 +2653,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_selfref_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'self-referencing INSERTs are not allowed'):
+            edgedb.QueryError, 'self-referencing INSERTs are not allowed'
+        ):
             await self.con.execute(r"""
                 INSERT SelfRef {
                     name := 'myself',
@@ -2576,8 +2664,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_selfref_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'self-referencing INSERTs are not allowed'):
+            edgedb.QueryError, 'self-referencing INSERTs are not allowed'
+        ):
             await self.con.execute(r"""
                 INSERT SelfRef {
                     name := 'other'
@@ -2594,8 +2682,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_selfref_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'self-referencing INSERTs are not allowed'):
+            edgedb.QueryError, 'self-referencing INSERTs are not allowed'
+        ):
             await self.con.execute(r"""
                 INSERT SelfRef {
                     name := 'other'
@@ -2635,19 +2723,20 @@ class TestInsert(tb.DDLTestCase):
                     }
                 } ORDER BY .name;
             """,
-            [{
-                'name': 'ok myself',
-                'ref': [{'name': 'ok other'}],
-            }, {
-                'name': 'ok other',
-                'ref': [],
-            }],
+            [
+                {
+                    'name': 'ok myself',
+                    'ref': [{'name': 'ok other'}],
+                },
+                {
+                    'name': 'ok other',
+                    'ref': [],
+                },
+            ],
         )
 
     async def test_edgeql_insert_cardinality_01(self):
-        with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'single'):
+        with self.assertRaisesRegex(edgedb.QueryError, 'single'):
             await self.con.execute(r'''
 
                 INSERT Subordinate { name := 'sub1_cardinality_01'};
@@ -2714,8 +2803,8 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'l2': 3,
                     'l3': '''"Test'3'"''',
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_insert_derived_02(self):
@@ -2754,7 +2843,7 @@ class TestInsert(tb.DDLTestCase):
                         '@note': None,
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_tuples_01(self):
@@ -2769,7 +2858,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -2782,7 +2871,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
     async def test_edgeql_insert_tuples_02(self):
@@ -2797,7 +2886,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -2810,7 +2899,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
     async def test_edgeql_insert_tuples_03(self):
@@ -2825,7 +2914,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -2838,7 +2927,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 ({}, "bar"),
                 ({}, "eggs"),
-            ]
+            ],
         )
 
     async def test_edgeql_insert_tuples_04(self):
@@ -2858,7 +2947,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     "subordinates": [
                         {"name": "foo", "@comment": "bar"},
-                        {"name": "spam", "@comment": "eggs"}
+                        {"name": "spam", "@comment": "eggs"},
                     ]
                 }
             ],
@@ -2872,7 +2961,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     "subordinates": [
                         {"name": "foo", "@comment": "bar"},
-                        {"name": "spam", "@comment": "eggs"}
+                        {"name": "spam", "@comment": "eggs"},
                     ]
                 }
             ],
@@ -2898,7 +2987,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'some_tuple': ['collection_01', 99],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_collection_02(self):
@@ -2921,7 +3010,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'str_array': ['collection_02', '99'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_collection_03(self):
@@ -2944,7 +3033,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'float_array': [3, 1234.5],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_collection_04(self):
@@ -3013,13 +3102,14 @@ class TestInsert(tb.DDLTestCase):
                     'str_array': [],
                     'float_array': [],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_correlated_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "cannot reference correlated set 'Subordinate' here"):
+            edgedb.QueryError,
+            "cannot reference correlated set 'Subordinate' here",
+        ):
             await self.con.execute(r'''
                 SELECT (
                     Subordinate,
@@ -3033,8 +3123,9 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_correlated_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "cannot reference correlated set 'Subordinate' here"):
+            edgedb.QueryError,
+            "cannot reference correlated set 'Subordinate' here",
+        ):
             await self.con.execute(r'''
                 SELECT (
                     (INSERT InsertTest {
@@ -3048,8 +3139,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_correlated_bad_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "cannot reference correlated set 'Person' here"):
+            edgedb.QueryError, "cannot reference correlated set 'Person' here"
+        ):
             await self.con.execute(r'''
                 SELECT (
                     Person,
@@ -3089,34 +3180,36 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_unless_conflict_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UNLESS CONFLICT argument must be a property"):
+            edgedb.QueryError, "UNLESS CONFLICT argument must be a property"
+        ):
             await self.con.query(r'''
                 INSERT Person {name := "hello"}
                 UNLESS CONFLICT ON 20;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UNLESS CONFLICT argument must be a property of "
-                "the type being inserted"):
+            edgedb.QueryError,
+            "UNLESS CONFLICT argument must be a property of "
+            "the type being inserted",
+        ):
             await self.con.query(r'''
                 INSERT Person {name := "hello"}
                 UNLESS CONFLICT ON Note.name;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UNLESS CONFLICT property must have a "
-                "single exclusive constraint"):
+            edgedb.QueryError,
+            "UNLESS CONFLICT property must have a single exclusive constraint",
+        ):
             await self.con.query(r'''
                 INSERT Note {name := "hello"}
                 UNLESS CONFLICT ON .name;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "object type 'std::Object' has no link or property 'name'"):
+            edgedb.QueryError,
+            "object type 'std::Object' has no link or property 'name'",
+        ):
             await self.con.query(r'''
                 SELECT (
                     INSERT Person {name := "hello"}
@@ -3126,9 +3219,10 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly more than one element returned by an expression "
-                "for a computed link 'foo' declared as 'single'"):
+            edgedb.QueryError,
+            "possibly more than one element returned by an expression "
+            "for a computed link 'foo' declared as 'single'",
+        ):
             await self.con.query(r'''
                 WITH X := (
                         INSERT Person {name := "hello"}
@@ -3141,9 +3235,10 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly more than one element returned by an expression "
-                "for a computed link 'foo' declared as 'single'"):
+            edgedb.QueryError,
+            "possibly more than one element returned by an expression "
+            "for a computed link 'foo' declared as 'single'",
+        ):
             await self.con.query(r'''
                 WITH X := (
                         INSERT Person {name := "hello"}
@@ -3156,9 +3251,10 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly an empty set returned by an expression for a "
-                "computed link 'foo' declared as 'required'"):
+            edgedb.QueryError,
+            "possibly an empty set returned by an expression for a "
+            "computed link 'foo' declared as 'required'",
+        ):
             await self.con.query(r'''
                 WITH X := (
                         INSERT Person {name := "hello"}
@@ -3239,8 +3335,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person {name, tag} ORDER BY .name",
-            [{"name": "Emmanuel Villip", "tag": None},
-             {"name": "Phil Emarg", "tag": None}],
+            [
+                {"name": "Emmanuel Villip", "tag": None},
+                {"name": "Phil Emarg", "tag": None},
+            ],
         )
 
         await self.assert_query_result(
@@ -3251,9 +3349,11 @@ class TestInsert(tb.DDLTestCase):
         # Only the correct record should be updated
         await self.assert_query_result(
             "SELECT Person {name, tag} ORDER BY .name",
-            [{"name": "Emmanuel Villip", "tag": "redo"},
-             {"name": "Phil Emarg", "tag": None}],
-            sort=lambda x: x['name']
+            [
+                {"name": "Emmanuel Villip", "tag": "redo"},
+                {"name": "Phil Emarg", "tag": None},
+            ],
+            sort=lambda x: x['name'],
         )
 
     async def test_edgeql_insert_unless_conflict_06(self):
@@ -3273,8 +3373,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             query,
-            [{"name": "Emmanuel Villip", "tag": None},
-             {"name": "Madeline Hatch", "tag": "redo"}]
+            [
+                {"name": "Emmanuel Villip", "tag": None},
+                {"name": "Madeline Hatch", "tag": "redo"},
+            ],
         )
 
         await self.assert_query_result(
@@ -3288,8 +3390,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             query,
-            [{"name": "Emmanuel Villip", "tag": "redo"},
-             {"name": "Madeline Hatch", "tag": "redo"}],
+            [
+                {"name": "Emmanuel Villip", "tag": "redo"},
+                {"name": "Madeline Hatch", "tag": "redo"},
+            ],
         )
 
         await self.assert_query_result(
@@ -3316,8 +3420,7 @@ class TestInsert(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            "SELECT Person {name, tag}",
-            [{"name": "Nemo", "tag": None}]
+            "SELECT Person {name, tag}", [{"name": "Nemo", "tag": None}]
         )
 
         await self.assert_query_result(
@@ -3332,8 +3435,10 @@ class TestInsert(tb.DDLTestCase):
         # Only the correct record should be updated
         await self.assert_query_result(
             "SELECT Person {name, tag} ORDER BY .name",
-            [{"name": "Nemo", "tag": "redo"},
-             {"name": "Phil Emarg", "tag": None}],
+            [
+                {"name": "Nemo", "tag": "redo"},
+                {"name": "Phil Emarg", "tag": None},
+            ],
         )
 
     async def test_edgeql_insert_unless_conflict_08(self):
@@ -3369,28 +3474,21 @@ class TestInsert(tb.DDLTestCase):
         await self.con.execute(query)
 
         await self.assert_query_result(
-            "SELECT Person { tag } FILTER .name = 'Cap'",
-            [{
-                'tag': 'hero'
-            }]
+            "SELECT Person { tag } FILTER .name = 'Cap'", [{'tag': 'hero'}]
         )
 
         await self.con.execute(query)
 
         await self.assert_query_result(
             "SELECT Person { tag } FILTER .name = 'Cap'",
-            [{
-                'tag': 'super hero'
-            }]
+            [{'tag': 'super hero'}],
         )
 
         await self.con.execute(query)
 
         await self.assert_query_result(
             "SELECT Person { tag } FILTER .name = 'Cap'",
-            [{
-                'tag': 'super super hero'
-            }]
+            [{'tag': 'super super hero'}],
         )
 
     async def test_edgeql_insert_unless_conflict_10(self):
@@ -3412,15 +3510,18 @@ class TestInsert(tb.DDLTestCase):
                 ELSE (SELECT Person)
             ) {name, case_name};
             ''',
-            [{
-                'name': 'Foo', 'case_name': 'Foo',
-            }]
+            [
+                {
+                    'name': 'Foo',
+                    'case_name': 'Foo',
+                }
+            ],
         )
 
     async def test_edgeql_insert_unless_conflict_11(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "self-referencing INSERTs are not allowed"):
+            edgedb.QueryError, "self-referencing INSERTs are not allowed"
+        ):
             await self.con.execute(r'''
                 SELECT (
                     INSERT Person {name := "Madz"}
@@ -3455,10 +3556,12 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         res1 = await self.con._fetchall(
-            query, __typenames__=True,
+            query,
+            __typenames__=True,
         )
         res2 = await self.con._fetchall(
-            query, __typenames__=True,
+            query,
+            __typenames__=True,
         )
 
         self.assertEqual(list(res1)[0].id, list(res2)[0].id)
@@ -3471,10 +3574,12 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         res1 = await self.con._fetchall(
-            query, __typenames__=True,
+            query,
+            __typenames__=True,
         )
         res2 = await self.con._fetchall(
-            query, __typenames__=True,
+            query,
+            __typenames__=True,
         )
 
         self.assertEqual(list(res1)[0].id, list(res2)[0].id)
@@ -3547,7 +3652,8 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             query.replace("Villip", "Vi11ip").replace(
-                "Phil Emarg", "Madeline Hatch"),
+                "Phil Emarg", "Madeline Hatch"
+            ),
             [{"first": "Emmanuel", "last": "Vi11ip"}],
         )
 
@@ -3557,10 +3663,12 @@ class TestInsert(tb.DDLTestCase):
                 ORDER BY .last
             ''',
             [
-                {"first": "Emmanuel", "last": "Vi11ip",
-                 "friend": "Madeline Hatch"},
-                {"first": "Emmanuel", "last": "Villip",
-                 "friend": "Phil Emarg"},
+                {
+                    "first": "Emmanuel",
+                    "last": "Vi11ip",
+                    "friend": "Madeline Hatch",
+                },
+                {"first": "Emmanuel", "last": "Villip", "friend": "Phil Emarg"},
             ],
         )
 
@@ -3584,9 +3692,9 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_unless_conflict_16b(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "INSERT UNLESS CONFLICT ON does not support volatile "
-                "properties"):
+            edgedb.UnsupportedFeatureError,
+            "INSERT UNLESS CONFLICT ON does not support volatile properties",
+        ):
             await self.con.execute('''
                 INSERT Person { name := <str>math::floor(random() * 2) }
                 UNLESS CONFLICT ON (.name) ELSE (Person)
@@ -3713,7 +3821,7 @@ class TestInsert(tb.DDLTestCase):
             [
                 {'name': "1", 'tag': "!", 'sub': False},
                 {'name': "2", 'tag': None, 'sub': True},
-            ]
+            ],
         )
 
     async def test_edgeql_insert_unless_conflict_21(self):
@@ -3777,8 +3885,8 @@ class TestInsert(tb.DDLTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(
                 r'''
                 INSERT Baz { foo := "!", bar := "bar" }
@@ -3873,19 +3981,27 @@ class TestInsert(tb.DDLTestCase):
             UNLESS CONFLICT ON (.l);
         '''
         await self.assert_query_result(
-            q, [{}], variables={'n': "1"},
+            q,
+            [{}],
+            variables={'n': "1"},
         )
         await self.assert_query_result(
-            q, [], variables={'n': "1"},
+            q,
+            [],
+            variables={'n': "1"},
         )
         await self.con.execute('''
             insert X { n := "2" }
         ''')
         await self.assert_query_result(
-            q, [{}], variables={'n': "2"},
+            q,
+            [{}],
+            variables={'n': "2"},
         )
         await self.assert_query_result(
-            q, [], variables={'n': "2"},
+            q,
+            [],
+            variables={'n': "2"},
         )
 
     async def test_edgeql_insert_unless_conflict_26(self):
@@ -3986,10 +4102,7 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
         await self.assert_query_result(
             query,
@@ -4012,8 +4125,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name",
-            [{"name": "Madeline Hatch", "notes": [{"name": "tag"}]},
-             {"name": "Phil Emarg", "notes": [{"name": "tag"}]}]
+            [
+                {"name": "Madeline Hatch", "notes": [{"name": "tag"}]},
+                {"name": "Phil Emarg", "notes": [{"name": "tag"}]},
+            ],
         )
 
         # Make sure the notes are distinct
@@ -4034,10 +4149,16 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name",
-            [{"name": "Madeline Hatch",
-              "notes": [{"name": "hello"}, {"name": "world"}]},
-             {"name": "Phil Emarg",
-              "notes": [{"name": "hello"}, {"name": "world"}]}],
+            [
+                {
+                    "name": "Madeline Hatch",
+                    "notes": [{"name": "hello"}, {"name": "world"}],
+                },
+                {
+                    "name": "Phil Emarg",
+                    "notes": [{"name": "hello"}, {"name": "world"}],
+                },
+            ],
         )
 
         # Make sure the notes are distinct
@@ -4061,8 +4182,12 @@ class TestInsert(tb.DDLTestCase):
         # stray side-effects from the second.
         await self.assert_query_result(
             query,
-            [{"name": "Zendaya",
-              "notes": [{"name": "hello"}, {"name": "world"}]}],
+            [
+                {
+                    "name": "Zendaya",
+                    "notes": [{"name": "hello"}, {"name": "world"}],
+                }
+            ],
         )
         await self.assert_query_result(
             query,
@@ -4093,8 +4218,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name DESC",
-            [{"name": "Phil Emarg", "notes": [{"name": "tag"}]},
-             {"name": "Madeline Hatch", "notes": [{"name": "tag"}]}],
+            [
+                {"name": "Phil Emarg", "notes": [{"name": "tag"}]},
+                {"name": "Madeline Hatch", "notes": [{"name": "tag"}]},
+            ],
         )
 
         # Make sure the notes are distinct
@@ -4124,10 +4251,16 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name DESC",
-            [{"name": "Phil Emarg",
-              "notes": [{"name": "hello"}, {"name": "world"}]},
-             {"name": "Madeline Hatch",
-              "notes": [{"name": "hello"}, {"name": "world"}]}],
+            [
+                {
+                    "name": "Phil Emarg",
+                    "notes": [{"name": "hello"}, {"name": "world"}],
+                },
+                {
+                    "name": "Madeline Hatch",
+                    "notes": [{"name": "hello"}, {"name": "world"}],
+                },
+            ],
         )
 
         # Make sure the notes are distinct
@@ -4138,8 +4271,9 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_dependent_07(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "mutations are invalid in a shape's computed expression"):
+            edgedb.QueryError,
+            "mutations are invalid in a shape's computed expression",
+        ):
             await self.con.execute(
                 r"""
                     SELECT Person {
@@ -4180,7 +4314,7 @@ class TestInsert(tb.DDLTestCase):
                         'name': 'NoteDep08',
                     },
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -4197,7 +4331,7 @@ class TestInsert(tb.DDLTestCase):
                     'name': 'PersonDep08',
                     'notes': [],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -4210,7 +4344,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'name': 'NoteDep08',
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_dependent_09(self):
@@ -4237,11 +4371,13 @@ class TestInsert(tb.DDLTestCase):
             [
                 {
                     'name': 'PersonDep09',
-                    'notes': [{
-                        'name': 'NoteDep09',
-                    }],
+                    'notes': [
+                        {
+                            'name': 'NoteDep09',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -4258,7 +4394,7 @@ class TestInsert(tb.DDLTestCase):
                     'name': 'PersonDep09',
                     'notes': [],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -4271,7 +4407,7 @@ class TestInsert(tb.DDLTestCase):
                 {
                     'name': 'NoteDep09',
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_insert_dependent_10(self):
@@ -4291,10 +4427,10 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name DESC",
-            [{"name": "foo",
-              "notes": [{"name": "foo!"}]},
-             {"name": "bar",
-              "notes": []}],
+            [
+                {"name": "foo", "notes": [{"name": "foo!"}]},
+                {"name": "bar", "notes": []},
+            ],
         )
 
         await self.con.execute(r"""INSERT Note { name := "bar" };""")
@@ -4303,16 +4439,13 @@ class TestInsert(tb.DDLTestCase):
 
         await self.assert_query_result(
             "SELECT Person { name, notes: {name} } ORDER BY .name",
-            [{"name": "bar",
-              "notes": []},
-             {"name": "foo",
-              "notes": [{"name": "foo!"}]}],
+            [
+                {"name": "bar", "notes": []},
+                {"name": "foo", "notes": [{"name": "foo!"}]},
+            ],
         )
 
-        await self.assert_query_result(
-            "SELECT Note.name",
-            {"foo!", "bar"}
-        )
+        await self.assert_query_result("SELECT Note.name", {"foo!", "bar"})
 
     async def test_edgeql_insert_dependent_11(self):
         # A with-bound insert used in a FOR should only execute once
@@ -4368,10 +4501,7 @@ class TestInsert(tb.DDLTestCase):
         ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
         await self.assert_query_result(
             query,
@@ -4401,10 +4531,12 @@ class TestInsert(tb.DDLTestCase):
                     n := N { name },
                 };
             ''',
-            [{
-                "n": {"name": "tag!"},
-                "x": [{"name": "Madz"}, {"name": "Phil"}]
-            }],
+            [
+                {
+                    "n": {"name": "tag!"},
+                    "x": [{"name": "Madz"}, {"name": "Phil"}],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -4422,10 +4554,7 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
         await self.assert_query_result(
             query,
@@ -4448,7 +4577,7 @@ class TestInsert(tb.DDLTestCase):
                     } UNLESS CONFLICT
                 ) {name};
             ''',
-            [{"name": "Test"}]
+            [{"name": "Test"}],
         )
 
         await self.assert_query_result(
@@ -4462,7 +4591,7 @@ class TestInsert(tb.DDLTestCase):
                     } UNLESS CONFLICT
                 ) {name};
             ''',
-            []
+            [],
         )
 
         # Make sure the update did not happen
@@ -4481,15 +4610,9 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
         # Make sure only 1 insert into Note happened
         await self.assert_query_result(
@@ -4515,9 +4638,7 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         await self.assert_query_result(
-            query,
-            [{"name": "bar"},
-             {"name": "foo"}]
+            query, [{"name": "bar"}, {"name": "foo"}]
         )
 
         # Make sure only 1 insert into Note happened
@@ -4544,10 +4665,7 @@ class TestInsert(tb.DDLTestCase):
             )) ORDER BY .name;
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "bar"}]
-        )
+        await self.assert_query_result(query, [{"name": "bar"}])
 
         # Make sure only 1 insert into Note happened
         await self.assert_query_result(
@@ -4575,10 +4693,7 @@ class TestInsert(tb.DDLTestCase):
             )) ORDER BY .name;
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "bar", "tag2": "tag!"}]
-        )
+        await self.assert_query_result(query, [{"name": "bar", "tag2": "tag!"}])
 
         # Make sure only 1 insert into Note happened
         await self.assert_query_result(
@@ -4598,10 +4713,7 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Test"}]
-        )
+        await self.assert_query_result(query, [{"name": "Test"}])
 
         await self.assert_query_result(
             query,
@@ -4626,7 +4738,7 @@ class TestInsert(tb.DDLTestCase):
                 } UNLESS CONFLICT
             ) {name};
             ''',
-            [{"name": "Test"}]
+            [{"name": "Test"}],
         )
 
         await self.assert_query_result(
@@ -4668,8 +4780,7 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         await self.assert_query_result(
-            query,
-            [{"first": "Phil", "last": "Emarg"}]
+            query, [{"first": "Phil", "last": "Emarg"}]
         )
 
         await self.assert_query_result(
@@ -4702,10 +4813,7 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Phil Emarg"}]
-        )
+        await self.assert_query_result(query, [{"name": "Phil Emarg"}])
 
         await self.assert_query_result(
             query,
@@ -4738,15 +4846,9 @@ class TestInsert(tb.DDLTestCase):
             ) {name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Phil Emarg"}]
-        )
+        await self.assert_query_result(query, [{"name": "Phil Emarg"}])
 
-        await self.assert_query_result(
-            query,
-            [{"name": "Phil Emarg"}]
-        )
+        await self.assert_query_result(query, [{"name": "Phil Emarg"}])
 
         # Make sure only 1 insert into Note happened
         await self.assert_query_result(
@@ -4772,15 +4874,9 @@ class TestInsert(tb.DDLTestCase):
             ) {first, name};
         '''
 
-        await self.assert_query_result(
-            query,
-            [{"first": "Phil", "name": None}]
-        )
+        await self.assert_query_result(query, [{"first": "Phil", "name": None}])
 
-        await self.assert_query_result(
-            query,
-            [{"first": "Phil", "name": None}]
-        )
+        await self.assert_query_result(query, [{"first": "Phil", "name": None}])
 
         # No conflict (because last was empty), so two inserts
         await self.assert_query_result(
@@ -4821,7 +4917,7 @@ class TestInsert(tb.DDLTestCase):
                 }
                 UNLESS CONFLICT ON .name ELSE (SELECT Obj);
             ''',
-            [{"id": str}]
+            [{"id": str}],
         )
 
         await self.assert_query_result(
@@ -4868,8 +4964,9 @@ class TestInsert(tb.DDLTestCase):
             ORDER BY .name;
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_unless_conflict_self_02(self):
@@ -4882,8 +4979,9 @@ class TestInsert(tb.DDLTestCase):
             )
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_unless_conflict_self_03(self):
@@ -4905,8 +5003,9 @@ class TestInsert(tb.DDLTestCase):
             UNLESS CONFLICT;
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_nested_volatile_01(self):
@@ -4935,7 +5034,7 @@ class TestInsert(tb.DDLTestCase):
             r'''
                 SELECT count(DISTINCT InsertTest.subordinates@comment);
             ''',
-            [2]
+            [2],
         )
 
     async def test_edgeql_insert_cross_type_conflict_01a(self):
@@ -4946,8 +5045,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_01b(self):
@@ -4959,8 +5060,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT Z;
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_01c(self):
@@ -4971,8 +5074,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (SELECT (B, F));
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_01d(self):
@@ -4984,8 +5089,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F) FILTER false;
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_01e(self):
@@ -4997,8 +5104,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F, <str>{});
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_02(self):
@@ -5009,8 +5118,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_03(self):
@@ -5025,8 +5136,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_04(self):
@@ -5038,8 +5151,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "case_name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "case_name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_05(self):
@@ -5052,8 +5166,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "multi_prop violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "multi_prop violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_06(self):
@@ -5070,8 +5185,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "multi_prop violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "multi_prop violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_07a(self):
@@ -5089,8 +5205,9 @@ class TestInsert(tb.DDLTestCase):
 
         # This is a bummer, but I guess correct?
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_07b(self):
@@ -5108,8 +5225,9 @@ class TestInsert(tb.DDLTestCase):
 
         # This is a bummer, but I guess correct?
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "multi_prop violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "multi_prop violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_08(self):
@@ -5122,8 +5240,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_09(self):
@@ -5136,8 +5256,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_10(self):
@@ -5157,8 +5279,9 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(r'''
                 WITH name := 'Madeline Hatch',
                      B := (INSERT Bar {name := name}),
@@ -5167,8 +5290,9 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "title violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "title violates exclusivity constraint",
+        ):
             await self.con.execute(r'''
                 WITH name := 'Madeline Hatch',
                      B := (INSERT Bar {title := name}),
@@ -5207,8 +5331,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_13(self):
@@ -5223,8 +5348,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_14(self):
@@ -5245,8 +5371,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_15(self):
@@ -5273,8 +5400,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_16(self):
@@ -5301,8 +5429,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_17(self):
@@ -5315,8 +5444,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_18(self):
@@ -5336,8 +5466,8 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_cross_type_conflict_19(self):
@@ -5358,8 +5488,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.query('''
                 select {
                     (insert X { foo := "!" }),
@@ -5379,8 +5509,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_01b(self):
@@ -5395,8 +5527,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (SELECT (B, F));
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_02(self):
@@ -5413,8 +5547,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_03(self):
@@ -5430,8 +5566,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_04(self):
@@ -5461,8 +5599,10 @@ class TestInsert(tb.DDLTestCase):
             UPDATE Person FILTER true SET { name := "!" };
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_05b(self):
@@ -5477,8 +5617,10 @@ class TestInsert(tb.DDLTestCase):
             UPDATE P FILTER true SET { name := "!" };
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_06(self):
@@ -5493,8 +5635,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "multi_prop violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "multi_prop violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_07a(self):
@@ -5511,8 +5654,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "Person2a violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "Person2a violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_07b(self):
@@ -5541,8 +5685,10 @@ class TestInsert(tb.DDLTestCase):
             SELECT (B, F);
         '''
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "name violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_08b(self):
@@ -5580,8 +5726,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_09b(self):
@@ -5608,8 +5755,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_09c(self):
@@ -5636,8 +5784,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_10(self):
@@ -5663,8 +5812,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "tags violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "tags violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_11(self):
@@ -5691,8 +5841,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_12(self):
@@ -5719,8 +5870,9 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "Bar violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "Bar violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
         await self.con.execute('''
@@ -5770,8 +5922,9 @@ class TestInsert(tb.DDLTestCase):
             create type Y extending B;
         ''')
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 with x := (insert X { foo := 0 }),
                      y := (insert Y { foo := 0 }),
@@ -5802,8 +5955,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.query('''
                 update X set { foo := "!" };
             ''')
@@ -5827,12 +5980,12 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                "name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            "name violates exclusivity constraint",
+        ):
             await self.con.execute(query)
 
     async def test_edgeql_insert_update_cross_type_conflict_17(self):
-
         await self.con.execute('''
             create type T;
             create type X {
@@ -5846,8 +5999,9 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "do not support exclusive constraints on link properties"):
+            edgedb.UnsupportedFeatureError,
+            "do not support exclusive constraints on link properties",
+        ):
             await self.con.execute('''
                 update X set { l := (insert T { @x := 'x' }) };
             ''')
@@ -5859,8 +6013,9 @@ class TestInsert(tb.DDLTestCase):
             INSERT Person { name := 'foo' };
         ''')
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 SELECT (
                     (UPDATE Person FILTER .name = 'foo'
@@ -5876,8 +6031,9 @@ class TestInsert(tb.DDLTestCase):
             INSERT Person { name := 'foo' };
         ''')
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 SELECT (
                     (DELETE Person FILTER .name = 'foo'),
@@ -5892,9 +6048,11 @@ class TestInsert(tb.DDLTestCase):
             INSERT Note { name := 'delete me' };
         ''')
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    r"deletion of default::Note.+ is "
-                                    r"prohibited by link target policy"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            r"deletion of default::Note.+ is "
+            r"prohibited by link target policy",
+        ):
             await self.con.execute('''
                 INSERT Person {
                     name := 'foo',
@@ -5906,9 +6064,10 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_cardinality_assertion(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly more than one element returned by an expression "
-                "for a link 'sub' declared as 'single'"):
+            edgedb.QueryError,
+            "possibly more than one element returned by an expression "
+            "for a link 'sub' declared as 'single'",
+        ):
             await self.con.query(r'''
                 INSERT InsertTest {
                     l2 := 10,
@@ -6961,7 +7120,7 @@ class TestInsert(tb.DDLTestCase):
             """,
             [
                 [0, {}, {}],
-            ]
+            ],
         )
 
     async def test_edgeql_insert_nested_and_with_01(self):
@@ -6989,19 +7148,15 @@ class TestInsert(tb.DDLTestCase):
             [
                 {
                     "first": "test",
-                    "bff": {
-                        "name": "test",
-                        "notes": [{"name": "test"}]
-                    },
+                    "bff": {"name": "test", "notes": [{"name": "test"}]},
                 }
-            ]
-
+            ],
         )
 
     async def test_edgeql_insert_specified_type(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "cannot assign to link '__type__'"):
+            edgedb.QueryError, "cannot assign to link '__type__'"
+        ):
             await self.con.execute('''
                 INSERT Person {
                     __type__ := (introspect Object),
@@ -7011,8 +7166,8 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_explicit_id_00(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "cannot assign to property 'id'"):
+            edgedb.QueryError, "cannot assign to property 'id'"
+        ):
             await self.con.execute('''
                 INSERT Person {
                     id := <uuid>'ffffffff-ffff-ffff-ffff-ffffffffffff',
@@ -7036,9 +7191,7 @@ class TestInsert(tb.DDLTestCase):
             r'''
                 SELECT Person
             ''',
-            [
-                {'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff'}
-            ]
+            [{'id': 'ffffffff-ffff-ffff-ffff-ffffffffffff'}],
         )
 
     async def test_edgeql_insert_explicit_id_02(self):
@@ -7054,8 +7207,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 INSERT Person {
                     id := <uuid>'ffffffff-ffff-ffff-ffff-ffffffffffff',
@@ -7076,8 +7229,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 INSERT DerivedPerson {
                     id := <uuid>'ffffffff-ffff-ffff-ffff-ffffffffffff',
@@ -7108,8 +7261,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.query('''
                 insert Y {
                     id := <uuid>'ffffffff-ffff-ffff-ffff-ffffffffffff'
@@ -7135,7 +7288,7 @@ class TestInsert(tb.DDLTestCase):
                     name := "test",
                  } UNLESS CONFLICT
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -7145,7 +7298,7 @@ class TestInsert(tb.DDLTestCase):
                     name := "test",
                  } UNLESS CONFLICT ON (.id)
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -7155,7 +7308,7 @@ class TestInsert(tb.DDLTestCase):
                     name := "test",
                  } UNLESS CONFLICT
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -7165,7 +7318,7 @@ class TestInsert(tb.DDLTestCase):
                     name := "test",
                  } UNLESS CONFLICT ON (.id)
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_insert_explicit_id_06(self):
@@ -7174,8 +7327,7 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.MissingRequiredError,
-            "missing value for required property"
+            edgedb.MissingRequiredError, "missing value for required property"
         ):
             await self.con.execute(r'''
                 INSERT Person {
@@ -7201,15 +7353,15 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 insert ExceptTest { name := "foo" };
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 insert ExceptTest { name := "foo", deleted := false };
             ''')
@@ -7231,8 +7383,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 insert ExceptTest { name := "bar" };
             ''')
@@ -7270,8 +7422,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 alter type ExceptTest {
                     create constraint exclusive on (.name) except (.deleted);
@@ -7281,8 +7433,8 @@ class TestInsert(tb.DDLTestCase):
     async def test_edgeql_insert_except_constraint_02(self):
         # Test some self conflict insert cases
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 select {
                     (insert ExceptTest { name := "foo" }),
@@ -7291,8 +7443,8 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 select {
                     (insert ExceptTest { name := "foo" }),
@@ -7315,8 +7467,8 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 update ExceptTest set { name := "foo" };
             ''')
@@ -7326,15 +7478,15 @@ class TestInsert(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 update ExceptTest set { deleted := false };
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 update ExceptTest set { deleted := {} };
             ''')
@@ -7342,8 +7494,8 @@ class TestInsert(tb.DDLTestCase):
     async def test_edgeql_insert_except_constraint_04(self):
         # exclusive constraints with EXCEPT clauses can't narrow cardinality
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly more than one element returned"):
+            edgedb.QueryError, "possibly more than one element returned"
+        ):
             await self.con.query('''
                 select { single x := (select ExceptTest filter .name = 'foo') }
             ''')
@@ -7394,8 +7546,9 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_in_free_object_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "mutations are invalid in a shape's computed expression"):
+            edgedb.QueryError,
+            "mutations are invalid in a shape's computed expression",
+        ):
             await self.con.query('''
                 select { foo := 1 } {
                     obj := (
@@ -7407,8 +7560,9 @@ class TestInsert(tb.DDLTestCase):
                 }
             ''')
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "mutations are invalid in a shape's computed expression"):
+            edgedb.QueryError,
+            "mutations are invalid in a shape's computed expression",
+        ):
             await self.con.query('''
                 select (for x in {1,2} union FreeObject) {
                     obj := (
@@ -7421,8 +7575,9 @@ class TestInsert(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "mutations are invalid in a shape's computed expression"):
+            edgedb.QueryError,
+            "mutations are invalid in a shape's computed expression",
+        ):
             await self.con.query('''
                 with X := {
                     obj := (
@@ -7477,7 +7632,8 @@ class TestInsert(tb.DDLTestCase):
         '''
 
         await self.con._fetchall(
-            query, __typenames__=True,
+            query,
+            __typenames__=True,
         )
 
     async def test_edgeql_insert_single_linkprop(self):
@@ -7526,7 +7682,7 @@ class TestInsert(tb.DDLTestCase):
             )
             ''',
             [{}],
-            variables=(True,)
+            variables=(True,),
         )
 
         await self.assert_query_result(
@@ -7547,7 +7703,7 @@ class TestInsert(tb.DDLTestCase):
             )
             ''',
             [{}],
-            variables=(False,)
+            variables=(False,),
         )
 
         await self.assert_query_result(
@@ -7569,7 +7725,7 @@ class TestInsert(tb.DDLTestCase):
             )
             ''',
             [{}, {}],
-            variables=([True, False],)
+            variables=([True, False],),
         )
 
         await self.assert_query_result(
@@ -7580,7 +7736,7 @@ class TestInsert(tb.DDLTestCase):
             ) else {}
             ''',
             [{}],
-            variables=(True,)
+            variables=(True,),
         )
 
         await self.assert_query_result(
@@ -7714,7 +7870,7 @@ class TestInsert(tb.DDLTestCase):
                 {'l2': 1, 'name': "?", 'new': True},
                 {'l2': 2, 'name': "?", 'new': True},
             ],
-            variables=([1, 2],)
+            variables=([1, 2],),
         )
 
         await self.assert_query_result(
@@ -7725,7 +7881,7 @@ class TestInsert(tb.DDLTestCase):
                 {'l2': 2, 'name': "!", 'new': False},
                 {'l2': 3, 'name': "?", 'new': True},
             ],
-            variables=([0, 1, 2, 3],)
+            variables=([0, 1, 2, 3],),
         )
 
     async def test_edgeql_insert_coalesce_05(self):
@@ -7954,8 +8110,7 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_empty_array_01(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            "expression returns value of indeterminate type"
+            edgedb.QueryError, "expression returns value of indeterminate type"
         ):
             await self.con.execute("""
                 insert InsertTest {
@@ -7969,7 +8124,7 @@ class TestInsert(tb.DDLTestCase):
             edgedb.InvalidPropertyTargetError,
             r"invalid target for property 'name' "
             r"of object type 'default::InsertTest': 'array<std::str>' "
-            r"\(expecting 'std::str'\)"
+            r"\(expecting 'std::str'\)",
         ):
             await self.con.execute("""
                 insert InsertTest {
@@ -7983,7 +8138,7 @@ class TestInsert(tb.DDLTestCase):
             edgedb.InvalidPropertyTargetError,
             r"invalid target for property 'name' "
             r"of object type 'default::InsertTest': 'std::int64' "
-            r"\(expecting 'std::str'\)"
+            r"\(expecting 'std::str'\)",
         ):
             await self.con.execute("""
                 insert InsertTest {
@@ -7994,8 +8149,7 @@ class TestInsert(tb.DDLTestCase):
 
     async def test_edgeql_insert_empty_array_04(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            "expression returns value of indeterminate type"
+            edgedb.QueryError, "expression returns value of indeterminate type"
         ):
             await self.con.execute("""
                 insert InsertTest {
@@ -8009,7 +8163,8 @@ class TestInsert(tb.DDLTestCase):
             """)
 
     async def test_edgeql_insert_empty_array_05(self):
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             insert Subordinate { name := 'hi' };
             select ( insert InsertTest {
                 l2 := 0,
@@ -8024,17 +8179,13 @@ class TestInsert(tb.DDLTestCase):
         )
 
     async def test_edgeql_insert_read_only_tx_01(self):
-        con = (
-            edgedb.create_async_client(
-                **self.get_connect_args()
-            ).with_transaction_options(
-                edgedb.TransactionOptions(readonly=True)
-            )
-        )
+        con = edgedb.create_async_client(
+            **self.get_connect_args()
+        ).with_transaction_options(edgedb.TransactionOptions(readonly=True))
         try:
             with self.assertRaisesRegex(
                 edgedb.TransactionError,
-                r'Modifications not allowed in a read-only transaction'
+                r'Modifications not allowed in a read-only transaction',
             ):
                 async for tx in con.transaction():
                     async with tx:
@@ -8047,17 +8198,13 @@ class TestInsert(tb.DDLTestCase):
 
         await self.con.execute("insert Subordinate { name := 'hi' }")
 
-        con = (
-            edgedb.create_async_client(
-                **self.get_connect_args()
-            ).with_transaction_options(
-                edgedb.TransactionOptions(readonly=True)
-            )
-        )
+        con = edgedb.create_async_client(
+            **self.get_connect_args()
+        ).with_transaction_options(edgedb.TransactionOptions(readonly=True))
         try:
             with self.assertRaisesRegex(
                 edgedb.TransactionError,
-                r'Modifications not allowed in a read-only transaction'
+                r'Modifications not allowed in a read-only transaction',
             ):
                 async for tx in con.transaction():
                     async with tx:
@@ -8068,10 +8215,10 @@ class TestInsert(tb.DDLTestCase):
 
 class TestRepeatableReadInsert(tb.QueryTestCase):
     '''The scope of the tests is testing various modes of Object creation.'''
+
     INTERNAL_TESTMODE = False
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'insert.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'insert.esdl')
 
     # Override setUp and tearDown to we run in RepeatableRead mode
     def setUp(self):
@@ -8107,7 +8254,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
             "INSERT to object type 'default::ConflictB' affects an "
             "exclusive constraint on property 'name' of object type "
             "'default::ConflictB' that is shared with descendant types: "
-            "'default::ConflictAB'"
+            "'default::ConflictAB'",
         ):
             await self.con.execute("""
                 insert ConflictB {
@@ -8121,7 +8268,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
             "INSERT to object type 'default::ConflictAB' affects an "
             "exclusive constraint on property 'name' of object type "
             "'default::ConflictAB' that is defined in ancestor object "
-            "type 'default::ConflictB'"
+            "type 'default::ConflictB'",
         ):
             await self.con.execute("""
                 insert ConflictAB {
@@ -8133,7 +8280,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
         with self.assertRaisesRegex(
             edgedb.CapabilityError,
             r"an exclusive constraint on object type 'default::Person2a' "
-            r"with expression '\(\.first, \.bff\)'"
+            r"with expression '\(\.first, \.bff\)'",
         ):
             await self.con.execute("""
                 INSERT Person2a {
@@ -8150,7 +8297,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
             "UPDATE to object type 'default::ConflictAB' affects an "
             "exclusive constraint on property 'name' of object type "
             "'default::ConflictAB' that is defined in ancestor object "
-            "type 'default::ConflictB'"
+            "type 'default::ConflictB'",
         ):
             await self.con.execute("""
                 update ConflictA set {
@@ -8164,7 +8311,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
             "UPDATE to object type 'default::ConflictB' affects an "
             "exclusive constraint on property 'name' of object type "
             "'default::ConflictB' that is shared with descendant types: "
-            "'default::ConflictAB'"
+            "'default::ConflictAB'",
         ):
             await self.con.execute("""
                 update ConflictB set {
@@ -8178,7 +8325,7 @@ class TestRepeatableReadInsert(tb.QueryTestCase):
             "UPDATE to object type 'default::ConflictAB' affects an "
             "exclusive constraint on property 'name' of object type "
             "'default::ConflictAB' that is defined in ancestor object "
-            "type 'default::ConflictB'"
+            "type 'default::ConflictB'",
         ):
             await self.con.execute("""
                 update ConflictAB set {

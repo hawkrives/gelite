@@ -70,7 +70,6 @@ class TestServerApi(tb.ClusterTestCase):
 
 
 class TestServerOps(tb.TestCaseWithHttpClient):
-
     async def kill_process(self, proc: asyncio.subprocess.Process):
         proc.terminate()
         try:
@@ -90,7 +89,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         async with tb.start_edgedb_server(
             auto_shutdown_after=0,
         ) as sd:
-
             con1 = await sd.connect()
             self.assertEqual(await con1.query_single('SELECT 1'), 1)
 
@@ -103,7 +101,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await con2.aclose()
 
             with self.assertRaises(
-                    (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 # Since both con1 and con2 are now disconnected and
                 # the cluster was started with an "--auto-shutdown-after=0"
                 # option, we expect this connection to be rejected
@@ -117,15 +116,14 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await asyncio.sleep(2)
 
             with self.assertRaises(
-                    (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 await sd.connect(wait_until_available=0)
 
     async def test_server_ops_auto_shutdown_after_one_2(self):
         async with tb.start_edgedb_server(
             auto_shutdown_after=1,
-            http_endpoint_security=(
-                args.ServerEndpointSecurityMode.Optional
-            ),
+            http_endpoint_security=(args.ServerEndpointSecurityMode.Optional),
         ) as sd:
             await asyncio.sleep(0.5)
             self.assertEqual(sd.call_system_api('/server/status/ready'), 'OK')
@@ -138,7 +136,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await asyncio.sleep(2)
 
             with self.assertRaises(
-                (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 await sd.connect(wait_until_available=0)
 
     async def test_server_ops_bootstrap_script(self) -> None:
@@ -149,14 +148,19 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         # * "--bootstrap-command"
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--temp-dir',
             '--bootstrap-command=CREATE SUPERUSER ROLE test_bootstrap;',
             '--bootstrap-only',
             '--log-level=error',
-            '--max-backend-connections', '10',
+            '--max-backend-connections',
+            '10',
             '--tls-cert-mode=generate_self_signed',
         ]
 
@@ -168,8 +172,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         )
 
         try:
-            _, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=240)
+            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=240)
         except asyncio.TimeoutError:
             if proc.returncode is None:
                 proc.terminate()
@@ -189,7 +192,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         async with tb.start_edgedb_server(
             bootstrap_command='CREATE SUPERUSER ROLE test_bootstrap2 '
-                              '{ SET password := "tbs2" };'
+            '{ SET password := "tbs2" };'
         ) as sd:
             con = await sd.connect(user='test_bootstrap2', password='tbs2')
             try:
@@ -199,7 +202,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     @unittest.skipIf(
         platform.system() == "Darwin",
-        "https://github.com/edgedb/edgedb/issues/7789"
+        "https://github.com/edgedb/edgedb/issues/7789",
     )
     async def test_server_ops_background(self) -> None:
         # Test that "edgedb-server" works as expected with the
@@ -212,13 +215,18 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         os.close(status_fd)
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--temp-dir',
             '--log-level=debug',
             '--background',
-            '--emit-server-status', status_file,
+            '--emit-server-status',
+            status_file,
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
@@ -276,19 +284,28 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         os.close(status_fd)
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--log-level=debug',
-            '--emit-server-status', status_file,
-            '--emit-server-status', status_file_2,
+            '--emit-server-status',
+            status_file,
+            '--emit-server-status',
+            status_file_2,
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
-        cmd.extend([
-            '--temp-dir',
-            '--max-backend-connections', '10',
-        ])
+        cmd.extend(
+            [
+                '--temp-dir',
+                '--max-backend-connections',
+                '10',
+            ]
+        )
 
         proc = None
 
@@ -406,7 +423,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE admin SET password := "first";'
+                bootstrap_command='ALTER ROLE admin SET password := "first";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -414,11 +431,11 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 finally:
                     await con.aclose()
 
-        # The bootstrap command should not be run on subsequent server starts.
+            # The bootstrap command should not be run on subsequent server starts.
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE admin SET password := "second";'
+                bootstrap_command='ALTER ROLE admin SET password := "second";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -431,7 +448,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE edgedb SET password := "first";'
+                bootstrap_command='ALTER ROLE edgedb SET password := "first";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -441,7 +458,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     async def test_server_ops_bogus_bind_addr_in_mix(self):
         async with tb.start_edgedb_server(
-            bind_addrs=('host.invalid', '127.0.0.1',),
+            bind_addrs=(
+                'host.invalid',
+                '127.0.0.1',
+            ),
         ) as sd:
             con = await sd.connect()
             try:
@@ -501,7 +521,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         with tempfile.TemporaryDirectory() as td:
             cluster = await pgcluster.get_local_pg_cluster(
-                td, max_connections=actual, log_level='s')
+                td, max_connections=actual, log_level='s'
+            )
             cluster.update_connection_params(
                 user='postgres',
                 database='template1',
@@ -660,9 +681,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
             await cluster.start()
             try:
-                await self._test_server_ops_ignore_other_tenants(
-                    td, 'postgres'
-                )
+                await self._test_server_ops_ignore_other_tenants(td, 'postgres')
             finally:
                 await cluster.stop()
 
@@ -716,10 +735,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             ),
             protocol.Sync(),
         )
-        await con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await con.recv_match(protocol.CommandComplete, status='SELECT')
         await con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -727,20 +743,25 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     async def test_server_ops_cache_recompile_01(self):
         def measure_compilations(
-            sd: tb._EdgeDBServerData
+            sd: tb._EdgeDBServerData,
         ) -> Callable[[], float | int]:
-            return lambda: tb.parse_metrics(sd.fetch_metrics()).get(
-                'edgedb_server_edgeql_query_compilations_total'
-                '{tenant="localtest",path="compiler"}'
-            ) or 0
+            return (
+                lambda: tb.parse_metrics(sd.fetch_metrics()).get(
+                    'edgedb_server_edgeql_query_compilations_total'
+                    '{tenant="localtest",path="compiler"}'
+                )
+                or 0
+            )
 
         def measure_sql_compilations(
-            sd: tb._EdgeDBServerData
+            sd: tb._EdgeDBServerData,
         ) -> Callable[[], float | int]:
-            return lambda: tb.parse_metrics(sd.fetch_metrics()).get(
-                'edgedb_server_sql_compilations_total'
-                '{tenant="localtest"}'
-            ) or 0
+            return (
+                lambda: tb.parse_metrics(sd.fetch_metrics()).get(
+                    'edgedb_server_sql_compilations_total{tenant="localtest"}'
+                )
+                or 0
+            )
 
         with tempfile.TemporaryDirectory() as temp_dir:
             async with tb.start_edgedb_server(
@@ -1103,23 +1124,21 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             con = http.client.HTTPConnection(sd.host, sd.port)
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 301)
-                resp_headers = {k.lower(): v.lower()
-                                for k, v in resp.getheaders()}
+                resp_headers = {
+                    k.lower(): v.lower() for k, v in resp.getheaders()
+                }
                 self.assertIn('location', resp_headers)
-                self.assertTrue(
-                    resp_headers['location'].startswith('https://'))
+                self.assertTrue(resp_headers['location'].startswith('https://'))
 
                 self.assertIn('strict-transport-security', resp_headers)
                 # By default we enforce HTTPS via HSTS on all routes.
                 self.assertEqual(
                     resp_headers['strict-transport-security'],
-                    'max-age=31536000')
+                    'max-age=31536000',
+                )
             finally:
                 con.close()
 
@@ -1145,14 +1164,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         async with tb.start_edgedb_server(
             http_endpoint_security=args.ServerEndpointSecurityMode.Optional,
         ) as sd:
-
             con = http.client.HTTPConnection(sd.host, sd.port)
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 404)
             finally:
@@ -1164,24 +1179,24 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             )
             tls_context.check_hostname = False
             con = http.client.HTTPSConnection(
-                sd.host, sd.port, context=tls_context)
+                sd.host, sd.port, context=tls_context
+            )
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 404)
-                resp_headers = {k.lower(): v.lower()
-                                for k, v in resp.getheaders()}
+                resp_headers = {
+                    k.lower(): v.lower() for k, v in resp.getheaders()
+                }
 
                 self.assertIn('strict-transport-security', resp_headers)
                 # When --allow-insecure-http-clients is passed, we set
                 # max-age to 0, to let browsers know that it's safe
                 # for the user to open http://
                 self.assertEqual(
-                    resp_headers['strict-transport-security'], 'max-age=0')
+                    resp_headers['strict-transport-security'], 'max-age=0'
+                )
             finally:
                 con.close()
 
@@ -1203,6 +1218,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             tls_client_ca_file=client_ca_cert_file,
             security=args.ServerSecurityMode.Strict,
         ) as sd:
+
             def test(url):
                 # Connection without the client cert fails
                 tls_context = ssl.create_default_context(
@@ -1248,7 +1264,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     )
 
                     self.assertEqual(
-                        status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                        status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                    )
 
                 # It is alive though.
                 with self.http_con(server=sd) as http_con:
@@ -1297,7 +1314,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     )
 
                     self.assertEqual(
-                        status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                        status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                    )
 
                 # Make ready by removing the file
                 rf.close()
@@ -1332,7 +1350,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                                 path='/server/status/ready',
                             )
                             self.assertEqual(
-                                status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                                status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                            )
         finally:
             if os.path.exists(rf_name):
                 rf.close()
@@ -1458,8 +1477,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 await asyncio.sleep(0.01)
 
                 with self.assertRaisesRegex(
-                    edgedb.AvailabilityError,
-                    "quota exceeded"
+                    edgedb.AvailabilityError, "quota exceeded"
                 ):
                     await conn.execute("select 1")
 
@@ -1471,9 +1489,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 os.unlink(rf_name)
                 await asyncio.sleep(0.05)
                 async for tr in self.try_until_succeeds(
-                    ignore=(
-                        edgedb.AvailabilityError,
-                    ),
+                    ignore=(edgedb.AvailabilityError,),
                 ):
                     async with tr:
                         await conn.execute("select 1")
@@ -1525,11 +1541,13 @@ class TestPGExtensions(tb.TestCase):
                 database='template1',
             )
             self.assertTrue(await cluster.ensure_initialized())
-            await cluster.start(server_settings={
-                'edb_stat_statements.track_planning': 'false',
-                'edb_stat_statements.track': 'dev',
-                'max_prepared_transactions': '5',
-            })
+            await cluster.start(
+                server_settings={
+                    'edb_stat_statements.track_planning': 'false',
+                    'edb_stat_statements.track': 'dev',
+                    'max_prepared_transactions': '5',
+                }
+            )
             try:
                 pg_config = buildmeta.get_pg_config_path()
                 env = os.environ.copy()
@@ -1538,11 +1556,16 @@ class TestPGExtensions(tb.TestCase):
                 env['PGPORT'] = params.port
                 env['PGUSER'] = params.user
                 env['PGDATABASE'] = params.database
-                subprocess.check_output([
-                    'make',
-                    f'PG_CONFIG={pg_config}',
-                    'installcheck',
-                ], cwd=str(ext_home), env=env, text=True)
+                subprocess.check_output(
+                    [
+                        'make',
+                        f'PG_CONFIG={pg_config}',
+                        'installcheck',
+                    ],
+                    cwd=str(ext_home),
+                    env=env,
+                    text=True,
+                )
             except subprocess.CalledProcessError as e:
                 output = ext_home / "regression.out"
                 if output.exists():

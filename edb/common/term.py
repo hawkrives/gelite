@@ -60,6 +60,7 @@ def max_colors():
     if _COLORS is None:
         try:
             import curses
+
             try:
                 curses.setupterm()
                 _COLORS = curses.tigetnum('colors')
@@ -81,8 +82,10 @@ def supports_colors(fileno):
     :returns: bool
     """
     return (
-        isatty(fileno) and os.getenv('TERM') != 'dumb' and
-        os.getenv('ANSI_COLORS_DISABLED') is None)
+        isatty(fileno)
+        and os.getenv('TERM') != 'dumb'
+        and os.getenv('ANSI_COLORS_DISABLED') is None
+    )
 
 
 def size(fileno):
@@ -97,7 +100,8 @@ def size(fileno):
 
     try:
         size = struct.unpack(
-            '2h', fcntl.ioctl(fileno, termios.TIOCGWINSZ, '    '))
+            '2h', fcntl.ioctl(fileno, termios.TIOCGWINSZ, '    ')
+        )
     except Exception:
         size = (os.getenv('LINES', 25), os.getenv('COLUMNS', 80))
 
@@ -372,7 +376,7 @@ _MAP256 = {
     252: '#d0d0d0',
     253: '#dadada',
     254: '#e4e4e4',
-    255: '#eeeeee'
+    255: '#eeeeee',
 }
 
 
@@ -394,8 +398,7 @@ class AbstractStyle:
     this class is abstract.
     """
 
-    __slots__ = (
-        '_opts', '_color', '_bgcolor', '_term_prefix', '_term_postfix')
+    __slots__ = ('_opts', '_color', '_bgcolor', '_term_prefix', '_term_postfix')
 
     _opts_table = {
         'bold': '1',
@@ -404,7 +407,7 @@ class AbstractStyle:
         'underline': '4',
         'blink': '5',
         'overline': '6',
-        'reverse': '7'
+        'reverse': '7',
     }
     _ropts_table = {v: k for k, v in _opts_table.items()}
 
@@ -420,7 +423,6 @@ class AbstractStyle:
         overline=False,
         reverse=False,
     ):
-
         self._opts = set()
         self._color = None
         self._bgcolor = None
@@ -481,10 +483,10 @@ class AbstractStyle:
     faint = property(_is_opt_getter('faint'), _set_opt_setter('faint'))
     italic = property(_is_opt_getter('italic'), _set_opt_setter('italic'))
     underline = property(
-        _is_opt_getter('underline'), _set_opt_setter('underline'))
+        _is_opt_getter('underline'), _set_opt_setter('underline')
+    )
     blink = property(_is_opt_getter('blink'), _set_opt_setter('blink'))
-    overline = property(
-        _is_opt_getter('overline'), _set_opt_setter('overline'))
+    overline = property(_is_opt_getter('overline'), _set_opt_setter('overline'))
     reverse = property(_is_opt_getter('reverse'), _set_opt_setter('reverse'))
 
     def _recalc(self):
@@ -505,8 +507,8 @@ class AbstractStyle:
         cmd.extend(self._opts)
 
         if cmd:
-            self._term_prefix = '\x1B[{}m'.format(';'.join(cmd))
-            self._term_postfix = '\x1B[0m'
+            self._term_prefix = '\x1b[{}m'.format(';'.join(cmd))
+            self._term_postfix = '\x1b[0m'
         else:
             self._term_prefix = ''
             self._term_postfix = ''
@@ -530,7 +532,7 @@ class Style16(AbstractStyle):
         'blue': 4,
         'magenta': 5,
         'cyan': 6,
-        'white': 7
+        'white': 7,
     }
     _rcolor_table = {v: k for k, v in _color_table.items()}
 
@@ -585,8 +587,10 @@ class Style256(AbstractStyle):
         c = Color.from_string(color).rgb_channels(as_floats=True)
         return min(
             Style256._rgb_color_table.items(),
-            key=lambda item: color_distance(item[0][0], item[0][1],
-                                            item[0][2], *c))[1]
+            key=lambda item: color_distance(
+                item[0][0], item[0][1], item[0][2], *c
+            ),
+        )[1]
 
 
 class StylesTable:

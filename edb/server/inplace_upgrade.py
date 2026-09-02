@@ -78,11 +78,16 @@ def _is_stdlib_target(
     schema: s_schema.Schema,
 ) -> bool:
     if intersection := t.get_intersection_of(schema):
-        return any((_is_stdlib_target(it, schema)
-                    for it in intersection.objects(schema)))
+        return any(
+            (
+                _is_stdlib_target(it, schema)
+                for it in intersection.objects(schema)
+            )
+        )
     elif union := t.get_union_of(schema):
-        return any((_is_stdlib_target(ut, schema)
-                    for ut in union.objects(schema)))
+        return any(
+            (_is_stdlib_target(ut, schema) for ut in union.objects(schema))
+        )
 
     name = t.get_name(schema)
 
@@ -120,9 +125,7 @@ def _compile_inheritance_schema_fixup(
         ):
             continue
 
-        alter_func = func.init_delta_command(
-            schema, sd.AlterObject
-        )
+        alter_func = func.init_delta_command(schema, sd.AlterObject)
         alter_func.set_attribute_value(
             'nativecode', func.get_nativecode(schema)
         )
@@ -222,14 +225,14 @@ async def _collect_6x_upgrade_patches(
     needs_config = False
     jnum = json.loads(res)
     for kind, patch in patches_6x.PATCHES[jnum:]:
-
         if not kind.startswith('edgeql+user_ext'):
             continue
         # Only run a userext update if the extension we are trying to
         # update is installed.
         extension_name = kind.split('|')[-1]
         extension = schema.get_global(
-            s_exts.Extension, extension_name, default=None)
+            s_exts.Extension, extension_name, default=None
+        )
         if not extension:
             continue
 
@@ -245,9 +248,7 @@ async def _collect_6x_upgrade_patches(
     # 6.2 introduced a change to EmbeddingModel (the addition of a new
     # default value) that requires a repair to sync the user schema up
     # with, since ai index annotations get copied into objects.
-    needs_repair = bool(
-        schema.get_global(s_exts.Extension, 'ai', default=None)
-    )
+    needs_repair = bool(schema.get_global(s_exts.Extension, 'ai', default=None))
 
     return cmds, needs_repair, needs_config
 
@@ -266,8 +267,7 @@ async def _apply_ddl_schema_storage(
     compilerctx: edbcompiler.CompileContext,
     schema: s_schema.Schema,
     schema_object_ids: dict[tuple[sn.Name, Any], uuidgen.UUID],
-    fake_backend_ids: bool=False,
-
+    fake_backend_ids: bool = False,
 ) -> tuple[s_schema.ChainedSchema, str]:
     # applies ddl schema storage but not the real ddl
     # returns that, though
@@ -278,7 +278,9 @@ async def _apply_ddl_schema_storage(
 
     assert isinstance(ddl_cmd, qlast.DDLCommand)
     delta_command = s_ddl.delta_from_ddl(
-        ddl_cmd, modaliases={}, schema=schema,
+        ddl_cmd,
+        modaliases={},
+        schema=schema,
         schema_object_ids=schema_object_ids,
         **keys,
     )
@@ -286,9 +288,7 @@ async def _apply_ddl_schema_storage(
     # since all the compile_schema_storage_in_delta commands run right
     # away, while if we run a fixup block, it is during finalize.
     sub: sd.Command
-    for sub in delta_command.get_subcommands(
-        type=s_ver.AlterSchemaVersion
-    ):
+    for sub in delta_command.get_subcommands(type=s_ver.AlterSchemaVersion):
         delta_command.discard(sub)
     # This hack is quite frustrating: since the actual changes to the
     # pg schema (for extensions) happen *after* the reflection schema
@@ -300,10 +300,9 @@ async def _apply_ddl_schema_storage(
             if not isinstance(sub, sd.CreateObject):
                 continue
             mcls = sub.get_schema_metaclass()
-            if (
-                issubclass(mcls, (s_scalars.ScalarType, s_types.Collection))
-                and not issubclass(mcls, s_types.CollectionExprAlias)
-            ):
+            if issubclass(
+                mcls, (s_scalars.ScalarType, s_types.Collection)
+            ) and not issubclass(mcls, s_types.CollectionExprAlias):
                 sub.set_attribute_value('backend_id', 0)
 
     schema, plan, tplan = bootstrap._process_delta_params(
@@ -359,9 +358,9 @@ async def _upgrade_one(
     ddl = upgrade_data['ddl']
     # ids:
     schema_object_ids = {
-        (
-            sn.name_from_string(name), qltype if qltype else None
-        ): uuidgen.UUID(objid)
+        (sn.name_from_string(name), qltype if qltype else None): uuidgen.UUID(
+            objid
+        )
         for name, qltype, objid in upgrade_data['ids']
     }
 
@@ -389,17 +388,28 @@ async def _upgrade_one(
     for ddl_cmd in edgeql.parse_block(ddl):
         schema, _ = await _apply_ddl_schema_storage(
             ddl_cmd,
-            ctx, backend_params, keys, compilerctx, schema, schema_object_ids
+            ctx,
+            backend_params,
+            keys,
+            compilerctx,
+            schema,
+            schema_object_ids,
         )
 
     schema_fixup = ''
-    upgrade_patches, needs_repair, needs_config = (
-        await _collect_6x_upgrade_patches(ctx, schema)
-    )
+    (
+        upgrade_patches,
+        needs_repair,
+        needs_config,
+    ) = await _collect_6x_upgrade_patches(ctx, schema)
     for ddl_cmd in upgrade_patches:
         schema, fixup = await _apply_ddl_schema_storage(
             ddl_cmd,
-            ctx, backend_params, keys, compilerctx, schema,
+            ctx,
+            backend_params,
+            keys,
+            compilerctx,
+            schema,
             # Empty schema_object_ids because this isn't actually user
             # objects anymore, and because reusing the
             # schema_object_ids led to a subtle issue:
@@ -414,15 +424,20 @@ async def _upgrade_one(
 
     if upgrade_patches:
         version_key = pg_patches.get_version_key(len(pg_patches.PATCHES))
-        sysqueries = json.loads(await instdata.get_instdata(
-            ctx.conn, f'sysqueries{version_key}', 'json'))
+        sysqueries = json.loads(
+            await instdata.get_instdata(
+                ctx.conn, f'sysqueries{version_key}', 'json'
+            )
+        )
         schema_fixup += sysqueries['backend_id_fixup']
     if needs_config:
         existing_view_columns = await bootstrap.get_existing_view_columns(
-            ctx.conn)
+            ctx.conn
+        )
         cfg_block = dbops.PLTopBlock()
         metaschema.get_config_views(schema, existing_view_columns).generate(
-            cfg_block)
+            cfg_block
+        )
         schema_fixup += cfg_block.to_string()
 
     # If we need to do a schema repair... do it
@@ -463,14 +478,16 @@ async def _upgrade_one(
         validate=False,
     )
     spec_json = config.spec_to_json(new_local_spec)
-    await ctx.conn.sql_execute(trampoline.fixup_query(f'''\
+    await ctx.conn.sql_execute(
+        trampoline.fixup_query(f'''\
         UPDATE
             edgedbinstdata_VER.instdata
         SET
             json = {pg_common.quote_literal(spec_json)}
         WHERE
             key = 'configspec_ext';
-    ''').encode('utf-8'))
+    ''').encode('utf-8')
+    )
 
     # Compile the fixup script for the schema and stash it away
     schema_fixup += _compile_schema_fixup(ctx, schema, keys).to_string()
@@ -530,10 +547,7 @@ and dep.deptype != 'i'
 '''
 
 
-async def _delete_schemas(
-    conn: PGCon,
-    to_delete: Sequence[str]
-) -> None:
+async def _delete_schemas(conn: PGCon, to_delete: Sequence[str]) -> None:
     # To add a bit more safety, check whether there are any
     # dependencies on the modules we want to delete from outside those
     # modules since the only way to delete non-empty schemas in
@@ -545,10 +559,7 @@ async def _delete_schemas(
     existing_deps = await conn.sql_fetch(qry.encode('utf-8'))
     if existing_deps:
         # All of the fields are text, so decode them all
-        sdeps = [
-            tuple(x.decode('utf-8') for x in row)
-            for row in existing_deps
-        ]
+        sdeps = [tuple(x.decode('utf-8') for x in row) for row in existing_deps]
 
         messages = [
             f'{st} {pg_common.qname(ss, sn)} depends on '
@@ -557,23 +568,28 @@ async def _delete_schemas(
         ]
 
         raise AssertionError(
-            'Dependencies to old schemas still exist: \n%s'
-            % ''.join(messages)
+            'Dependencies to old schemas still exist: \n%s' % ''.join(messages)
         )
 
     # It is *really* dumb the way that CASCADE works in postgres.
-    await conn.sql_execute(f"""
+    await conn.sql_execute(
+        f"""
         drop schema {', '.join(to_delete)} cascade
-    """.encode('utf-8'))
+    """.encode('utf-8')
+    )
 
 
 async def _get_namespaces(
     conn: PGCon,
 ) -> list[str]:
-    return json.loads(await conn.sql_fetch_val("""
+    return json.loads(
+        await conn.sql_fetch_val(
+            """
         select json_agg(nspname) from pg_namespace
         where nspname like 'edgedb%\\_v%'
-    """.encode('utf-8')))
+    """.encode('utf-8')
+        )
+    )
 
 
 async def _finalize_one(
@@ -590,9 +606,11 @@ async def _finalize_one(
         return
 
     trampoline_query = await instdata.get_instdata(
-        conn, 'trampoline_pivot_query', 'text')
+        conn, 'trampoline_pivot_query', 'text'
+    )
     fixup_query = await instdata.get_instdata(
-        conn, 'schema_fixup_query', 'text')
+        conn, 'schema_fixup_query', 'text'
+    )
 
     await conn.sql_execute(trampoline_query)
     if fixup_query:
@@ -603,7 +621,8 @@ async def _finalize_one(
     # schema. (To populate the extension packages.)
     if database == edbdef.GELITE_TEMPLATE_DB:
         global_schema_update_query = await instdata.get_instdata(
-            conn, 'global_schema_update_query', 'text')
+            conn, 'global_schema_update_query', 'text'
+        )
         await conn.sql_execute(global_schema_update_query)
 
     namespaces = await _get_namespaces(ctx.conn)
@@ -627,17 +646,18 @@ async def _get_databases(
 
     tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
     conn = await cluster.connect(
-        source_description="inplace upgrade",
-        database=tpl_db
+        source_description="inplace upgrade", database=tpl_db
     )
 
     # FIXME: Use the sys query instead?
     try:
-        databases = json.loads(await conn.sql_fetch_val(
-            trampoline.fixup_query("""
+        databases = json.loads(
+            await conn.sql_fetch_val(
+                trampoline.fixup_query("""
                 SELECT json_agg(name) FROM edgedb_VER."_SysBranch";
             """).encode('utf-8'),
-        ))
+            )
+        )
     finally:
         conn.terminate()
 
@@ -662,15 +682,15 @@ async def _get_global_schema(
 
     tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
     conn = await cluster.connect(
-        source_description="inplace upgrade",
-        database=tpl_db
+        source_description="inplace upgrade", database=tpl_db
     )
 
     # FIXME: Use the sys query instead?
     assert state.global_intro_query
     try:
         json_data = await conn.sql_fetch_val(
-            state.global_intro_query.encode('utf-8'))
+            state.global_intro_query.encode('utf-8')
+        )
     finally:
         conn.terminate()
 
@@ -735,7 +755,7 @@ async def _upgrade_all(
 ) -> None:
     cluster = ctx.cluster
 
-    stdlib, compiler = (await bootstrap._bootstrap(ctx))
+    stdlib, compiler = await bootstrap._bootstrap(ctx)
     state = compiler.state
     databases = await _get_databases(ctx)
 
@@ -753,7 +773,7 @@ async def _upgrade_all(
         conn = bootstrap.PGConnectionProxy(
             cluster,
             source_description="inplace upgrade: upgrade all",
-            dbname=cluster.get_db_name(database)
+            dbname=cluster.get_db_name(database),
         )
         try:
             subctx = dataclasses.replace(ctx, conn=conn)
@@ -783,12 +803,12 @@ async def _finalize_all(
         message: str,
         finish_message: Optional[str],
         final_command: bytes,
-        inject_failure_on: Optional[str]=None,
+        inject_failure_on: Optional[str] = None,
     ) -> None:
         for database in databases:
             conn = await cluster.connect(
                 source_description="inplace upgrade: finish",
-                database=cluster.get_db_name(database)
+                database=cluster.get_db_name(database),
             )
 
             tmp_table_query = (
@@ -837,8 +857,7 @@ async def inplace_upgrade(
 ) -> None:
     """Perform some or all of the inplace upgrade operations"""
     pgconn = bootstrap.PGConnectionProxy(
-        cluster,
-        source_description="inplace_upgrade"
+        cluster, source_description="inplace_upgrade"
     )
     ctx = bootstrap.BootstrapContext(cluster=cluster, conn=pgconn, args=args)
 

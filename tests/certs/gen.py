@@ -70,9 +70,7 @@ def _new_cert(issuer=None, is_issuer=False, serial_number=None, **subject):
                 datetime.datetime.today() + datetime.timedelta(weeks=1000)
             )
         )
-        aki_ext = x509.AuthorityKeyIdentifier.from_issuer_public_key(
-            public_key
-        )
+        aki_ext = x509.AuthorityKeyIdentifier.from_issuer_public_key(public_key)
     if is_issuer:
         builder = (
             builder.add_extension(
@@ -161,9 +159,7 @@ def new_ca(path, **subject):
     return cert_key_pair
 
 
-def new_cert(
-    path, ca_cert_key_pair, password=None, is_issuer=False, **subject
-):
+def new_cert(path, ca_cert_key_pair, password=None, is_issuer=False, **subject):
     cert_key_pair = _new_cert(
         issuer=ca_cert_key_pair, is_issuer=is_issuer, **subject
     )
@@ -186,8 +182,12 @@ def new_crl(path, issuer, cert):
         .next_update(datetime.datetime.today() + datetime.timedelta(days=1))
         .add_revoked_certificate(revoked_cert)
         .add_extension(x509.CRLNumber(1), critical=True)
-        .add_extension(x509.AuthorityKeyIdentifier.from_issuer_public_key(
-            issuer_cert.public_key()), critical=True)
+        .add_extension(
+            x509.AuthorityKeyIdentifier.from_issuer_public_key(
+                issuer_cert.public_key()
+            ),
+            critical=True,
+        )
     )
     crl = builder.sign(private_key=signing_key, algorithm=hashes.SHA256())
     with open(path + ".crl.pem", "wb") as f:

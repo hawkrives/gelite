@@ -112,7 +112,6 @@ def _pickle_memoized(obj: Any) -> bytes:
 
 
 class BaseWorker:
-
     _dbs: collections.OrderedDict[str, state.PickledDatabaseState]
     _backend_runtime_params: pgparams.BackendRuntimeParams
     _std_schema: s_schema.Schema
@@ -176,7 +175,8 @@ class BaseWorker:
         if self._con.is_closed():
             raise RuntimeError(
                 'the connection to the compiler worker process is '
-                'unexpectedly closed')
+                'unexpectedly closed'
+            )
 
         data = await self._request(method_name, args)
 
@@ -190,14 +190,16 @@ class BaseWorker:
             return result[0]
         elif status == 1:
             exc, tb = result
-            if (sync_state is not None and
-                    not isinstance(exc, state.FailedStateSync)):
+            if sync_state is not None and not isinstance(
+                exc, state.FailedStateSync
+            ):
                 sync_state()
             exc.__formatted_error__ = tb
             raise exc
         else:
             exc = RuntimeError(
-                'could not serialize result in worker subprocess')
+                'could not serialize result in worker subprocess'
+            )
             exc.__formatted_error__ = result[0]
             raise exc
 
@@ -212,7 +214,6 @@ class BaseWorker:
 
 
 class Worker(BaseWorker):
-
     _pid: int
     _proc: psutil.Process
     _manager: BaseLocalPool
@@ -291,7 +292,9 @@ class Worker(BaseWorker):
                 logger.info(
                     'worker process with PID %d exceeds high RSS limit '
                     '(%d > %d), killing now',
-                    self._pid, rss, max_rss,
+                    self._pid,
+                    rss,
+                    max_rss,
                 )
                 self.close()
                 return True
@@ -313,9 +316,10 @@ class Worker(BaseWorker):
 
 
 class AbstractPool[
-    BaseWorker_T: BaseWorker, InitArgs_T, InitArgsPickle_T,
+    BaseWorker_T: BaseWorker,
+    InitArgs_T,
+    InitArgsPickle_T,
 ]:
-
     _loop: asyncio.AbstractEventLoop
     _worker_branch_limit: int
     _backend_runtime_params: pgparams.BackendRuntimeParams
@@ -391,7 +395,6 @@ class AbstractPool[
         database_config: Config,
         system_config: Config,
     ) -> tuple[PreArgs, Optional[SyncStateCallback], SyncFinalizer]:
-
         def sync_worker_state_cb(
             *,
             worker: BaseWorker_T,
@@ -463,17 +466,17 @@ class AbstractPool[
 
         if worker_db is None:
             branch_cache_hit = False
-            evicted_dbs = worker.prepare_evict_db(
-                self._worker_branch_limit - 1
+            evicted_dbs = worker.prepare_evict_db(self._worker_branch_limit - 1)
+            preargs.extend(
+                [
+                    evicted_dbs,
+                    user_schema_pickle,
+                    _pickle_memoized(reflection_cache),
+                    global_schema_pickle,
+                    _pickle_memoized(database_config),
+                    _pickle_memoized(system_config),
+                ]
             )
-            preargs.extend([
-                evicted_dbs,
-                user_schema_pickle,
-                _pickle_memoized(reflection_cache),
-                global_schema_pickle,
-                _pickle_memoized(database_config),
-                _pickle_memoized(system_config),
-            ])
             to_update = {
                 'evicted_dbs': evicted_dbs,
                 'user_schema_pickle': user_schema_pickle,
@@ -522,10 +525,7 @@ class AbstractPool[
 
         if to_update:
             callback = functools.partial(
-                sync_worker_state_cb,
-                worker=worker,
-                dbname=dbname,
-                **to_update
+                sync_worker_state_cb, worker=worker, dbname=dbname, **to_update
             )
         else:
             callback = None
@@ -583,9 +583,7 @@ class AbstractPool[
             )
 
             result = await worker.call(
-                *preargs,
-                *compile_args,
-                sync_state=sync_state
+                *preargs, *compile_args, sync_state=sync_state
             )
             worker._last_pickled_state = result[1]
             if len(result) == 2:
@@ -658,7 +656,7 @@ class AbstractPool[
                 user_schema_pickle_arg,
                 pickled_state,
                 txid,
-                *compile_args
+                *compile_args,
             )
             worker._last_pickled_state = new_pickled_state
             return units, new_pickled_state, 0
@@ -680,12 +678,7 @@ class AbstractPool[
         system_config: Config,
         *compile_args: Any,
         **compiler_args: Any,
-    ) -> list[
-        tuple[
-            bool,
-            dbstate.QueryUnit | tuple[str, str, dict[int, str]]
-        ]
-    ]:
+    ) -> list[tuple[bool, dbstate.QueryUnit | tuple[str, str, dict[int, str]]]]:
         fini = lambda: None
         worker = await self._acquire_worker(**compiler_args)
         try:
@@ -701,9 +694,7 @@ class AbstractPool[
             )
 
             return await worker.call(
-                *preargs,
-                *compile_args,
-                sync_state=sync_state
+                *preargs, *compile_args, sync_state=sync_state
             )
 
         finally:
@@ -736,9 +727,7 @@ class AbstractPool[
             )
 
             return await worker.call(
-                *preargs,
-                *compile_args,
-                sync_state=sync_state
+                *preargs, *compile_args, sync_state=sync_state
             )
         finally:
             fini()
@@ -749,11 +738,7 @@ class AbstractPool[
     async def _simple_call(self, name: str, *args: Any, **kwargs: Any) -> Any:
         worker = await self._acquire_worker()
         try:
-            return await worker.call(
-                name,
-                *args,
-                **kwargs
-            )
+            return await worker.call(name, *args, **kwargs)
 
         finally:
             self._release_worker(worker)
@@ -803,7 +788,7 @@ class AbstractPool[
         )
 
     async def make_compilation_config_serializer(
-        self
+        self,
     ) -> sertypes.CompilationConfigSerializer:
         return await self._simple_call('make_compilation_config_serializer')
 
@@ -908,7 +893,6 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
     amsg.ServerProtocol,
     asyncio.SubprocessProtocol,
 ):
-
     _worker_class: type[Worker_T]
     _worker_mod: str = "worker"
     _workers_queue: queue.WorkerQueue[Worker_T]
@@ -957,9 +941,7 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
         self, worker: Worker_T, cache_hit: bool, client: str = DEFAULT_CLIENT
     ) -> None:
         pid = str(worker.get_pid())
-        metrics.compiler_process_branch_actions.inc(
-            1, pid, client, 'request'
-        )
+        metrics.compiler_process_branch_actions.inc(1, pid, client, 'request')
         if cache_hit:
             metrics.compiler_process_branch_actions.inc(
                 1, pid, client, 'cache-hit'
@@ -1028,7 +1010,8 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
     async def start(self) -> None:
         if self._running is not None:
             raise RuntimeError(
-                'the compiler pool has already been started once')
+                'the compiler pool has already been started once'
+            )
         assert self._server is not None
 
         self._workers_queue = queue.WorkerQueue(self._loop)
@@ -1042,8 +1025,7 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
 
     async def _wait_ready(self) -> None:
         await asyncio.wait_for(
-            self._ready_evt.wait(),
-            PROCESS_INITIAL_RESPONSE_TIMEOUT
+            self._ready_evt.wait(), PROCESS_INITIAL_RESPONSE_TIMEOUT
         )
 
     async def _create_compiler_process(
@@ -1062,15 +1044,23 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
         if sys.flags.isolated:
             cmdline.append('-I')
 
-        cmdline.extend([
-            '-m', WORKER_PKG + self._worker_mod,
-            '--sockname', self._poolsock_name,
-            '--version-serial', str(version),
-        ])
+        cmdline.extend(
+            [
+                '-m',
+                WORKER_PKG + self._worker_mod,
+                '--sockname',
+                self._poolsock_name,
+                '--version-serial',
+                str(version),
+            ]
+        )
         if numproc:
-            cmdline.extend([
-                '--numproc', str(numproc),
-            ])
+            cmdline.extend(
+                [
+                    '--numproc',
+                    str(numproc),
+                ]
+            )
 
         transport, _ = await self._loop.subprocess_exec(
             lambda: self,
@@ -1184,7 +1174,6 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
 class FixedPoolImpl[Worker_T: Worker, InitArgs_T](
     BaseLocalPool[Worker_T, InitArgs_T],
 ):
-
     _template_transport: Optional[asyncio.SubprocessTransport]
     _template_proc_scheduled: bool
     _template_proc_version: int
@@ -1277,7 +1266,6 @@ class FixedPoolImpl[Worker_T: Worker, InitArgs_T](
 
 @srvargs.CompilerPoolMode.Fixed.assign_implementation
 class FixedPool(FixedPoolImpl[Worker, InitArgs]):
-
     _worker_class = Worker
 
     @lru.lru_method_cache(1)
@@ -1286,16 +1274,13 @@ class FixedPool(FixedPoolImpl[Worker, InitArgs]):
         global_schema_pickle: bytes,
         system_config: Config,
     ) -> tuple[InitArgs, bytes]:
-        init_args = self._make_init_args(
-            global_schema_pickle, system_config
-        )
+        init_args = self._make_init_args(global_schema_pickle, system_config)
         pickled_args = pickle.dumps(init_args, -1)
         return init_args, pickled_args
 
 
 @srvargs.CompilerPoolMode.OnDemand.assign_implementation
 class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
-
     _worker_class = Worker
     _worker_transports: dict[int, asyncio.SubprocessTransport]
     _expected_num_workers: int
@@ -1317,9 +1302,7 @@ class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
         global_schema_pickle: bytes,
         system_config: Config,
     ) -> tuple[InitArgs, bytes]:
-        init_args = self._make_init_args(
-            global_schema_pickle, system_config
-        )
+        init_args = self._make_init_args(global_schema_pickle, system_config)
         pickled_args = pickle.dumps(init_args, -1)
         return init_args, pickled_args
 
@@ -1379,9 +1362,9 @@ class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
             self._scale_down_handle = None
         super()._release_worker(worker, put_in_front=put_in_front)
         if (
-            self._running and
-            self._workers_queue.count_waiters() == 0 and
-            len(self._workers) > self._pool_size
+            self._running
+            and self._workers_queue.count_waiters() == 0
+            and len(self._workers) > self._pool_size
         ):
             self._scale_down_handle = self._loop.call_later(
                 ADAPTIVE_SCALE_DOWN_WAIT_TIME,
@@ -1405,8 +1388,9 @@ class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
             # amsg.Server notifies us when the *pipe* to the worker closes,
             # so we need to fire off a task to make sure that we wait for
             # the worker to exit, in order to avoid a warning.
-            self._cleanups[pid] = (
-                self._loop.create_task(self._wait_on_dying(pid, trans)))
+            self._cleanups[pid] = self._loop.create_task(
+                self._wait_on_dying(pid, trans)
+            )
         if not self._running:
             return
         if len(self._workers) < self._pool_size:
@@ -1414,7 +1398,8 @@ class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
             # should restart the unexpectedly-exited worker process.
             logger.warning(
                 "Compiler worker process[%d] exited unexpectedly; "
-                "start a new one now.", pid
+                "start a new one now.",
+                pid,
             )
             self._loop.create_task(self._create_worker())
             self._expected_num_workers = len(self._workers)
@@ -1452,12 +1437,13 @@ class SimpleAdaptivePool(BaseLocalPool[Worker, InitArgs]):
             return
         logger.info(
             "The compiler pool is not used in %d seconds, scaling down to %d.",
-            ADAPTIVE_SCALE_DOWN_WAIT_TIME, self._pool_size,
+            ADAPTIVE_SCALE_DOWN_WAIT_TIME,
+            self._pool_size,
         )
         self._expected_num_workers = self._pool_size
         for worker in sorted(
             self._workers.values(), key=lambda w: w._last_used
-        )[:-self._pool_size]:
+        )[: -self._pool_size]:
             worker.close()
 
     def get_size_hint(self) -> int:

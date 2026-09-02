@@ -28,15 +28,15 @@ from edb.tools import test
 class TestEdgeQLPolicies(tb.DDLTestCase):
     '''Tests for policies.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
     SETUP = [
         '''
             create future warn_old_scoping;
         ''',
-        os.path.join(os.path.dirname(__file__), 'schemas',
-                     'issues_setup.edgeql'),
+        os.path.join(
+            os.path.dirname(__file__), 'schemas', 'issues_setup.edgeql'
+        ),
         '''
             # These are for testing purposes and don't really model anything
             create required global cur_owner_active -> bool {
@@ -91,7 +91,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
                     allow all
                     using (count(.attachment) > 0);
             };
-        '''
+        ''',
     ]
 
     async def test_edgeql_policies_01(self):
@@ -109,14 +109,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Owned { [IS Named].name }
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
             r'''
                 select Issue { name }
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_02a(self):
@@ -131,22 +131,26 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Owned { [IS Named].name }
             ''',
-            tb.bag([
-                {"name": "Release EdgeDB"},
-                {"name": "Improve EdgeDB repl output rendering."},
-                {"name": "Repl tweak."},
-            ])
+            tb.bag(
+                [
+                    {"name": "Release EdgeDB"},
+                    {"name": "Improve EdgeDB repl output rendering."},
+                    {"name": "Repl tweak."},
+                ]
+            ),
         )
 
         await self.assert_query_result(
             r'''
                 select Issue { name }
             ''',
-            tb.bag([
-                {"name": "Release EdgeDB"},
-                {"name": "Improve EdgeDB repl output rendering."},
-                {"name": "Repl tweak."},
-            ])
+            tb.bag(
+                [
+                    {"name": "Release EdgeDB"},
+                    {"name": "Improve EdgeDB repl output rendering."},
+                    {"name": "Repl tweak."},
+                ]
+            ),
         )
 
     async def test_edgeql_policies_02b(self):
@@ -165,22 +169,26 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Owned { [IS Named].name }
             ''',
-            tb.bag([
-                {"name": "Release EdgeDB"},
-                {"name": "Improve EdgeDB repl output rendering."},
-                {"name": "Repl tweak."},
-            ])
+            tb.bag(
+                [
+                    {"name": "Release EdgeDB"},
+                    {"name": "Improve EdgeDB repl output rendering."},
+                    {"name": "Repl tweak."},
+                ]
+            ),
         )
 
         await self.assert_query_result(
             r'''
                 select Issue { name }
             ''',
-            tb.bag([
-                {"name": "Release EdgeDB"},
-                {"name": "Improve EdgeDB repl output rendering."},
-                {"name": "Repl tweak."},
-            ])
+            tb.bag(
+                [
+                    {"name": "Release EdgeDB"},
+                    {"name": "Improve EdgeDB repl output rendering."},
+                    {"name": "Repl tweak."},
+                ]
+            ),
         )
 
     async def test_edgeql_policies_03(self):
@@ -210,18 +218,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select URL { src := .<references[IS User] }
             ''',
-            tb.bag([
-                {"src": []}
-            ])
+            tb.bag([{"src": []}]),
         )
 
         await self.assert_query_result(
             r'''
                 select URL { src := .<references }
             ''',
-            tb.bag([
-                {"src": []}
-            ])
+            tb.bag([{"src": []}]),
         )
 
     async def test_edgeql_policies_05a(self):
@@ -247,45 +251,46 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { z := .tgt.b }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { z := .tgt.id }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"required link 'tgt' of object type 'default::Ptr' is "
-                r"hidden by access policy \(while evaluating computed "
-                r"property 'tb' of object type 'default::Ptr'\)"):
+            edgedb.CardinalityViolationError,
+            r"required link 'tgt' of object type 'default::Ptr' is "
+            r"hidden by access policy \(while evaluating computed "
+            r"property 'tb' of object type 'default::Ptr'\)",
+        ):
             await self.con.query('''
                 select Ptr { tb }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr.tgt
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr.tgt.b
             ''')
@@ -372,8 +377,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -400,8 +405,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -428,8 +433,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -458,8 +463,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -487,8 +492,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -516,8 +521,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -544,8 +549,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -573,8 +578,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -602,8 +607,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -631,11 +636,13 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
-            print(await self.con.query('''
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
+            print(
+                await self.con.query('''
                 select Ptr { tgt }
-            '''))
+            ''')
+            )
 
     async def test_edgeql_policies_06(self):
         await self.con.execute('''
@@ -660,8 +667,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.CardinalityViolationError,
-                r"is hidden by access policy"):
+            edgedb.CardinalityViolationError, r"is hidden by access policy"
+        ):
             await self.con.query('''
                 select Ptr { tgt }
             ''')
@@ -705,8 +712,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on update of default::Issue"):
+            edgedb.InvalidValueError,
+            r"access policy violation on update of default::Issue",
+        ):
             await self.con.query('''
                 update Issue filter .number = "2"
                 set { owner := (select User filter .name = 'Elvis') };
@@ -761,8 +769,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                "access policy violation"):
+            edgedb.InvalidValueError, "access policy violation"
+        ):
             await self.con.query('''
                 INSERT Issue {
                     number := '4',
@@ -775,8 +783,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
 
     async def test_edgeql_policies_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"possibly an empty set"):
+            edgedb.QueryError, r"possibly an empty set"
+        ):
             await self.con.query('''
                 WITH Z := (INSERT Issue {
                     number := '4',
@@ -801,8 +809,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         # we are trying to do unless conflict, because we can't see
         # the conflicting object!
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"name violates exclusivity constraint"):
+            edgedb.ConstraintViolationError,
+            r"name violates exclusivity constraint",
+        ):
             await self.con.query('''
                 insert X { name := "!" }
                 unless conflict on (.name) else (select X)
@@ -815,8 +824,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
 
     async def test_edgeql_policies_11(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on insert of default::Issue"):
+            edgedb.InvalidValueError,
+            r"access policy violation on insert of default::Issue",
+        ):
             await self.con.query('''
             insert Issue {
                 name := '', body := '',
@@ -826,8 +836,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on insert of default::Issue"):
+            edgedb.InvalidValueError,
+            r"access policy violation on insert of default::Issue",
+        ):
             await self.con.query('''
             insert Issue {
                 name := '', body := '',
@@ -849,8 +860,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on insert of default::User"):
+            edgedb.InvalidValueError,
+            r"access policy violation on insert of default::User",
+        ):
             await self.con.query('''
                 insert User { name := 'whatever' }
             ''')
@@ -864,8 +876,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on insert of default::CurOnly"):
+            edgedb.InvalidValueError,
+            r"access policy violation on insert of default::CurOnly",
+        ):
             await self.con.query('''
                 insert CurOnly { name := "!" }
             ''')
@@ -880,8 +893,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on update of default::CurOnly"):
+            edgedb.InvalidValueError,
+            r"access policy violation on update of default::CurOnly",
+        ):
             await self.con.query('''
                 update CurOnly set { name := "!" }
             ''')
@@ -895,8 +909,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on insert of default::CurOnlyM"):
+            edgedb.InvalidValueError,
+            r"access policy violation on insert of default::CurOnlyM",
+        ):
             await self.con.query('''
                 insert CurOnlyM { name := "!" }
             ''')
@@ -911,8 +926,9 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on update of default::CurOnlyM"):
+            edgedb.InvalidValueError,
+            r"access policy violation on update of default::CurOnlyM",
+        ):
             await self.con.query('''
                 update CurOnlyM set { name := "!" }
             ''')
@@ -925,8 +941,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                r'possibly an empty set returned'):
+            edgedb.SchemaDefinitionError, r'possibly an empty set returned'
+        ):
             await self.con.execute('''
                 alter type Foo {
                     create access policy pol allow all using(Foo.val > 5);
@@ -955,14 +971,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Foo
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
             r'''
                 select Bar
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_binding_02(self):
@@ -989,14 +1005,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Foo
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
             r'''
                 select Bar
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_binding_03(self):
@@ -1024,14 +1040,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Foo
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
             r'''
                 select Bar
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_binding_04(self):
@@ -1057,14 +1073,14 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select Foo
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
             r'''
                 select Bar
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_cycle_05(self):
@@ -1132,7 +1148,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 delete {T, S};
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_policies_multi_object_01(self):
@@ -1178,7 +1194,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
                 select User2 { username }
             ''',
-            [{'username': 'admin'}]
+            [{'username': 'admin'}],
         )
 
     async def test_edgeql_policies_recursive_01(self):
@@ -1330,9 +1346,11 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
                     # If it failed, nothing to do, keep trying
                     pass
                 else:
-                    r = (await self.con.query('''
+                    r = (
+                        await self.con.query('''
                         select Bar.r
-                    '''))[0]
+                    ''')
+                    )[0]
                     self.assertGreater(r, 0.5)
 
         await self.con.execute('''
@@ -1348,9 +1366,11 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
                     # If it failed, nothing to do, keep trying
                     pass
                 else:
-                    r = (await self.con.query('''
+                    r = (
+                        await self.con.query('''
                         select Bar.r
-                    '''))[0]
+                    ''')
+                    )[0]
                     self.assertGreater(r, 0.5)
 
     async def test_edgeql_policies_volatile_02(self):
@@ -1374,9 +1394,11 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
                     # If it failed, nothing to do, keep trying
                     pass
                 else:
-                    r = (await self.con.query('''
+                    r = (
+                        await self.con.query('''
                         select Bar.r
-                    '''))[0]
+                    ''')
+                    )[0]
                     self.assertGreater(r, 0.5)
 
         await self.con.execute('''
@@ -1392,9 +1414,11 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
                     # If it failed, nothing to do, keep trying
                     pass
                 else:
-                    r = (await self.con.query('''
+                    r = (
+                        await self.con.query('''
                         select Bar.r
-                    '''))[0]
+                    ''')
+                    )[0]
                     self.assertGreater(r, 0.5)
 
     async def test_edgeql_policies_messages(self):
@@ -1655,8 +1679,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"access policy violation on update"):
+            edgedb.InvalidValueError, r"access policy violation on update"
+        ):
             await self.con.query('''
                 update Base set { name := '!!!' }
             ''')
@@ -1697,7 +1721,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             type Player extending Principal {
                 required link clan: Clan;
             }
-            ''' + clan_and_global
+            '''
+            + clan_and_global
         )
 
         await self.migrate(
@@ -1705,7 +1730,8 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             type Player {
                 required link clan: Clan;
             }
-            ''' + clan_and_global
+            '''
+            + clan_and_global
         )
 
     async def test_edgeql_policies_global_02(self):
@@ -1748,7 +1774,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select Base
             ''',
-            [{}]
+            [{}],
         )
 
         await self.con.execute('''
@@ -1770,7 +1796,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select A
             ''',
-            [{}]
+            [{}],
         )
 
         await self.con.execute('''
@@ -1797,7 +1823,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select A
             ''',
-            [{}]
+            [{}],
         )
 
         await self.con.execute('''
@@ -1807,7 +1833,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select A
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -1836,7 +1862,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select global cur
             ''',
-            []
+            [],
         )
 
         # Disable access policies and we should get it
@@ -1849,7 +1875,7 @@ class TestEdgeQLPolicies(tb.DDLTestCase):
             r'''
             select global cur
             ''',
-            [val.id]
+            [val.id],
         )
 
     @test.skip("There is a bug in migrating to empty with warn_old_scoping")

@@ -54,10 +54,7 @@ from edb.server.compiler.explain import to_json
 
 
 uuid_core = '[a-f0-9]{8}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{4}-?[a-f0-9]{12}'
-uuid_re = re.compile(
-    rf'(\.?"?({uuid_core})"?)',
-    re.I
-)
+uuid_re = re.compile(rf'(\.?"?({uuid_core})"?)', re.I)
 
 T = TypeVar('T')
 FromJsonT = TypeVar('FromJsonT', bound='FromJson')
@@ -94,8 +91,9 @@ class FromJson(ast.AST, to_json.ToJson):
             elif get_origin(prop) is list:
                 inner = get_args(prop)[0]
                 if type(inner) is type and issubclass(inner, FromJson):
-                    setattr(result, name,
-                            [inner.from_json(v, ctx) for v in value])
+                    setattr(
+                        result, name, [inner.from_json(v, ctx) for v in value]
+                    )
                 else:
                     setattr(result, name, value)
             elif type(prop) is type and issubclass(prop, FromJson):
@@ -106,10 +104,7 @@ class FromJson(ast.AST, to_json.ToJson):
         # lists are always there for convenience
         for name, prop in annotations.items():
             name = casefold.to_snake_case(name)
-            if (
-                get_origin(prop) is list and
-                getattr(result, name, None) is None
-            ):
+            if get_origin(prop) is list and getattr(result, name, None) is None:
                 setattr(result, name, [])
 
         return result
@@ -123,7 +118,7 @@ class FromJson(ast.AST, to_json.ToJson):
 def _obj_to_name(
     sobj: so.Object,
     ctx: explain.AnalyzeContext,
-    dotted: bool=False,
+    dotted: bool = False,
 ) -> str:
     if isinstance(sobj, s_pointers.Pointer):
         # If a pointer is on the RHS of a dot, just use
@@ -159,7 +154,7 @@ def _obj_to_name(
 def _translate_index(name: str, ctx: explain.AnalyzeContext) -> Index:
     # Try to replace all ids with textual names
     had_index = False
-    for (full, m) in uuid_re.findall(name):
+    for full, m in uuid_re.findall(name):
         uid = uuid.UUID(m)
         sobj = ctx.schema.get_by_id(uid, default=None)
         if sobj:
@@ -219,6 +214,7 @@ def _translate_name(
                 return aliased + suffix
 
             module = prefix
+
 
 # Legend:
 # * show, shown -- something visible in the text explain
@@ -408,6 +404,7 @@ class Plan(FromJson, CostMixin):
 
 # Base types
 
+
 class BaseScan(Plan):
     schema: Optional[str]  # if verbose
 
@@ -430,6 +427,7 @@ class FilterScan(FromJson):  # mixin
 
 
 # Specific types
+
 
 class Result(Plan, FilterScan):
     one_time_filter: Expr
@@ -689,7 +687,7 @@ class Group(Plan, FilterScan):
 
 class Aggregate(Plan, FilterScan):
     strategy: Annotated[str, important]  # show: title
-    partial_mode: Annotated[str, important]   # Partial, Finalize, Simple
+    partial_mode: Annotated[str, important]  # Partial, Finalize, Simple
 
 
 class WindowAgg(Plan):

@@ -26,8 +26,8 @@ try:
 except ImportError:
     PMC = None  # type: ignore
 else:
-    class PMC:  # type: ignore
 
+    class PMC:  # type: ignore
         class Registry(pmc_reg.CollectorRegistry):
             def __init__(self):
                 super().__init__(auto_describe=True)
@@ -58,9 +58,7 @@ else:
 
 
 class EP:
-
     class Registry(prom.Registry):
-
         def now(self):
             return CREATED_AT
 
@@ -70,24 +68,28 @@ CREATED_AT = -1142.11
 
 @unittest.skipIf(PMC is None, 'prometheus_client package is not installed')
 class TestPrometheusClient(unittest.TestCase):
-
     def test_prometheus_01(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
             test_counter = PMC.Counter(
-                'test_counter', 'A test counter"',
-                registry=registry)
+                'test_counter', 'A test counter"', registry=registry
+            )
             test_labeled_counter = PMC.Counter(
-                'test_labeled_counter', 'A test labeled counter',
-                labelnames=['t1', 't2'], registry=registry)
+                'test_labeled_counter',
+                'A test labeled counter',
+                labelnames=['t1', 't2'],
+                registry=registry,
+            )
             test_labeled_gauge = PMC.Gauge(
-                'test_labeled_gauge', 'test labeled gauge\'"\n',
-                labelnames=['g1'], registry=registry)
+                'test_labeled_gauge',
+                'test labeled gauge\'"\n',
+                labelnames=['g1'],
+                registry=registry,
+            )
             test_gauge = PMC.Gauge(
-                'test_gauge', 'A test      gauge',
-                registry=registry)
+                'test_gauge', 'A test      gauge', registry=registry
+            )
 
             r0 = PMC.generate(registry)
 
@@ -123,17 +125,18 @@ class TestPrometheusClient(unittest.TestCase):
             )
 
             test_labeled_counter = r.new_labeled_counter(
-                'test_labeled_counter_total', 'A test labeled counter',
-                labels=('t1', 't2')
+                'test_labeled_counter_total',
+                'A test labeled counter',
+                labels=('t1', 't2'),
             )
 
             test_labeled_gauge = r.new_labeled_gauge(
-                'test_labeled_gauge', 'test labeled gauge\'"\n',
-                labels=('g1',)
+                'test_labeled_gauge', 'test labeled gauge\'"\n', labels=('g1',)
             )
 
             test_gauge = r.new_gauge(
-                'test_gauge', 'A test      gauge',
+                'test_gauge',
+                'A test      gauge',
             )
 
             r0 = r.generate()
@@ -167,13 +170,10 @@ class TestPrometheusClient(unittest.TestCase):
         self.assertEqual(pmc_r, emc_r)
 
     def test_prometheus_02(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
-            test_info = PMC.Info(
-                'test', 'A  test info',
-                registry=registry)
+            test_info = PMC.Info('test', 'A  test info', registry=registry)
 
             test_info.info(dict(blah='blahaaah', spam='ha"\nm'))
             r1 = PMC.generate(registry)
@@ -182,10 +182,7 @@ class TestPrometheusClient(unittest.TestCase):
         def run_emc():
             r = EP.Registry()
 
-            r.set_info(
-                'test', 'A  test info',
-                blah='blahaaah', spam='ha"\nm'
-            )
+            r.set_info('test', 'A  test info', blah='blahaaah', spam='ha"\nm')
 
             r1 = r.generate()
 
@@ -196,13 +193,12 @@ class TestPrometheusClient(unittest.TestCase):
         self.assertEqual(pmc_r, emc_r)
 
     def test_prometheus_03(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
             test_hist = PMC.Histogram(
-                'test_hist', 'A  test info',
-                registry=registry)
+                'test_hist', 'A  test info', registry=registry
+            )
 
             r0 = PMC.generate(registry)
 
@@ -226,7 +222,8 @@ class TestPrometheusClient(unittest.TestCase):
             r = EP.Registry()
 
             test_hist = r.new_histogram(
-                'test_hist', 'A  test info',
+                'test_hist',
+                'A  test info',
             )
 
             r0 = r.generate()
@@ -252,13 +249,12 @@ class TestPrometheusClient(unittest.TestCase):
         self.assertEqual(pmc_r, emc_r)
 
     def test_prometheus_04(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
             test_hist = PMC.Histogram(
-                'test_hist_seconds', 'A  test info',
-                registry=registry)
+                'test_hist_seconds', 'A  test info', registry=registry
+            )
 
             test_hist.observe(0.22)
 
@@ -269,8 +265,7 @@ class TestPrometheusClient(unittest.TestCase):
             r = EP.Registry()
 
             test_hist = r.new_histogram(
-                'test_hist', 'A  test info',
-                unit=prom.Unit.SECONDS
+                'test_hist', 'A  test info', unit=prom.Unit.SECONDS
             )
 
             test_hist.observe(0.22)
@@ -291,9 +286,7 @@ class TestPrometheusClient(unittest.TestCase):
     def test_prometheus_06(self):
         r = EP.Registry(prefix='edgedb')
 
-        test = r.new_counter(
-            'test_total', 'A  test info'
-        )
+        test = r.new_counter('test_total', 'A  test info')
         test.inc()
         r1 = r.generate()
 
@@ -301,22 +294,26 @@ class TestPrometheusClient(unittest.TestCase):
         self.assertIn('\nedgedb_test_created ', r1)
 
         with self.assertRaisesRegex(
-                ValueError, "metric with a name 'edgedb_test'"):
-            r.new_counter(
-                'test_total', 'A  test info'
-            )
+            ValueError, "metric with a name 'edgedb_test'"
+        ):
+            r.new_counter('test_total', 'A  test info')
 
     def test_prometheus_07(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
             test_labeled_counter = PMC.Counter(
-                'test_labeled_counter', 'A test labeled counter',
-                labelnames=['t1', 't2'], registry=registry)
+                'test_labeled_counter',
+                'A test labeled counter',
+                labelnames=['t1', 't2'],
+                registry=registry,
+            )
             test_labeled_gauge = PMC.Gauge(  # NoQA
-                'test_labeled_gauge', 'test labeled gauge\'"\n',
-                labelnames=['g1'], registry=registry)
+                'test_labeled_gauge',
+                'test labeled gauge\'"\n',
+                labelnames=['g1'],
+                registry=registry,
+            )
 
             r1 = PMC.generate(registry)
 
@@ -334,13 +331,13 @@ class TestPrometheusClient(unittest.TestCase):
             r = EP.Registry()
 
             test_labeled_counter = r.new_labeled_counter(
-                'test_labeled_counter_total', 'A test labeled counter',
-                labels=('t1', 't2')
+                'test_labeled_counter_total',
+                'A test labeled counter',
+                labels=('t1', 't2'),
             )
 
             test_labeled_gauge = r.new_labeled_gauge(  # NoQA
-                'test_labeled_gauge', 'test labeled gauge\'"\n',
-                labels=('g1',)
+                'test_labeled_gauge', 'test labeled gauge\'"\n', labels=('g1',)
             )
 
             r1 = r.generate()
@@ -360,13 +357,15 @@ class TestPrometheusClient(unittest.TestCase):
         self.assertEqual(pmc_r, emc_r)
 
     def test_prometheus_08(self):
-
         def run_pmc():
             registry = PMC.Registry()
 
             test_hist = PMC.Histogram(
-                'test_hist', 'A  test info',
-                labelnames=['tenant'], registry=registry)
+                'test_hist',
+                'A  test info',
+                labelnames=['tenant'],
+                registry=registry,
+            )
 
             r0 = PMC.generate(registry)
 

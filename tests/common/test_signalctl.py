@@ -65,9 +65,7 @@ class ChildProcess:
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         try:
-            _, stderr = await asyncio.wait_for(
-                self.proc.communicate(), TIMEOUT
-            )
+            _, stderr = await asyncio.wait_for(self.proc.communicate(), TIMEOUT)
             if self.proc.returncode > 0:
                 raise ChildProcessError("\n\n" + stderr.decode())
         finally:

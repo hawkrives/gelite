@@ -48,9 +48,7 @@ class SourceCommandContext[Source_T: Source](
     pass
 
 
-class SourceCommand[Source_T: Source](
-    indexes.IndexSourceCommand[Source_T]
-):
+class SourceCommand[Source_T: Source](indexes.IndexSourceCommand[Source_T]):
     pass
 
 
@@ -63,12 +61,17 @@ class Source(
         attr='pointers',
         requires_explicit_overloaded=True,
         backref_attr='source',
-        ref_cls=s_pointers.Pointer)
+        ref_cls=s_pointers.Pointer,
+    )
 
     pointers = so.SchemaField(
         so.ObjectIndexByUnqualifiedName[s_pointers.Pointer],
-        inheritable=False, ephemeral=True, coerce=True, compcoef=0.857,
-        default=so.DEFAULT_CONSTRUCTOR)
+        inheritable=False,
+        ephemeral=True,
+        coerce=True,
+        compcoef=0.857,
+        default=so.DEFAULT_CONSTRUCTOR,
+    )
 
     @overload
     def maybe_get_ptr[Pointer_T: s_pointers.Pointer](
@@ -77,8 +80,7 @@ class Source(
         name: sn.UnqualName,
         *,
         type: type[Pointer_T],
-    ) -> Optional[Pointer_T]:
-        ...
+    ) -> Optional[Pointer_T]: ...
 
     @overload
     def maybe_get_ptr(
@@ -87,8 +89,7 @@ class Source(
         name: sn.UnqualName,
         *,
         type: Optional[type[s_pointers.Pointer]] = None,
-    ) -> Optional[s_pointers.Pointer]:
-        ...
+    ) -> Optional[s_pointers.Pointer]: ...
 
     def maybe_get_ptr(
         self,
@@ -113,8 +114,7 @@ class Source(
         name: sn.UnqualName,
         *,
         type: type[Pointer_T],
-    ) -> Pointer_T:
-        ...
+    ) -> Pointer_T: ...
 
     @overload
     def getptr(
@@ -123,8 +123,7 @@ class Source(
         name: sn.UnqualName,
         *,
         type: Optional[type[s_pointers.Pointer]] = None,
-    ) -> s_pointers.Pointer:
-        ...
+    ) -> s_pointers.Pointer: ...
 
     def getptr(
         self,
@@ -146,7 +145,7 @@ class Source(
         schema: s_schema.Schema,
         name: str,
         *,
-        sources: Iterable[so.Object] = ()
+        sources: Iterable[so.Object] = (),
     ) -> set[links.Link]:
         return set()
 
@@ -155,10 +154,9 @@ class Source(
         schema: s_schema.Schema,
         pointer: s_pointers.Pointer,
         *,
-        replace: bool = False
+        replace: bool = False,
     ) -> s_schema.Schema:
-        schema = self.add_classref(
-            schema, 'pointers', pointer, replace=replace)
+        schema = self.add_classref(schema, 'pointers', pointer, replace=replace)
         return schema
 
     def get_addon_columns(
@@ -206,8 +204,7 @@ def populate_pointer_set_for_source_union(
     for pn, ptr in components[0].get_pointers(schema).items(schema):
         ptrs = [ptr]
         for component in components[1:]:
-            other_ptr = component.get_pointers(schema).get(
-                schema, pn, None)
+            other_ptr = component.get_pointers(schema).get(schema, pn, None)
             if other_ptr is None:
                 break
             ptrs.append(other_ptr)
@@ -230,10 +227,7 @@ def populate_pointer_set_for_source_union(
                     # ptrs may have different verbose names
                     # ensure the same one is always chosen
                     vn = sorted(p.get_verbosename(schema) for p in ptrs)[0]
-                    e.args = (
-                        (f'with {vn} {e.args[0]}',)
-                        + e.args[1:]
-                    )
+                    e.args = (f'with {vn} {e.args[0]}',) + e.args[1:]
                     raise e
 
             union_pointers[pn] = ptr

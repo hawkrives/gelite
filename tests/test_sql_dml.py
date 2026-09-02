@@ -28,7 +28,6 @@ except ImportError:
 
 
 class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
-
     SETUP = [
         """
         create type User;
@@ -398,12 +397,14 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT title FROM "Document"')
         self.assert_data_shape(
             res,
-            tb.bag([
-                [None],
-                [None],
-                ['Report (new)'],
-                ['Report2 (new)'],
-            ]),
+            tb.bag(
+                [
+                    [None],
+                    [None],
+                    ['Report (new)'],
+                    ['Report2 (new)'],
+                ]
+            ),
         )
 
         await self.scon.execute(
@@ -414,10 +415,12 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT title FROM "Post"')
         self.assert_data_shape(
             res,
-            tb.bag([
-                ['post'],
-                ['untitled'],
-            ]),
+            tb.bag(
+                [
+                    ['post'],
+                    ['untitled'],
+                ]
+            ),
         )
 
     async def test_sql_dml_insert_17b(self):
@@ -434,12 +437,14 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT title, content FROM "Post"')
         self.assert_data_shape(
             res,
-            tb.bag([
-                ['foo', 'bar'],
-                ['post', 'This page intentionally left blank'],
-                ['untitled', 'content'],
-                ['untitled', 'This page intentionally left blank'],
-            ]),
+            tb.bag(
+                [
+                    ['foo', 'bar'],
+                    ['post', 'This page intentionally left blank'],
+                    ['untitled', 'content'],
+                    ['untitled', 'This page intentionally left blank'],
+                ]
+            ),
         )
 
     async def test_sql_dml_insert_18(self):
@@ -1450,7 +1455,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             ON CONFLICT (key)
             DO UPDATE SET key = (excluded.metadata_id)::text
             ''',
-            doc_id
+            doc_id,
         )
         self.assertEqual(res, 'INSERT 0 1')
 
@@ -1478,7 +1483,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             INSERT INTO "Map" (key, value, metadata_id) VALUES
             ('x', 10, $1)
             ''',
-            doc_id
+            doc_id,
         )
         self.assertEqual(res, 'INSERT 0 1')
 
@@ -1557,9 +1562,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [])
 
-        res = await self.squery_values(
-            'SELECT key, value FROM "Map"'
-        )
+        res = await self.squery_values('SELECT key, value FROM "Map"')
         self.assertEqual(res, [['x', 20]])
 
     async def test_sql_dml_delete_01(self):
@@ -2226,7 +2229,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
 
         with self.assertRaisesRegex(
             asyncpg.DataError,
-            'cannot update property \'id\': ' 'it is declared as read-only',
+            'cannot update property \'id\': it is declared as read-only',
         ):
             await self.squery_values(
                 '''
@@ -2519,14 +2522,10 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # TODO: this should actually be:
         # self.assertEqual(res, 'INSERT 0 5')
 
-        res = await self.squery_values(
-            '''SELECT COUNT(*) FROM "Base.tags"'''
-        )
+        res = await self.squery_values('''SELECT COUNT(*) FROM "Base.tags"''')
         self.assertEqual(res, [[5]])
 
-        res = await self.squery_values(
-            '''SELECT COUNT(*) FROM "Child.tags"'''
-        )
+        res = await self.squery_values('''SELECT COUNT(*) FROM "Child.tags"''')
         self.assertEqual(res, [[2]])
 
         res = await self.scon.execute(
@@ -2536,12 +2535,8 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # TODO: this should actually be:
         # self.assertEqual(res, 'DELETE 2')
 
-        res = await self.squery_values(
-            '''SELECT COUNT(*) FROM "Base.tags"'''
-        )
+        res = await self.squery_values('''SELECT COUNT(*) FROM "Base.tags"''')
         self.assertEqual(res, [[3]])
 
-        res = await self.squery_values(
-            '''SELECT COUNT(*) FROM "Child.tags"'''
-        )
+        res = await self.squery_values('''SELECT COUNT(*) FROM "Child.tags"''')
         self.assertEqual(res, [[1]])

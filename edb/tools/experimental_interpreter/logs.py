@@ -11,23 +11,16 @@ def to_html_str(s: str) -> str:
 
 
 def do_write_logs(logs: list[Any], filename: str):
-
     def format_entry(entry, index):
         entry_id = '_'.join(map(str, index))
         result = """<a href='#/' onclick='toggle("{}")'>
-                    Input/Output {}</a>\n""".format(
-            entry_id, entry_id
-        )
+                    Input/Output {}</a>\n""".format(entry_id, entry_id)
         result += """<button onclick='foldEntry(\"{}\")'>Fold</button>
                    <button onclick='unfoldEntry(\"{}\")'>
-                   Unfold</button>""".format(
-            entry_id, entry_id
-        )
+                   Unfold</button>""".format(entry_id, entry_id)
         result += "<div class='entry' id='entry_{}'>".format(entry_id)
         result += """<div class='input'><span style='color:blue;'>Input:
-                    </span> {}</div>""".format(
-            to_html_str(pp.show(entry[0]))
-        )
+                    </span> {}</div>""".format(to_html_str(pp.show(entry[0])))
         result += """<div class='input'><span style='color:green;'>
                      Human-friendly Input:</span> {}</div>""".format(
             codegen.generate_source(reverse_elab(entry[0]))

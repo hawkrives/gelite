@@ -89,8 +89,9 @@ class Index(tables.InheritableTableObject):
 
         # Break down the code into the index name (if present) and the rest of
         # the expression
-        m = re.match(r'(?P<using>\w+)?\s*(?P<expr>.+)',
-                     self.get_metadata('code').strip())
+        m = re.match(
+            r'(?P<using>\w+)?\s*(?P<expr>.+)', self.get_metadata('code').strip()
+        )
         assert m is not None
         using = m['using']
         expr = m['expr']
@@ -174,20 +175,23 @@ class Index(tables.InheritableTableObject):
             columns=self.columns,
             metadata=(
                 self.metadata.copy() if self.metadata is not None else None
-            )
+            ),
         )
 
     def __repr__(self) -> str:
-        return \
-            '<%(mod)s.%(cls)s table=%(table)s name=%(name)s ' \
-            'cols=(%(cols)s) unique=%(uniq)s predicate=%(pred)s>' % \
-            {'mod': self.__class__.__module__,
-             'cls': self.__class__.__name__,
-             'name': self.name,
-             'cols': ','.join('%r' % c for c in self.columns),
-             'uniq': self.unique,
-             'pred': self.predicate,
-             'table': '{}.{}'.format(*self.table_name)}
+        return (
+            '<%(mod)s.%(cls)s table=%(table)s name=%(name)s '
+            'cols=(%(cols)s) unique=%(uniq)s predicate=%(pred)s>'
+            % {
+                'mod': self.__class__.__module__,
+                'cls': self.__class__.__name__,
+                'name': self.name,
+                'cols': ','.join('%r' % c for c in self.columns),
+                'uniq': self.unique,
+                'pred': self.predicate,
+                'table': '{}.{}'.format(*self.table_name),
+            }
+        )
 
 
 class IndexExists(base.Condition):
@@ -218,7 +222,7 @@ class CreateIndex(ddl.CreateObject):
         conditional: bool = False,
         builtin_conditional: bool = False,
         concurrently: bool = False,
-        **kwargs: Any
+        **kwargs: Any,
     ) -> None:
         super().__init__(index, **kwargs)
         self.index = index
@@ -241,7 +245,8 @@ class RenameIndex(ddl.RenameObject):
         super().__init__(index, new_name=new_name, **kwargs)
         if conditional:
             self.conditions.add(
-                IndexExists((index.table_name[0], index.name_in_catalog)))
+                IndexExists((index.table_name[0], index.name_in_catalog))
+            )
 
     def code(self) -> str:
         name = qn(self.object.table_name[0], self.object.name_in_catalog)
@@ -254,9 +259,7 @@ class RenameIndex(ddl.RenameObject):
             f"(quote_ident({index_desc_var}.table_name[0])"
             f" || '.' || quote_ident({index_desc_var}.name))"
         )
-        new_name = (
-            f"quote_ident({index_desc_var}.name)"
-        )
+        new_name = f"quote_ident({index_desc_var}.name)"
 
         return (
             f"EXECUTE 'ALTER INDEX ' || {index_name} "
@@ -266,11 +269,7 @@ class RenameIndex(ddl.RenameObject):
 
 class DropIndex(ddl.DropObject):
     def __init__(
-        self,
-        index: Index,
-        *,
-        conditional: bool = False,
-        **kwargs: Any
+        self, index: Index, *, conditional: bool = False, **kwargs: Any
     ):
         super().__init__(index, **kwargs)
         if conditional:

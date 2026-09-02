@@ -70,14 +70,21 @@ def async_timeout(timeout: int):
             except asyncio.TimeoutError:
                 logger.error(
                     f"Test {test_func} failed due to timeout after {timeout}"
-                    "seconds")
+                    "seconds"
+                )
                 raise AssertionError(
-                    f"Test failed due to timeout after {timeout} seconds")
+                    f"Test failed due to timeout after {timeout} seconds"
+                )
             except asyncio.CancelledError as e:
                 logger.error(
                     f"Test {test_func} failed due to timeout after {timeout}"
-                    "seconds", e)
+                    "seconds",
+                    e,
+                )
                 raise AssertionError(
-                    f"Test failed due to timeout after {timeout} seconds", e)
+                    f"Test failed due to timeout after {timeout} seconds", e
+                )
+
         return wrapper
+
     return decorator

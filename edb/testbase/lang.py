@@ -66,6 +66,7 @@ def must_fail(exc_type, exc_msg_re=None, **kwargs):
         def test_edgeql_syntax_1(self):
             ...
     """
+
     def wrap(func):
         args = (exc_type,)
         if exc_msg_re is not None:
@@ -73,6 +74,7 @@ def must_fail(exc_type, exc_msg_re=None, **kwargs):
 
         _set_spec(func, 'must_fail', (args, kwargs))
         return func
+
     return wrap
 
 
@@ -132,8 +134,9 @@ class BaseDocTest(unittest.TestCase, metaclass=DocTestMeta):
                 assertRaises = self.assertRaisesRegex
 
             with assertRaises(*spec_args) as cm:
-                return self.run_test(source=source, spec=spec,
-                                     expected=expected)
+                return self.run_test(
+                    source=source, spec=spec, expected=expected
+                )
 
             if cm.exception:
                 exc = cm.exception
@@ -142,7 +145,8 @@ class BaseDocTest(unittest.TestCase, metaclass=DocTestMeta):
                     if val != expected_val:
                         raise AssertionError(
                             f'must_fail: attribute {attr_name!r} is '
-                            f'{val} (expected is {expected_val!r})') from exc
+                            f'{val} (expected is {expected_val!r})'
+                        ) from exc
         else:
             return self.run_test(source=source, spec=spec, expected=expected)
 
@@ -155,7 +159,7 @@ class BaseDocTest(unittest.TestCase, metaclass=DocTestMeta):
         result,
         *,
         re_filter: Optional[str] = None,
-        message: Optional[str] = None
+        message: Optional[str] = None,
     ) -> None:
         if re_filter is None:
             re_filter = self.re_filter
@@ -170,8 +174,10 @@ class BaseDocTest(unittest.TestCase, metaclass=DocTestMeta):
         self.assertEqual(
             expected_stripped,
             result_stripped,
-            (f'{message if message else ""}' +
-                f'\nexpected:\n{expected}\nreturned:\n{result}')
+            (
+                f'{message if message else ""}'
+                + f'\nexpected:\n{expected}\nreturned:\n{result}'
+            ),
         )
 
 
@@ -219,7 +225,8 @@ def _load_std_schema():
 
         if devmode.is_in_dev_mode():
             schema = buildmeta.read_data_cache(
-                std_dirs_hash, 'transient-stdschema.pickle')
+                std_dirs_hash, 'transient-stdschema.pickle'
+            )
 
         if schema is None:
             schema = s_schema.EMPTY_SCHEMA
@@ -230,7 +237,8 @@ def _load_std_schema():
 
         if devmode.is_in_dev_mode():
             buildmeta.write_data_cache(
-                schema, std_dirs_hash, 'transient-stdschema.pickle')
+                schema, std_dirs_hash, 'transient-stdschema.pickle'
+            )
 
         _std_schema = schema
 
@@ -247,7 +255,8 @@ def _load_reflection_schema():
         cache = None
         if devmode.is_in_dev_mode():
             cache = buildmeta.read_data_cache(
-                std_dirs_hash, 'transient-reflschema.pickle')
+                std_dirs_hash, 'transient-reflschema.pickle'
+            )
 
         if cache is not None:
             reflschema, classlayout = cache
@@ -257,7 +266,8 @@ def _load_reflection_schema():
             classlayout = reflection.class_layout
             context = sd.CommandContext(stdmode=True)
             reflschema = reflection.intro_schema_delta.apply(
-                std_schema, context)
+                std_schema, context
+            )
 
             if devmode.is_in_dev_mode():
                 buildmeta.write_data_cache(
@@ -426,7 +436,8 @@ class BaseSchemaTest(BaseDocTest):
                         debug.dump(ddl_plan, schema=schema)
             else:
                 raise ValueError(
-                    f'unexpected {stmt!r} in compiler setup script')
+                    f'unexpected {stmt!r} in compiler setup script'
+                )
 
             if ddl_plan is not None:
                 context = sd.CommandContext()
@@ -458,8 +469,9 @@ class BaseSchemaTest(BaseDocTest):
             val = getattr(cls, name)
             m = re.match(r'^SCHEMA(?:_(\w+))?', name)
             if m and val:
-                module_name = (m.group(1)
-                               or 'default').lower().replace('_', '::')
+                module_name = (
+                    (m.group(1) or 'default').lower().replace('_', '::')
+                )
 
                 if '\n' in val:
                     # Inline schema source
@@ -491,5 +503,6 @@ class BaseEdgeQLCompilerTest(BaseSchemaTest):
         if not script:
             raise ValueError(
                 'compiler test cases must define at least one '
-                'schema in the SCHEMA[_MODNAME] class attribute.')
+                'schema in the SCHEMA[_MODNAME] class attribute.'
+            )
         return script

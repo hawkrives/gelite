@@ -75,7 +75,6 @@ Our core rules are:
 They are discussed in more detail at the implementation sites.
 """
 
-
 from __future__ import annotations
 
 
@@ -117,7 +116,8 @@ def needs_eta_expansion_expr(
     """
     if isinstance(ir, irast.SelectStmt):
         return needs_eta_expansion(
-            ir.result, has_clauses=bool(ir.where or ir.orderby), ctx=ctx)
+            ir.result, has_clauses=bool(ir.where or ir.orderby), ctx=ctx
+        )
 
     if isinstance(stype, s_types.Array):
         if isinstance(ir, irast.Array):
@@ -125,10 +125,9 @@ def needs_eta_expansion_expr(
                 len(ir.elements) != 1
                 or needs_eta_expansion(ir.elements[0], ctx=ctx)
             )
-        elif (
-            isinstance(ir, irast.FunctionCall)
-            and ir.func_shortname == sn.QualName('std', 'array_agg')
-        ):
+        elif isinstance(
+            ir, irast.FunctionCall
+        ) and ir.func_shortname == sn.QualName('std', 'array_agg'):
             return needs_eta_expansion(ir.args[0].expr, ctx=ctx)
         else:
             return True
@@ -177,9 +176,8 @@ def needs_eta_expansion(
     # look through to the relevant tuple element. This is probably not
     # an important optimization to support, but our expansion can generate
     # this idiom, so on principle I wanted to support it.
-    if (
-        isinstance(ir.expr, irast.TupleIndirectionPointer)
-        and isinstance(ir.expr.source.expr, irast.Tuple)
+    if isinstance(ir.expr, irast.TupleIndirectionPointer) and isinstance(
+        ir.expr.source.expr, irast.Tuple
     ):
         name = ir.expr.ptrref.shortname.name
         els = [x for x in ir.expr.source.expr.elements if x.name == name]
@@ -206,7 +204,7 @@ def _get_alias(
 def eta_expand_ir(
     ir: irast.Set,
     *,
-    toplevel: bool=False,
+    toplevel: bool = False,
     ctx: context.ContextLevel,
 ) -> irast.Set:
     """η-expansion of an IR set.
@@ -237,9 +235,7 @@ def eta_expand_ir(
             result=eta_expand_ordered(
                 path, setgen.get_set_type(ir, ctx=subctx), ctx=subctx
             ),
-            aliases=[
-                qlast.AliasedExpr(alias=alias, expr=source_ref)
-            ],
+            aliases=[qlast.AliasedExpr(alias=alias, expr=source_ref)],
         )
         if toplevel:
             subctx.toplevel_stmt = None
@@ -261,9 +257,7 @@ def eta_expand_ordered(
             WITH enum := enumerate(e)
             SELECT EXPAND(t, enum.1) ORDER BY enum.0
     """
-    enumerated = qlast.FunctionCall(
-        func=('__std__', 'enumerate'), args=[expr]
-    )
+    enumerated = qlast.FunctionCall(func=('__std__', 'enumerate'), args=[expr])
 
     enumerated_alias, enumerated_path = _get_alias('enum', ctx=ctx)
 
@@ -275,9 +269,7 @@ def eta_expand_ordered(
         orderby=[
             qlast.SortExpr(path=astutils.extend_path(enumerated_path, '0'))
         ],
-        aliases=[
-            qlast.AliasedExpr(alias=enumerated_alias, expr=enumerated)
-        ],
+        aliases=[qlast.AliasedExpr(alias=enumerated_alias, expr=enumerated)],
     )
 
 
@@ -361,17 +353,14 @@ def eta_expand_array(
     trick, and the pgsql compiler needed to be hacked to make it work.)
     """
 
-    unpacked = qlast.FunctionCall(
-        func=('__std__', 'array_unpack'), args=[path]
-    )
+    unpacked = qlast.FunctionCall(func=('__std__', 'array_unpack'), args=[path])
 
     expanded = eta_expand_ordered(
-        unpacked, stype.get_element_type(ctx.env.schema), ctx=ctx)
+        unpacked, stype.get_element_type(ctx.env.schema), ctx=ctx
+    )
 
     agg_expr = qlast.FunctionCall(
         func=('__std__', 'array_agg'), args=[expanded]
     )
 
-    return astutils.extend_path(
-        qlast.Tuple(elements=[path, agg_expr]), '1'
-    )
+    return astutils.extend_path(qlast.Tuple(elements=[path, agg_expr]), '1')

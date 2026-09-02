@@ -43,6 +43,6 @@ def xrepr(obj, *, max_len=None):
             ext = result[0] + ext
         elif result[0] == '<':
             ext = '>' + ext
-        result = result[:(max_len - len(ext))] + ext
+        result = result[: (max_len - len(ext))] + ext
 
     return result

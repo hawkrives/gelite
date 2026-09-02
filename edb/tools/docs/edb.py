@@ -30,7 +30,6 @@ from sphinx import transforms
 
 
 class EDBYoutubeEmbed(d_rst.Directive):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 1
@@ -43,7 +42,6 @@ class EDBYoutubeEmbed(d_rst.Directive):
 
 
 class EDBCollapsed(d_rst.Directive):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 0
@@ -61,7 +59,6 @@ class EDBCollapsed(d_rst.Directive):
 
 
 class EDBEnvironmentSwitcher(d_rst.Directive):
-
     has_content = False
     optional_arguments = 0
     required_arguments = 0
@@ -73,7 +70,6 @@ class EDBEnvironmentSwitcher(d_rst.Directive):
 
 
 class EDBSplitSection(d_rst.Directive):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 0
@@ -84,7 +80,8 @@ class EDBSplitSection(d_rst.Directive):
         self.state.nested_parse(self.content, self.content_offset, node)
 
         split_indexes = [
-            index for index, child in enumerate(node.children)
+            index
+            for index, child in enumerate(node.children)
             if isinstance(child, d_nodes.container) and child.get('split-point')
         ]
         if len(split_indexes) > 1:
@@ -92,10 +89,14 @@ class EDBSplitSection(d_rst.Directive):
                 f'cannot have multiple edb:split-point\'s in edb:split-section'
             )
         blocks = (
-            node.children[:split_indexes[0]] if
-            node.children[split_indexes[0]].get('code-above')
-            else node.children[split_indexes[0] + 1:]
-        ) if len(split_indexes) == 1 else [node.children[-1]]
+            (
+                node.children[: split_indexes[0]]
+                if node.children[split_indexes[0]].get('code-above')
+                else node.children[split_indexes[0] + 1 :]
+            )
+            if len(split_indexes) == 1
+            else [node.children[-1]]
+        )
         if len(blocks) < 1:
             raise Exception(
                 f'no content found at end of edb:split-section block, '
@@ -105,7 +106,6 @@ class EDBSplitSection(d_rst.Directive):
 
 
 class EDBSplitPoint(d_rst.Directive):
-
     has_content = False
     optional_arguments = 1
     required_arguments = 0
@@ -133,7 +133,7 @@ class GelDomain(s_domains.Domain):
         'youtube-embed': EDBYoutubeEmbed,
         'env-switcher': EDBEnvironmentSwitcher,
         'split-section': EDBSplitSection,
-        'split-point': EDBSplitPoint
+        'split-point': EDBSplitPoint,
     }
 
 
@@ -151,28 +151,39 @@ class GelSubstitutionTransform(transforms.SphinxTransform):
         for node in self.document.traverse(d_nodes.substitution_reference):
             nt = node.astext()
             if nt.lower() in {
-                "gel", "gel's", "edgedb", "gelcmd", ".gel", "gel.toml",
-                "gel-server", "geluri", "admin", "main",
-                "branch", "branches"
+                "gel",
+                "gel's",
+                "edgedb",
+                "gelcmd",
+                ".gel",
+                "gel.toml",
+                "gel-server",
+                "geluri",
+                "admin",
+                "main",
+                "branch",
+                "branches",
             }:
                 if builder_name in {"xml", "edge-xml"}:
                     if nt == "gelcmd":
                         sub = d_nodes.literal(
-                            'gel', 'gel',
+                            'gel',
+                            'gel',
                             **{
                                 "edb-gelcmd": "true",
                                 "edb-gelcmd-top": "true",
                                 "edb-substitution": "true",
-                            }
+                            },
                         )
                     elif nt == "geluri":
                         sub = d_nodes.literal(
-                            'gel', 'gel://',
+                            'gel',
+                            'gel://',
                             **{
                                 "edb-geluri": "true",
                                 "edb-geluri-top": "true",
                                 "edb-substitution": "true",
-                            }
+                            },
                         )
                     else:
                         sub = d_nodes.inline(
@@ -184,7 +195,6 @@ class GelSubstitutionTransform(transforms.SphinxTransform):
 
 
 class GelCmdRole:
-
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
     ):
@@ -209,7 +219,6 @@ class GelCmdRole:
 
 
 class GelUriRole:
-
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
     ):
@@ -233,7 +242,6 @@ class GelUriRole:
 
 
 class DotGelRole:
-
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
     ):
@@ -251,15 +259,14 @@ class DotGelRole:
 
 
 class GelEnvRole:
-
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
     ):
         if (
-            text.startswith("GELITE_") or
-            text.startswith("EDGEDB_") or
-            text.startswith("GEL_") or
-            text.startswith("_")
+            text.startswith("GELITE_")
+            or text.startswith("EDGEDB_")
+            or text.startswith("GEL_")
+            or text.startswith("_")
         ):
             fn = inliner.document.current_source
             raise Exception(
@@ -274,7 +281,6 @@ class GelEnvRole:
 
 
 def setup_domain(app):
-
     app.add_role('gelcmd', GelCmdRole())
     app.add_role('geluri', GelUriRole())
     app.add_role('dotgel', DotGelRole())

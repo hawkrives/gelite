@@ -24,7 +24,6 @@ from edb.testbase import server as tb
 
 
 class TestEdgeQLFunctionsInline(tb.DDLTestCase):
-
     async def test_edgeql_functions_inline_basic_01(self):
         await self.con.execute('''
             create function foo(x: int64) -> int64 {
@@ -1421,27 +1420,45 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select (foo(), foo())',
             [
-                [[1, 1], [1, 1]], [[1, 1], [2, 1]], [[1, 1], [3, 1]],
-                [[2, 1], [1, 1]], [[2, 1], [2, 1]], [[2, 1], [3, 1]],
-                [[3, 1], [1, 1]], [[3, 1], [2, 1]], [[3, 1], [3, 1]],
+                [[1, 1], [1, 1]],
+                [[1, 1], [2, 1]],
+                [[1, 1], [3, 1]],
+                [[2, 1], [1, 1]],
+                [[2, 1], [2, 1]],
+                [[2, 1], [3, 1]],
+                [[3, 1], [1, 1]],
+                [[3, 1], [2, 1]],
+                [[3, 1], [3, 1]],
             ],
             sort=True,
         )
         await self.assert_query_result(
             'select (Bar.a, foo())',
             [
-                [1, [1, 1]], [1, [2, 1]], [1, [3, 1]],
-                [2, [1, 1]], [2, [2, 1]], [2, [3, 1]],
-                [3, [1, 1]], [3, [2, 1]], [3, [3, 1]],
+                [1, [1, 1]],
+                [1, [2, 1]],
+                [1, [3, 1]],
+                [2, [1, 1]],
+                [2, [2, 1]],
+                [2, [3, 1]],
+                [3, [1, 1]],
+                [3, [2, 1]],
+                [3, [3, 1]],
             ],
             sort=True,
         )
         await self.assert_query_result(
             'select (foo(), Bar.a)',
             [
-                [[1, 1], 1], [[1, 1], 2], [[1, 1], 3],
-                [[2, 1], 1], [[2, 1], 2], [[2, 1], 3],
-                [[3, 1], 1], [[3, 1], 2], [[3, 1], 3],
+                [[1, 1], 1],
+                [[1, 1], 2],
+                [[1, 1], 3],
+                [[2, 1], 1],
+                [[2, 1], 2],
+                [[2, 1], 3],
+                [[3, 1], 1],
+                [[3, 1], 2],
+                [[3, 1], 3],
             ],
             sort=True,
         )
@@ -1486,9 +1503,15 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select (foo(Bar), foo(detached Bar))',
             [
-                [[1, 3], [1, 3]], [[1, 3], [2, 3]], [[1, 3], [3, 3]],
-                [[2, 3], [1, 3]], [[2, 3], [2, 3]], [[2, 3], [3, 3]],
-                [[3, 3], [1, 3]], [[3, 3], [2, 3]], [[3, 3], [3, 3]],
+                [[1, 3], [1, 3]],
+                [[1, 3], [2, 3]],
+                [[1, 3], [3, 3]],
+                [[2, 3], [1, 3]],
+                [[2, 3], [2, 3]],
+                [[2, 3], [3, 3]],
+                [[3, 3], [1, 3]],
+                [[3, 3], [2, 3]],
+                [[3, 3], [3, 3]],
             ],
             sort=True,
         )
@@ -1904,10 +1927,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Bar{'
-            '    a,'
-            '    b := foo(.a)'
-            '} order by .a',
+            'select Bar{    a,    b := foo(.a)} order by .a',
             [
                 {'a': 1, 'b': 1},
                 {'a': 2, 'b': 2},
@@ -1930,10 +1950,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Bar{'
-            '    a,'
-            '    b := foo(.a)'
-            '} order by .a',
+            'select Bar{    a,    b := foo(.a)} order by .a',
             [
                 {'a': None, 'b': None},
                 {'a': 1, 'b': 1},
@@ -1956,10 +1973,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Bar{'
-            '    a,'
-            '    b := foo(.a)'
-            '} order by .a',
+            'select Bar{    a,    b := foo(.a)} order by .a',
             [
                 {'a': 1, 'b': [11, 21, 31]},
                 {'a': 2, 'b': [12, 22, 32]},
@@ -1985,10 +1999,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [3],
         )
         await self.assert_query_result(
-            'select Bar {'
-            '    a,'
-            '    n := foo(),'
-            '} order by .a',
+            'select Bar {    a,    n := foo(),} order by .a',
             [{'a': 1, 'n': 3}, {'a': 2, 'n': 3}, {'a': 3, 'n': 3}],
         )
 
@@ -2010,10 +2021,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [[1, 1], [2, 1], [3, 1]],
         )
         await self.assert_query_result(
-            'select Bar {'
-            '    a,'
-            '    n := foo(),'
-            '} order by .a',
+            'select Bar {    a,    n := foo(),} order by .a',
             [
                 {'a': 1, 'n': [[1, 1], [2, 1], [3, 1]]},
                 {'a': 2, 'n': [[1, 1], [2, 1], [3, 1]]},
@@ -2035,10 +2043,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Bar {'
-            '    a,'
-            '    n := foo(Bar),'
-            '} order by .a',
+            'select Bar {    a,    n := foo(Bar),} order by .a',
             [
                 {'a': 1, 'n': [1, 3]},
                 {'a': 2, 'n': [2, 3]},
@@ -2067,10 +2072,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a,'
-            '    c := foo(.b).a,'
-            '} order by .a',
+            'select Baz{    a,    c := foo(.b).a,} order by .a',
             [
                 {'a': 4, 'c': 1},
                 {'a': 5, 'c': 2},
@@ -2100,10 +2102,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a,'
-            '    c := foo(.b).a,'
-            '} order by .a',
+            'select Baz{    a,    c := foo(.b).a,} order by .a',
             [
                 {'a': 4, 'c': 1},
                 {'a': 5, 'c': 2},
@@ -2133,10 +2132,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a,'
-            '    c := foo(.b).a,'
-            '} order by .a',
+            'select Baz{    a,    c := foo(.b).a,} order by .a',
             [
                 {'a': 4, 'c': [1]},
                 {'a': 5, 'c': [1, 2]},
@@ -2174,10 +2170,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a := foo(.bar).a,'
-            '    b,'
-            '} order by .a',
+            'select Baz{    a := foo(.bar).a,    b,} order by .a',
             [
                 {'a': 1, 'b': 4},
                 {'a': 2, 'b': 5},
@@ -2215,10 +2208,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a := foo(.bar),'
-            '    b,'
-            '} order by .a',
+            'select Baz{    a := foo(.bar),    b,} order by .a',
             [
                 {'a': 1, 'b': 4},
                 {'a': 2, 'b': 5},
@@ -2256,10 +2246,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a := foo(.bar).a,'
-            '    b,'
-            '} order by .b',
+            'select Baz{    a := foo(.bar).a,    b,} order by .b',
             [
                 {'a': [1], 'b': 4},
                 {'a': [1, 2], 'b': 5},
@@ -2301,10 +2288,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             };
         ''')
         await self.assert_query_result(
-            'select Baz{'
-            '    a := .bar.a,'
-            '    b := foo(.bar@b),'
-            '} order by .a',
+            'select Baz{    a := .bar.a,    b := foo(.bar@b),} order by .a',
             [
                 {'a': 1, 'b': 4},
                 {'a': 2, 'b': 5},
@@ -4199,27 +4183,45 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select (foo(), foo())',
             [
-                [[1, 1], [1, 1]], [[1, 1], [2, 1]], [[1, 1], [3, 1]],
-                [[2, 1], [1, 1]], [[2, 1], [2, 1]], [[2, 1], [3, 1]],
-                [[3, 1], [1, 1]], [[3, 1], [2, 1]], [[3, 1], [3, 1]],
+                [[1, 1], [1, 1]],
+                [[1, 1], [2, 1]],
+                [[1, 1], [3, 1]],
+                [[2, 1], [1, 1]],
+                [[2, 1], [2, 1]],
+                [[2, 1], [3, 1]],
+                [[3, 1], [1, 1]],
+                [[3, 1], [2, 1]],
+                [[3, 1], [3, 1]],
             ],
             sort=True,
         )
         await self.assert_query_result(
             'select (Bar.a, foo())',
             [
-                [1, [1, 1]], [1, [2, 1]], [1, [3, 1]],
-                [2, [1, 1]], [2, [2, 1]], [2, [3, 1]],
-                [3, [1, 1]], [3, [2, 1]], [3, [3, 1]],
+                [1, [1, 1]],
+                [1, [2, 1]],
+                [1, [3, 1]],
+                [2, [1, 1]],
+                [2, [2, 1]],
+                [2, [3, 1]],
+                [3, [1, 1]],
+                [3, [2, 1]],
+                [3, [3, 1]],
             ],
             sort=True,
         )
         await self.assert_query_result(
             'select (foo(), Bar.a)',
             [
-                [[1, 1], 1], [[1, 1], 2], [[1, 1], 3],
-                [[2, 1], 1], [[2, 1], 2], [[2, 1], 3],
-                [[3, 1], 1], [[3, 1], 2], [[3, 1], 3],
+                [[1, 1], 1],
+                [[1, 1], 2],
+                [[1, 1], 3],
+                [[2, 1], 1],
+                [[2, 1], 2],
+                [[2, 1], 3],
+                [[3, 1], 1],
+                [[3, 1], 2],
+                [[3, 1], 3],
             ],
             sort=True,
         )
@@ -4694,9 +4696,15 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select foo(Bar.a)',
             [
-                (1, 91), (1, 92), (1, 93),
-                (2, 91), (2, 92), (2, 93),
-                (3, 91), (3, 92), (3, 93),
+                (1, 91),
+                (1, 92),
+                (1, 93),
+                (2, 91),
+                (2, 92),
+                (2, 93),
+                (3, 91),
+                (3, 92),
+                (3, 93),
             ],
             sort=True,
         )
@@ -5290,7 +5298,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         with self.assertRaisesRegex(
             edgedb.QueryError,
             'possibly an empty set passed as non-optional argument '
-            'into modifying function'
+            'into modifying function',
         ):
             await self.con.execute('''
                 select foo(<int64>{})
@@ -5305,7 +5313,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            'possibly more than one element passed into modifying function'
+            'possibly more than one element passed into modifying function',
         ):
             await self.con.execute('''
                 select foo({1, 2, 3})
@@ -5344,7 +5352,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            'possibly more than one element passed into modifying function'
+            'possibly more than one element passed into modifying function',
         ):
             await self.con.execute('''
                 select foo({1, 2, 3})
@@ -5582,13 +5590,11 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
 
         await self.assert_query_result(
-            'select foo(1, 10){a, b}'
-            'order by .a then .b',
+            'select foo(1, 10){a, b}order by .a then .b',
             [{'a': 1, 'b': 10}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [{'a': 1, 'b': 10}],
         )
 
@@ -5605,8 +5611,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
 
         await self.assert_query_result(
-            'with temp := foo(1)'
-            'select temp.a',
+            'with temp := foo(1)select temp.a',
             [1],
         )
         await self.assert_query_result(
@@ -5627,8 +5632,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            'with temp := (if true then foo(5) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if true then foo(5) else <Bar>{})select temp.a',
             [5],
         )
         await self.assert_query_result(
@@ -5637,8 +5641,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if false then foo(6) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if false then foo(6) else <Bar>{})select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -5647,8 +5650,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(7))'
-            'select temp.a',
+            'with temp := (if true then <Bar>{} else foo(7))select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -5657,8 +5659,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(8))'
-            'select temp.a',
+            'with temp := (if false then <Bar>{} else foo(8))select temp.a',
             [8],
         )
         await self.assert_query_result(
@@ -5680,8 +5681,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
 
         await self.assert_query_result(
-            'with temp := foo(1)'
-            'select 99',
+            'with temp := foo(1)select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5690,8 +5690,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            'with temp := (for x in {2, 3, 4} union (select foo(x)))'
-            'select 99',
+            'with temp := (for x in {2, 3, 4} union (select foo(x)))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5701,8 +5700,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            'with temp := (if true then foo(5) else <Bar>{})'
-            'select 99',
+            'with temp := (if true then foo(5) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5711,8 +5709,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if false then foo(6) else <Bar>{})'
-            'select 99',
+            'with temp := (if false then foo(6) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5721,8 +5718,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(7))'
-            'select 99',
+            'with temp := (if true then <Bar>{} else foo(7))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5731,8 +5727,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             sort=True,
         )
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(8))'
-            'select 99',
+            'with temp := (if false then <Bar>{} else foo(8))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -5841,13 +5836,11 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         ''')
 
         await self.assert_query_result(
-            'select foo(1, 10){a, b}'
-            'order by .a then .b',
+            'select foo(1, 10){a, b}order by .a then .b',
             [{'a': 1, 'b': 10}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [{'a': 1, 'b': 10}],
         )
 
@@ -5868,8 +5861,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             ],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5889,8 +5881,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 5, 'b': 50}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5910,8 +5901,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 1, 'b': 10}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5931,8 +5921,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 1, 'b': 10}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5952,8 +5941,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 8, 'b': 80}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5970,8 +5958,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 9, 'b': 90}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -5988,8 +5975,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             [{'a': 1, 'b': 10}],
         )
         await self.assert_query_result(
-            'select Bar{a, b}'
-            'order by .a then .b',
+            'select Bar{a, b}order by .a then .b',
             [
                 {'a': 1, 'b': 10},
                 {'a': 2, 'b': 20},
@@ -6047,11 +6033,21 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
             ],
             sort=True,
         )
@@ -6062,11 +6058,21 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
             ],
             sort=True,
         )
@@ -6077,11 +6083,21 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
             ],
             sort=True,
         )
@@ -6093,12 +6109,24 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
-                81, 82, 83,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
+                81,
+                82,
+                83,
             ],
             sort=True,
         )
@@ -6110,13 +6138,27 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
-                81, 82, 83,
-                91, 92, 93,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
+                81,
+                82,
+                83,
+                91,
+                92,
+                93,
             ],
             sort=True,
         )
@@ -6127,13 +6169,27 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                1, 2, 3,
-                11, 12, 13,
-                21, 22, 23,
-                31, 32, 33,
-                51, 52, 53,
-                81, 82, 83,
-                91, 92, 93,
+                1,
+                2,
+                3,
+                11,
+                12,
+                13,
+                21,
+                22,
+                23,
+                31,
+                32,
+                33,
+                51,
+                52,
+                53,
+                81,
+                82,
+                83,
+                91,
+                92,
+                93,
             ],
             sort=True,
         )
@@ -6489,9 +6545,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
 
         await self.assert_query_result(
-            'for x in {1, 2, 3} union (select foo(x).a)',
-            [2, 3, 11],
-            sort=True
+            'for x in {1, 2, 3} union (select foo(x).a)', [2, 3, 11], sort=True
         )
         await self.assert_query_result(
             'select Bar.a',
@@ -6544,7 +6598,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
             '    ).bar.a'
             ')',
             [2, 3, 11],
-            sort=True
+            sort=True,
         )
         await self.assert_query_result(
             'select Bar.a',
@@ -6961,9 +7015,21 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
             ],
             sort=True,
         )
@@ -6985,10 +7051,24 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
             ],
             sort=True,
         )
@@ -7010,10 +7090,24 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
             ],
             sort=True,
         )
@@ -7035,10 +7129,24 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
             ],
             sort=True,
         )
@@ -7060,11 +7168,27 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
-                70, 71, 72,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
+                70,
+                71,
+                72,
             ],
             sort=True,
         )
@@ -7088,12 +7212,30 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
-                70, 71, 72,
-                80, 81, 82,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
+                70,
+                71,
+                72,
+                80,
+                81,
+                82,
             ],
             sort=True,
         )
@@ -7117,12 +7259,30 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         await self.assert_query_result(
             'select Bar.a',
             [
-                10, 11, 12,
-                20, 20, 21, 21, 22, 22,
-                30, 30, 31, 31, 32, 32,
-                40, 41, 42,
-                70, 71, 72,
-                80, 81, 82,
+                10,
+                11,
+                12,
+                20,
+                20,
+                21,
+                21,
+                22,
+                22,
+                30,
+                30,
+                31,
+                31,
+                32,
+                32,
+                40,
+                41,
+                42,
+                70,
+                71,
+                72,
+                80,
+                81,
+                82,
             ],
             sort=True,
         )
@@ -8248,8 +8408,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := foo(0, 2)'
-            'select temp.a',
+            'with temp := foo(0, 2)select temp.a',
             [0, 0],
             sort=True,
         )
@@ -8274,8 +8433,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then foo(0, 2) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if true then foo(0, 2) else <Bar>{})select temp.a',
             [0, 0],
             sort=True,
         )
@@ -8286,8 +8444,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then foo(0, 2) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if false then foo(0, 2) else <Bar>{})select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -8297,8 +8454,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(0, 2))'
-            'select temp.a',
+            'with temp := (if true then <Bar>{} else foo(0, 2))select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -8308,8 +8464,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(0, 2))'
-            'select temp.a',
+            'with temp := (if false then <Bar>{} else foo(0, 2))select temp.a',
             [0, 0],
             sort=True,
         )
@@ -8343,8 +8498,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := foo(0, 2)'
-            'select 99',
+            'with temp := foo(0, 2)select 99',
             [99],
         )
         await self.assert_query_result(
@@ -8367,8 +8521,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then foo(0, 2) else <Bar>{})'
-            'select 99',
+            'with temp := (if true then foo(0, 2) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -8378,8 +8531,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then foo(0, 2) else <Bar>{})'
-            'select 99',
+            'with temp := (if false then foo(0, 2) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -8389,8 +8541,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(0, 2))'
-            'select 99',
+            'with temp := (if true then <Bar>{} else foo(0, 2))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -8400,8 +8551,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(0, 2))'
-            'select 99',
+            'with temp := (if false then <Bar>{} else foo(0, 2))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10365,8 +10515,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := foo(2)'
-            'select temp.a',
+            'with temp := foo(2)select temp.a',
             [1, 2],
             sort=True,
         )
@@ -10391,8 +10540,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then foo(2) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if true then foo(2) else <Bar>{})select temp.a',
             [1, 2],
             sort=True,
         )
@@ -10403,8 +10551,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then foo(2) else <Bar>{})'
-            'select temp.a',
+            'with temp := (if false then foo(2) else <Bar>{})select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -10414,8 +10561,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(2))'
-            'select temp.a',
+            'with temp := (if true then <Bar>{} else foo(2))select temp.a',
             [],
         )
         await self.assert_query_result(
@@ -10425,8 +10571,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(2))'
-            'select temp.a',
+            'with temp := (if false then <Bar>{} else foo(2))select temp.a',
             [1, 2],
             sort=True,
         )
@@ -10460,8 +10605,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := foo(2)'
-            'select 99',
+            'with temp := foo(2)select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10472,8 +10616,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := (for x in {1, 2, 3} union (select foo(x)))'
-            'select 99',
+            'with temp := (for x in {1, 2, 3} union (select foo(x)))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10484,8 +10627,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then foo(2) else <Bar>{})'
-            'select 99',
+            'with temp := (if true then foo(2) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10495,8 +10637,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then foo(2) else <Bar>{})'
-            'select 99',
+            'with temp := (if false then foo(2) else <Bar>{})select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10506,8 +10647,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if true then <Bar>{} else foo(2))'
-            'select 99',
+            'with temp := (if true then <Bar>{} else foo(2))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -10517,8 +10657,7 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
         )
         await reset_data()
         await self.assert_query_result(
-            'with temp := (if false then <Bar>{} else foo(2))'
-            'select 99',
+            'with temp := (if false then <Bar>{} else foo(2))select 99',
             [99],
         )
         await self.assert_query_result(
@@ -11580,7 +11719,6 @@ class TestEdgeQLFunctionsInline(tb.DDLTestCase):
 
 
 class TestEdgeQLFunctionsInlineTransaction(tb.QueryTestCase):
-
     SETUP = [
         '''
         create type Bar;
@@ -11591,17 +11729,13 @@ class TestEdgeQLFunctionsInlineTransaction(tb.QueryTestCase):
     ]
 
     async def test_edgeql_functions_inline_transaction_dml_01(self):
-        con = (
-            edgedb.create_async_client(
-                **self.get_connect_args()
-            ).with_transaction_options(
-                edgedb.TransactionOptions(readonly=True)
-            )
-        )
+        con = edgedb.create_async_client(
+            **self.get_connect_args()
+        ).with_transaction_options(edgedb.TransactionOptions(readonly=True))
         try:
             with self.assertRaisesRegex(
                 edgedb.TransactionError,
-                r'Modifications not allowed in a read-only transaction'
+                r'Modifications not allowed in a read-only transaction',
             ):
                 async for tx in con.transaction():
                     async with tx:

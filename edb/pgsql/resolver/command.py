@@ -63,7 +63,6 @@ Context = context.ResolverContextLevel
 
 @dispatch._resolve.register
 def resolve_CopyStmt(stmt: pgast.CopyStmt, *, ctx: Context) -> pgast.CopyStmt:
-
     query: Optional[pgast.Query]
 
     if stmt.query:
@@ -526,7 +525,6 @@ def _uncompile_insert_object_stmt(
             value_relation_input=value_relation,
             value_columns=value_columns,
             value_iterator_name=value_iterator,
-
             conflict_update_input=conflict.update_input if conflict else None,
             conflict_update_name=conflict.update_name if conflict else None,
             conflict_update_iterator=(
@@ -578,7 +576,7 @@ def _uncompile_on_conflict(
     sub_table: context.Table,
     value_id: irast.PathId,
     ctx: Context,
-    stype_refs: dict[uuid.UUID, list[qlast.Set]]
+    stype_refs: dict[uuid.UUID, list[qlast.Set]],
 ) -> Optional[UncompileOnConflict]:
     if not stmt.on_conflict:
         return None
@@ -622,9 +620,9 @@ def _uncompile_on_conflict(
                 index_col, sub, ctx
             )
 
-            index_paths.append(qlast.Path(
-                partial=True, steps=[qlast.Ptr(name=ptr_name)]
-            ))
+            index_paths.append(
+                qlast.Path(partial=True, steps=[qlast.Ptr(name=ptr_name)])
+            )
         on_clause = qlast.Tuple(elements=index_paths)
 
     if stmt.on_conflict.action == pgast.OnConflictAction.DO_NOTHING:
@@ -691,12 +689,15 @@ def _uncompile_on_conflict(
         output = pgast.ColumnRef(name=(ptr_name,), nullable=True)
         if is_link:
             update_input_placeholder.path_outputs[
-                (ptr_id, pgce.PathAspect.IDENTITY)] = output
+                (ptr_id, pgce.PathAspect.IDENTITY)
+            ] = output
             update_input_placeholder.path_outputs[
-                (ptr_id, pgce.PathAspect.VALUE)] = output
+                (ptr_id, pgce.PathAspect.VALUE)
+            ] = output
         else:
             update_input_placeholder.path_outputs[
-                (ptr_id, pgce.PathAspect.VALUE)] = output
+                (ptr_id, pgce.PathAspect.VALUE)
+            ] = output
 
         conflict_update_shape.append(
             _construct_assign_element_for_ptr(
@@ -711,19 +712,20 @@ def _uncompile_on_conflict(
 
     sub_name = sub.get_name(ctx.schema)
     ql_update = qlast.UpdateQuery(
-        subject=qlast.Path(
-            steps=[s_utils.name_to_ast_ref(sub_name)]
-        ),
+        subject=qlast.Path(steps=[s_utils.name_to_ast_ref(sub_name)]),
         shape=conflict_update_shape,
         where=qlast.BinOp(
-            left=qlast.Path(steps=[
-                qlast.ObjectRef(name=iterator_name), qlast.Ptr(name='id')
-            ]),
+            left=qlast.Path(
+                steps=[
+                    qlast.ObjectRef(name=iterator_name),
+                    qlast.Ptr(name='id'),
+                ]
+            ),
             op='=',
-            right=qlast.Path(steps=[
-                s_utils.name_to_ast_ref(sub_name), qlast.Ptr(name='id')
-            ]),
-        )
+            right=qlast.Path(
+                steps=[s_utils.name_to_ast_ref(sub_name), qlast.Ptr(name='id')]
+            ),
+        ),
     )
 
     # update_value relation has to be evaluated *for each conflicting row*
@@ -889,7 +891,6 @@ def _add_pointer(
     *,
     ctx: Context,
 ) -> s_pointers.Pointer:
-
     base_name = 'link' if target_scls.is_object_type() else 'property'
     base = ctx.schema.get(
         sn.QualName('std', base_name),
@@ -1594,7 +1595,7 @@ def _uncompile_delete_pointer_stmt(
     # append .pointer onto the shape, so the resulting CTE contains the pointer
     # data, not the subject table
     # ql_stmt = qlast.Path(
-        # steps=[ql_stmt, qlast.Ptr(name=sub_name.name)]
+    # steps=[ql_stmt, qlast.Ptr(name=sub_name.name)]
     # )
 
     ql_returning_shape: list[qlast.ShapeElement] = []
@@ -1670,7 +1671,6 @@ def _uncompile_update_stmt(
 
             update_targets.append(target)
         elif isinstance(target, pgast.MultiAssignRef):
-
             if not isinstance(
                 target.source, (pgast.ImplicitRowExpr, pgast.RowExpr)
             ):
@@ -1940,7 +1940,6 @@ def _compile_uncompiled_dml(
     ql_stmt_shape_names = []
     inserts_by_type: dict[uuid.UUID, list[str]] = {}
     for index, stmt in enumerate(stmts):
-
         # fixup references to stypes that have been modified be previous inserts
         # for more info, see _construct_cast_from_uuid_to_obj_type
         for stype_id, ref_sets in stmt.stype_refs.items():
@@ -1990,7 +1989,7 @@ def _compile_uncompiled_dml(
             singletons=singletons,
             anchors=anchors,
             allow_user_specified_id=ctx.options.allow_user_specified_id,
-            apply_user_access_policies=ctx.options.apply_access_policies
+            apply_user_access_policies=ctx.options.apply_access_policies,
         )
         ir_stmt = qlcompiler.compile_ast_to_ir(
             ql_stmt,
@@ -2114,8 +2113,7 @@ def _compile_uncompiled_dml(
 
 
 def _collect_stmt_ctes(
-    ctes: list[pgast.CommonTableExpr],
-    ir_stmt: irast.MutatingStmt
+    ctes: list[pgast.CommonTableExpr], ir_stmt: irast.MutatingStmt
 ) -> list[pgast.CommonTableExpr]:
     # We compile all SQL DML queries in a single EdgeQL query.
     # Result is an enormous SQL query with many CTEs.
@@ -2245,10 +2243,7 @@ def resolve_DMLQuery(
     return _fini_resolve_dml(stmt, compiled_dml, ctx=ctx)
 
 
-def _resolve_dml_value_rel(
-    compiled_dml: context.CompiledDML, *, ctx: Context
-):
-
+def _resolve_dml_value_rel(compiled_dml: context.CompiledDML, *, ctx: Context):
     # resolve the value relation
     with ctx.child() as sctx:
         # this subctx is needed so it is not deemed as top-level which would
@@ -2365,8 +2360,7 @@ def _resolve_conflict_update_rel(
     # the ids of the subject and the update iterator.
 
     if not (
-        compiled_dml.conflict_update_name
-        and compiled_dml.conflict_update_input
+        compiled_dml.conflict_update_name and compiled_dml.conflict_update_input
     ):
         return
 
@@ -2378,15 +2372,16 @@ def _resolve_conflict_update_rel(
     # We are guaranteed to have only one such CTE, since these CTEs all
     # belong to a single insert stmt.
     else_index, else_cte = next(
-        (i, cte) for i, cte in enumerate(compiled_dml.output_ctes)
+        (i, cte)
+        for i, cte in enumerate(compiled_dml.output_ctes)
         if cte.name.startswith('else')
     )
 
     # Apply a view_map_id_map to get around the fact that rvar map path_ids
     # contain namespaces due to use using for loops around the insert stmt.
     assert compiled_dml.subject_id
-    else_cte.query.view_path_id_map[compiled_dml.subject_id] = (
-        next(iter(else_cte.query.view_path_id_map.keys()))
+    else_cte.query.view_path_id_map[compiled_dml.subject_id] = next(
+        iter(else_cte.query.view_path_id_map.keys())
     )
 
     # Include 'excluded' rel var in scope
@@ -2401,7 +2396,7 @@ def _resolve_conflict_update_rel(
                     kind=context.ColumnByName(reference_as=ptr_name),
                 )
                 for col_name, ptr_name, _ in compiled_dml.value_columns
-            ]
+            ],
         )
     )
 
@@ -2429,7 +2424,7 @@ def _resolve_conflict_update_rel(
                         ),
                     )
                     for col_name, path_id in compiled_dml.subject_columns or []
-                ]
+                ],
             )
         )
 
@@ -2456,23 +2451,29 @@ def _resolve_conflict_update_rel(
 
         # inject interator column, which we can pull from excluded
         assert compiled_dml.value_iterator_name
-        cu_rel.target_list.append(pgast.ResTarget(
-            val=pgast.ColumnRef(
-                name=('excluded', compiled_dml.value_iterator_name)
-            ),
-        ))
+        cu_rel.target_list.append(
+            pgast.ResTarget(
+                val=pgast.ColumnRef(
+                    name=('excluded', compiled_dml.value_iterator_name)
+                ),
+            )
+        )
 
         # inject subject id from "else" rvar
         subject_id_col = _get_path_id_output(
-            else_cte.query, compiled_dml.subject_id, compiled_dml,
-            aspect=pgce.PathAspect.IDENTITY
+            else_cte.query,
+            compiled_dml.subject_id,
+            compiled_dml,
+            aspect=pgce.PathAspect.IDENTITY,
         )
-        cu_rel.target_list.append(pgast.ResTarget(
-            val=pgast.ColumnRef(
-                name=('else', subject_id_col),
-            ),
-            name='id'
-        ))
+        cu_rel.target_list.append(
+            pgast.ResTarget(
+                val=pgast.ColumnRef(
+                    name=('else', subject_id_col),
+                ),
+                name='id',
+            )
+        )
 
         # add a join condition for "excluded" and "subject" rvars
 
@@ -2481,13 +2482,12 @@ def _resolve_conflict_update_rel(
         # one, we find a path_id from rvar_map that matches the plain one in all
         # but the namespace.
         value_id = next(
-            p for p, _ in else_cte.query.path_rvar_map.keys()
+            p
+            for p, _ in else_cte.query.path_rvar_map.keys()
             if p.replace_namespace(set()) == compiled_dml.value_id
         )
         # pull value iterator from the else CTE
-        value_iter = _get_path_id_output(
-            else_cte.query, value_id, compiled_dml
-        )
+        value_iter = _get_path_id_output(else_cte.query, value_id, compiled_dml)
         cu_rel.where_clause = pg_astutils.extend_binop(
             cu_rel.where_clause,
             pgast.Expr(
@@ -2496,7 +2496,7 @@ def _resolve_conflict_update_rel(
                 rexpr=pgast.ColumnRef(
                     name=('excluded', compiled_dml.value_iterator_name)
                 ),
-            )
+            ),
         )
 
     # convert the resolved "conflict update" into a flat list of ctes
@@ -2512,9 +2512,9 @@ def _resolve_conflict_update_rel(
 
     # combine compiled CTEs and CTEs from "conflict update"
     compiled_dml.output_ctes = (
-        compiled_dml.output_ctes[0:else_index + 1]
+        compiled_dml.output_ctes[0 : else_index + 1]
         + conflict_ctes
-        + compiled_dml.output_ctes[else_index + 1:]
+        + compiled_dml.output_ctes[else_index + 1 :]
     )
 
 
@@ -2612,9 +2612,7 @@ def _resolve_returning_rows(
     )
 
     for col_name, val in output_namespace.items():
-        output_query.target_list.append(
-            pgast.ResTarget(name=col_name, val=val)
-        )
+        output_query.target_list.append(pgast.ResTarget(name=col_name, val=val))
         output_table.columns.append(
             context.Column(
                 name=col_name,
@@ -2664,11 +2662,10 @@ def _get_pointer_for_column(
         # then we are referring to the link.
         root_name = ptr_name[0:-3]
         if (
-            (link := subject.maybe_get_ptr(
+            link := subject.maybe_get_ptr(
                 ctx.schema, sn.UnqualName(root_name), type=s_links.Link
-            ))
-            and link.singular(ctx.schema)
-        ):
+            )
+        ) and link.singular(ctx.schema):
             ptr_name = root_name
             is_link = True
 
@@ -2787,7 +2784,6 @@ def merge_params(
 
 
 class ParamMapper(ast.NodeVisitor):
-
     def __init__(self, mapping: dict[int, int]) -> None:
         super().__init__()
         self.mapping = mapping
@@ -2802,9 +2798,9 @@ def init_external_params(query: pgast.Base, ctx: Context):
     for _ in range(0, counter.param_count - len(ctx.options.normalized_params)):
         ctx.query_params.append(dbstate.SQLParamExternal())
     for param_type_oid in ctx.options.normalized_params:
-        ctx.query_params.append(dbstate.SQLParamExtractedConst(
-            type_oid=param_type_oid
-        ))
+        ctx.query_params.append(
+            dbstate.SQLParamExtractedConst(type_oid=param_type_oid)
+        )
 
 
 class ParamCounter(ast.NodeVisitor):

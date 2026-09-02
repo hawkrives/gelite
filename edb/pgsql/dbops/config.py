@@ -26,7 +26,6 @@ from . import base
 
 
 class Set(base.Command):
-
     def __init__(self, key, val, **kwargs):
         super().__init__(**kwargs)
         self.key = key

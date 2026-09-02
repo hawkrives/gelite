@@ -116,8 +116,7 @@ def _format_rep(rep: Rep) -> str:
             if '\n' in fixed_frag:
                 last_nl = out_str.rfind('\n')
                 indent = (
-                    len(out_str) if last_nl < 0
-                    else len(out_str) - last_nl - 1
+                    len(out_str) if last_nl < 0 else len(out_str) - last_nl - 1
                 )
                 # Indent all the lines but the first (since that goes
                 # onto our current line)

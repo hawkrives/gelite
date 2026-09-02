@@ -111,6 +111,7 @@ def clear_exception_frames(er):
 def listen_for_debugger():
     if debug.flags.pydebug_listen:
         import debugpy
+
         debugpy.listen(38781)
 
 

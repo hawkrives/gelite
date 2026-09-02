@@ -18,7 +18,6 @@
 
 """Miscellaneous utilities for the IR."""
 
-
 from __future__ import annotations
 from typing import (
     Any,
@@ -85,31 +84,25 @@ def is_const(ir: irast.Base) -> bool:
 def is_union_expr(ir: irast.Base) -> bool:
     """Return True if the given *ir* expression is a UNION expression."""
     return (
-        isinstance(ir, irast.OperatorCall) and
-        ir.operator_kind is ft.OperatorKind.Infix and
-        str(ir.func_shortname) == 'std::UNION'
+        isinstance(ir, irast.OperatorCall)
+        and ir.operator_kind is ft.OperatorKind.Infix
+        and str(ir.func_shortname) == 'std::UNION'
     )
 
 
 def is_empty_array_expr(ir: Optional[irast.Base]) -> TypeGuard[irast.Array]:
-    """Return True if the given *ir* expression is an empty array expression.
-    """
-    return (
-        isinstance(ir, irast.Array)
-        and not ir.elements
-    )
+    """Return True if the given *ir* expression is an empty array expression."""
+    return isinstance(ir, irast.Array) and not ir.elements
 
 
 def is_untyped_empty_array_expr(
     ir: Optional[irast.Base],
 ) -> TypeGuard[irast.Array]:
     """Return True if the given *ir* expression is an empty
-       array expression of an uknown type.
+    array expression of an uknown type.
     """
-    return (
-        is_empty_array_expr(ir)
-        and (ir.typeref is None
-             or typeutils.is_generic(ir.typeref))
+    return is_empty_array_expr(ir) and (
+        ir.typeref is None or typeutils.is_generic(ir.typeref)
     )
 
 
@@ -118,25 +111,19 @@ def is_empty(ir: irast.Base) -> bool:
     or an empty array.
     """
     return (
-        isinstance(ir, irast.EmptySet) or
-        (isinstance(ir, irast.Array) and not ir.elements) or
-        (
-            isinstance(ir, irast.Set)
-            and is_empty(ir.expr)
-        )
+        isinstance(ir, irast.EmptySet)
+        or (isinstance(ir, irast.Array) and not ir.elements)
+        or (isinstance(ir, irast.Set) and is_empty(ir.expr))
     )
 
 
 def is_subquery_set(ir_expr: irast.Base) -> bool:
     """Return True if the given *ir_expr* expression is a subquery."""
-    return (
-        isinstance(ir_expr, irast.Set)
-        and (
-            isinstance(ir_expr.expr, irast.Stmt)
-            or (
-                isinstance(ir_expr.expr, irast.Pointer)
-                and ir_expr.expr.expr is not None
-            )
+    return isinstance(ir_expr, irast.Set) and (
+        isinstance(ir_expr.expr, irast.Stmt)
+        or (
+            isinstance(ir_expr.expr, irast.Pointer)
+            and ir_expr.expr.expr is not None
         )
     )
 
@@ -145,17 +132,14 @@ def is_implicit_wrapper(
     ir_expr: Optional[irast.Base],
 ) -> TypeGuard[irast.SelectStmt]:
     """Return True if the given *ir_expr* expression is an implicit
-       SELECT wrapper.
+    SELECT wrapper.
     """
-    return (
-        isinstance(ir_expr, irast.SelectStmt) and
-        ir_expr.implicit_wrapper
-    )
+    return isinstance(ir_expr, irast.SelectStmt) and ir_expr.implicit_wrapper
 
 
 def is_trivial_select(ir_expr: irast.Base) -> TypeGuard[irast.SelectStmt]:
     """Return True if the given *ir_expr* expression is a trivial
-       SELECT expression, i.e `SELECT <expr>`.
+    SELECT expression, i.e `SELECT <expr>`.
     """
     if not isinstance(ir_expr, irast.SelectStmt):
         return False
@@ -172,7 +156,7 @@ def is_trivial_select(ir_expr: irast.Base) -> TypeGuard[irast.SelectStmt]:
 
 def unwrap_set(ir_set: irast.Set) -> irast.Set:
     """If the given *ir_set* is an implicit SELECT wrapper, return the
-       wrapped set.
+    wrapped set.
     """
     if is_implicit_wrapper(ir_set.expr):
         return ir_set.expr.result
@@ -192,25 +176,29 @@ def get_span_as_json(
     exctype: type[errors.EdgeDBError] = errors.InternalServerError,
 ) -> str:
     if expr.span:
-        details = json.dumps({
-            # TODO(tailhook) should we add offset, utf16column here?
-            'line': expr.span.start_point.line,
-            'column': expr.span.start_point.column,
-            'name': expr.span.filename,
-            'code': exctype.get_code(),
-        })
+        details = json.dumps(
+            {
+                # TODO(tailhook) should we add offset, utf16column here?
+                'line': expr.span.start_point.line,
+                'column': expr.span.start_point.column,
+                'name': expr.span.filename,
+                'code': exctype.get_code(),
+            }
+        )
 
     else:
-        details = json.dumps({
-            'code': exctype.get_code(),
-        })
+        details = json.dumps(
+            {
+                'code': exctype.get_code(),
+            }
+        )
 
     return details
 
 
 def is_type_intersection_reference(ir_expr: irast.Base) -> bool:
     """Return True if the given *ir_expr* is a type intersection, i.e
-       ``Foo[IS Type]``.
+    ``Foo[IS Type]``.
     """
     if not isinstance(ir_expr, irast.Set):
         return False
@@ -230,16 +218,14 @@ def is_type_intersection_reference(ir_expr: irast.Base) -> bool:
 
 def is_trivial_free_object(ir: irast.Set) -> bool:
     ir = unwrap_set(ir)
-    return (
-        isinstance(ir.expr, irast.TypeRoot)
-        and typeutils.is_exactly_free_object(ir.typeref)
-    )
+    return isinstance(
+        ir.expr, irast.TypeRoot
+    ) and typeutils.is_exactly_free_object(ir.typeref)
 
 
 def collapse_type_intersection(
     ir_set: irast.Set,
 ) -> tuple[irast.Set, list[irast.TypeIntersectionPointer]]:
-
     result: list[irast.TypeIntersectionPointer] = []
 
     source = ir_set
@@ -441,12 +427,8 @@ class FindPotentiallyVisibleVisitor(FindPathScopes):
             # underneath our original binding site. This prevents us
             # from skipping references to them embedded in outside
             # WITH bindings.
-            if (
-                (psid := self.use_scopes[node]) is not None
-                and (
-                    self.orig_scope in
-                    self.scope_tree_nodes[psid].ancestors
-                )
+            if (psid := self.use_scopes[node]) is not None and (
+                self.orig_scope in self.scope_tree_nodes[psid].ancestors
             ):
                 return set()
 
@@ -460,10 +442,7 @@ class FindPotentiallyVisibleVisitor(FindPathScopes):
 
         # Bound variables are always potentially visible as are object
         # references.
-        if (
-            node.is_binding
-            or isinstance(node.expr, irast.TypeRoot)
-        ):
+        if node.is_binding or isinstance(node.expr, irast.TypeRoot):
             results.append({node})
 
         # Visit sub-trees
@@ -474,12 +453,13 @@ def find_potentially_visible(
     stmt: irast.Base,
     scope: irast.ScopeTreeNode,
     scope_tree_nodes: Mapping[int, irast.ScopeTreeNode],
-    to_skip: AbstractSet[irast.PathId]=frozenset()
+    to_skip: AbstractSet[irast.PathId] = frozenset(),
 ) -> set[tuple[irast.PathId, irast.Set]]:
     """Find all "potentially visible" sets referenced."""
     # TODO: Make this caching.
     visitor = FindPotentiallyVisibleVisitor(
-        to_skip=to_skip, scope=scope, scope_tree_nodes=scope_tree_nodes)
+        to_skip=to_skip, scope=scope, scope_tree_nodes=scope_tree_nodes
+    )
     visible_sets = cast(set[irast.Set], visitor.visit(stmt))
 
     visible_paths = set()
@@ -503,9 +483,7 @@ def find_potentially_visible(
     return visible_paths
 
 
-def is_singleton_set_of_call(
-    call: irast.Call
-) -> bool:
+def is_singleton_set_of_call(call: irast.Call) -> bool:
     # Some set functions and operators are allowed in singleton mode
     # as long as their inputs are singletons
 
@@ -532,10 +510,10 @@ def find_set_of_op(
     has_multi_param: bool,
 ) -> Optional[irast.Call]:
     def flt(n: irast.Call) -> bool:
-        return (
-            (has_multi_param or not is_singleton_set_of_call(n))
-            and (has_set_of_param(n) or returns_set_of(n))
+        return (has_multi_param or not is_singleton_set_of_call(n)) and (
+            has_set_of_param(n) or returns_set_of(n)
         )
+
     calls = ast.find_children(ir, irast.Call, flt, terminate_early=True)
     return next(iter(calls or []), None)
 

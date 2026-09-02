@@ -271,7 +271,7 @@ class Tenant:
                 user_agent=f"EdgeDB {buildmeta.get_version_string(short=True)}",
                 stat_callback=lambda stat: logger.debug(
                     f"HTTP stat: {originator} {stat}"
-                )
+                ),
             )
         return self._http_client
 
@@ -368,7 +368,7 @@ class Tenant:
 
         for name, role_desc in self._roles.items():
             superuser = bool(role_desc.get('superuser'))
-            available_permissions = (role_desc.get('all_permissions') or ())
+            available_permissions = role_desc.get('all_permissions') or ()
 
             if superuser:
                 capability = compiler_enums.Capability.ALL
@@ -415,8 +415,7 @@ class Tenant:
 
     async def get_patch_count(self, conn: pgcon.PGConnection) -> int:
         """Get the number of applied patches."""
-        num_patches = await instdata.get_instdata(
-            conn, 'num_patches', 'json')
+        num_patches = await instdata.get_instdata(conn, 'num_patches', 'json')
         res: int = json.loads(num_patches) if num_patches else 0
         return res
 
@@ -442,7 +441,7 @@ class Tenant:
                 hint=(
                     'You need to either recreate the instance and upgrade '
                     'using dump/restore, or do an inplace upgrade.'
-                )
+                ),
             )
 
         # Check patch count
@@ -451,10 +450,10 @@ class Tenant:
             raise errors.ConfigurationError(
                 'database instance incompatible with this version of Gel',
                 details=f"expected {len(pg_patches.PATCHES)} patches, "
-                        f"but only {num_patches} applied",
+                f"but only {num_patches} applied",
                 hint="if you are adding an old backend to a multi-tenant "
-                     "server, firstly run a new single-tenant server on "
-                     "that backend to apply the patches.",
+                "server, firstly run a new single-tenant server on "
+                "that backend to apply the patches.",
             )
 
     async def init(self, compat_check: bool = False) -> None:
@@ -462,8 +461,7 @@ class Tenant:
         async with self.use_sys_pgcon() as syscon:
             if compat_check:
                 await self._check_metaschema_compatibility(syscon)
-            result = await instdata.get_instdata(
-                syscon, 'instancedata', 'json')
+            result = await instdata.get_instdata(syscon, 'instancedata', 'json')
             self._instance_data = immutables.Map(json.loads(result))
             await self._fetch_roles(syscon)
             if self._server.get_compiler_pool() is None:
@@ -479,15 +477,14 @@ class Tenant:
                 compiler_pool = self._server.get_compiler_pool()
 
             default_database = await instdata.get_instdata(
-                syscon, 'default_branch', 'text')
+                syscon, 'default_branch', 'text'
+            )
             if default_database:
                 self.default_database = default_database.decode('utf-8')
 
         if data is not None:
             logger.debug("parsing global schema")
-            global_schema_pickle = (
-                await compiler_pool.parse_global_schema(data)
-            )
+            global_schema_pickle = await compiler_pool.parse_global_schema(data)
 
         logger.info("loading system config")
         sys_config = await self._load_sys_config()
@@ -497,7 +494,8 @@ class Tenant:
         # To make in-place upgrade failures more testable, check
         # 'force_database_error' with a 'startup' scope.
         force_error = self._server.config_lookup(
-            'force_database_error', sys_config)
+            'force_database_error', sys_config
+        )
         edbcompiler.maybe_force_database_error(force_error, scope='startup')
 
         self._dbindex = dbview.DatabaseIndex(
@@ -535,10 +533,7 @@ class Tenant:
             try:
                 with os.scandir(path) as it:
                     for entry in it:
-                        if (
-                            entry.is_dir()
-                            and self._is_extension_package(entry)
-                        ):
+                        if entry.is_dir() and self._is_extension_package(entry):
                             exts.append(pathlib.Path(entry))
             except FileNotFoundError:
                 pass
@@ -548,6 +543,7 @@ class Tenant:
 
         async with self.use_sys_pgcon() as syscon:
             from edb.pgsql import trampoline
+
             ext_packages_json = await syscon.sql_fetch_val(
                 trampoline.fixup_query("""
                     SELECT json_agg(o.c)
@@ -616,8 +612,7 @@ class Tenant:
 
         script = '\n'.join(scripts)
         _, sql_script = edbcompiler.compile_edgeql_script(compilerctx, script)
-        logger.info(
-            f"Installing extension package '{manifest['name']}'")
+        logger.info(f"Installing extension package '{manifest['name']}'")
         async with self.use_sys_pgcon() as syscon:
             await syscon.sql_execute(sql_script.encode('utf-8'))
             global_schema = await self._server.introspect_global_schema(syscon)
@@ -722,10 +717,12 @@ class Tenant:
             if name is not None:
                 if name in self._named_tasks:
                     raise RuntimeError(
-                        f"task {name!r} already exists on on this server")
+                        f"task {name!r} already exists on on this server"
+                    )
                 self._named_tasks[name] = rv
                 rv.add_done_callback(
-                    lambda task: self._named_tasks.pop(task.get_name(), None))
+                    lambda task: self._named_tasks.pop(task.get_name(), None)
+                )
             else:
                 self._tasks.add(rv)
                 rv.add_done_callback(self._tasks.discard)
@@ -774,18 +771,20 @@ class Tenant:
         from edb.pgsql import common
 
         quoted_json = common.quote_literal(json.dumps(data))
-        return textwrap.dedent(
-            f'''
+        return (
+            textwrap.dedent(
+                f'''
                 INSERT INTO _edgecon_state
                     SELECT * FROM jsonb_to_recordset({quoted_json}::jsonb)
                         AS cfg(name text, value jsonb, type text);
             '''
-        ).strip().encode()
+            )
+            .strip()
+            .encode()
+        )
 
     async def _pg_connect(
-        self,
-        dbname: str,
-        source_description: str="pool connection"
+        self, dbname: str, source_description: str = "pool connection"
     ) -> pgcon.PGConnection:
         if self.get_backend_runtime_params().has_create_database:
             pg_dbname = self.get_pg_dbname(dbname)
@@ -796,7 +795,7 @@ class Tenant:
             rv = await self._cluster.connect(
                 source_description=source_description,
                 database=pg_dbname,
-                apply_init_script=True
+                apply_init_script=True,
             )
             if self._server.stmt_cache_size is not None:
                 rv.set_stmt_cache_size(self._server.stmt_cache_size)
@@ -840,8 +839,7 @@ class Tenant:
         conn = None
         try:
             conn = await self._pg_connect(
-                dbname,
-                source_description="direct_pgcon"
+                dbname, source_description="direct_pgcon"
             )
             yield conn
         finally:
@@ -919,7 +917,7 @@ class Tenant:
                 try:
                     conn = await self._pg_connect(
                         defines.GELITE_SYSTEM_DB,
-                        source_description="_reconnect_sys_pgcon"
+                        source_description="_reconnect_sys_pgcon",
                     )
                     break
                 except OSError:
@@ -976,8 +974,7 @@ class Tenant:
 
     @contextlib.asynccontextmanager
     async def with_pgcon(
-        self, dbname: str, *,
-        discard: bool=False
+        self, dbname: str, *, discard: bool = False
     ) -> AsyncGenerator[pgcon.PGConnection, None]:
         conn = await self.acquire_pgcon(dbname=dbname)
         try:
@@ -998,13 +995,11 @@ class Tenant:
             elif conn.last_init_con_data is not self._init_con_data:
                 try:
                     await conn.sql_execute(
-                        pgcon.RESET_STATIC_CFG_SCRIPT +
-                        (self._init_con_sql or b'')
+                        pgcon.RESET_STATIC_CFG_SCRIPT
+                        + (self._init_con_sql or b'')
                     )
                 except Exception as e:
-                    logger.warning(
-                        "failed to update pgcon; discard now: %s", e
-                    )
+                    logger.warning("failed to update pgcon; discard now: %s", e)
                 else:
                     conn.last_init_con_data = self._init_con_data
                     return conn
@@ -1137,6 +1132,7 @@ class Tenant:
         self, conn: pgcon.PGConnection
     ) -> set[str]:
         from edb.pgsql import trampoline
+
         extension_names_json = await conn.sql_fetch_val(
             trampoline.fixup_query("""
                 SELECT json_agg(name) FROM edgedb_VER."_SchemaExtension";
@@ -1154,22 +1150,24 @@ class Tenant:
         conn: pgcon.PGConnection,
         global_schema_pickle,
     ) -> Any:
-        user_schema_json = (
-            await self._server.introspect_user_schema_json(conn)
-        )
+        user_schema_json = await self._server.introspect_user_schema_json(conn)
         db_config_json = await self._server.introspect_db_config(conn)
 
         compiler_pool = self._server.get_compiler_pool()
-        return (await compiler_pool.parse_user_schema_db_config(
-            user_schema_json, db_config_json, global_schema_pickle,
-        )).user_schema_pickle
+        return (
+            await compiler_pool.parse_user_schema_db_config(
+                user_schema_json,
+                db_config_json,
+                global_schema_pickle,
+            )
+        ).user_schema_pickle
 
     async def introspect_db(
         self,
         dbname: str,
         *,
-        conn: Optional[pgcon.PGConnection]=None,
-        reintrospection: bool=False,
+        conn: Optional[pgcon.PGConnection] = None,
+        reintrospection: bool = False,
     ) -> None:
         """Use this method to (re-)introspect a DB.
 
@@ -1193,7 +1191,8 @@ class Tenant:
 
         """
         cm = (
-            contextlib.nullcontext(conn) if conn
+            contextlib.nullcontext(conn)
+            if conn
             else self._with_intro_pgcon(dbname)
         )
 
@@ -1215,6 +1214,7 @@ class Tenant:
         reintrospection: bool,
     ) -> None:
         from edb.pgsql import trampoline
+
         logger.info("introspecting database '%s'", dbname)
 
         assert self._dbindex is not None
@@ -1225,9 +1225,7 @@ class Tenant:
         old_cache_mode = config.QueryCacheMode.effective(cache_mode_val)
 
         # Introspection
-        user_schema_json = (
-            await self._server.introspect_user_schema_json(conn)
-        )
+        user_schema_json = await self._server.introspect_user_schema_json(conn)
 
         reflection_cache_json = await conn.sql_fetch_val(
             trampoline.fixup_query("""
@@ -1303,10 +1301,8 @@ class Tenant:
         if query_cache and cache_mode is not config.QueryCacheMode.InMemory:
             db.hydrate_cache(query_cache)
         elif old_cache_mode is not cache_mode:
-            logger.info(
-                "clearing query cache for database '%s'", dbname)
-            await conn.sql_execute(
-                b'SELECT edgedb._clear_query_cache()')
+            logger.info("clearing query cache for database '%s'", dbname)
+            await conn.sql_execute(b'SELECT edgedb._clear_query_cache()')
             assert self._dbindex
             self._dbindex.get_db(dbname).clear_query_cache()
 
@@ -1519,6 +1515,7 @@ class Tenant:
                     )
                 else:
                     from . import server as edbserver
+
                     raise edbserver.StartupError(
                         "cannot load JWT sub allowlist: no secret key"
                     )
@@ -1545,6 +1542,7 @@ class Tenant:
                     )
                 else:
                     from . import server as edbserver
+
                     raise edbserver.StartupError(
                         "cannot load JWT revocation list: no secret key"
                     )
@@ -1739,9 +1737,11 @@ class Tenant:
         from . import bootstrap  # noqa: F402
 
         real_tgt_dbname = common.get_database_backend_name(
-            tgt_dbname, tenant_id=self._tenant_id)
+            tgt_dbname, tenant_id=self._tenant_id
+        )
         real_src_dbname = common.get_database_backend_name(
-            src_dbname, tenant_id=self._tenant_id)
+            src_dbname, tenant_id=self._tenant_id
+        )
 
         # HACK: Limit the maximum number of in-flight branch
         # creations. This is because branches use up to 3 concurrent
@@ -2066,7 +2066,8 @@ class Tenant:
                 tenant_id=self._tenant_id,
             ),
             instance_config=config.debug_serialize_config(
-                self.get_sys_config()),
+                self.get_sys_config()
+            ),
             user_roles=self._roles,
             pg_addr=dict(
                 server_settings=vars(self._cluster.get_connection_params()),
@@ -2096,7 +2097,8 @@ class Tenant:
                             in_tx=view.in_tx(),
                             in_tx_error=view.in_tx_error(),
                             config=config.debug_serialize_config(
-                                view.get_session_config()),
+                                view.get_session_config()
+                            ),
                             module_aliases=view.get_modaliases(),
                         )
                         for view in db.iter_views()

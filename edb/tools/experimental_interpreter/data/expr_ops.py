@@ -78,15 +78,11 @@ def map_tp(f: Callable[[Tp], Optional[Tp]], tp: Tp) -> Tp:
                     kind=k, tps=[recur(v) for v in tps], labels=labels
                 )
             case e.NamedNominalLinkTp(name=name, linkprop=linkprop):
-                return e.NamedNominalLinkTp(
-                    name=name, linkprop=recur(linkprop)
-                )
+                return e.NamedNominalLinkTp(name=name, linkprop=recur(linkprop))
             # case e.UncheckedNamedNominalLinkTp(name=name, linkprop=linkprop):
             #     return e.UncheckedNamedNominalLinkTp(name=name,
             #                         linkprop=recur(linkprop))
-            case e.NominalLinkTp(
-                name=name, subject=subject, linkprop=linkprop
-            ):
+            case e.NominalLinkTp(name=name, subject=subject, linkprop=linkprop):
                 return e.NominalLinkTp(
                     name=name, subject=recur(subject), linkprop=recur(linkprop)
                 )
@@ -125,7 +121,8 @@ def map_edge_select_filter(
                 return e.EdgeDatabaseDisjunctiveFilter(new_filters)  # type: ignore[arg-type]
             case e.EdgeDatabaseEqFilter(label, arg):
                 return e.EdgeDatabaseEqFilter(
-                    label, map_edge_select_filter(f, arg)  # type: ignore[arg-type]
+                    label,
+                    map_edge_select_filter(f, arg),  # type: ignore[arg-type]
                 )
             case _:
                 assert not isinstance(expr, e.EdgeDatabaseSelectFilter)  # type: ignore[arg-type]
@@ -312,9 +309,7 @@ def get_free_vars(e: Expr) -> Sequence[str]:
     return res
 
 
-def ensure_no_capture(
-    avoid_list: Sequence[str], e: BindingExpr
-) -> BindingExpr:
+def ensure_no_capture(avoid_list: Sequence[str], e: BindingExpr) -> BindingExpr:
     assert isinstance(e, BindingExpr)
     candidate_name = e.var
     while candidate_name in avoid_list:
@@ -393,7 +388,6 @@ def iterative_subst_expr_for_expr(
 def appears_in_expr_pred(
     search_pred: Callable[[Expr], bool], subject: Expr
 ) -> bool:
-
     class ReturnTrue(Exception):
         pass
 
@@ -411,7 +405,6 @@ def appears_in_expr_pred(
 
 
 def count_appearances_in_expr(search: Expr, subject: Expr):
-
     expr_is_var: Optional[str]
     match search:
         case FreeVarExpr(vname):
@@ -430,7 +423,6 @@ def count_appearances_in_expr(search: Expr, subject: Expr):
             and isinstance(candidate, BindingExpr)
             and candidate.var == expr_is_var
         ):
-
             # terminate search here
             return candidate
         if candidate == search:
@@ -463,7 +455,6 @@ def appears_in_expr(search: Expr, subject: Expr):
             and isinstance(candidate, BindingExpr)
             and candidate.var == expr_is_var
         ):
-
             # terminate search here
             return candidate
         if candidate == search:
@@ -505,9 +496,7 @@ def val_is_ref_val(rt: Val) -> bool:
 
 def remove_unless_link_props(dic: ObjectVal) -> ObjectVal:
     return ObjectVal(
-        val={
-            k: v for (k, v) in dic.val.items() if isinstance(k, LinkPropLabel)
-        }
+        val={k: v for (k, v) in dic.val.items() if isinstance(k, LinkPropLabel)}
     )
 
 

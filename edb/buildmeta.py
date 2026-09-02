@@ -92,10 +92,12 @@ def get_build_metadata_value(prop: str) -> str:
 
     try:
         from . import _buildmeta  # type: ignore
+
         return getattr(_buildmeta, prop)
     except (ImportError, AttributeError):
         raise MetadataError(
-            f'could not find {prop} in Gel distribution metadata') from None
+            f'could not find {prop} in Gel distribution metadata'
+        ) from None
 
 
 def _get_devmode_pg_config_path() -> pathlib.Path:
@@ -103,14 +105,14 @@ def _get_devmode_pg_config_path() -> pathlib.Path:
     pg_config = root / 'build' / 'postgres' / 'install' / 'bin' / 'pg_config'
     if not pg_config.is_file():
         try:
-            pg_config = pathlib.Path(
-                get_build_metadata_value('PG_CONFIG_PATH'))
+            pg_config = pathlib.Path(get_build_metadata_value('PG_CONFIG_PATH'))
         except MetadataError:
             pass
 
     if not pg_config.is_file():
-        raise MetadataError('DEV mode: Could not find PostgreSQL build, '
-                            'run `pip install -e .`')
+        raise MetadataError(
+            'DEV mode: Could not find PostgreSQL build, run `pip install -e .`'
+        )
 
     return pg_config
 
@@ -120,15 +122,15 @@ def get_pg_config_path() -> pathlib.Path:
         pg_config = _get_devmode_pg_config_path()
     else:
         try:
-            pg_config = pathlib.Path(
-                get_build_metadata_value('PG_CONFIG_PATH'))
+            pg_config = pathlib.Path(get_build_metadata_value('PG_CONFIG_PATH'))
         except MetadataError:
             pg_config = _get_devmode_pg_config_path()
         else:
             if not pg_config.is_file():
                 raise MetadataError(
                     f'invalid pg_config path: {pg_config!r}: file does not '
-                    f'exist or is not a regular file')
+                    f'exist or is not a regular file'
+                )
 
     return pg_config
 
@@ -147,7 +149,8 @@ def parse_pg_version(version_string: str) -> BackendVersion:
     version_match = _pg_version_regex.search(version_string)
     if version_match is None:
         raise ValueError(
-            f"malformed Postgres version string: {version_string!r}")
+            f"malformed Postgres version string: {version_string!r}"
+        )
     version = version_match.groupdict()
     return BackendVersion(
         major=int(version["major"]),
@@ -190,7 +193,8 @@ def get_pg_version() -> BackendVersion:
             return _bundled_pg_version
     else:
         raise MetadataError(
-            "could not find version information in pg_config output")
+            "could not find version information in pg_config output"
+        )
 
 
 def get_runstate_path(data_dir: pathlib.Path) -> pathlib.Path:
@@ -219,7 +223,7 @@ def get_extension_dir_path() -> pathlib.Path:
 def hash_dirs(
     dirs: Sequence[tuple[str, str]],
     *,
-    extra_files: Optional[Sequence[str | pathlib.Path]]=None,
+    extra_files: Optional[Sequence[str | pathlib.Path]] = None,
     extra_data: Optional[bytes] = None,
 ) -> bytes:
     def hash_dir(dirname, ext, paths):
@@ -254,7 +258,7 @@ def read_data_cache(
     cache_key: bytes,
     path: str,
     *,
-    pickled: bool=True,
+    pickled: bool = True,
     source_dir: Optional[pathlib.Path] = None,
 ) -> Any:
     if source_dir is None:
@@ -289,7 +293,8 @@ def write_data_cache(
 
     try:
         with tempfile.NamedTemporaryFile(
-                mode='wb', dir=full_path.parent, delete=False) as f:
+            mode='wb', dir=full_path.parent, delete=False
+        ) as f:
             f.write(cache_key)
             if pickled:
                 pickle.dump(obj, file=f, protocol=pickle.HIGHEST_PROTOCOL)
@@ -415,14 +420,13 @@ def get_version_metadata() -> VersionMetadata:
 
 
 def _decode_build_target(val: str) -> str:
-    return (
-        base64.b32decode(val + "=" * (-len(val) % 8), casefold=True).decode()
-    )
+    return base64.b32decode(val + "=" * (-len(val) % 8), casefold=True).decode()
 
 
 def _decode_build_date(val: str) -> datetime.datetime:
     return datetime.datetime.strptime(val, r"%Y%m%d%H%M").replace(
-        tzinfo=datetime.timezone.utc)
+        tzinfo=datetime.timezone.utc
+    )
 
 
 def get_version_from_scm(root: pathlib.Path) -> str:
@@ -523,8 +527,14 @@ def get_version_from_scm(root: pathlib.Path) -> str:
     env = dict(os.environ)
     env['TZ'] = 'UTC'
     proc = subprocess.run(
-        ['git', 'show', '-s', '--format=%cd',
-         '--date=format-local:%Y%m%d%H', commitish],
+        [
+            'git',
+            'show',
+            '-s',
+            '--format=%cd',
+            '--date=format-local:%Y%m%d%H',
+            commitish,
+        ],
         stdout=subprocess.PIPE,
         universal_newlines=True,
         check=True,
@@ -547,9 +557,11 @@ def get_version_from_scm(root: pathlib.Path) -> str:
             plat = "windows"
         ident = [
             platform.machine(),
-            "pc" if plat == "windows" else
-            "apple" if plat == "darwin" else
-            "unknown",
+            "pc"
+            if plat == "windows"
+            else "apple"
+            if plat == "darwin"
+            else "unknown",
             plat,
         ]
         if hasattr(platform, "libc_ver"):
@@ -558,8 +570,12 @@ def get_version_from_scm(root: pathlib.Path) -> str:
                 ident.append("gnu")
             elif libc == "musl":
                 ident.append("musl")
-        build_target = base64.b32encode(
-            "-".join(ident).encode()).decode().rstrip("=").lower()
+        build_target = (
+            base64.b32encode("-".join(ident).encode())
+            .decode()
+            .rstrip("=")
+            .lower()
+        )
     build_date = os.environ.get("GELITE_BUILD_DATE")
     if build_date:
         # Validate

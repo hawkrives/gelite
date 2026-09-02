@@ -101,7 +101,6 @@ class RoleExists(base.Condition):
 
 
 class RoleCommand:
-
     object: Role
 
     def _role(self) -> str:
@@ -135,7 +134,6 @@ class RoleCommand:
 
 
 class CreateRole(ddl.CreateObject, RoleCommand):
-
     def code(self) -> str:
         if self.object.membership:
             roles = ', '.join(qi(str(m)) for m in self.object.membership)
@@ -151,7 +149,6 @@ class CreateRole(ddl.CreateObject, RoleCommand):
 
 
 class AlterRole(ddl.AlterObject, RoleCommand):
-
     def code(self) -> str:
         attrs = self._attrs()
         if attrs:
@@ -165,24 +162,24 @@ class AlterRole(ddl.AlterObject, RoleCommand):
         super().generate_extra(block)
         if getattr(self.object, 'single_role_metadata', None):
             value = json.dumps(self.object.single_role_metadata)
-            query = base.Query(trampoline.fixup_query(
-                f'''
+            query = base.Query(
+                trampoline.fixup_query(
+                    f'''
                 UPDATE edgedbinstdata_VER.instdata
                 SET json = {ql(value)}::jsonb
                 WHERE key = 'single_role_metadata'
                 '''
-            ))
+                )
+            )
             block.add_command(query.code_with_block(block))
 
 
 class DropRole(ddl.SchemaObjectOperation):
-
     def code(self) -> str:
         return f'DROP ROLE {qi(self.name)}'
 
 
 class AlterRoleAddMember(ddl.SchemaObjectOperation):
-
     def __init__(
         self,
         name: RoleName,
@@ -201,7 +198,6 @@ class AlterRoleAddMember(ddl.SchemaObjectOperation):
 
 
 class AlterRoleDropMember(ddl.SchemaObjectOperation):
-
     def __init__(
         self,
         name: RoleName,
@@ -220,7 +216,6 @@ class AlterRoleDropMember(ddl.SchemaObjectOperation):
 
 
 class AlterRoleAddMembership(ddl.SchemaObjectOperation):
-
     def __init__(
         self,
         name: RoleName,

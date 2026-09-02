@@ -131,7 +131,8 @@ def refine_subject_with_filter(
                 return None
             assert isinstance(after_filter, e.EdgeDatabaseSelectFilter)  # type: ignore
             return_expr: e.Expr = e.QualifiedNameWithFilter(
-                subject, after_filter  # type: ignore
+                subject,
+                after_filter,  # type: ignore
             )
             for bnd_name, bnd_expr in bindings.items():
                 return_expr = e.WithExpr(
@@ -161,9 +162,7 @@ def refine_subject_with_filter(
 def select_optimize(expr: e.Expr) -> e.Expr:
     def sub_f(sub: e.Expr) -> Optional[e.Expr]:
         match sub:
-            case e.FilterOrderExpr(
-                subject=subject, filter=filter, order=order
-            ):
+            case e.FilterOrderExpr(subject=subject, filter=filter, order=order):
                 if order:
                     return None
                 else:

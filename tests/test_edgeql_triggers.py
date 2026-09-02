@@ -27,8 +27,7 @@ from edb.testbase import server as tb
 class TestTriggers(tb.DDLTestCase):
     '''The scope of the tests is testing various modes of Object creation.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'insert.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'insert.esdl')
 
     SETUP = [
         '''
@@ -135,9 +134,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "insert", 'notes': set("abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "insert", 'notes': set("abcdef")},
+            ]
+        )
 
         # We should still be able to insert Note normally
         await self.con.execute('''
@@ -161,9 +162,14 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "update", 'notes': set(f'{x} -> {x}!' for x in "abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {
+                    'name': "update",
+                    'notes': set(f'{x} -> {x}!' for x in "abcdef"),
+                },
+            ]
+        )
 
     async def test_edgeql_triggers_update_02(self):
         # This is the same as update_01 except the trigger is on DerivedTest
@@ -180,9 +186,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "update", 'notes': set(f'{x} -> {x}!' for x in "def")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "update", 'notes': set(f'{x} -> {x}!' for x in "def")},
+            ]
+        )
 
     async def test_edgeql_triggers_delete_01(self):
         await self.con.execute('''
@@ -195,9 +203,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
+            ]
+        )
 
     async def test_edgeql_triggers_delete_02(self):
         # This is the same as delete_01 except the trigger is on DerivedTest
@@ -211,9 +221,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "delete", 'notes': set(f'{x}!' for x in "def")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "delete", 'notes': set(f'{x}!' for x in "def")},
+            ]
+        )
 
     async def test_edgeql_triggers_mixed_01(self):
         # Install triggers for everything
@@ -236,11 +248,16 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
-            {'name': "insert", 'notes': set("abcdef")},
-            {'name': "update", 'notes': set(f'{x} -> {x}!' for x in "abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
+                {'name': "insert", 'notes': set("abcdef")},
+                {
+                    'name': "update",
+                    'notes': set(f'{x} -> {x}!' for x in "abcdef"),
+                },
+            ]
+        )
 
     async def test_edgeql_triggers_mixed_02(self):
         # Install double and triple triggers
@@ -260,20 +277,22 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {
-                'name': "all",
-                'notes': ["."] * 18,
-            },
-            {
-                'name': "new",
-                'notes': set("abcdef") | {f'{x}!' for x in "abcdef"}
-            },
-            {
-                'name': "old",
-                'notes': set("abcdef") | {f'{x}!' for x in "abcdef"}
-            },
-        ])
+        await self.assert_notes(
+            [
+                {
+                    'name': "all",
+                    'notes': ["."] * 18,
+                },
+                {
+                    'name': "new",
+                    'notes': set("abcdef") | {f'{x}!' for x in "abcdef"},
+                },
+                {
+                    'name': "old",
+                    'notes': set("abcdef") | {f'{x}!' for x in "abcdef"},
+                },
+            ]
+        )
 
     # MULTI!
 
@@ -292,9 +311,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "insert", 'notes': set("abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "insert", 'notes': set("abcdef")},
+            ]
+        )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
     async def test_edgeql_triggers_multi_mixed_01(self):
@@ -327,11 +348,16 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
-            {'name': "insert", 'notes': set("abcdef")},
-            {'name': "update", 'notes': set(f'{x} -> {x}!' for x in "abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "delete", 'notes': set(f'{x}!' for x in "abcdef")},
+                {'name': "insert", 'notes': set("abcdef")},
+                {
+                    'name': "update",
+                    'notes': set(f'{x} -> {x}!' for x in "abcdef"),
+                },
+            ]
+        )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
     async def test_edgeql_triggers_multi_mixed_02(self):
@@ -360,20 +386,22 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {
-                'name': "all",
-                'notes': ["."] * 18,
-            },
-            {
-                'name': "new",
-                'notes': set("abcdef") | {f'{x}!' for x in "abcdef"}
-            },
-            {
-                'name': "old",
-                'notes': set("abcdef") | {f'{x}!' for x in "abcdef"}
-            },
-        ])
+        await self.assert_notes(
+            [
+                {
+                    'name': "all",
+                    'notes': ["."] * 18,
+                },
+                {
+                    'name': "new",
+                    'notes': set("abcdef") | {f'{x}!' for x in "abcdef"},
+                },
+                {
+                    'name': "old",
+                    'notes': set("abcdef") | {f'{x}!' for x in "abcdef"},
+                },
+            ]
+        )
 
     async def test_edgeql_triggers_mixed_all_01(self):
         # Install FOR ALL triggers for everything
@@ -399,27 +427,47 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        res = tb.bag([
-            {"name": "insert", "notes": ["a"], "subject": None},
-            {"name": "insert", "notes": ["b"], "subject": None},
-            {"name": "insert", "notes": {"c", "d"}, "subject": None},
-            {"name": "insert", "notes": {"e", "f"}, "subject": None},
-
-            {"name": "update", "notes": ["a"], "subject": {"notes": ["a!"]}},
-            {"name": "update", "notes": ["b"], "subject": {"notes": ["b!"]}},
-            {"name": "update", "notes": ["d"], "subject": {"notes": ["d!"]}},
-            {
-                "name": "update",
-                "notes": {"c", "e"},
-                "subject": {"notes": {"c!", "e!"}}
-            },
-            {"name": "update", "notes": ["f"], "subject": {"notes": ["f!"]}},
-
-            {"name": "delete", "notes": ["b!"], "subject": None},
-            {"name": "delete", "notes": ["d!"], "subject": None},
-            {"name": "delete", "notes": ["a!"], "subject": None},
-            {"name": "delete", "notes": {"c!", "e!", "f!"}, "subject": None},
-        ])
+        res = tb.bag(
+            [
+                {"name": "insert", "notes": ["a"], "subject": None},
+                {"name": "insert", "notes": ["b"], "subject": None},
+                {"name": "insert", "notes": {"c", "d"}, "subject": None},
+                {"name": "insert", "notes": {"e", "f"}, "subject": None},
+                {
+                    "name": "update",
+                    "notes": ["a"],
+                    "subject": {"notes": ["a!"]},
+                },
+                {
+                    "name": "update",
+                    "notes": ["b"],
+                    "subject": {"notes": ["b!"]},
+                },
+                {
+                    "name": "update",
+                    "notes": ["d"],
+                    "subject": {"notes": ["d!"]},
+                },
+                {
+                    "name": "update",
+                    "notes": {"c", "e"},
+                    "subject": {"notes": {"c!", "e!"}},
+                },
+                {
+                    "name": "update",
+                    "notes": ["f"],
+                    "subject": {"notes": ["f!"]},
+                },
+                {"name": "delete", "notes": ["b!"], "subject": None},
+                {"name": "delete", "notes": ["d!"], "subject": None},
+                {"name": "delete", "notes": ["a!"], "subject": None},
+                {
+                    "name": "delete",
+                    "notes": {"c!", "e!", "f!"},
+                    "subject": None,
+                },
+            ]
+        )
 
         await self.assert_query_result(
             '''
@@ -447,30 +495,32 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        res = tb.bag([
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "all", "notes": {"."}},
-            {"name": "new", "notes": {"a"}},
-            {"name": "new", "notes": {"c!", "e!"}},
-            {"name": "new", "notes": {"d!"}},
-            {"name": "new", "notes": {"e", "f"}},
-            {"name": "new", "notes": {"f!"}},
-            {"name": "new", "notes": {"b", "a!"}},
-            {"name": "new", "notes": {"b!", "d", "c"}},
-            {"name": "old", "notes": {"f", "d!"}},
-            {"name": "old", "notes": {"a"}},
-            {"name": "old", "notes": {"b", "a!"}},
-            {"name": "old", "notes": {"b!"}},
-            {"name": "old", "notes": {"d"}},
-            {"name": "old", "notes": {"c", "e"}},
-            {"name": "old", "notes": {"c!", "e!", "f!"}},
-        ])
+        res = tb.bag(
+            [
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "all", "notes": {"."}},
+                {"name": "new", "notes": {"a"}},
+                {"name": "new", "notes": {"c!", "e!"}},
+                {"name": "new", "notes": {"d!"}},
+                {"name": "new", "notes": {"e", "f"}},
+                {"name": "new", "notes": {"f!"}},
+                {"name": "new", "notes": {"b", "a!"}},
+                {"name": "new", "notes": {"b!", "d", "c"}},
+                {"name": "old", "notes": {"f", "d!"}},
+                {"name": "old", "notes": {"a"}},
+                {"name": "old", "notes": {"b", "a!"}},
+                {"name": "old", "notes": {"b!"}},
+                {"name": "old", "notes": {"d"}},
+                {"name": "old", "notes": {"c", "e"}},
+                {"name": "old", "notes": {"c!", "e!", "f!"}},
+            ]
+        )
 
         await self.assert_query_result(
             '''
@@ -502,8 +552,8 @@ class TestTriggers(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 insert InsertTest { name := "1" };
             ''')
@@ -516,8 +566,8 @@ class TestTriggers(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 insert InsertTest {
                     name := "2",
@@ -536,64 +586,64 @@ class TestTriggers(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "0"
                 set { subordinates := (insert Subordinate { name := "d" }) }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "0"
                 set { subordinates += (insert Subordinate { name := "d" }) }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "1"
                 set { subordinates += (insert Subordinate { name := "d" }) }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "1"
                 set { subordinates -= .subordinates }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "1"
                 set { subordinates -= .subordinates }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "2"
                 set { subordinates -= (select Subordinate filter .name = "b") }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name = "2"
                 set { subordinates := (select Subordinate filter .name = "b") }
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r"subordinate counts collide"):
+            edgedb.ConstraintViolationError, r"subordinate counts collide"
+        ):
             await self.con.query('''
                 update InsertTest filter .name in {"1", "2"}
                 set { subordinates := Subordinate }
@@ -662,8 +712,7 @@ class TestTriggers(tb.DDLTestCase):
         ''')
 
         err = lambda name: self.assertRaisesRegexTx(
-            edgedb.InvalidValueError,
-            f"subordinate sum is not zero for {name}"
+            edgedb.InvalidValueError, f"subordinate sum is not zero for {name}"
         )
 
         await self.con.query('''
@@ -777,17 +826,23 @@ class TestTriggers(tb.DDLTestCase):
 
         # Make sure they fire with typename injection on
         async with err("a"):
-            await self.con._fetchall('''
+            await self.con._fetchall(
+                '''
                 update InsertTest filter .name = "a"
                 set { subordinates := assert_distinct(sub("1")) };
-            ''', __typenames__=True)
+            ''',
+                __typenames__=True,
+            )
 
         async with err("c"):
-            await self.con._fetchall('''
+            await self.con._fetchall(
+                '''
                 insert InsertTest {
                     name := "c", subordinates := assert_distinct(sub("1"))
                 }
-            ''', __typenames__=True)
+            ''',
+                __typenames__=True,
+            )
 
     async def test_edgeql_triggers_policies_01(self):
         # It is OK to see the newly created object during a trigger,
@@ -838,10 +893,12 @@ class TestTriggers(tb.DDLTestCase):
             '''
             select Note { note }
             ''',
-            tb.bag([
-                {'note': "0"},
-                {'note': "0"},
-            ]),
+            tb.bag(
+                [
+                    {'note': "0"},
+                    {'note': "0"},
+                ]
+            ),
         )
 
     async def test_edgeql_triggers_policies_03(self):
@@ -897,9 +954,11 @@ class TestTriggers(tb.DDLTestCase):
             '''
             select Note { note }
             ''',
-            tb.bag([
-                {'note': "2/2/1"},
-            ]),
+            tb.bag(
+                [
+                    {'note': "2/2/1"},
+                ]
+            ),
         )
 
     async def test_edgeql_triggers_policies_05(self):
@@ -1066,9 +1125,11 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        await self.assert_notes([
-            {'name': "insert", 'notes': set("abcdef")},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "insert", 'notes': set("abcdef")},
+            ]
+        )
 
         await self.assert_query_result(
             '''
@@ -1079,8 +1140,9 @@ class TestTriggers(tb.DDLTestCase):
 
     async def test_edgeql_triggers_chain_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                'trigger on default::InsertTest after insert is recursive'):
+            edgedb.SchemaDefinitionError,
+            'trigger on default::InsertTest after insert is recursive',
+        ):
             await self.con.execute('''
                 alter type InsertTest {
                   create trigger log after insert for each do (
@@ -1104,9 +1166,10 @@ class TestTriggers(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                'would need to be executed in multiple stages on default::Note '
-                'after insert'):
+            edgedb.QueryError,
+            'would need to be executed in multiple stages on default::Note '
+            'after insert',
+        ):
             await self.con.execute('''
                 select {
                     (insert InsertTest { name := "foo" }),
@@ -1155,9 +1218,11 @@ class TestTriggers(tb.DDLTestCase):
             }
         ''')
 
-        await self.assert_notes([
-            {'name': "foo", 'notes': set()},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "foo", 'notes': set()},
+            ]
+        )
 
         await self.con.execute('''
             select {
@@ -1170,10 +1235,12 @@ class TestTriggers(tb.DDLTestCase):
             }
         ''')
 
-        await self.assert_notes([
-            {'name': "foo_update", 'notes': set()},
-            {'name': "insert", 'notes': set(["foo_insert"])},
-        ])
+        await self.assert_notes(
+            [
+                {'name': "foo_update", 'notes': set()},
+                {'name': "insert", 'notes': set(["foo_insert"])},
+            ]
+        )
 
     async def test_edgeql_triggers_tricky_01(self):
         await self.con.execute('''
@@ -1198,7 +1265,7 @@ class TestTriggers(tb.DDLTestCase):
             [
                 {'name': 'x', 'note': None, 'subject': {'id': str}},
                 {'name': 'y', 'note': "1", 'subject': None},
-            ]
+            ],
         )
 
     async def test_edgeql_triggers_old_link_01(self):
@@ -1228,7 +1295,7 @@ class TestTriggers(tb.DDLTestCase):
             [
                 {'name': 'del', 'note': "default::InsertTest"},
                 {'name': 'upd', 'note': "default::InsertTest"},
-            ]
+            ],
         )
 
     async def test_edgeql_triggers_old_link_02(self):
@@ -1261,7 +1328,7 @@ class TestTriggers(tb.DDLTestCase):
             [
                 {'name': 'del', 'note': "1"},
                 {'name': 'upd', 'note': "1"},
-            ]
+            ],
         )
 
     async def test_edgeql_triggers_when_01(self):
@@ -1324,16 +1391,18 @@ class TestTriggers(tb.DDLTestCase):
 
         await self.do_basic_work()
 
-        res = tb.bag([
-            {"name": "new", "notes": {"c!", "e!"}},
-            {"name": "new", "notes": {"e", "f"}},
-            {"name": "new", "notes": {"b", "a!"}},
-            {"name": "new", "notes": {"b!", "d", "c"}},
-            {"name": "old", "notes": {"f", "d!"}},
-            {"name": "old", "notes": {"b", "a!"}},
-            {"name": "old", "notes": {"c", "e"}},
-            {"name": "old", "notes": {"c!", "e!", "f!"}},
-        ])
+        res = tb.bag(
+            [
+                {"name": "new", "notes": {"c!", "e!"}},
+                {"name": "new", "notes": {"e", "f"}},
+                {"name": "new", "notes": {"b", "a!"}},
+                {"name": "new", "notes": {"b!", "d", "c"}},
+                {"name": "old", "notes": {"f", "d!"}},
+                {"name": "old", "notes": {"b", "a!"}},
+                {"name": "old", "notes": {"c", "e"}},
+                {"name": "old", "notes": {"c!", "e!", "f!"}},
+            ]
+        )
 
         await self.assert_query_result(
             '''
@@ -1372,8 +1441,9 @@ class TestTriggers(tb.DDLTestCase):
 
     async def test_edgeql_triggers_when_bad_01(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                r"data-modifying statements are not allowed"):
+            edgedb.SchemaDefinitionError,
+            r"data-modifying statements are not allowed",
+        ):
             await self.con.query('''
                 alter type InsertTest {
                   create trigger log_new after insert, update for each
@@ -1386,8 +1456,8 @@ class TestTriggers(tb.DDLTestCase):
 
     async def test_edgeql_triggers_when_bad_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                r"when expression.*is of invalid type"):
+            edgedb.SchemaDefinitionError, r"when expression.*is of invalid type"
+        ):
             await self.con.query('''
                 alter type InsertTest {
                   create trigger log_new after insert, update for each
@@ -1470,9 +1540,7 @@ class TestTriggers(tb.DDLTestCase):
             }
         ''')
 
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryAssertionError,
-                r""):
+        async with self.assertRaisesRegexTx(edgedb.QueryAssertionError, r""):
             await self.con.query('''
                 update Resource
                 filter .name = "B"

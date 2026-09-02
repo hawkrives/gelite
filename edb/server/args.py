@@ -60,7 +60,6 @@ logger = logging.getLogger('edb.server')
 
 
 class InvalidUsageError(Exception):
-
     def __init__(self, msg: str, exit_code: int = 2) -> None:
         super().__init__(msg, exit_code)
 
@@ -70,38 +69,32 @@ def abort(msg: str, *, exit_code: int = 2) -> NoReturn:
 
 
 class StartupScript(NamedTuple):
-
     text: str
     database: str
     user: str
 
 
 class ServerSecurityMode(enum.StrEnum):
-
     Strict = "strict"
     InsecureDevMode = "insecure_dev_mode"
 
 
 class ServerEndpointSecurityMode(enum.StrEnum):
-
     Tls = "tls"
     Optional = "optional"
 
 
 class ServerTlsCertMode(enum.StrEnum):
-
     RequireFile = "require_file"
     SelfSigned = "generate_self_signed"
 
 
 class JOSEKeyMode(enum.StrEnum):
-
     RequireFile = "require_file"
     Generate = "generate"
 
 
 class ReadinessState(enum.StrEnum):
-
     Default = "default"
     """Default state: serving normally"""
 
@@ -122,7 +115,6 @@ class ReadinessState(enum.StrEnum):
 
 
 class ServerAuthMethod(enum.StrEnum):
-
     Auto = "auto"
     Trust = "Trust"
     Scram = "SCRAM"
@@ -132,7 +124,6 @@ class ServerAuthMethod(enum.StrEnum):
 
 
 class ServerConnTransport(enum.StrEnum):
-
     HTTP = "HTTP"
     TCP = "TCP"
     TCP_PG = "TCP_PG"
@@ -165,7 +156,6 @@ class ReloadTrigger(enum.StrEnum):
 
 
 class ServerAuthMethods:
-
     def __init__(
         self,
         methods: Mapping[ServerConnTransport, list[ServerAuthMethod]],
@@ -185,15 +175,19 @@ class ServerAuthMethods:
         )
 
 
-DEFAULT_AUTH_METHODS = ServerAuthMethods({
-    ServerConnTransport.TCP: [ServerAuthMethod.Scram],
-    ServerConnTransport.TCP_PG: [ServerAuthMethod.Scram],
-    ServerConnTransport.HTTP: [ServerAuthMethod.JWT],
-    ServerConnTransport.SIMPLE_HTTP: [
-        ServerAuthMethod.Password, ServerAuthMethod.JWT],
-    ServerConnTransport.HTTP_METRICS: [ServerAuthMethod.Auto],
-    ServerConnTransport.HTTP_HEALTH: [ServerAuthMethod.Auto],
-})
+DEFAULT_AUTH_METHODS = ServerAuthMethods(
+    {
+        ServerConnTransport.TCP: [ServerAuthMethod.Scram],
+        ServerConnTransport.TCP_PG: [ServerAuthMethod.Scram],
+        ServerConnTransport.HTTP: [ServerAuthMethod.JWT],
+        ServerConnTransport.SIMPLE_HTTP: [
+            ServerAuthMethod.Password,
+            ServerAuthMethod.JWT,
+        ],
+        ServerConnTransport.HTTP_METRICS: [ServerAuthMethod.Auto],
+        ServerConnTransport.HTTP_HEALTH: [ServerAuthMethod.Auto],
+    }
+)
 
 
 class BackendCapabilitySets(NamedTuple):
@@ -216,7 +210,6 @@ class CompilerPoolMode(enum.StrEnum):
 
 
 class ServerConfig(NamedTuple):
-
     data_dir: pathlib.Path
     backend_dsn: str
     tenant_id: Optional[str]
@@ -371,7 +364,8 @@ def _validate_max_backend_connections(ctx, param, value):
     if value is not None and value < defines.BACKEND_CONNECTIONS_MIN:
         raise click.BadParameter(
             f'the minimum number of backend connections '
-            f'is {defines.BACKEND_CONNECTIONS_MIN}')
+            f'is {defines.BACKEND_CONNECTIONS_MIN}'
+        )
     return value
 
 
@@ -400,7 +394,8 @@ def _validate_compiler_pool_size(ctx, param, value):
     if value is not None and value < defines.BACKEND_COMPILER_POOL_SIZE_MIN:
         raise click.BadParameter(
             f'the minimum value for the compiler pool size option '
-            f'is {defines.BACKEND_COMPILER_POOL_SIZE_MIN}')
+            f'is {defines.BACKEND_COMPILER_POOL_SIZE_MIN}'
+        )
     return value
 
 
@@ -421,10 +416,10 @@ def _validate_tenant_id(ctx, param, value):
         if len(value) > schema_defines.MAX_TENANT_ID_LENGTH:
             raise click.BadParameter(
                 f'cannot be longer than'
-                f' {schema_defines.MAX_TENANT_ID_LENGTH} characters')
+                f' {schema_defines.MAX_TENANT_ID_LENGTH} characters'
+            )
         if not value.isalnum() or not value.isascii():
-            raise click.BadParameter(
-                f'contains invalid characters')
+            raise click.BadParameter(f'contains invalid characters')
 
     return value
 
@@ -436,10 +431,10 @@ def _status_sink_file(path: str) -> Callable[[str], None]:
                 print(status, file=f, flush=True)
         except OSError as e:
             logger.warning(
-                f'could not write server status to {path!r}: {e.strerror}')
+                f'could not write server status to {path!r}: {e.strerror}'
+            )
         except Exception as e:
-            logger.warning(
-                f'could not write server status to {path!r}: {e}')
+            logger.warning(f'could not write server status to {path!r}: {e}')
 
     return _writer
 
@@ -452,10 +447,12 @@ def _status_sink_fd(fileno: int) -> Callable[[str], None]:
         except OSError as e:
             logger.warning(
                 f'could not write server status to fd://{fileno!r}: '
-                f'{e.strerror}')
+                f'{e.strerror}'
+            )
         except Exception as e:
             logger.warning(
-                f'could not write server status to fd://{fileno!r}: {e}')
+                f'could not write server status to fd://{fileno!r}: {e}'
+            )
 
     return _writer
 
@@ -504,15 +501,15 @@ def _validate_default_auth_method(
         # Per-transport configuration.
         transport_specs = value.split(",")
         transport_names = {
-            v.lower(): v
-            for v in ServerConnTransport.__members__.values()
+            v.lower(): v for v in ServerConnTransport.__members__.values()
         }
         for transport_spec in transport_specs:
             transport_spec = transport_spec.strip()
             transport_name, _, method_names = transport_spec.partition(':')
             if not method_names:
                 raise click.BadParameter(
-                    "format is <transport>:<method>[/method...][,...]")
+                    "format is <transport>:<method>[/method...][,...]"
+                )
             transport = transport_names.get(transport_name.lower())
             if not transport:
                 raise click.BadParameter(
@@ -551,21 +548,20 @@ class EnvvarResolver(click.Option):
 
         if not isinstance(self.envvar, str):
             raise click.BadParameter(
-                "expected a single envvar value but got multiple")
+                "expected a single envvar value but got multiple"
+            )
 
         file_var = f'{self.envvar}_FILE'
         alt_var = f'{self.envvar}_ENV'
 
         vars_set = [
-            var for var in (self.envvar, file_var, alt_var)
-            if var in os.environ
+            var for var in (self.envvar, file_var, alt_var) if var in os.environ
         ]
 
         if len(vars_set) > 1:
             amt = "both" if len(vars_set) == 2 else "all"
             raise click.BadParameter(
-                f'{oxford_comma(vars_set)} are exclusive, '
-                f'but {amt} are set.'
+                f'{oxford_comma(vars_set)} are exclusive, but {amt} are set.'
             )
 
         var_val = os.environ.get(self.envvar)
@@ -585,474 +581,602 @@ class EnvvarResolver(click.Option):
             except Exception as e:
                 raise click.BadParameter(
                     f'could not read the file specified by '
-                    f'{file_var} ({file_var_val!r})') from e
+                    f'{file_var} ({file_var_val!r})'
+                ) from e
 
         return None
 
 
-server_options = typeutils.chain_decorators([
-    click.option(
-        '-D', '--data-dir', type=PathPath(),
-        envvar="GELITE_SERVER_DATADIR", cls=EnvvarResolver,
-        help='database cluster directory'),
-    click.option(
-        '--postgres-dsn', type=str, hidden=True,
-        help='[DEPRECATED] DSN of a remote Postgres cluster, if using one'),
-    click.option(
-        '--backend-dsn', type=str,
-        envvar="GELITE_SERVER_BACKEND_DSN", cls=EnvvarResolver,
-        help='DSN of a remote backend cluster, if using one.'),
-    click.option(
-        '--tenant-id',
-        type=str,
-        callback=_validate_tenant_id,
-        envvar="GELITE_SERVER_TENANT_ID",
-        cls=EnvvarResolver,
-        help='Specifies the tenant ID of this server when hosting'
-             ' multiple Gel instances on one Postgres cluster.'
-             ' Must be an alphanumeric ASCII string, maximum'
-             f' {schema_defines.MAX_TENANT_ID_LENGTH} characters long.',
-    ),
-    click.option(
-        '--ignore-other-tenants',
-        is_flag=True,
-        help='If set, the server will ignore the presence of another tenant '
-             'in the database instance in single-tenant mode instead of '
-             'exiting with a catalog incompatibility error.'
-    ),
-    click.option(
-        '-l', '--log-level',
-        envvar="GELITE_SERVER_LOG_LEVEL",
-        cls=EnvvarResolver,
-        default='i',
-        type=click.Choice(
-            ['debug', 'd', 'info', 'i', 'warn', 'w',
-             'error', 'e', 'silent', 's'],
-            case_sensitive=False,
+server_options = typeutils.chain_decorators(
+    [
+        click.option(
+            '-D',
+            '--data-dir',
+            type=PathPath(),
+            envvar="GELITE_SERVER_DATADIR",
+            cls=EnvvarResolver,
+            help='database cluster directory',
         ),
-        help=(
-            'Logging level.  Possible values: (d)ebug, (i)nfo, (w)arn, '
-            '(e)rror, (s)ilent'
-        )),
-    click.option(
-        '--log-to',
-        help=('send logs to DEST, where DEST can be a file name, "syslog", '
-              'or "stderr"'),
-        type=str, metavar='DEST', default='stderr'),
-    click.option(
-        '--bootstrap', is_flag=True, hidden=True,
-        help='[DEPRECATED] bootstrap the database cluster and exit'),
-    click.option(
-        '--bootstrap-only', is_flag=True,
-        envvar="GELITE_SERVER_BOOTSTRAP_ONLY", cls=EnvvarResolver,
-        help='bootstrap the database cluster and exit'),
-    click.option(
-        '--inplace-upgrade-prepare', type=PathPath(),
-        envvar="GELITE_SERVER_INPLACE_UPGRADE_PREPARE",
-        cls=EnvvarResolver,
-        help='try to do an in-place upgrade with the specified dump file'),
-    click.option(
-        '--inplace-upgrade-rollback', type=bool, is_flag=True,
-        envvar="GELITE_SERVER_INPLACE_UPGRADE_ROLLBACK",
-        cls=EnvvarResolver,
-        help='rollback a prepared upgrade'),
-    click.option(
-        '--inplace-upgrade-finalize', type=bool, is_flag=True,
-        envvar="GELITE_SERVER_INPLACE_UPGRADE_FINALIZE",
-        cls=EnvvarResolver,
-        help='finalize an in-place upgrade'),
-    click.option(
-        '--default-branch', type=str,
-        help='the name of the default branch to create'),
-    click.option(
-        '--default-database', type=str, hidden=True,
-        help='[DEPRECATED] the name of the default database to create'),
-    click.option(
-        '--default-database-user', type=str, hidden=True,
-        help='[DEPRECATED] the name of the default database owner'),
-    click.option(
-        '--bootstrap-command', metavar="QUERIES",
-        envvar="GELITE_SERVER_BOOTSTRAP_COMMAND", cls=EnvvarResolver,
-        help='run the commands when initializing the database. '
-             'Queries are executed by default user within default '
-             'database. May be used with or without `--bootstrap-only`.'),
-    click.option(
-        '--bootstrap-command-file', type=PathPath(), metavar="PATH",
-        help='run the script when initializing the database. '
-             'Script run by default user within default database. '
-             'May be used with or without `--bootstrap-only`.'),
-    click.option(
-        '--bootstrap-script', type=PathPath(),
-        help='[DEPRECATED] use --bootstrap-command-file instead.'),
-    click.option(
-        '--devmode/--no-devmode',
-        help='enable or disable the development mode',
-        default=None),
-    click.option(
-        '--testmode/--no-testmode',
-        help='enable or disable the test mode',
-        default=False),
-    click.option(
-        '-I', '--bind-address', type=str, multiple=True,
-        envvar="GELITE_SERVER_BIND_ADDRESS", cls=EnvvarResolver,
-        help='IP addresses to listen on, specify multiple times for more than '
-             'one address to listen on'),
-    click.option(
-        '-P', '--port', type=PortType(), default=None,
-        envvar="GELITE_SERVER_PORT", cls=EnvvarResolver,
-        help='port to listen on'),
-    click.option(
-        '-b', '--background', is_flag=True, help='daemonize'),
-    click.option(
-        '--pidfile-dir', type=PathPath(), default=None,
-        help='path to PID file directory, defaults to --runstate-dir'),
-    click.option(
-        '--daemon-user', type=int),
-    click.option(
-        '--daemon-group', type=int),
-    click.option(
-        '--runstate-dir', type=PathPath(), default=None,
-        envvar="GELITE_SERVER_RUNSTATE_DIR",
-        cls=EnvvarResolver,
-        help=f'directory where UNIX sockets and other temporary '
-             f'runtime files will be placed ({_get_runstate_dir_default()} '
-             f'by default)'),
-    click.option(
-        '--extensions-dir', type=PathPath(), default=(), multiple=True,
-        envvar="GELITE_SERVER_EXTENSIONS_DIR",
-        cls=EnvvarResolver,
-        help=f'directory where third-party extension packages are loaded from'),
-    click.option(
-        '--max-backend-connections', type=int, metavar='NUM',
-        envvar="GELITE_SERVER_MAX_BACKEND_CONNECTIONS",
-        cls=EnvvarResolver,
-        help=f'The maximum NUM of connections this Gel instance could make '
-             f'to the backend PostgreSQL cluster. If not set, Gel will '
-             f'detect and calculate the NUM: RAM/100MiB='
-             f'{compute_default_max_backend_connections()} for local '
-             f'Postgres or pg_settings.max_connections for remote Postgres, '
-             f'minus the NUM of --reserved-pg-connections.',
-        callback=_validate_max_backend_connections),
-    click.option(
-        '--compiler-pool-size', type=int, metavar='NUM',
-        envvar="GELITE_SERVER_COMPILER_POOL_SIZE",
-        cls=EnvvarResolver,
-        callback=_validate_compiler_pool_size,
-        help='Size of the compiler pool.  When --compiler-pool-mode=fixed, '
-             'it is the NUM of compiler worker processes, '
-             f"defaults to {compute_default_compiler_pool_size()} (you'll see "
-             '1 extra template process); for on_demand, it is the maximum NUM '
-             'of workers the pool could scale up to, with the same default.'
-    ),
-    click.option(
-        '--compiler-worker-branch-limit', type=int, metavar='NUM',
-        default=5,
-        envvar="GELITE_SERVER_COMPILER_WORKER_BRANCH_LIMIT",
-        cls=EnvvarResolver,
-        help='The maximum NUM of branches each compiler worker could cache up '
-             'to, default is 5.'
-    ),
-    click.option(
-        '--compiler-pool-mode',
-        type=click.Choice(
-            sorted(set(CompilerPoolMode.__members__.values()))),
-        default=CompilerPoolMode.Default.value,
-        envvar="GELITE_SERVER_COMPILER_POOL_MODE",
-        cls=EnvvarResolver,
-        help='Choose a mode for the compiler pool to scale. "fixed" means the '
-             'pool will not scale and sticks to --compiler-pool-size, while '
-             '"on_demand" means the pool will maintain at least 1 worker and '
-             'automatically scale up (to --compiler-pool-size workers ) and '
-             'down to the demand. Defaults to "fixed" in production mode and '
-             '"on_demand" in development mode.',
-    ),
-    click.option(
-        '--echo-runtime-info', type=bool, default=False, is_flag=True,
-        help='[DEPREATED, use --emit-server-status] '
-             'echo runtime info to stdout; the format is JSON, prefixed by '
-             '"GELITE_SERVER_DATA:", ended with a new line'),
-    click.option(
-        '--emit-server-status',
-        type=str, default=None, metavar='DEST', multiple=True,
-        help='Instruct the server to emit changes in status to DEST, '
-             'where DEST is a URI specifying a file (file://<path>), '
-             'or a file descriptor (fd://<fileno>).  If the URI scheme '
-             'is not specified, file:// is assumed.'),
-    click.option(
-        '--temp-dir', type=bool, default=False, is_flag=True,
-        help='create a temporary database cluster directory '
-             'that will be automatically purged on server shutdown'),
-    click.option(
-        '--auto-shutdown', type=bool, default=False, is_flag=True, hidden=True,
-        help='shutdown the server after the last ' +
-             'connection is closed'),
-    click.option(
-        '--auto-shutdown-after', type=float, default=-1.0, metavar='N',
-        help='shutdown the server if no client connections were made in the '
-             'last N seconds, if N = 0, shut down after the last client has '
-             'disconnected, N < 0 (default) means no auto shutdown'),
-    click.option(
-        '--tls-cert-file',
-        type=PathPath(),
-        envvar="GELITE_SERVER_TLS_CERT_FILE",
-        cls=EnvvarResolver,
-        help='Specifies a path to a file containing a server TLS certificate '
-             'in PEM format, as well as possibly any number of CA '
-             'certificates needed to establish the certificate '
-             'authenticity.  If the file does not exist and the '
-             '--tls-cert-mode option is set to "generate_self_signed", a '
-             'self-signed certificate will be automatically created in '
-             'the specified path.'),
-    click.option(
-        '--tls-key-file',
-        type=PathPath(),
-        envvar="GELITE_SERVER_TLS_KEY_FILE",
-        cls=EnvvarResolver,
-        help='Specifies a path to a file containing the private key in PEM '
-             'format.  If the file does not exist and the --tls-cert-mode '
-             'option is set to "generate_self_signed", the private key will '
-             'be automatically created in the specified path.'),
-    click.option(
-        '--tls-cert-mode',
-        envvar="GELITE_SERVER_TLS_CERT_MODE", cls=EnvvarResolver,
-        type=click.Choice(
-            ['default'] + list(ServerTlsCertMode.__members__.values()),
-            case_sensitive=True,
+        click.option(
+            '--postgres-dsn',
+            type=str,
+            hidden=True,
+            help='[DEPRECATED] DSN of a remote Postgres cluster, if using one',
         ),
-        default='default',
-        help='Specifies what to do when the TLS certificate and key are '
-             'either not specified or are missing.  When set to '
-             '"require_file", the TLS certificate and key must be specified '
-             'in the --tls-cert-file and --tls-key-file options and both must '
-             'exist.  When set to "generate_self_signed" a new self-signed '
-             'certificate and private key will be generated and placed in the '
-             'path specified by --tls-cert-file/--tls-key-file, if those are '
-             'set, otherwise the generated certificate and key are stored as '
-             f'`{TLS_CERT_FILE_NAME}` and `{TLS_KEY_FILE_NAME}` in the data '
-             'directory, or, if the server is running with --backend-dsn, '
-             'in a subdirectory of --runstate-dir.\n\nThe default is '
-             '"require_file" when the --security option is set to "strict", '
-             'and "generate_self_signed" when the --security option is set to '
-             '"insecure_dev_mode"'),
-    click.option(
-        '--tls-client-ca-file',
-        type=PathPath(),
-        envvar='GELITE_SERVER_TLS_CLIENT_CA_FILE',
-        cls=EnvvarResolver,
-        help='Specifies a path to a file containing a TLS CA certificate to '
-             'verify client certificates on demand. When set, the default '
-             'authentication method of HTTP_METRICS(/metrics) and HTTP_HEALTH'
-             '(/server/*) will also become "mTLS", unless explicitly set in '
-             '--default-auth-method. Note, the protection of such HTTP '
-             'endpoints is only complete if --http-endpoint-security is also '
-             'set to `tls`, or they are still accessible in plaintext HTTP.'
-    ),
-    click.option(
-        '--generate-self-signed-cert', type=bool, default=False, is_flag=True,
-        help='DEPRECATED.\n\n'
-             'Use --tls-cert-mode=generate_self_signed instead.'),
-    click.option(
-        '--binary-endpoint-security',
-        envvar="GELITE_SERVER_BINARY_ENDPOINT_SECURITY",
-        cls=EnvvarResolver,
-        type=click.Choice(
-            ['default', 'tls', 'optional'],
-            case_sensitive=True,
+        click.option(
+            '--backend-dsn',
+            type=str,
+            envvar="GELITE_SERVER_BACKEND_DSN",
+            cls=EnvvarResolver,
+            help='DSN of a remote backend cluster, if using one.',
         ),
-        default='default',
-        help='Specifies the security mode of server binary endpoint. '
-             'When set to `optional`, non-TLS connections are allowed. '
-             'The default is `tls`.',
-    ),
-    click.option(
-        '--http-endpoint-security',
-        envvar="GELITE_SERVER_HTTP_ENDPOINT_SECURITY",
-        cls=EnvvarResolver,
-        type=click.Choice(
-            ['default', 'tls', 'optional'],
-            case_sensitive=True,
+        click.option(
+            '--tenant-id',
+            type=str,
+            callback=_validate_tenant_id,
+            envvar="GELITE_SERVER_TENANT_ID",
+            cls=EnvvarResolver,
+            help='Specifies the tenant ID of this server when hosting'
+            ' multiple Gel instances on one Postgres cluster.'
+            ' Must be an alphanumeric ASCII string, maximum'
+            f' {schema_defines.MAX_TENANT_ID_LENGTH} characters long.',
         ),
-        default='default',
-        help='Specifies the security mode of server HTTP endpoint. '
-             'When set to `optional`, non-TLS connections are allowed. '
-             'The default is `tls`.',
-    ),
-    click.option(
-        '--security',
-        envvar="GELITE_SERVER_SECURITY",
-        cls=EnvvarResolver,
-        type=click.Choice(
-            ['default', 'strict', 'insecure_dev_mode'],
-            case_sensitive=True,
+        click.option(
+            '--ignore-other-tenants',
+            is_flag=True,
+            help='If set, the server will ignore the presence of another tenant '
+            'in the database instance in single-tenant mode instead of '
+            'exiting with a catalog incompatibility error.',
         ),
-        default='default',
-        help=(
-            'When set to `insecure_dev_mode`, sets the default '
-            'authentication method to `Trust`, enables non-TLS '
-            'client HTTP connections, and implies '
-            '`--tls-cert-mode=generate_self_signed`.  The default is `strict`.'
+        click.option(
+            '-l',
+            '--log-level',
+            envvar="GELITE_SERVER_LOG_LEVEL",
+            cls=EnvvarResolver,
+            default='i',
+            type=click.Choice(
+                [
+                    'debug',
+                    'd',
+                    'info',
+                    'i',
+                    'warn',
+                    'w',
+                    'error',
+                    'e',
+                    'silent',
+                    's',
+                ],
+                case_sensitive=False,
+            ),
+            help=(
+                'Logging level.  Possible values: (d)ebug, (i)nfo, (w)arn, '
+                '(e)rror, (s)ilent'
+            ),
         ),
-    ),
-    click.option(
-        '--jws-key-file',
-        type=PathPath(),
-        envvar="GELITE_SERVER_JWS_KEY_FILE",
-        cls=EnvvarResolver,
-        hidden=True,
-        help='Specifies a path to a file containing a public key in PEM '
-             'or JSON JWK format used to verify JWT signatures. The file may '
-             'also contain a private key to sign JWT tokens for '
-             'SCRAM-over-HTTP.'),
-    click.option(
-        '--jwe-key-file',
-        type=PathPath(),
-        hidden=True,
-        help='Deprecated: no longer in use.'),
-    click.option(
-        '--jose-key-mode',
-        envvar="GELITE_SERVER_JOSE_KEY_MODE", cls=EnvvarResolver,
-        type=click.Choice(
-            ['default'] + list(JOSEKeyMode.__members__.values()),
-            case_sensitive=True,
+        click.option(
+            '--log-to',
+            help=(
+                'send logs to DEST, where DEST can be a file name, "syslog", '
+                'or "stderr"'
+            ),
+            type=str,
+            metavar='DEST',
+            default='stderr',
         ),
-        hidden=True,
-        default='default',
-        help='Specifies what to do when the JOSE keys are either not '
-             'specified or are missing.  When set to "require_file", the JOSE '
-             'keys must be specified in the --jws-key-file and the file must '
-             'exist.  When set to "generate", a new key pair will be '
-             'generated and placed in the path specified by --jws-key-file, '
-             'if those are set, otherwise the generated key pairs are stored '
-             f'as `{JWS_KEY_FILE_NAME}` in the data directory, or, if the '
-             'server is running with --backend-dsn, in a subdirectory of '
-             '--runstate-dir.\n\nThe default is "require_file" when the '
-             '--security option is set to "strict", and "generate" when the '
-             '--security option is set to "insecure_dev_mode"'),
-    click.option(
-        '--jwt-sub-allowlist-file',
-        type=PathPath(),
-        envvar="GELITE_SERVER_JWT_SUB_ALLOWLIST_FILE",
-        cls=EnvvarResolver,
-        hidden=True,
-        help='A file where the server can obtain a list of all JWT subjects '
-             'that are allowed to access this instance. '
-             'The file must contain one JWT "sub" claim value per line. '
-             'Applies only to the JWT authentication method.'
-    ),
-    click.option(
-        '--jwt-revocation-list-file',
-        type=PathPath(),
-        envvar="GELITE_SERVER_JWT_REVOCATION_LIST_FILE",
-        cls=EnvvarResolver,
-        hidden=True,
-        help='A file where the server can obtain a list of all JWT ids '
-             'that are allowed to access this instance. '
-             'The file must contain one JWT "jti" claim value per line. '
-             'Applies only to the JWT authentication method.'
-    ),
-    click.option(
-        "--default-auth-method",
-        envvar="GELITE_SERVER_DEFAULT_AUTH_METHOD", cls=EnvvarResolver,
-        callback=_validate_default_auth_method,
-        type=str,
-        help=(
-            "The default authentication method to use when none is "
-            "explicitly configured. Defaults to 'auto', which means "
-            "the SCRAM authentication method for TCP connections and "
-            "the JWT authentication method for HTTP-tunneled connections."
+        click.option(
+            '--bootstrap',
+            is_flag=True,
+            hidden=True,
+            help='[DEPRECATED] bootstrap the database cluster and exit',
         ),
-    ),
-    click.option(
-        "--readiness-state-file",
-        envvar="GELITE_SERVER_READINESS_STATE_FILE",
-        cls=EnvvarResolver,
-        type=PathPath(),
-        help=(
-            "Path to a file containing the value for server readiness state. "
-            "When it contains 'not_ready' (without quotes), the server will "
-            "refuse connections and the '/server/status/ready' check will "
-            "return a 503 status.  Every other value, including absense of "
-            "file indicates that the server is in the 'ready' state and "
-            "can server connections.  The file can be modified when the "
-            "server is running."
+        click.option(
+            '--bootstrap-only',
+            is_flag=True,
+            envvar="GELITE_SERVER_BOOTSTRAP_ONLY",
+            cls=EnvvarResolver,
+            help='bootstrap the database cluster and exit',
         ),
-    ),
-    click.option(
-        '--instance-name',
-        envvar="GELITE_SERVER_INSTANCE_NAME",
-        cls=EnvvarResolver,
-        type=str, default=None, hidden=True,
-        help='Server instance name.'),
-    click.option(
-        '--backend-capabilities',
-        envvar="GELITE_SERVER_BACKEND_CAPABILITIES",
-        cls=EnvvarResolver,
-        type=BackendCapabilitySet(),
-        help="A space-separated set of backend capabilities, which are "
-             "required to be present, or absent if prefixed with ~. Gel "
-             "will only start if the actual backend capabilities match the "
-             "specified set. However if the backend was never bootstrapped, "
-             "the capabilities prefixed with ~ will be *disabled permanently* "
-             "in Gel as if the backend never had them."
-    ),
-    click.option(
-        '--version', is_flag=True,
-        help='Show the version and exit.'),
-    click.option(
-        '--admin-ui',
-        envvar="GELITE_SERVER_ADMIN_UI",
-        cls=EnvvarResolver,
-        type=click.Choice(
-            ['default', 'enabled', 'disabled'],
-            case_sensitive=True,
+        click.option(
+            '--inplace-upgrade-prepare',
+            type=PathPath(),
+            envvar="GELITE_SERVER_INPLACE_UPGRADE_PREPARE",
+            cls=EnvvarResolver,
+            help='try to do an in-place upgrade with the specified dump file',
         ),
-        default='default',
-        help='Enable admin UI.'),
-    click.option(
-        '--cors-always-allowed-origins',
-        envvar="GELITE_SERVER_CORS_ALWAYS_ALLOWED_ORIGINS",
-        cls=EnvvarResolver,
-        hidden=True,
-        help='A comma separated list of origins to always allow CORS requests '
-             'from regardless of the `cors_allow_orgin` config. The `*` '
-             'character can be used as a wildcard. Intended for use by cloud '
-             'to always allow the cloud UI to make requests to the instance.'
-    ),
-    click.option(
-        '--disable-dynamic-system-config', is_flag=True,
-        envvar="GELITE_SERVER_DISABLE_DYNAMIC_SYSTEM_CONFIG",
-        cls=EnvvarResolver,
-        help="Disable dynamic configuration of system config values",
-    ),
-    click.option(
-        "--reload-config-files",
-        envvar="GELITE_SERVER_RELOAD_CONFIG_FILES", cls=EnvvarResolver,
-        type=click.Choice(
-            list(ReloadTrigger.__members__.values()), case_sensitive=True
+        click.option(
+            '--inplace-upgrade-rollback',
+            type=bool,
+            is_flag=True,
+            envvar="GELITE_SERVER_INPLACE_UPGRADE_ROLLBACK",
+            cls=EnvvarResolver,
+            help='rollback a prepared upgrade',
         ),
-        hidden=True,
-        default='default',
-        help='Specifies when to reload the config files. See the docstring of '
-             'ReloadTrigger for more information.',
-    ),
-    click.option(
-        "--config-file", type=PathPath(), metavar="PATH",
-        envvar="GELITE_SERVER_CONFIG_FILE",
-        cls=EnvvarResolver,
-        help='Path to a TOML file to configure the server.',
-        hidden=True,
-    ),
-    click.option(
-        '--compiler-worker-max-rss',
-        type=int,
-        envvar="GELITE_SERVER_COMPILER_WORKER_MAX_RSS",
-        cls=EnvvarResolver,
-        help='Maximum allowed RSS (in bytes) per compiler worker process. Any '
-             'worker exceeding this limit will be terminated and recreated. '
-             'Each worker is free from this limit in its first 20-30 hours '
-             'after spawn to avoid infinite restarts or a thundering herd.',
-    ),
-])
+        click.option(
+            '--inplace-upgrade-finalize',
+            type=bool,
+            is_flag=True,
+            envvar="GELITE_SERVER_INPLACE_UPGRADE_FINALIZE",
+            cls=EnvvarResolver,
+            help='finalize an in-place upgrade',
+        ),
+        click.option(
+            '--default-branch',
+            type=str,
+            help='the name of the default branch to create',
+        ),
+        click.option(
+            '--default-database',
+            type=str,
+            hidden=True,
+            help='[DEPRECATED] the name of the default database to create',
+        ),
+        click.option(
+            '--default-database-user',
+            type=str,
+            hidden=True,
+            help='[DEPRECATED] the name of the default database owner',
+        ),
+        click.option(
+            '--bootstrap-command',
+            metavar="QUERIES",
+            envvar="GELITE_SERVER_BOOTSTRAP_COMMAND",
+            cls=EnvvarResolver,
+            help='run the commands when initializing the database. '
+            'Queries are executed by default user within default '
+            'database. May be used with or without `--bootstrap-only`.',
+        ),
+        click.option(
+            '--bootstrap-command-file',
+            type=PathPath(),
+            metavar="PATH",
+            help='run the script when initializing the database. '
+            'Script run by default user within default database. '
+            'May be used with or without `--bootstrap-only`.',
+        ),
+        click.option(
+            '--bootstrap-script',
+            type=PathPath(),
+            help='[DEPRECATED] use --bootstrap-command-file instead.',
+        ),
+        click.option(
+            '--devmode/--no-devmode',
+            help='enable or disable the development mode',
+            default=None,
+        ),
+        click.option(
+            '--testmode/--no-testmode',
+            help='enable or disable the test mode',
+            default=False,
+        ),
+        click.option(
+            '-I',
+            '--bind-address',
+            type=str,
+            multiple=True,
+            envvar="GELITE_SERVER_BIND_ADDRESS",
+            cls=EnvvarResolver,
+            help='IP addresses to listen on, specify multiple times for more than '
+            'one address to listen on',
+        ),
+        click.option(
+            '-P',
+            '--port',
+            type=PortType(),
+            default=None,
+            envvar="GELITE_SERVER_PORT",
+            cls=EnvvarResolver,
+            help='port to listen on',
+        ),
+        click.option('-b', '--background', is_flag=True, help='daemonize'),
+        click.option(
+            '--pidfile-dir',
+            type=PathPath(),
+            default=None,
+            help='path to PID file directory, defaults to --runstate-dir',
+        ),
+        click.option('--daemon-user', type=int),
+        click.option('--daemon-group', type=int),
+        click.option(
+            '--runstate-dir',
+            type=PathPath(),
+            default=None,
+            envvar="GELITE_SERVER_RUNSTATE_DIR",
+            cls=EnvvarResolver,
+            help=f'directory where UNIX sockets and other temporary '
+            f'runtime files will be placed ({_get_runstate_dir_default()} '
+            f'by default)',
+        ),
+        click.option(
+            '--extensions-dir',
+            type=PathPath(),
+            default=(),
+            multiple=True,
+            envvar="GELITE_SERVER_EXTENSIONS_DIR",
+            cls=EnvvarResolver,
+            help=f'directory where third-party extension packages are loaded from',
+        ),
+        click.option(
+            '--max-backend-connections',
+            type=int,
+            metavar='NUM',
+            envvar="GELITE_SERVER_MAX_BACKEND_CONNECTIONS",
+            cls=EnvvarResolver,
+            help=f'The maximum NUM of connections this Gel instance could make '
+            f'to the backend PostgreSQL cluster. If not set, Gel will '
+            f'detect and calculate the NUM: RAM/100MiB='
+            f'{compute_default_max_backend_connections()} for local '
+            f'Postgres or pg_settings.max_connections for remote Postgres, '
+            f'minus the NUM of --reserved-pg-connections.',
+            callback=_validate_max_backend_connections,
+        ),
+        click.option(
+            '--compiler-pool-size',
+            type=int,
+            metavar='NUM',
+            envvar="GELITE_SERVER_COMPILER_POOL_SIZE",
+            cls=EnvvarResolver,
+            callback=_validate_compiler_pool_size,
+            help='Size of the compiler pool.  When --compiler-pool-mode=fixed, '
+            'it is the NUM of compiler worker processes, '
+            f"defaults to {compute_default_compiler_pool_size()} (you'll see "
+            '1 extra template process); for on_demand, it is the maximum NUM '
+            'of workers the pool could scale up to, with the same default.',
+        ),
+        click.option(
+            '--compiler-worker-branch-limit',
+            type=int,
+            metavar='NUM',
+            default=5,
+            envvar="GELITE_SERVER_COMPILER_WORKER_BRANCH_LIMIT",
+            cls=EnvvarResolver,
+            help='The maximum NUM of branches each compiler worker could cache up '
+            'to, default is 5.',
+        ),
+        click.option(
+            '--compiler-pool-mode',
+            type=click.Choice(
+                sorted(set(CompilerPoolMode.__members__.values()))
+            ),
+            default=CompilerPoolMode.Default.value,
+            envvar="GELITE_SERVER_COMPILER_POOL_MODE",
+            cls=EnvvarResolver,
+            help='Choose a mode for the compiler pool to scale. "fixed" means the '
+            'pool will not scale and sticks to --compiler-pool-size, while '
+            '"on_demand" means the pool will maintain at least 1 worker and '
+            'automatically scale up (to --compiler-pool-size workers ) and '
+            'down to the demand. Defaults to "fixed" in production mode and '
+            '"on_demand" in development mode.',
+        ),
+        click.option(
+            '--echo-runtime-info',
+            type=bool,
+            default=False,
+            is_flag=True,
+            help='[DEPREATED, use --emit-server-status] '
+            'echo runtime info to stdout; the format is JSON, prefixed by '
+            '"GELITE_SERVER_DATA:", ended with a new line',
+        ),
+        click.option(
+            '--emit-server-status',
+            type=str,
+            default=None,
+            metavar='DEST',
+            multiple=True,
+            help='Instruct the server to emit changes in status to DEST, '
+            'where DEST is a URI specifying a file (file://<path>), '
+            'or a file descriptor (fd://<fileno>).  If the URI scheme '
+            'is not specified, file:// is assumed.',
+        ),
+        click.option(
+            '--temp-dir',
+            type=bool,
+            default=False,
+            is_flag=True,
+            help='create a temporary database cluster directory '
+            'that will be automatically purged on server shutdown',
+        ),
+        click.option(
+            '--auto-shutdown',
+            type=bool,
+            default=False,
+            is_flag=True,
+            hidden=True,
+            help='shutdown the server after the last ' + 'connection is closed',
+        ),
+        click.option(
+            '--auto-shutdown-after',
+            type=float,
+            default=-1.0,
+            metavar='N',
+            help='shutdown the server if no client connections were made in the '
+            'last N seconds, if N = 0, shut down after the last client has '
+            'disconnected, N < 0 (default) means no auto shutdown',
+        ),
+        click.option(
+            '--tls-cert-file',
+            type=PathPath(),
+            envvar="GELITE_SERVER_TLS_CERT_FILE",
+            cls=EnvvarResolver,
+            help='Specifies a path to a file containing a server TLS certificate '
+            'in PEM format, as well as possibly any number of CA '
+            'certificates needed to establish the certificate '
+            'authenticity.  If the file does not exist and the '
+            '--tls-cert-mode option is set to "generate_self_signed", a '
+            'self-signed certificate will be automatically created in '
+            'the specified path.',
+        ),
+        click.option(
+            '--tls-key-file',
+            type=PathPath(),
+            envvar="GELITE_SERVER_TLS_KEY_FILE",
+            cls=EnvvarResolver,
+            help='Specifies a path to a file containing the private key in PEM '
+            'format.  If the file does not exist and the --tls-cert-mode '
+            'option is set to "generate_self_signed", the private key will '
+            'be automatically created in the specified path.',
+        ),
+        click.option(
+            '--tls-cert-mode',
+            envvar="GELITE_SERVER_TLS_CERT_MODE",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default'] + list(ServerTlsCertMode.__members__.values()),
+                case_sensitive=True,
+            ),
+            default='default',
+            help='Specifies what to do when the TLS certificate and key are '
+            'either not specified or are missing.  When set to '
+            '"require_file", the TLS certificate and key must be specified '
+            'in the --tls-cert-file and --tls-key-file options and both must '
+            'exist.  When set to "generate_self_signed" a new self-signed '
+            'certificate and private key will be generated and placed in the '
+            'path specified by --tls-cert-file/--tls-key-file, if those are '
+            'set, otherwise the generated certificate and key are stored as '
+            f'`{TLS_CERT_FILE_NAME}` and `{TLS_KEY_FILE_NAME}` in the data '
+            'directory, or, if the server is running with --backend-dsn, '
+            'in a subdirectory of --runstate-dir.\n\nThe default is '
+            '"require_file" when the --security option is set to "strict", '
+            'and "generate_self_signed" when the --security option is set to '
+            '"insecure_dev_mode"',
+        ),
+        click.option(
+            '--tls-client-ca-file',
+            type=PathPath(),
+            envvar='GELITE_SERVER_TLS_CLIENT_CA_FILE',
+            cls=EnvvarResolver,
+            help='Specifies a path to a file containing a TLS CA certificate to '
+            'verify client certificates on demand. When set, the default '
+            'authentication method of HTTP_METRICS(/metrics) and HTTP_HEALTH'
+            '(/server/*) will also become "mTLS", unless explicitly set in '
+            '--default-auth-method. Note, the protection of such HTTP '
+            'endpoints is only complete if --http-endpoint-security is also '
+            'set to `tls`, or they are still accessible in plaintext HTTP.',
+        ),
+        click.option(
+            '--generate-self-signed-cert',
+            type=bool,
+            default=False,
+            is_flag=True,
+            help='DEPRECATED.\n\n'
+            'Use --tls-cert-mode=generate_self_signed instead.',
+        ),
+        click.option(
+            '--binary-endpoint-security',
+            envvar="GELITE_SERVER_BINARY_ENDPOINT_SECURITY",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default', 'tls', 'optional'],
+                case_sensitive=True,
+            ),
+            default='default',
+            help='Specifies the security mode of server binary endpoint. '
+            'When set to `optional`, non-TLS connections are allowed. '
+            'The default is `tls`.',
+        ),
+        click.option(
+            '--http-endpoint-security',
+            envvar="GELITE_SERVER_HTTP_ENDPOINT_SECURITY",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default', 'tls', 'optional'],
+                case_sensitive=True,
+            ),
+            default='default',
+            help='Specifies the security mode of server HTTP endpoint. '
+            'When set to `optional`, non-TLS connections are allowed. '
+            'The default is `tls`.',
+        ),
+        click.option(
+            '--security',
+            envvar="GELITE_SERVER_SECURITY",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default', 'strict', 'insecure_dev_mode'],
+                case_sensitive=True,
+            ),
+            default='default',
+            help=(
+                'When set to `insecure_dev_mode`, sets the default '
+                'authentication method to `Trust`, enables non-TLS '
+                'client HTTP connections, and implies '
+                '`--tls-cert-mode=generate_self_signed`.  The default is `strict`.'
+            ),
+        ),
+        click.option(
+            '--jws-key-file',
+            type=PathPath(),
+            envvar="GELITE_SERVER_JWS_KEY_FILE",
+            cls=EnvvarResolver,
+            hidden=True,
+            help='Specifies a path to a file containing a public key in PEM '
+            'or JSON JWK format used to verify JWT signatures. The file may '
+            'also contain a private key to sign JWT tokens for '
+            'SCRAM-over-HTTP.',
+        ),
+        click.option(
+            '--jwe-key-file',
+            type=PathPath(),
+            hidden=True,
+            help='Deprecated: no longer in use.',
+        ),
+        click.option(
+            '--jose-key-mode',
+            envvar="GELITE_SERVER_JOSE_KEY_MODE",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default'] + list(JOSEKeyMode.__members__.values()),
+                case_sensitive=True,
+            ),
+            hidden=True,
+            default='default',
+            help='Specifies what to do when the JOSE keys are either not '
+            'specified or are missing.  When set to "require_file", the JOSE '
+            'keys must be specified in the --jws-key-file and the file must '
+            'exist.  When set to "generate", a new key pair will be '
+            'generated and placed in the path specified by --jws-key-file, '
+            'if those are set, otherwise the generated key pairs are stored '
+            f'as `{JWS_KEY_FILE_NAME}` in the data directory, or, if the '
+            'server is running with --backend-dsn, in a subdirectory of '
+            '--runstate-dir.\n\nThe default is "require_file" when the '
+            '--security option is set to "strict", and "generate" when the '
+            '--security option is set to "insecure_dev_mode"',
+        ),
+        click.option(
+            '--jwt-sub-allowlist-file',
+            type=PathPath(),
+            envvar="GELITE_SERVER_JWT_SUB_ALLOWLIST_FILE",
+            cls=EnvvarResolver,
+            hidden=True,
+            help='A file where the server can obtain a list of all JWT subjects '
+            'that are allowed to access this instance. '
+            'The file must contain one JWT "sub" claim value per line. '
+            'Applies only to the JWT authentication method.',
+        ),
+        click.option(
+            '--jwt-revocation-list-file',
+            type=PathPath(),
+            envvar="GELITE_SERVER_JWT_REVOCATION_LIST_FILE",
+            cls=EnvvarResolver,
+            hidden=True,
+            help='A file where the server can obtain a list of all JWT ids '
+            'that are allowed to access this instance. '
+            'The file must contain one JWT "jti" claim value per line. '
+            'Applies only to the JWT authentication method.',
+        ),
+        click.option(
+            "--default-auth-method",
+            envvar="GELITE_SERVER_DEFAULT_AUTH_METHOD",
+            cls=EnvvarResolver,
+            callback=_validate_default_auth_method,
+            type=str,
+            help=(
+                "The default authentication method to use when none is "
+                "explicitly configured. Defaults to 'auto', which means "
+                "the SCRAM authentication method for TCP connections and "
+                "the JWT authentication method for HTTP-tunneled connections."
+            ),
+        ),
+        click.option(
+            "--readiness-state-file",
+            envvar="GELITE_SERVER_READINESS_STATE_FILE",
+            cls=EnvvarResolver,
+            type=PathPath(),
+            help=(
+                "Path to a file containing the value for server readiness state. "
+                "When it contains 'not_ready' (without quotes), the server will "
+                "refuse connections and the '/server/status/ready' check will "
+                "return a 503 status.  Every other value, including absense of "
+                "file indicates that the server is in the 'ready' state and "
+                "can server connections.  The file can be modified when the "
+                "server is running."
+            ),
+        ),
+        click.option(
+            '--instance-name',
+            envvar="GELITE_SERVER_INSTANCE_NAME",
+            cls=EnvvarResolver,
+            type=str,
+            default=None,
+            hidden=True,
+            help='Server instance name.',
+        ),
+        click.option(
+            '--backend-capabilities',
+            envvar="GELITE_SERVER_BACKEND_CAPABILITIES",
+            cls=EnvvarResolver,
+            type=BackendCapabilitySet(),
+            help="A space-separated set of backend capabilities, which are "
+            "required to be present, or absent if prefixed with ~. Gel "
+            "will only start if the actual backend capabilities match the "
+            "specified set. However if the backend was never bootstrapped, "
+            "the capabilities prefixed with ~ will be *disabled permanently* "
+            "in Gel as if the backend never had them.",
+        ),
+        click.option(
+            '--version', is_flag=True, help='Show the version and exit.'
+        ),
+        click.option(
+            '--admin-ui',
+            envvar="GELITE_SERVER_ADMIN_UI",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                ['default', 'enabled', 'disabled'],
+                case_sensitive=True,
+            ),
+            default='default',
+            help='Enable admin UI.',
+        ),
+        click.option(
+            '--cors-always-allowed-origins',
+            envvar="GELITE_SERVER_CORS_ALWAYS_ALLOWED_ORIGINS",
+            cls=EnvvarResolver,
+            hidden=True,
+            help='A comma separated list of origins to always allow CORS requests '
+            'from regardless of the `cors_allow_orgin` config. The `*` '
+            'character can be used as a wildcard. Intended for use by cloud '
+            'to always allow the cloud UI to make requests to the instance.',
+        ),
+        click.option(
+            '--disable-dynamic-system-config',
+            is_flag=True,
+            envvar="GELITE_SERVER_DISABLE_DYNAMIC_SYSTEM_CONFIG",
+            cls=EnvvarResolver,
+            help="Disable dynamic configuration of system config values",
+        ),
+        click.option(
+            "--reload-config-files",
+            envvar="GELITE_SERVER_RELOAD_CONFIG_FILES",
+            cls=EnvvarResolver,
+            type=click.Choice(
+                list(ReloadTrigger.__members__.values()), case_sensitive=True
+            ),
+            hidden=True,
+            default='default',
+            help='Specifies when to reload the config files. See the docstring of '
+            'ReloadTrigger for more information.',
+        ),
+        click.option(
+            "--config-file",
+            type=PathPath(),
+            metavar="PATH",
+            envvar="GELITE_SERVER_CONFIG_FILE",
+            cls=EnvvarResolver,
+            help='Path to a TOML file to configure the server.',
+            hidden=True,
+        ),
+        click.option(
+            '--compiler-worker-max-rss',
+            type=int,
+            envvar="GELITE_SERVER_COMPILER_WORKER_MAX_RSS",
+            cls=EnvvarResolver,
+            help='Maximum allowed RSS (in bytes) per compiler worker process. Any '
+            'worker exceeding this limit will be terminated and recreated. '
+            'Each worker is free from this limit in its first 20-30 hours '
+            'after spawn to avoid infinite restarts or a thundering herd.',
+        ),
+    ]
+)
 
 
 def parse_args(**kwargs: Any):
@@ -1192,10 +1316,12 @@ def parse_args(**kwargs: Any):
         if kwargs['http_endpoint_security'] == 'default':
             kwargs['http_endpoint_security'] = 'optional'
         if not kwargs['default_auth_method']:
-            kwargs['default_auth_method'] = ServerAuthMethods({
-                t: [ServerAuthMethod.Trust]
-                for t in ServerConnTransport.__members__.values()
-            })
+            kwargs['default_auth_method'] = ServerAuthMethods(
+                {
+                    t: [ServerAuthMethod.Trust]
+                    for t in ServerConnTransport.__members__.values()
+                }
+            )
         if kwargs['tls_cert_mode'] == 'default':
             kwargs['tls_cert_mode'] = 'generate_self_signed'
 
@@ -1220,7 +1346,7 @@ def parse_args(**kwargs: Any):
                 methods = (
                     methods[:pos]
                     + DEFAULT_AUTH_METHODS.get(transport)
-                    + methods[pos + 1:]
+                    + methods[pos + 1 :]
                 )
             transport_methods[transport] = [method]
         elif transport in (
@@ -1229,8 +1355,10 @@ def parse_args(**kwargs: Any):
         ):
             if ServerAuthMethod.mTLS in methods:
                 if kwargs['tls_client_ca_file'] is None:
-                    abort('--tls-client-ca-file is required '
-                          'for mTLS authentication')
+                    abort(
+                        '--tls-client-ca-file is required '
+                        'for mTLS authentication'
+                    )
 
             if not all(
                 m is ServerAuthMethod.Trust or m is ServerAuthMethod.mTLS
@@ -1257,9 +1385,11 @@ def parse_args(**kwargs: Any):
 
     kwargs['security'] = ServerSecurityMode(kwargs['security'])
     kwargs['binary_endpoint_security'] = ServerEndpointSecurityMode(
-        kwargs['binary_endpoint_security'])
+        kwargs['binary_endpoint_security']
+    )
     kwargs['http_endpoint_security'] = ServerEndpointSecurityMode(
-        kwargs['http_endpoint_security'])
+        kwargs['http_endpoint_security']
+    )
     kwargs['tls_cert_mode'] = ServerTlsCertMode(kwargs['tls_cert_mode'])
     kwargs['jose_key_mode'] = JOSEKeyMode(kwargs['jose_key_mode'])
 
@@ -1282,7 +1412,8 @@ def parse_args(**kwargs: Any):
         if kwargs['backend_dsn']:
             abort('--temp-dir is incompatible with --backend-dsn')
         kwargs['data_dir'] = kwargs['runstate_dir'] = pathlib.Path(
-            tempfile.mkdtemp())
+            tempfile.mkdtemp()
+        )
     else:
         if not kwargs['data_dir']:
             if kwargs['backend_dsn']:
@@ -1294,9 +1425,11 @@ def parse_args(**kwargs: Any):
 
                 kwargs["data_dir"] = data_dir
             else:
-                abort('Please specify the instance data directory '
-                      'using the -D argument or the address of a remote '
-                      'backend cluster using the --backend-dsn argument')
+                abort(
+                    'Please specify the instance data directory '
+                    'using the -D argument or the address of a remote '
+                    'backend cluster using the --backend-dsn argument'
+                )
         elif kwargs['backend_dsn']:
             abort('The -D and --backend-dsn options are mutually exclusive.')
 
@@ -1342,10 +1475,7 @@ def parse_args(**kwargs: Any):
             " is not a regular file"
         )
 
-    if (
-        kwargs['tls_key_file'].exists()
-        and not kwargs['tls_key_file'].is_file()
-    ):
+    if kwargs['tls_key_file'].exists() and not kwargs['tls_key_file'].is_file():
         abort(
             f"TLS private key file \"{kwargs['tls_key_file']}\""
             " is not a regular file"
@@ -1369,17 +1499,11 @@ def parse_args(**kwargs: Any):
 
     if not kwargs['bootstrap_only'] and not generate_jose:
         if not kwargs['jws_key_file'].exists():
-            abort(
-                f"JWS key file \"{kwargs['jws_key_file']}\" does not exist"
-            )
+            abort(f"JWS key file \"{kwargs['jws_key_file']}\" does not exist")
 
-    if (
-        kwargs['jws_key_file'].exists() and
-        not kwargs['jws_key_file'].is_file()
-    ):
+    if kwargs['jws_key_file'].exists() and not kwargs['jws_key_file'].is_file():
         abort(
-            f"JWT key file \"{kwargs['jws_key_file']}\""
-            " is not a regular file"
+            f"JWT key file \"{kwargs['jws_key_file']}\" is not a regular file"
         )
 
     if kwargs['log_level']:
@@ -1420,14 +1544,11 @@ def parse_args(**kwargs: Any):
         startup_script = StartupScript(
             text=bootstrap_script_text,
             database=(
-                kwargs['default_branch'] or
-                kwargs['default_database'] or
-                defines.GELITE_SUPERUSER_DB
+                kwargs['default_branch']
+                or kwargs['default_database']
+                or defines.GELITE_SUPERUSER_DB
             ),
-            user=(
-                kwargs['default_database_user'] or
-                defines.GELITE_SUPERUSER
-            ),
+            user=(kwargs['default_database_user'] or defines.GELITE_SUPERUSER),
         )
 
     status_sinks = []
@@ -1436,9 +1557,10 @@ def parse_args(**kwargs: Any):
         for status_sink_addr in status_sink_addrs:
             if status_sink_addr.startswith('file://'):
                 status_sink = _status_sink_file(
-                    status_sink_addr[len('file://'):])
+                    status_sink_addr[len('file://') :]
+                )
             elif status_sink_addr.startswith('fd://'):
-                fileno_str = status_sink_addr[len('fd://'):]
+                fileno_str = status_sink_addr[len('fd://') :]
                 try:
                     fileno = int(fileno_str)
                 except ValueError:
@@ -1459,9 +1581,9 @@ def parse_args(**kwargs: Any):
 
             status_sinks.append(status_sink)
 
-    kwargs['backend_capability_sets'] = (
-        kwargs.pop('backend_capabilities') or BackendCapabilitySets([], [])
-    )
+    kwargs['backend_capability_sets'] = kwargs.pop(
+        'backend_capabilities'
+    ) or BackendCapabilitySets([], [])
 
     if kwargs['admin_ui'] == 'default':
         if devmode.is_in_dev_mode():
@@ -1477,9 +1599,7 @@ def parse_args(**kwargs: Any):
         else:
             kwargs['instance_name'] = '_unknown'
 
-    kwargs['reload_config_files'] = ReloadTrigger(
-        kwargs['reload_config_files']
-    )
+    kwargs['reload_config_files'] = ReloadTrigger(kwargs['reload_config_files'])
 
     for disallowed, replacement in (
         (

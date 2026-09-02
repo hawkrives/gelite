@@ -20,6 +20,7 @@
 from __future__ import annotations
 
 from edb.common.log import early_setup
+
 # ruff: noqa: E402
 early_setup()
 
@@ -36,11 +37,12 @@ from edb.server import main as srv_main
 from edb.load_ext import main as load_ext_main
 
 
-@click.group(
-    context_settings=dict(help_option_names=['-h', '--help']))
-@click.option('--devmode/--no-devmode',
-              help='enable or disable the development mode',
-              default=True)
+@click.group(context_settings=dict(help_option_names=['-h', '--help']))
+@click.option(
+    '--devmode/--no-devmode',
+    help='enable or disable the development mode',
+    default=True,
+)
 @click.pass_context
 def edbcommands(ctx, devmode: bool):
     if devmode:
@@ -62,8 +64,9 @@ def server(version=False, **kwargs):
     srv_main.server_main(**kwargs)
 
 
-@edbcommands.command(add_help_option=False,
-                     context_settings=dict(ignore_unknown_options=True))
+@edbcommands.command(
+    add_help_option=False, context_settings=dict(ignore_unknown_options=True)
+)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def load_ext(args: tuple[str, ...]):
     load_ext_main.main(args)
@@ -92,4 +95,4 @@ from . import redo_metaschema  # noqa
 from . import ls  # noqa
 from . import railroad_diagram  # noqa
 from .profiling import cli as prof_cli  # noqa
-from .experimental_interpreter import edb_entry # noqa
+from .experimental_interpreter import edb_entry  # noqa

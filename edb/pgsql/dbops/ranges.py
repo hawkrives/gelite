@@ -58,7 +58,8 @@ class Range(base.DBObject):
 class CreateRange(ddl.SchemaObjectOperation):
     def __init__(self, range, *, conditions=None, neg_conditions=None):
         super().__init__(
-            range.name, conditions=conditions, neg_conditions=neg_conditions)
+            range.name, conditions=conditions, neg_conditions=neg_conditions
+        )
         self.range = range
 
     def code(self) -> str:

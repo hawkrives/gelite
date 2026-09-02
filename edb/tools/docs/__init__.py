@@ -35,7 +35,6 @@ from . import shared
 
 
 class ProhibitedNodeTransform(s_transforms.SphinxTransform):
-
     default_priority = 1  # before ReferencesResolver
 
     def apply(self):
@@ -43,7 +42,8 @@ class ProhibitedNodeTransform(s_transforms.SphinxTransform):
             if not bq['classes'] or 'pull-quote' not in bq['classes']:
                 raise shared.EdgeSphinxExtensionError(
                     f'blockquote found: {bq.asdom().toxml()!r} in {bq.source};'
-                    f' Try using the "pull-quote" directive')
+                    f' Try using the "pull-quote" directive'
+                )
             else:
                 bq.get('classes').remove('pull-quote')
 
@@ -52,11 +52,11 @@ class ProhibitedNodeTransform(s_transforms.SphinxTransform):
             raise shared.EdgeSphinxExtensionError(
                 f'title reference (single backticks quote) found: '
                 f'{trs[0].asdom().toxml()!r} in {trs[0].source}; '
-                f'perhaps you wanted to use double backticks?')
+                f'perhaps you wanted to use double backticks?'
+            )
 
 
 class VersionAdded(d_rst.Directive):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 1
@@ -70,7 +70,6 @@ class VersionAdded(d_rst.Directive):
 
 
 class VersionChanged(d_rst.Directive):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 1
@@ -84,7 +83,6 @@ class VersionChanged(d_rst.Directive):
 
 
 class VersionedSection(d_rst.Directive):
-
     has_content = False
     optional_arguments = 0
     required_arguments = 0
@@ -96,7 +94,6 @@ class VersionedSection(d_rst.Directive):
 
 
 class VersionedReplaceRole:
-
     def __call__(
         self, role, rawtext, text, lineno, inliner, options=None, content=None
     ):
@@ -114,7 +111,6 @@ class VersionedReplaceRole:
 
 
 class APIIndex(IndexDirective):
-
     def run(self):
         nodes = super().run()
         nodes[0]['api-index'] = True

@@ -46,9 +46,8 @@ class TestDelete(tb.QueryTestCase):
 
     async def test_edgeql_delete_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'cannot delete non-ObjectType object'):
-
+            edgedb.QueryError, r'cannot delete non-ObjectType object'
+        ):
             await self.con.execute('''\
                 DELETE 42;
             ''')
@@ -119,17 +118,25 @@ class TestDelete(tb.QueryTestCase):
         )
 
     async def test_edgeql_delete_simple_02(self):
-        id1 = str((await self.con.query_single(r"""
+        id1 = str(
+            (
+                await self.con.query_single(r"""
             SELECT(INSERT DeleteTest {
                 name := 'delete-test1'
             }) LIMIT 1;
-        """)).id)
+        """)
+            ).id
+        )
 
-        id2 = str((await self.con.query_single(r"""
+        id2 = str(
+            (
+                await self.con.query_single(r"""
             SELECT(INSERT DeleteTest {
                 name := 'delete-test2'
             }) LIMIT 1;
-        """)).id)
+        """)
+            ).id
+        )
 
         await self.assert_query_result(
             r"""
@@ -177,11 +184,15 @@ class TestDelete(tb.QueryTestCase):
         )
 
     async def test_edgeql_delete_returning_01(self):
-        id1 = str((await self.con.query_single(r"""
+        id1 = str(
+            (
+                await self.con.query_single(r"""
             SELECT (INSERT DeleteTest {
                 name := 'delete-test1'
             }) LIMIT 1;
-        """)).id)
+        """)
+            ).id
+        )
 
         await self.con.execute(r"""
             INSERT DeleteTest {
@@ -271,10 +282,12 @@ class TestDelete(tb.QueryTestCase):
                     foo := 'bar'
                 } FILTER any(DeleteTest2.name LIKE D.name[:2] ++ '%');
             """,
-            [{
-                'name': 'dt2.1',
-                'foo': 'bar',
-            }],
+            [
+                {
+                    'name': 'dt2.1',
+                    'foo': 'bar',
+                }
+            ],
         )
 
         deleted = await self.con._fetchall(
@@ -282,7 +295,7 @@ class TestDelete(tb.QueryTestCase):
                 DELETE DeleteTest2;
             """,
             __typeids__=True,
-            __typenames__=True
+            __typenames__=True,
         )
 
         self.assertTrue(hasattr(deleted[0], '__tid__'))
@@ -316,19 +329,23 @@ class TestDelete(tb.QueryTestCase):
                     count := count(Q),
                 } FILTER DeleteTest2.name = 'dt2.1';
             """,
-            [{
-                'name': 'dt2.1',
-                'count': 3,
-            }],
+            [
+                {
+                    'name': 'dt2.1',
+                    'count': 3,
+                }
+            ],
         )
 
         await self.assert_query_result(
             r"""
                 SELECT (DELETE DeleteTest2) {name};
             """,
-            [{
-                'name': 'dt2.1',
-            }],
+            [
+                {
+                    'name': 'dt2.1',
+                }
+            ],
         )
 
     async def test_edgeql_delete_returning_05(self):
@@ -360,19 +377,18 @@ class TestDelete(tb.QueryTestCase):
                     count := count(D),
                 } FILTER DeleteTest2.name = 'dt2.1';
             """,
-            [{
-                'name': 'dt2.1',
-                'count': 3
-            }],
+            [{'name': 'dt2.1', 'count': 3}],
         )
 
         await self.assert_query_result(
             r"""
                 SELECT (DELETE DeleteTest2) {name};
             """,
-            [{
-                'name': 'dt2.1',
-            }],
+            [
+                {
+                    'name': 'dt2.1',
+                }
+            ],
         )
 
     async def test_edgeql_delete_sugar_01(self):
@@ -451,9 +467,7 @@ class TestDelete(tb.QueryTestCase):
                     .name ILIKE 'not delete union%';
 
             """,
-            [{
-                'name': 'not delete union 1'
-            }],
+            [{'name': 'not delete union 1'}],
         )
 
         await self.assert_query_result(
@@ -475,9 +489,7 @@ class TestDelete(tb.QueryTestCase):
                     .name ILIKE 'not delete union%';
 
             """,
-            [{
-                'name': 'not delete union 2'
-            }],
+            [{'name': 'not delete union 2'}],
         )
 
     async def test_edgeql_delete_abstract_01(self):
@@ -498,11 +510,7 @@ class TestDelete(tb.QueryTestCase):
                     )
                 SELECT D { name } ORDER BY .name;
             """,
-            [{
-                'name': 'child of abstract 1'
-            }, {
-                'name': 'child of abstract 2'
-            }],
+            [{'name': 'child of abstract 1'}, {'name': 'child of abstract 2'}],
         )
 
     async def test_edgeql_delete_assert_exists(self):
@@ -602,8 +610,9 @@ class TestDelete(tb.QueryTestCase):
 
     async def test_edgeql_delete_where_order_dml(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "INSERT statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "INSERT statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 filter
@@ -613,8 +622,9 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UPDATE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "UPDATE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 filter
@@ -624,8 +634,9 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "DELETE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "DELETE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 filter
@@ -633,8 +644,9 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "INSERT statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "INSERT statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 order by
@@ -645,8 +657,9 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UPDATE statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "UPDATE statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 order by
@@ -657,8 +670,9 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "DELETE statements cannot be used in an ORDER BY clause"):
+            edgedb.QueryError,
+            "DELETE statements cannot be used in an ORDER BY clause",
+        ):
             await self.con.query('''
                 delete DeleteTest
                 order by
@@ -667,17 +681,13 @@ class TestDelete(tb.QueryTestCase):
             ''')
 
     async def test_edgeql_delete_read_only_tx_01(self):
-        con = (
-            edgedb.create_async_client(
-                **self.get_connect_args()
-            ).with_transaction_options(
-                edgedb.TransactionOptions(readonly=True)
-            )
-        )
+        con = edgedb.create_async_client(
+            **self.get_connect_args()
+        ).with_transaction_options(edgedb.TransactionOptions(readonly=True))
         try:
             with self.assertRaisesRegex(
                 edgedb.TransactionError,
-                r'Modifications not allowed in a read-only transaction'
+                r'Modifications not allowed in a read-only transaction',
             ):
                 async for tx in con.transaction():
                     async with tx:

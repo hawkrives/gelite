@@ -79,9 +79,7 @@ def typed_objectval_to_json_like(
     return result
 
 
-def typed_val_to_json_like(
-    v: Val, tp: e.Tp, dbschema: e.DBSchema
-) -> json_like:
+def typed_val_to_json_like(v: Val, tp: e.Tp, dbschema: e.DBSchema) -> json_like:
     match v:
         case e.ScalarVal(s_tp, v):
             if s_tp == e.ScalarTp(e.QualifiedName(["std", "json"])):

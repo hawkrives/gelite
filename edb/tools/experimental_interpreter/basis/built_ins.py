@@ -5,7 +5,6 @@ from ..data import data_ops as e
 def lift_binary_scalar_op(
     f: Callable[[Any, Any], Any], override_ret_tp: Optional[e.ScalarTp] = None
 ) -> Callable[[Sequence[Sequence[e.Val]]], Sequence[e.Val]]:
-
     def op_impl(arg: Sequence[Sequence[e.Val]]) -> Sequence[e.Val]:
         match arg:
             case [[e.ScalarVal(t1, v1)], [e.ScalarVal(t2, v2)]]:
@@ -21,9 +20,8 @@ def lift_binary_scalar_op(
 
 
 def lift_unary_scalar_op(
-    f: Callable[[Any], Any]
+    f: Callable[[Any], Any],
 ) -> Callable[[Sequence[Sequence[e.Val]]], Sequence[e.Val]]:
-
     def impl(arg: Sequence[Sequence[e.Val]]) -> Sequence[e.Val]:
         match arg:
             case [[e.ScalarVal(t1, v1)]]:

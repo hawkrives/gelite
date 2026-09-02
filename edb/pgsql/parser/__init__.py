@@ -31,12 +31,7 @@ from .parser import (
 )
 
 
-__all__ = (
-    "parse",
-    "Source",
-    "NormalizedSource",
-    "deserialize"
-)
+__all__ = ("parse", "Source", "NormalizedSource", "deserialize")
 
 
 def parse(

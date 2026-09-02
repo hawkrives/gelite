@@ -26,27 +26,30 @@ from edb import cli as rustcli
 from edb.tools.edb import edbcommands
 
 
-@edbcommands.command('cli',
-                     add_help_option=False,
-                     context_settings=dict(ignore_unknown_options=True))
+@edbcommands.command(
+    'cli',
+    add_help_option=False,
+    context_settings=dict(ignore_unknown_options=True),
+)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def cli(args: tuple[str, ...]):
     """Run edgedb CLI with `-H localhost`."""
 
     args_list = _ensure_linked(args)
 
-    if (
-        '--wait-until-available' not in args_list and
-        not any('--wait-until-available=' in a for a in args_list)
+    if '--wait-until-available' not in args_list and not any(
+        '--wait-until-available=' in a for a in args_list
     ):
         args_list += ['--wait-until-available', '60s']
 
     sys.exit(rustcli.rustcli(args=[sys.argv[0], *args_list]))
 
 
-@edbcommands.command('ui',
-                     add_help_option=False,
-                     context_settings=dict(ignore_unknown_options=True))
+@edbcommands.command(
+    'ui',
+    add_help_option=False,
+    context_settings=dict(ignore_unknown_options=True),
+)
 @click.argument('args', nargs=-1, type=click.UNPROCESSED)
 def ui(args: tuple[str, ...]):
     """Run edgedb GUI with `-H localhost`."""
@@ -65,32 +68,33 @@ def ui(args: tuple[str, ...]):
 
 
 def _ensure_linked(args: tuple[str, ...]) -> list[str]:
-
     if (
-        '--host' not in args and
-        not any(a.startswith('-H') for a in args) and
-        not any(a.startswith('--host=') for a in args) and
-        '--port' not in args and
-        not any(a.startswith('-P') for a in args) and
-        not any(a.startswith('--port=') for a in args) and
-        '--instance' not in args and
-        not any(a.startswith('-I') for a in args) and
-        not any(a.startswith('--instance=') for a in args)
+        '--host' not in args
+        and not any(a.startswith('-H') for a in args)
+        and not any(a.startswith('--host=') for a in args)
+        and '--port' not in args
+        and not any(a.startswith('-P') for a in args)
+        and not any(a.startswith('--port=') for a in args)
+        and '--instance' not in args
+        and not any(a.startswith('-I') for a in args)
+        and not any(a.startswith('--instance=') for a in args)
     ):
-        subprocess.check_call([
-            sys.executable,
-            "-I",
-            "-m",
-            "edb.cli",
-            "instance",
-            "link",
-            "--host=localhost",
-            "--non-interactive",
-            "--trust-tls-cert",
-            "--overwrite",
-            "--quiet",
-            "_localdev",
-        ])
+        subprocess.check_call(
+            [
+                sys.executable,
+                "-I",
+                "-m",
+                "edb.cli",
+                "instance",
+                "link",
+                "--host=localhost",
+                "--non-interactive",
+                "--trust-tls-cert",
+                "--overwrite",
+                "--quiet",
+                "_localdev",
+            ]
+        )
 
         return list(args) + ['-I', '_localdev']
     else:

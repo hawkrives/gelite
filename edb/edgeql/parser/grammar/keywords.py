@@ -25,8 +25,12 @@ import edb._edgeql_parser as ql_parser
 
 
 keyword_types = range(1, 5)
-(UNRESERVED_KEYWORD, RESERVED_KEYWORD, TYPE_FUNC_NAME_KEYWORD,
- PARTIAL_RESERVED_KEYWORD) = keyword_types
+(
+    UNRESERVED_KEYWORD,
+    RESERVED_KEYWORD,
+    TYPE_FUNC_NAME_KEYWORD,
+    PARTIAL_RESERVED_KEYWORD,
+) = keyword_types
 
 unreserved_keywords = ql_parser.unreserved_keywords
 future_reserved_keywords = ql_parser.future_reserved_keywords
@@ -46,7 +50,8 @@ def _check_keywords():
     if duplicate_keywords:
         raise ValueError(
             f'The following EdgeQL keywords are defined as *both* '
-            f'reserved and unreserved: {duplicate_keywords!r}')
+            f'reserved and unreserved: {duplicate_keywords!r}'
+        )
 
 
 _check_keywords()
@@ -63,12 +68,18 @@ def tok_name(keyword):
         return keyword.upper()
 
 
-edgeql_keywords = {k: (tok_name(k), UNRESERVED_KEYWORD)
-                   for k in unreserved_keywords}
-edgeql_keywords.update({k: (tok_name(k), RESERVED_KEYWORD)
-                        for k in reserved_keywords})
-edgeql_keywords.update({k: (tok_name(k), PARTIAL_RESERVED_KEYWORD)
-                        for k in partial_reserved_keywords})
+edgeql_keywords = {
+    k: (tok_name(k), UNRESERVED_KEYWORD) for k in unreserved_keywords
+}
+edgeql_keywords.update(
+    {k: (tok_name(k), RESERVED_KEYWORD) for k in reserved_keywords}
+)
+edgeql_keywords.update(
+    {
+        k: (tok_name(k), PARTIAL_RESERVED_KEYWORD)
+        for k in partial_reserved_keywords
+    }
+)
 
 
 by_type: dict[int, dict] = {typ: {} for typ in keyword_types}

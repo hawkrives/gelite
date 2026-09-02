@@ -45,24 +45,15 @@ class Role(
     qlkind=qltypes.SchemaObjectClass.ROLE,
     data_safe=True,
 ):
-
-    superuser = so.SchemaField(
-        bool,
-        default=False,
-        inheritable=False)
+    superuser = so.SchemaField(bool, default=False, inheritable=False)
 
     password = so.SchemaField(
-        str,
-        default=None,
-        allow_ddl_set=True,
-        inheritable=False)
+        str, default=None, allow_ddl_set=True, inheritable=False
+    )
 
     password_hash = so.SchemaField(
-        str,
-        default=None,
-        allow_ddl_set=True,
-        ephemeral=True,
-        inheritable=False)
+        str, default=None, allow_ddl_set=True, ephemeral=True, inheritable=False
+    )
 
     permissions = so.SchemaField(
         so.MultiPropSet[str],
@@ -91,8 +82,8 @@ class Role(
 
 
 class RoleCommandContext(
-        sd.ObjectCommandContext[Role],
-        s_anno.AnnotationSubjectCommandContext):
+    sd.ObjectCommandContext[Role], s_anno.AnnotationSubjectCommandContext
+):
     pass
 
 
@@ -102,7 +93,6 @@ class RoleCommand(
     s_anno.AnnotationSubjectCommand[Role],
     context_class=RoleCommandContext,
 ):
-
     @classmethod
     def _process_role_body(
         cls,
@@ -127,9 +117,7 @@ class RoleCommand(
             try:
                 scram.parse_verifier(password_hash)
             except ValueError as e:
-                raise errors.InvalidValueError(
-                    e.args[0],
-                    span=astnode.span)
+                raise errors.InvalidValueError(e.args[0], span=astnode.span)
             cmd.set_attribute_value('password', password_hash)
 
     @classmethod
@@ -141,12 +129,14 @@ class RoleCommand(
     ) -> list[so.ObjectShell[Role]]:
         result = []
         for b in getattr(astnode, 'bases', None) or []:
-            result.append(utils.ast_objref_to_object_shell(
-                b.maintype,
-                metaclass=Role,
-                schema=schema,
-                modaliases=context.modaliases,
-            ))
+            result.append(
+                utils.ast_objref_to_object_shell(
+                    b.maintype,
+                    metaclass=Role,
+                    schema=schema,
+                    modaliases=context.modaliases,
+                )
+            )
 
         return result
 
@@ -169,9 +159,8 @@ class RoleCommand(
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> None:
-        if (
-            self.has_attribute_value('permissions')
-            and (permissions := self.get_attribute_value('permissions'))
+        if self.has_attribute_value('permissions') and (
+            permissions := self.get_attribute_value('permissions')
         ):
             if 'sys::perm::superuser' in permissions:
                 span = self.get_attribute_span('permissions')
@@ -208,10 +197,7 @@ class CreateRole(RoleCommand, inheriting.CreateInheritingObject[Role]):
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field == 'superuser'
-            and issubclass(astnode, qlast.CreateRole)
-        ):
+        if field == 'superuser' and issubclass(astnode, qlast.CreateRole):
             return 'superuser'
         else:
             return super().get_ast_attr_for_field(field, astnode)
@@ -246,8 +232,7 @@ class AlterRole(RoleCommand, inheriting.AlterInheritingObject[Role]):
         name: Optional[sn.Name] = None,
         default: Role | so.NoDefaultT = so.NoDefault,
         span: Optional[qlast.Span] = None,
-    ) -> Role:
-        ...
+    ) -> Role: ...
 
     @overload
     def get_object(
@@ -258,8 +243,7 @@ class AlterRole(RoleCommand, inheriting.AlterInheritingObject[Role]):
         name: Optional[sn.Name] = None,
         default: None = None,
         span: Optional[qlast.Span] = None,
-    ) -> Optional[Role]:
-        ...
+    ) -> Optional[Role]: ...
 
     def get_object(
         self,

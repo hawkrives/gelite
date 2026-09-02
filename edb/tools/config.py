@@ -46,9 +46,7 @@ def config(make_include: bool, pg_config: bool) -> None:
         # XXX: It should not be here.
         if not devmode.is_in_dev_mode():
             base = base / 'share'
-        mk = (
-            base / 'tests' / 'extension-testing' / 'exts.mk'
-        )
+        mk = base / 'tests' / 'extension-testing' / 'exts.mk'
         print(mk)
     if pg_config:
         print(buildmeta.get_pg_config_path())

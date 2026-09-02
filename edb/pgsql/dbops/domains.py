@@ -58,14 +58,13 @@ class DomainExists(base.Condition):
 
 
 class Domain(base.DBObject):
-
     def __init__(
         self,
         name: DomainName,
         *,
         base: str | DomainName,
         constraints: Sequence[DomainConstraint] = (),
-        metadata: Optional[Mapping[str, Any]] = None
+        metadata: Optional[Mapping[str, Any]] = None,
     ):
         self.constraints = tuple(constraints)
         self.base = base
@@ -117,11 +116,7 @@ class AlterDomain(ddl.DDLOperation):
 
 
 class AlterDomainAlterDefault(AlterDomain):
-    def __init__(
-        self,
-        name: DomainName,
-        default: Optional[str]
-    ) -> None:
+    def __init__(self, name: DomainName, default: Optional[str]) -> None:
         super().__init__(name)
         self.default = default
 
@@ -162,7 +157,8 @@ class AlterDomainAlterConstraint(AlterDomain):
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ) -> None:
         super().__init__(
-            name, conditions=conditions, neg_conditions=neg_conditions)
+            name, conditions=conditions, neg_conditions=neg_conditions
+        )
         self._constraint = constraint
 
 
@@ -175,7 +171,6 @@ class DomainConstraint(constraints.Constraint):
 
 
 class DomainCheckConstraint(DomainConstraint):
-
     def __init__(
         self,
         domain_name: DomainName,
@@ -209,8 +204,10 @@ class AlterDomainAddConstraint(AlterDomainAlterConstraint):
         constr_name = self._constraint.constraint_name()
         constr_code = self._constraint.constraint_code(block)
         if isinstance(constr_code, base.PLExpression):
-            code = (f"EXECUTE {ql(code)} || ' ADD CONSTRAINT {constr_name} ' "
-                    f"|| {constr_code}")
+            code = (
+                f"EXECUTE {ql(code)} || ' ADD CONSTRAINT {constr_name} ' "
+                f"|| {constr_code}"
+            )
         else:
             code += f' ADD CONSTRAINT {constr_name} {constr_code}'
         return code

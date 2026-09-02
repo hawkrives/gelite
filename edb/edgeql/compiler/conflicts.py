@@ -19,7 +19,6 @@
 
 """Compilation of DML exclusive constraint conflict handling."""
 
-
 from __future__ import annotations
 from typing import Optional, Iterable, Sequence
 
@@ -65,8 +64,8 @@ def _get_needed_ptrs(
     """
     needed_ptrs = set(initial_ptrs)
     for constr in obj_constrs:
-        subjexpr: Optional[s_expr.Expression] = (
-            constr.get_subjectexpr(ctx.env.schema)
+        subjexpr: Optional[s_expr.Expression] = constr.get_subjectexpr(
+            ctx.env.schema
         )
         assert subjexpr
         needed_ptrs |= qlutils.find_subject_ptrs(subjexpr.parse())
@@ -217,13 +216,14 @@ def _compile_conflict_select_for_obj_type(
 
     # Fill in empty sets for pointers that are needed but not present
     present_ptrs = set(ptr_anchors)
-    for p in (needed_ptrs - present_ptrs):
+    for p in needed_ptrs - present_ptrs:
         ptr = subject_typ.getptr(ctx.env.schema, s_name.UnqualName(p))
         typ = ptr.get_target(ctx.env.schema)
         assert typ
         ptr_anchors[p] = qlast.TypeCast(
             expr=qlast.Set(elements=[]),
-            type=typegen.type_to_ql_typeref(typ, ctx=ctx))
+            type=typegen.type_to_ql_typeref(typ, ctx=ctx),
+        )
 
     if not ptr_anchors:
         raise errors.QueryError(
@@ -236,10 +236,9 @@ def _compile_conflict_select_for_obj_type(
         if ptrname not in present_ptrs:
             continue
         anchor = qlutils.subject_paths_substitute(
-            ptr_anchors[ptrname], ptr_anchors)
-        ptr_val = qlast.Path(partial=True, steps=[
-            qlast.Ptr(name=ptrname)
-        ])
+            ptr_anchors[ptrname], ptr_anchors
+        )
+        ptr_val = qlast.Path(partial=True, steps=[qlast.Ptr(name=ptrname)])
         ptr, ptr_cnstrs = constrs[ptrname]
         ptr_card = ptr.get_cardinality(ctx.env.schema)
 
@@ -248,16 +247,19 @@ def _compile_conflict_select_for_obj_type(
             rhs: qlast.Expr = ptr_val
             # If there is a subjectexpr, substitute our lhs and rhs in
             # for __subject__ in the subjectexpr and compare *that*
-            if (subjectexpr := cnstr.get_subjectexpr(ctx.env.schema)):
+            if subjectexpr := cnstr.get_subjectexpr(ctx.env.schema):
                 assert isinstance(subjectexpr, s_expr.Expression)
                 assert isinstance(subjectexpr.parse(), qlast.Expr)
                 lhs = qlutils.subject_substitute(subjectexpr.parse(), lhs)
                 rhs = qlutils.subject_substitute(subjectexpr.parse(), rhs)
 
-            conds.append(qlast.BinOp(
-                op='=' if ptr_card.is_single() else 'IN',
-                left=lhs, right=rhs,
-            ))
+            conds.append(
+                qlast.BinOp(
+                    op='=' if ptr_card.is_single() else 'IN',
+                    left=lhs,
+                    right=rhs,
+                )
+            )
 
     # If the type we are looking at is BaseObject, then this must a
     # conflict check we are synthesizing for an explicit .id. We need
@@ -266,25 +268,24 @@ def _compile_conflict_select_for_obj_type(
     # (We can't insert directly into the abstract BaseObject, so this
     # is a safe assumption.)
     ignore_rewrites = (
-        str(subject_typ.get_name(ctx.env.schema)) == 'std::BaseObject')
+        str(subject_typ.get_name(ctx.env.schema)) == 'std::BaseObject'
+    )
     if ignore_rewrites:
         assert not obj_constrs
         assert len(constrs) == 1 and len(constrs['id'][1]) == 1
-    insert_subject = ctx.create_anchor(setgen.class_set(
-        subject_typ, ignore_rewrites=ignore_rewrites, ctx=ctx
-    ))
+    insert_subject = ctx.create_anchor(
+        setgen.class_set(subject_typ, ignore_rewrites=ignore_rewrites, ctx=ctx)
+    )
 
     for constr in obj_constrs:
-        subject_expr: Optional[s_expr.Expression] = (
-            constr.get_subjectexpr(ctx.env.schema)
+        subject_expr: Optional[s_expr.Expression] = constr.get_subjectexpr(
+            ctx.env.schema
         )
         assert subject_expr and isinstance(subject_expr.parse(), qlast.Expr)
         lhs = qlutils.subject_paths_substitute(
             subject_expr.parse(), ptr_anchors
         )
-        rhs = qlutils.subject_substitute(
-            subject_expr.parse(), insert_subject
-        )
+        rhs = qlutils.subject_substitute(subject_expr.parse(), insert_subject)
         op = qlast.BinOp(op='=', left=lhs, right=rhs)
 
         # If there is an except expr, we need to add in those checks also
@@ -292,9 +293,11 @@ def _compile_conflict_select_for_obj_type(
             assert isinstance(except_expr, s_expr.Expression)
 
             e_lhs = qlutils.subject_paths_substitute(
-                except_expr.parse(), ptr_anchors)
+                except_expr.parse(), ptr_anchors
+            )
             e_rhs = qlutils.subject_substitute(
-                except_expr.parse(), insert_subject)
+                except_expr.parse(), insert_subject
+            )
 
             true_ast = qlast.Constant.boolean(True)
             on = qlast.BinOp(
@@ -322,7 +325,8 @@ def _compile_conflict_select_for_obj_type(
     # For the result filtering we ignore any objects from the same type.
     if fake_dml_set:
         anchor = qlutils.subject_paths_substitute(
-            ptr_anchors['__type__'], ptr_anchors)
+            ptr_anchors['__type__'], ptr_anchors
+        )
         anchor_val = qlast.Path(steps=[anchor, qlast.Ptr(name='id')])
         ptr_val = qlast.Path(
             partial=True,
@@ -425,8 +429,8 @@ def _compile_conflict_select(
     stmt: irast.MutatingStmt,
     subject_typ: s_objtypes.ObjectType,
     *,
-    for_inheritance: bool=False,
-    fake_dml_set: Optional[irast.Set]=None,
+    for_inheritance: bool = False,
+    fake_dml_set: Optional[irast.Set] = None,
     obj_constrs: Sequence[s_constr.Constraint],
     constrs: PointerConstraintMap,
     span: Optional[irast.Span],
@@ -454,10 +458,14 @@ def _compile_conflict_select(
     frags = []
     for a_obj, (a_constrs, a_obj_constrs) in type_maps.items():
         frag, frag_always_check = _compile_conflict_select_for_obj_type(
-            stmt, a_obj, obj_constrs=a_obj_constrs, constrs=a_constrs,
+            stmt,
+            a_obj,
+            obj_constrs=a_obj_constrs,
+            constrs=a_constrs,
             for_inheritance=for_inheritance,
             fake_dml_set=fake_dml_set,
-            span=span, ctx=ctx,
+            span=span,
+            ctx=ctx,
         )
         always_check |= frag_always_check
         if frag:
@@ -477,8 +485,7 @@ def _compile_conflict_select(
         ectx.implicit_limit = 0
         ectx.allow_endpoint_linkprops = True
         select_ir = dispatch.compile(select_ast, ctx=ectx)
-        select_ir = setgen.scoped_set(
-            select_ir, force_reassign=True, ctx=ectx)
+        select_ir = setgen.scoped_set(select_ir, force_reassign=True, ctx=ectx)
         assert isinstance(select_ir, irast.Set)
 
     # If we have an empty set, remake it with the right type
@@ -491,7 +498,8 @@ def _compile_conflict_select(
 def _get_exclusive_ptr_constraints(
     typ: s_objtypes.ObjectType,
     include_id: bool,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> dict[str, tuple[s_pointers.Pointer, list[s_constr.Constraint]]]:
     schema = ctx.env.schema
     pointers = {}
@@ -499,8 +507,11 @@ def _get_exclusive_ptr_constraints(
     exclusive_constr = schema.get('std::exclusive', type=s_constr.Constraint)
     for ptr in typ.get_pointers(schema).objects(schema):
         ptr = ptr.get_nearest_non_derived_parent(schema)
-        ex_cnstrs = [c for c in ptr.get_constraints(schema).objects(schema)
-                     if c.issubclass(schema, exclusive_constr)]
+        ex_cnstrs = [
+            c
+            for c in ptr.get_constraints(schema).objects(schema)
+            if c.issubclass(schema, exclusive_constr)
+        ]
         if ex_cnstrs:
             name = ptr.get_shortname(schema).name
             if name != 'id' or include_id:
@@ -512,7 +523,8 @@ def _get_exclusive_ptr_constraints(
 def compile_insert_unless_conflict(
     stmt: irast.InsertStmt,
     typ: s_objtypes.ObjectType,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> irast.OnConflictClause:
     """Compile an UNLESS CONFLICT clause with no ON
 
@@ -521,18 +533,25 @@ def compile_insert_unless_conflict(
     """
     has_id_write = _has_explicit_id_write(stmt)
     pointers = _get_exclusive_ptr_constraints(
-        typ, include_id=has_id_write, ctx=ctx)
+        typ, include_id=has_id_write, ctx=ctx
+    )
     obj_constrs = typ.get_constraints(ctx.env.schema).objects(ctx.env.schema)
 
     select_ir, always_check, _ = _compile_conflict_select(
-        stmt, typ,
+        stmt,
+        typ,
         constrs=pointers,
         obj_constrs=obj_constrs,
-        span=stmt.span, ctx=ctx)
+        span=stmt.span,
+        ctx=ctx,
+    )
 
     return irast.OnConflictClause(
-        constraint=None, select_ir=select_ir, always_check=always_check,
-        else_ir=None)
+        constraint=None,
+        select_ir=select_ir,
+        always_check=always_check,
+        else_ir=None,
+    )
 
 
 def compile_insert_unless_conflict_on(
@@ -540,9 +559,9 @@ def compile_insert_unless_conflict_on(
     typ: s_objtypes.ObjectType,
     constraint_spec: qlast.Expr,
     else_branch: Optional[qlast.Expr],
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> irast.OnConflictClause:
-
     with ctx.new() as constraint_ctx:
         constraint_ctx.partial_path_prefix = setgen.class_set(typ, ctx=ctx)
 
@@ -580,8 +599,9 @@ def compile_insert_unless_conflict_on(
     exclusive_constr = schema.get('std::exclusive', type=s_constr.Constraint)
     for cspec_arg in cspec_args:
         assert isinstance(cspec_arg.expr, irast.Pointer)
-        schema, ptr = (
-            typeutils.ptrcls_from_ptrref(cspec_arg.expr.ptrref, schema=schema))
+        schema, ptr = typeutils.ptrcls_from_ptrref(
+            cspec_arg.expr.ptrref, schema=schema
+        )
         if not isinstance(ptr, s_pointers.Pointer):
             raise errors.QueryError(
                 'UNLESS CONFLICT argument must be a property, link, '
@@ -593,13 +613,16 @@ def compile_insert_unless_conflict_on(
         ptrs.append(ptr)
 
     obj_constrs = inference.cardinality.get_object_exclusive_constraints(
-        typ, set(ptrs), ctx.env)
+        typ, set(ptrs), ctx.env
+    )
 
     field_constrs = []
     if len(ptrs) == 1:
         field_constrs = [
-            c for c in ptrs[0].get_constraints(schema).objects(schema)
-            if c.issubclass(schema, exclusive_constr)]
+            c
+            for c in ptrs[0].get_constraints(schema).objects(schema)
+            if c.issubclass(schema, exclusive_constr)
+        ]
 
     all_constrs = list(obj_constrs) + field_constrs
     if len(all_constrs) != 1:
@@ -608,11 +631,15 @@ def compile_insert_unless_conflict_on(
             span=constraint_spec.span,
         )
 
-    ds = {ptr.get_shortname(schema).name: (ptr, field_constrs)
-          for ptr in ptrs}
+    ds = {ptr.get_shortname(schema).name: (ptr, field_constrs) for ptr in ptrs}
     select_ir, always_check, from_anc = _compile_conflict_select(
-        stmt, typ, constrs=ds, obj_constrs=list(obj_constrs),
-        span=stmt.span, ctx=ctx)
+        stmt,
+        typ,
+        constrs=ds,
+        obj_constrs=list(obj_constrs),
+        span=stmt.span,
+        ctx=ctx,
+    )
 
     # Compile an else branch
     else_ir = None
@@ -625,7 +652,8 @@ def compile_insert_unless_conflict_on(
                 'parent type',
                 details=(
                     f"The existing object can't be exposed in the ELSE clause "
-                    f"because it may not have type {typ.get_name(schema)}"),
+                    f"because it may not have type {typ.get_name(schema)}"
+                ),
                 span=constraint_spec.span,
             )
 
@@ -635,7 +663,8 @@ def compile_insert_unless_conflict_on(
             ectx.iterator_path_ids |= {stmt.subject.path_id}
 
             pathctx.ban_inserting_path(
-                stmt.subject.path_id, location='else', ctx=ectx)
+                stmt.subject.path_id, location='else', ctx=ectx
+            )
 
             # Compile else
             else_ir = dispatch.compile(
@@ -647,7 +676,7 @@ def compile_insert_unless_conflict_on(
         constraint=irast.ConstraintRef(id=all_constrs[0].id),
         select_ir=select_ir,
         always_check=always_check,
-        else_ir=else_ir
+        else_ir=else_ir,
     )
 
 
@@ -667,8 +696,8 @@ def _has_explicit_id_write(stmt: irast.MutatingStmt) -> bool:
 def _disallow_exclusive_linkprops(
     stmt: irast.MutatingStmt,
     typ: s_objtypes.ObjectType,
-    *, ctx: context.ContextLevel,
-
+    *,
+    ctx: context.ContextLevel,
 ) -> None:
     # TODO: It should be possible to support this, but we don't deal
     # with it yet, so disallow it for safety reasons.
@@ -680,8 +709,10 @@ def _disallow_exclusive_linkprops(
         ptr = ptr.get_nearest_non_derived_parent(schema)
         for lprop in ptr.get_pointers(schema).objects(schema):
             ex_cnstrs = [
-                c for c in lprop.get_constraints(schema).objects(schema)
-                if c.issubclass(schema, exclusive_constr)]
+                c
+                for c in lprop.get_constraints(schema).objects(schema)
+                if c.issubclass(schema, exclusive_constr)
+            ]
             if ex_cnstrs:
                 raise errors.UnsupportedFeatureError(
                     'INSERT/UPDATE do not support exclusive constraints on '
@@ -694,18 +725,22 @@ def _disallow_exclusive_linkprops(
 def _get_type_conflict_constraint_entries(
     stmt: irast.MutatingStmt,
     typ: s_objtypes.ObjectType,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> list[tuple[s_constr.Constraint, ConstraintPair]]:
     # TODO: why do we return this in such a hinky way?
     rewrite_kind = _get_rewrite_kind(stmt)
 
     has_id_write = _has_explicit_id_write(stmt)
     pointers = _get_exclusive_ptr_constraints(
-        typ, include_id=has_id_write, ctx=ctx)
+        typ, include_id=has_id_write, ctx=ctx
+    )
     exclusive = ctx.env.schema.get('std::exclusive', type=s_constr.Constraint)
     obj_constrs = [
-        constr for constr in
-        typ.get_constraints(ctx.env.schema).objects(ctx.env.schema)
+        constr
+        for constr in typ.get_constraints(ctx.env.schema).objects(
+            ctx.env.schema
+        )
         if constr.issubclass(ctx.env.schema, exclusive)
     ]
 
@@ -725,25 +760,21 @@ def _get_type_conflict_constraint_entries(
             # modify a pointer used by the constraint. For inserts, though
             # everything must be in play, since constraints can depend on
             # nonexistence also.
-            if (
-                _constr_matters(ptr_constr, ctx=ctx)
-                and (
-                    isinstance(stmt, irast.InsertStmt)
-                    or (
-                        _get_needed_ptrs(typ, (), [name], rewrite_kind, ctx)[0]
-                        & shape_ptrs
-                    )
+            if _constr_matters(ptr_constr, ctx=ctx) and (
+                isinstance(stmt, irast.InsertStmt)
+                or (
+                    _get_needed_ptrs(typ, (), [name], rewrite_kind, ctx)[0]
+                    & shape_ptrs
                 )
             ):
                 entries.append((ptr_constr, ({name: (ptr, [ptr_constr])}, [])))
     for obj_constr in obj_constrs:
         # See note above about needed ptrs check
-        if (
-            _constr_matters(obj_constr, ctx=ctx)
-            and (
-                isinstance(stmt, irast.InsertStmt)
-                or (_get_needed_ptrs(
-                    typ, [obj_constr], (), rewrite_kind, ctx)[0] & shape_ptrs)
+        if _constr_matters(obj_constr, ctx=ctx) and (
+            isinstance(stmt, irast.InsertStmt)
+            or (
+                _get_needed_ptrs(typ, [obj_constr], (), rewrite_kind, ctx)[0]
+                & shape_ptrs
             )
         ):
             entries.append((obj_constr, ({}, [obj_constr])))
@@ -756,7 +787,8 @@ def _compile_inheritance_conflict_selects(
     conflict: irast.MutatingStmt,
     typ: s_objtypes.ObjectType,
     subject_type: s_objtypes.ObjectType,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> list[irast.OnConflictClause]:
     """Compile the selects needed to resolve multiple DML to related types
 
@@ -774,28 +806,40 @@ def _compile_inheritance_conflict_selects(
     # We need to pull from the actual result overlay,
     # since the final row can depend on things not in the query
     # (on updates always, on inserts due to rewrites).
-    fake_subject = qlast.DetachedExpr(expr=qlast.Path(steps=[
-        s_utils.name_to_ast_ref(subject_type.get_name(ctx.env.schema))]))
+    fake_subject = qlast.DetachedExpr(
+        expr=qlast.Path(
+            steps=[
+                s_utils.name_to_ast_ref(subject_type.get_name(ctx.env.schema))
+            ]
+        )
+    )
 
     fake_dml_set = dispatch.compile(fake_subject, ctx=ctx)
 
     clauses = []
     for cnstr, (p, o) in entries:
         select_ir, _, _ = _compile_conflict_select(
-            stmt, typ,
+            stmt,
+            typ,
             for_inheritance=True,
             fake_dml_set=fake_dml_set,
             constrs=p,
             obj_constrs=o,
-            span=stmt.span, ctx=ctx)
+            span=stmt.span,
+            ctx=ctx,
+        )
         if isinstance(select_ir.expr, irast.EmptySet):
             continue
         cnstr_ref = irast.ConstraintRef(id=cnstr.id)
         clauses.append(
             irast.OnConflictClause(
-                constraint=cnstr_ref, select_ir=select_ir, always_check=False,
-                else_ir=None, else_fail=conflict,
-                check_anchor=fake_dml_set.path_id)
+                constraint=cnstr_ref,
+                select_ir=select_ir,
+                always_check=False,
+                else_ir=None,
+                else_fail=conflict,
+                check_anchor=fake_dml_set.path_id,
+            )
         )
     return clauses
 
@@ -803,13 +847,14 @@ def _compile_inheritance_conflict_selects(
 def compile_inheritance_conflict_checks(
     stmt: irast.MutatingStmt,
     subject_stype: s_objtypes.ObjectType,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> Optional[list[irast.OnConflictClause]]:
-
     has_id_write = _has_explicit_id_write(stmt)
 
     relevant_dml = [
-        dml for dml in ctx.env.dml_stmts
+        dml
+        for dml in ctx.env.dml_stmts
         if not isinstance(dml, irast.DeleteStmt)
     ]
     # Updates can conflict with themselves
@@ -822,16 +867,17 @@ def compile_inheritance_conflict_checks(
     assert isinstance(subject_stype, s_objtypes.ObjectType)
     modified_ancestors = set()
     base_object = ctx.env.schema.get(
-        'std::BaseObject', type=s_objtypes.ObjectType)
+        'std::BaseObject', type=s_objtypes.ObjectType
+    )
 
-    subject_stype = subject_stype.get_nearest_non_derived_parent(
-        ctx.env.schema)
+    subject_stype = subject_stype.get_nearest_non_derived_parent(ctx.env.schema)
     subject_stype = schemactx.concretify(subject_stype, ctx=ctx)
     # For updates, we need to also consider all descendants, because
     # those could also have interesting constraints of their own.
     if isinstance(stmt, irast.UpdateStmt):
         subject_stypes = list(
-            schemactx.get_all_concrete(subject_stype, ctx=ctx))
+            schemactx.get_all_concrete(subject_stype, ctx=ctx)
+        )
     else:
         subject_stypes = [subject_stype]
 
@@ -867,7 +913,8 @@ def compile_inheritance_conflict_checks(
                     continue
 
                 ancs = s_utils.get_class_nearest_common_ancestors(
-                    ctx.env.schema, [subject_stype, typ])
+                    ctx.env.schema, [subject_stype, typ]
+                )
                 for anc in ancs:
                     if anc != base_object:
                         modified_ancestors.add((subject_stype, anc, ir))
@@ -881,7 +928,6 @@ def compile_inheritance_conflict_checks(
 
     conflicters = []
     for subject_stype, anc_type, ir in modified_ancestors:
-
         # don't enforce any constraints for abstract object type
         if subject_stype.get_abstract(schema=ctx.env.schema):
             continue
@@ -899,7 +945,8 @@ def check_for_isolation_conflicts(
     stmt: irast.MutatingStmt,
     typ: s_objtypes.ObjectType,
     update_typ: Optional[s_objtypes.ObjectType] = None,
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> None:
     """Check for conflicts on a DML stmt that cause isolation dangers.
 
@@ -979,13 +1026,14 @@ def check_for_isolation_conflicts(
                 f"{root_subject_obj.get_verbosename(schema)}"
             )
         else:
-            all_objs_s = ', '.join(sorted(
-                f"'{o.get_displayname(schema)}'" for o in all_objs if o != typ
-            ))
-            msg = (
-                f"{vn} that is shared with "
-                f"descendant types: {all_objs_s}"
+            all_objs_s = ', '.join(
+                sorted(
+                    f"'{o.get_displayname(schema)}'"
+                    for o in all_objs
+                    if o != typ
+                )
             )
+            msg = f"{vn} that is shared with descendant types: {all_objs_s}"
 
         ctx.log_repeatable_read_danger(
             errors.UnsafeIsolationLevelError(msg, span=stmt.span)

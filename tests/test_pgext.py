@@ -500,7 +500,7 @@ def deserialize(data):
             if DEBUG:
                 print(PID, "<  ", rv)
             yield rv
-        buf = buf[msg_size + 1:]
+        buf = buf[msg_size + 1 :]
 
 
 class PgProtocol(asyncio.Protocol):
@@ -1104,9 +1104,7 @@ class TestSQLProtocol(tb.DatabaseTestCase):
             DescribeStatement("stmt21"),
             Sync(),
         )
-        self.assertEqual(
-            param_desc, await self.conn.read(ParameterDescription)
-        )
+        self.assertEqual(param_desc, await self.conn.read(ParameterDescription))
         self.assertEqual(row_desc, await self.conn.read(RowDescription))
         await self.assert_ready_for_query()
 

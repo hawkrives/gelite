@@ -19,7 +19,6 @@
 
 """EdgeQL access policy compilation."""
 
-
 from __future__ import annotations
 
 from typing import Optional
@@ -65,7 +64,7 @@ def should_ignore_rewrite(
     if (
         isinstance(stype, s_objtypes.ObjectType)
         and s_name.UnqualName(stype.get_name(schema).module)
-            not in s_schema.STD_MODULES
+        not in s_schema.STD_MODULES
     ):
         return True
 
@@ -86,7 +85,7 @@ def get_access_policies(
     if (
         not ctx.env.options.apply_user_access_policies
         and s_name.UnqualName(stype.get_name(schema).module)
-            not in s_schema.STD_MODULES
+        not in s_schema.STD_MODULES
     ):
         return ()
 
@@ -96,7 +95,7 @@ def get_access_policies(
 def has_own_policies(
     *,
     stype: s_objtypes.ObjectType,
-    skip_from: Optional[s_objtypes.ObjectType]=None,
+    skip_from: Optional[s_objtypes.ObjectType] = None,
     ctx: context.ContextLevel,
 ) -> bool:
     # TODO: some kind of caching or precomputation
@@ -147,7 +146,8 @@ def compile_pol(
     # Find all descendants of the original subject of the rule
     subject = pol.get_original_subject(schema)
     descs = {subject} | {
-        desc for desc in subject.descendants(schema)
+        desc
+        for desc in subject.descendants(schema)
         if desc.is_material_object_type(schema)
     }
 
@@ -168,8 +168,9 @@ def get_extra_function_rewrite_filter(ctx: context.ContextLevel) -> qlast.Expr:
     # We could also have done this by checking
     # cfg::Config.apply_access_policies, but that's probably slower,
     # and we have this mechanism anyway.
-    json_type = qlast.TypeName(maintype=qlast.ObjectRef(
-        module='__std__', name='json'))
+    json_type = qlast.TypeName(
+        maintype=qlast.ObjectRef(module='__std__', name='json')
+    )
     glob_set = setgen.get_func_global_json_arg(ctx=ctx)
     func_override = qlast.FunctionCall(
         func=('__std__', 'json_get'),
@@ -186,8 +187,9 @@ def get_extra_function_rewrite_filter(ctx: context.ContextLevel) -> qlast.Expr:
     )
     return qlast.TypeCast(
         expr=func_override,
-        type=qlast.TypeName(maintype=qlast.ObjectRef(
-            module='__std__', name='bool'))
+        type=qlast.TypeName(
+            maintype=qlast.ObjectRef(module='__std__', name='bool')
+        ),
     )
 
 
@@ -228,8 +230,7 @@ def get_rewrite_filter(
 
     if deny:
         deny_expr = qlast.UnaryOp(
-            op='NOT',
-            operand=astutils.extend_binop(None, *deny, op='OR')
+            op='NOT', operand=astutils.extend_binop(None, *deny, op='OR')
         )
         filter_expr = astutils.extend_binop(filter_expr, deny_expr)
 
@@ -250,21 +251,19 @@ def get_rewrite_filter(
     #
     # As an optimization, we try to only do it when the object might
     # not be referenced.
-    if (
-        mode == qltypes.AccessKind.Select
-        and not (
-            ctx.partial_path_prefix
-            and _always_references_set(filter_ir, ctx.partial_path_prefix)
-        )
+    if mode == qltypes.AccessKind.Select and not (
+        ctx.partial_path_prefix
+        and _always_references_set(filter_ir, ctx.partial_path_prefix)
     ):
         bogus_check = qlast.BinOp(
             op='?=',
             left=qlast.Path(partial=True, steps=[qlast.Ptr(name='id')]),
             right=qlast.TypeCast(
-                type=qlast.TypeName(maintype=qlast.ObjectRef(
-                    module='__std__', name='uuid')),
+                type=qlast.TypeName(
+                    maintype=qlast.ObjectRef(module='__std__', name='uuid')
+                ),
                 expr=qlast.Set(elements=[]),
-            )
+            ),
         )
         filter_expr = astutils.extend_binop(filter_expr, bogus_check, op='OR')
 
@@ -274,7 +273,7 @@ def get_rewrite_filter(
 def _always_references_set(
     ir: irast.Set | irast.Expr,
     ref: irast.Set,
-    inverted: bool=False,
+    inverted: bool = False,
 ) -> bool:
     """Return whether *ir* "always references" *ref*
 
@@ -328,7 +327,8 @@ def _always_references_set(
             return _always_references_set(arg.expr, ref, not inverted)
 
         case irast.OperatorCall(
-            func_shortname=s_name.QualName('std', '??'), args={0: lhs, 1: _},
+            func_shortname=s_name.QualName('std', '??'),
+            args={0: lhs, 1: _},
         ):
             # LHS always evaluated; RHS might not be
             return _always_references_set(lhs.expr, ref, inverted)
@@ -337,12 +337,9 @@ def _always_references_set(
             func_shortname=s_name.QualName('std', 'IF'),
             args={0: t, 1: c, 2: f},
         ):
-            return (
-                _always_references_set(c.expr, ref, inverted)
-                or (
-                    _always_references_set(t.expr, ref, inverted)
-                    and _always_references_set(f.expr, ref, inverted)
-                )
+            return _always_references_set(c.expr, ref, inverted) or (
+                _always_references_set(t.expr, ref, inverted)
+                and _always_references_set(f.expr, ref, inverted)
             )
 
         # Any other call, we use 'any' semantics.
@@ -379,15 +376,15 @@ def try_type_rewrite(
     # rewrites compiled
     if stype.is_compound_type(schema):
         type_rewrites[rw_key] = None
-        objs = (
-            stype.get_union_of(schema).objects(schema) +
-            stype.get_intersection_of(schema).objects(schema)
-        )
+        objs = stype.get_union_of(schema).objects(
+            schema
+        ) + stype.get_intersection_of(schema).objects(schema)
         for obj in objs:
             srw_key = (obj, skip_subtypes)
             if srw_key not in type_rewrites:
                 try_type_rewrite(
-                    stype=obj, skip_subtypes=skip_subtypes, ctx=ctx)
+                    stype=obj, skip_subtypes=skip_subtypes, ctx=ctx
+                )
                 # Mark this as having a real rewrite if any parts do
                 if type_rewrites[srw_key]:
                     type_rewrites[rw_key] = True
@@ -449,7 +446,8 @@ def try_type_rewrite(
             base_set = setgen.class_set(
                 stype=stype,
                 skip_subtypes=children_have_policies or skip_subtypes,
-                ctx=subctx)
+                ctx=subctx,
+            )
 
             if children_have_policies:
                 # If children have policies, then all of the filtered sets
@@ -467,8 +465,10 @@ def try_type_rewrite(
 
                 filtered_stmt.where = clauses.compile_where_clause(
                     get_rewrite_filter(
-                        stype, mode=qltypes.AccessKind.Select, ctx=subctx),
-                    ctx=subctx)
+                        stype, mode=qltypes.AccessKind.Select, ctx=subctx
+                    ),
+                    ctx=subctx,
+                )
 
                 filtered_set = setgen.scoped_set(filtered_stmt, ctx=subctx)
 
@@ -499,8 +499,10 @@ def try_type_rewrite(
             setgen.expression_set(
                 setgen.ensure_stmt(
                     setgen.class_set(
-                        stype=child, skip_subtypes=children_overlap, ctx=ctx),
-                    ctx=ctx),
+                        stype=child, skip_subtypes=children_overlap, ctx=ctx
+                    ),
+                    ctx=ctx,
+                ),
                 type_override=stype,
                 ctx=ctx,
             )
@@ -516,7 +518,8 @@ def try_type_rewrite(
             subctx.anchors = subctx.anchors.copy()
             parts: list[qlast.Expr] = [subctx.create_anchor(x) for x in sets]
             rewritten_set = dispatch.compile(
-                qlast.Set(elements=parts), ctx=subctx)
+                qlast.Set(elements=parts), ctx=subctx
+            )
     elif len(sets) > 0:
         rewritten_set = sets[0]
     else:
@@ -528,7 +531,8 @@ def try_type_rewrite(
 def compile_dml_write_policies(
     stype: s_objtypes.ObjectType,
     result: irast.Set,
-    mode: qltypes.AccessKind, *,
+    mode: qltypes.AccessKind,
+    *,
     ctx: context.ContextLevel,
 ) -> Optional[irast.WritePolicies]:
     """Compile policy filters and wrap them into irast.WritePolicies"""

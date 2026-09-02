@@ -1,4 +1,3 @@
-
 from __future__ import annotations
 from typing import (
     Any,
@@ -55,29 +54,37 @@ class ExperimentalInterpreterTestCase(unittest.TestCase):
 
     def execute(self, query: str, *, variables=None) -> Any:
         return self.client.run_single_str_get_json_with_cache(
-            query, variables=variables)
+            query, variables=variables
+        )
 
     def execute_single(self, query: str, *, variables=None) -> Any:
         return self.client.query_single_json(query, variables=variables)
 
-    def assert_query_result(self, query,
-                                  exp_result_json,
-                                  exp_result_binary=...,
-                                  *,
-                                  msg: Optional[str] = None,
-                                  sort: Optional[bool] = None,
-                                  variables=None,
-                                  ):
-        if (hasattr(self, "use_experimental_interpreter") and
-                self.use_experimental_interpreter):
+    def assert_query_result(
+        self,
+        query,
+        exp_result_json,
+        exp_result_binary=...,
+        *,
+        msg: Optional[str] = None,
+        sort: Optional[bool] = None,
+        variables=None,
+    ):
+        if (
+            hasattr(self, "use_experimental_interpreter")
+            and self.use_experimental_interpreter
+        ):
             result = self.client.run_single_str_get_json_with_cache(
-                query, variables=variables)
+                query, variables=variables
+            )
             res = result
             if sort is not None:
                 assert_data_shape.sort_results(res, sort)
             if exp_result_binary is not ...:
                 assert_data_shape.assert_data_shape(
-                    res, exp_result_binary, self.fail, message=msg)
+                    res, exp_result_binary, self.fail, message=msg
+                )
             else:
                 assert_data_shape.assert_data_shape(
-                    res, exp_result_json, self.fail, message=msg)
+                    res, exp_result_json, self.fail, message=msg
+                )

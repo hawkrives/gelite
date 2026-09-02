@@ -87,10 +87,7 @@ def needs_quoting(string: str, allow_reserved: bool, allow_num: bool) -> bool:
         and string in keywords.by_type[keywords.RESERVED_KEYWORD]
     )
 
-    return (
-        not isalnum
-        or (not allow_reserved and is_reserved)
-    )
+    return not isalnum or (not allow_reserved and is_reserved)
 
 
 def _quote_ident(string: str) -> str:

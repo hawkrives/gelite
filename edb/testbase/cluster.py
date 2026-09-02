@@ -59,15 +59,11 @@ class BaseCluster:
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
         log_level: Optional[str] = None,
-        security: Optional[
-            edgedb_args.ServerSecurityMode
-        ] = None,
+        security: Optional[edgedb_args.ServerSecurityMode] = None,
         http_endpoint_security: Optional[
             edgedb_args.ServerEndpointSecurityMode
         ] = None,
-        compiler_pool_mode: Optional[
-            edgedb_args.CompilerPoolMode
-        ] = None,
+        compiler_pool_mode: Optional[edgedb_args.CompilerPoolMode] = None,
     ):
         self._edgedb_cmd = [sys.executable, '-I', '-m', 'edb.server.main']
 
@@ -86,22 +82,28 @@ class BaseCluster:
             self._edgedb_cmd.append('--testmode')
 
         if security:
-            self._edgedb_cmd.extend((
-                '--security',
-                str(security),
-            ))
+            self._edgedb_cmd.extend(
+                (
+                    '--security',
+                    str(security),
+                )
+            )
 
         if http_endpoint_security:
-            self._edgedb_cmd.extend((
-                '--http-endpoint-security',
-                str(http_endpoint_security),
-            ))
+            self._edgedb_cmd.extend(
+                (
+                    '--http-endpoint-security',
+                    str(http_endpoint_security),
+                )
+            )
 
         if compiler_pool_mode is not None:
-            self._edgedb_cmd.extend((
-                '--compiler-pool-mode',
-                str(compiler_pool_mode),
-            ))
+            self._edgedb_cmd.extend(
+                (
+                    '--compiler-pool-mode',
+                    str(compiler_pool_mode),
+                )
+            )
 
         self._log_level = log_level
         self._runstate_dir = runstate_dir
@@ -173,7 +175,7 @@ class BaseCluster:
 
     async def start(
         self,
-        wait: int=60,
+        wait: int = 60,
         *,
         port: Optional[int] = None,
         **settings: Any,
@@ -186,8 +188,10 @@ class BaseCluster:
         else:
             cmd_port = str(port)
 
-        extra_args = ['--{}={}'.format(k.replace('_', '-'), v)
-                      for k, v in settings.items()]
+        extra_args = [
+            '--{}={}'.format(k.replace('_', '-'), v)
+            for k, v in settings.items()
+        ]
         extra_args.append(f'--port={cmd_port}')
         status_r = status_w = None
         if port == 0:
@@ -218,8 +222,10 @@ class BaseCluster:
             raise
 
     def stop(self, wait: int = 60) -> None:
-        if (self._daemon_process is not None and
-                self._daemon_process.returncode is None):
+        if (
+            self._daemon_process is not None
+            and self._daemon_process.returncode is None
+        ):
             self._daemon_process.terminate()
             self._daemon_process.wait(wait)
 
@@ -237,29 +243,34 @@ class BaseCluster:
 
         init = subprocess.run(
             self._edgedb_cmd + ['--bootstrap-only'],
-            stdout=sys.stdout, stderr=sys.stderr,
-            env=env)
+            stdout=sys.stdout,
+            stderr=sys.stderr,
+            env=env,
+        )
 
         if init.returncode != 0:
             raise ClusterError(
                 f'edgedb-server --bootstrap-only failed with '
-                f'exit code {init.returncode}')
+                f'exit code {init.returncode}'
+            )
 
     async def _edgedb_template_exists(
         self,
         conn: pgcon.PGConnection,
     ) -> bool:
-        return await conn.sql_fetch_val(
-            b"SELECT True FROM pg_catalog.pg_database WHERE datname = $1",
-            args=[edgedb_defines.GELITE_TEMPLATE_DB.encode("utf-8")],
-        ) is not None
+        return (
+            await conn.sql_fetch_val(
+                b"SELECT True FROM pg_catalog.pg_database WHERE datname = $1",
+                args=[edgedb_defines.GELITE_TEMPLATE_DB.encode("utf-8")],
+            )
+            is not None
+        )
 
     async def _wait_for_server(
         self,
         timeout: float = 30.0,
         status_sock: Optional[socket.socket] = None,
     ) -> None:
-
         async def _read_server_status(
             stream: asyncio.StreamReader,
         ) -> dict[str, Any]:
@@ -285,13 +296,11 @@ class BaseCluster:
             )
             try:
                 data = await asyncio.wait_for(
-                    _read_server_status(stat_reader),
-                    timeout=timeout
+                    _read_server_status(stat_reader), timeout=timeout
                 )
             except asyncio.TimeoutError:
                 raise ClusterError(
-                    f'Gel server did not initialize '
-                    f'within {timeout} seconds'
+                    f'Gel server did not initialize within {timeout} seconds'
                 ) from None
 
             self._effective_port = data['port']
@@ -302,7 +311,7 @@ class BaseCluster:
         if status_sock is not None:
             started = time.monotonic()
             await test()
-            left -= (time.monotonic() - started)
+            left -= time.monotonic() - started
         if res := await self._admin_query(
             "SELECT ();",
             f"{max(1, int(left))}s",
@@ -310,7 +319,8 @@ class BaseCluster:
         ):
             raise ClusterError(
                 f'could not connect to edgedb-server '
-                f'within {timeout} seconds (exit code = {res})') from None
+                f'within {timeout} seconds (exit code = {res})'
+            ) from None
 
     async def _admin_query(
         self,
@@ -347,9 +357,7 @@ class BaseCluster:
             await conn.execute(query)
         except Exception as e:
             if check:
-                raise ClusterError(
-                    f'admin query failed: {e}'
-                ) from e
+                raise ClusterError(f'admin query failed: {e}') from e
             print(f'admin query failed: {e}', file=sys.stderr)
             return 1
         finally:
@@ -401,15 +409,11 @@ class Cluster(BaseCluster):
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
         log_level: Optional[str] = None,
-        security: Optional[
-            edgedb_args.ServerSecurityMode
-        ] = None,
+        security: Optional[edgedb_args.ServerSecurityMode] = None,
         http_endpoint_security: Optional[
             edgedb_args.ServerEndpointSecurityMode
         ] = None,
-        compiler_pool_mode: Optional[
-            edgedb_args.CompilerPoolMode
-        ] = None,
+        compiler_pool_mode: Optional[edgedb_args.CompilerPoolMode] = None,
     ) -> None:
         self._data_dir = data_dir
         if runstate_dir is None:
@@ -449,7 +453,9 @@ class Cluster(BaseCluster):
         if not cluster_status.startswith('not-initialized'):
             raise ClusterError(
                 'cluster in {!r} has already been initialized'.format(
-                    self._data_dir))
+                    self._data_dir
+                )
+            )
 
         self._init()
 
@@ -464,15 +470,11 @@ class TempCluster(Cluster):
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
         log_level: Optional[str] = None,
-        security: Optional[
-            edgedb_args.ServerSecurityMode
-        ] = None,
+        security: Optional[edgedb_args.ServerSecurityMode] = None,
         http_endpoint_security: Optional[
             edgedb_args.ServerEndpointSecurityMode
         ] = None,
-        compiler_pool_mode: Optional[
-            edgedb_args.CompilerPoolMode
-        ] = None,
+        compiler_pool_mode: Optional[edgedb_args.CompilerPoolMode] = None,
     ) -> None:
         tempdir = pathlib.Path(
             tempfile.mkdtemp(
@@ -518,7 +520,7 @@ class RunningCluster(BaseCluster):
 
     async def start(
         self,
-        wait: int=60,
+        wait: int = 60,
         *,
         port: Optional[int] = None,
         **settings: Any,
@@ -549,15 +551,11 @@ class TempClusterWithRemotePg(BaseCluster):
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
         log_level: Optional[str] = None,
-        security: Optional[
-            edgedb_args.ServerSecurityMode
-        ] = None,
+        security: Optional[edgedb_args.ServerSecurityMode] = None,
         http_endpoint_security: Optional[
             edgedb_args.ServerEndpointSecurityMode
         ] = None,
-        compiler_pool_mode: Optional[
-            edgedb_args.CompilerPoolMode
-        ] = None,
+        compiler_pool_mode: Optional[edgedb_args.CompilerPoolMode] = None,
     ) -> None:
         runstate_dir = pathlib.Path(
             tempfile.mkdtemp(
