@@ -114,7 +114,7 @@ class ExprStmtSimpleCore(Nonterm):
                 where=kids[2].val,
                 orderby=kids[3].val,
                 implicit=True,
-                span=merge_spans((kids[0], kids[3]))
+                span=merge_spans((kids[0], kids[3])),
             )
 
             self.val = qlast.SelectQuery(
@@ -140,7 +140,7 @@ class ExprStmtSimpleCore(Nonterm):
             if not subj.expr:
                 raise errors.EdgeQLSyntaxError(
                     "insert shape expressions must have a type name",
-                    span=subj.span
+                    span=subj.span,
                 )
             subj_path = subj.expr
             shape = subj.elements
@@ -148,9 +148,11 @@ class ExprStmtSimpleCore(Nonterm):
             subj_path = subj
             shape = []
 
-        if isinstance(subj_path, qlast.Path) and \
-                len(subj_path.steps) == 1 and \
-                isinstance(subj_path.steps[0], qlast.ObjectRef):
+        if (
+            isinstance(subj_path, qlast.Path)
+            and len(subj_path.steps) == 1
+            and isinstance(subj_path.steps[0], qlast.ObjectRef)
+        ):
             objtype = subj_path.steps[0]
         elif isinstance(subj_path, qlast.IfElse):
             # Insert attempted on something that looks like a conditional
@@ -165,7 +167,8 @@ class ExprStmtSimpleCore(Nonterm):
                     f"the INSERT will be triggered conditionally in one of "
                     f"the branches."
                 ),
-                span=subj_path.span)
+                span=subj_path.span,
+            )
         else:
             raise errors.EdgeQLSyntaxError(
                 f"INSERT only works with object types, not arbitrary "
@@ -175,7 +178,8 @@ class ExprStmtSimpleCore(Nonterm):
                     f"statement with parentheses in order to separate it "
                     f"from the rest of the expression."
                 ),
-                span=subj_path.span)
+                span=subj_path.span,
+            )
 
         self.val = qlast.InsertQuery(
             subject=objtype,
@@ -283,7 +287,8 @@ class AliasedExpr(Nonterm):
 # NOTE: This is intentionally not an AST node, since this structure never
 # makes it to the actual AST and exists solely for parser convenience.
 AliasedExprSpec = collections.namedtuple(
-    'AliasedExprSpec', ['alias', 'expr'], module=__name__)
+    'AliasedExprSpec', ['alias', 'expr'], module=__name__
+)
 
 
 class OptionallyAliasedExpr(Nonterm):
@@ -297,8 +302,12 @@ class OptionallyAliasedExpr(Nonterm):
         self.val = AliasedExprSpec(alias=None, expr=kids[0].val)
 
 
-class AliasedExprList(ListNonterm, element=AliasedExpr,
-                      separator=tokens.T_COMMA, allow_trailing_separator=True):
+class AliasedExprList(
+    ListNonterm,
+    element=AliasedExpr,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     val: list[qlast.AliasedExpr]
 
 
@@ -328,12 +337,13 @@ class GroupingIdent(Nonterm):
                     type='property',
                     span=kids[1].span,
                 )
-            ]
+            ],
         )
 
 
-class GroupingIdentList(ListNonterm, element=GroupingIdent,
-                        separator=tokens.T_COMMA):
+class GroupingIdentList(
+    ListNonterm, element=GroupingIdent, separator=tokens.T_COMMA
+):
     val: list[qlast.GroupingAtom]
 
 
@@ -349,8 +359,11 @@ class GroupingAtom(Nonterm):
 
 
 class GroupingAtomList(
-        ListNonterm, element=GroupingAtom, separator=tokens.T_COMMA,
-        allow_trailing_separator=True):
+    ListNonterm,
+    element=GroupingAtom,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     val: list[qlast.GroupingAtom]
 
 
@@ -371,8 +384,11 @@ class GroupingElement(Nonterm):
 
 
 class GroupingElementList(
-        ListNonterm, element=GroupingElement, separator=tokens.T_COMMA,
-        allow_trailing_separator=True):
+    ListNonterm,
+    element=GroupingElement,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     val: list[qlast.GroupingElement]
 
 
@@ -456,9 +472,7 @@ class OptGroupingAlias(Nonterm):
 
 
 FunctionResultData = collections.namedtuple(
-    'FunctionResultData',
-    ['type_qualifier', 'result_type'],
-    module=__name__
+    'FunctionResultData', ['type_qualifier', 'result_type'], module=__name__
 )
 
 
@@ -473,7 +487,8 @@ class FunctionResult(Nonterm):
 
 
 WithBlockData = collections.namedtuple(
-    'WithBlockData', ['aliases'], module=__name__)
+    'WithBlockData', ['aliases'], module=__name__
+)
 
 
 class WithBlock(Nonterm):
@@ -486,14 +501,11 @@ class WithBlock(Nonterm):
 
 class AliasDecl(Nonterm):
     def reduce_MODULE_ModuleName(self, *kids):
-        self.val = qlast.ModuleAliasDecl(
-            module='::'.join(kids[1].val)
-        )
+        self.val = qlast.ModuleAliasDecl(module='::'.join(kids[1].val))
 
     def reduce_Identifier_AS_MODULE_ModuleName(self, *kids):
         self.val = qlast.ModuleAliasDecl(
-            alias=kids[0].val,
-            module='::'.join(kids[3].val)
+            alias=kids[0].val, module='::'.join(kids[3].val)
         )
 
     @parsing.inline(0)
@@ -510,8 +522,12 @@ class WithDecl(Nonterm):
         pass
 
 
-class WithDeclList(ListNonterm, element=WithDecl,
-                   separator=tokens.T_COMMA, allow_trailing_separator=True):
+class WithDeclList(
+    ListNonterm,
+    element=WithDecl,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
@@ -555,13 +571,16 @@ class ShapeElement(Nonterm):
         pass
 
 
-class ShapeElementList(ListNonterm, element=ShapeElement,
-                       separator=tokens.T_COMMA, allow_trailing_separator=True):
+class ShapeElementList(
+    ListNonterm,
+    element=ShapeElement,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
 class SimpleShapePath(Nonterm):
-
     def reduce_PathStepName(self, *kids):
         from edb.schema import pointers as s_pointers
 
@@ -588,11 +607,8 @@ class SimpleShapePath(Nonterm):
 
 
 class SimpleShapePointer(Nonterm):
-
     def reduce_SimpleShapePath(self, *kids):
-        self.val = qlast.ShapeElement(
-            expr=kids[0].val
-        )
+        self.val = qlast.ShapeElement(expr=kids[0].val)
 
 
 # Shape pointers in free shapes are not allowed to be link
@@ -601,7 +617,6 @@ class SimpleShapePointer(Nonterm):
 # (since this is an LL(1) parser) and seeing the := after @ident would
 # require two tokens of lookahead.
 class FreeSimpleShapePointer(Nonterm):
-
     def reduce_FreeStepName(self, *kids):
         from edb.schema import pointers as s_pointers
 
@@ -661,7 +676,8 @@ class ShapePath(Nonterm):
         )
 
     def reduce_TypeIntersection_DOT_PathStepName_OptTypeIntersection(
-            self, *kids):
+        self, *kids
+    ):
         from edb.schema import pointers as s_pointers
 
         steps = [
@@ -683,186 +699,216 @@ class ShapePath(Nonterm):
 #      as is the use of PathStepName in place of SimpleTypeName.
 class Splat(Nonterm):
     def reduce_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(depth=1, span=kids[0].span),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(depth=1, span=kids[0].span),
+            ]
+        )
 
     def reduce_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(depth=2, span=kids[0].span),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(depth=2, span=kids[0].span),
+            ]
+        )
 
     # Type.*
     def reduce_PathStepName_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    span=merge_spans(kids),
                 ),
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # Type.**
     def reduce_PathStepName_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    span=merge_spans(kids),
                 ),
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # [is Foo].*
     def reduce_TypeIntersection_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                intersection=kids[0].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    intersection=kids[0].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
     # [is Foo].**
     def reduce_TypeIntersection_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                intersection=kids[0].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    intersection=kids[0].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
     # Type[is Foo].*
     def reduce_PathStepName_TypeIntersection_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
                 ),
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # Type[is Foo].**
     def reduce_PathStepName_TypeIntersection_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
                 ),
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # module::Type.*
     def reduce_PtrQualifiedNodeName_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    depth=1,
+                    span=merge_spans(kids),
                 ),
-                depth=1,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # module::Type.**
     def reduce_PtrQualifiedNodeName_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    depth=2,
+                    span=merge_spans(kids),
                 ),
-                depth=2,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # module::Type[is <type-expr>].*
     def reduce_PtrQualifiedNodeName_TypeIntersection_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
                 ),
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # module::Type[is <type-expr>].**
     def reduce_PtrQualifiedNodeName_TypeIntersection_DOT_DOUBLESTAR(
         self,
         *kids,
     ):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                type=qlast.TypeName(
-                    maintype=kids[0].val, span=kids[0].span
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    type=qlast.TypeName(
+                        maintype=kids[0].val, span=kids[0].span
+                    ),
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
                 ),
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+            ]
+        )
 
     # (<type-expr>).*
     def reduce_ParenTypeExpr_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                type=kids[0].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    type=kids[0].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
     # (<type-expr>).**
     def reduce_ParenTypeExpr_TypeIntersection_DOT_STAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=1,
-                type=kids[0].val,
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=1,
+                    type=kids[0].val,
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
     # (<type-expr>)[is <type-expr>].*
     def reduce_ParenTypeExpr_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                type=kids[0].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    type=kids[0].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
     # (<type-expr>)[is <type-expr>].**
     def reduce_ParenTypeExpr_TypeIntersection_DOT_DOUBLESTAR(self, *kids):
-        self.val = qlast.Path(steps=[
-            qlast.Splat(
-                depth=2,
-                type=kids[0].val,
-                intersection=kids[1].val,
-                span=merge_spans(kids),
-            ),
-        ])
+        self.val = qlast.Path(
+            steps=[
+                qlast.Splat(
+                    depth=2,
+                    type=kids[0].val,
+                    intersection=kids[1].val,
+                    span=merge_spans(kids),
+                ),
+            ]
+        )
 
 
 class ShapePointer(Nonterm):
     def reduce_ShapePath(self, *kids):
-        self.val = qlast.ShapeElement(
-            expr=kids[0].val
-        )
+        self.val = qlast.ShapeElement(expr=kids[0].val)
 
 
 class PtrQualsSpec(typing.NamedTuple):
@@ -885,23 +931,26 @@ class PtrQuals(Nonterm):
 
     def reduce_OPTIONAL_SINGLE(self, *kids):
         self.val = PtrQualsSpec(
-            required=False, cardinality=qltypes.SchemaCardinality.One)
+            required=False, cardinality=qltypes.SchemaCardinality.One
+        )
 
     def reduce_OPTIONAL_MULTI(self, *kids):
         self.val = PtrQualsSpec(
-            required=False, cardinality=qltypes.SchemaCardinality.Many)
+            required=False, cardinality=qltypes.SchemaCardinality.Many
+        )
 
     def reduce_REQUIRED_SINGLE(self, *kids):
         self.val = PtrQualsSpec(
-            required=True, cardinality=qltypes.SchemaCardinality.One)
+            required=True, cardinality=qltypes.SchemaCardinality.One
+        )
 
     def reduce_REQUIRED_MULTI(self, *kids):
         self.val = PtrQualsSpec(
-            required=True, cardinality=qltypes.SchemaCardinality.Many)
+            required=True, cardinality=qltypes.SchemaCardinality.Many
+        )
 
 
 class OptPtrQuals(Nonterm):
-
     def reduce_empty(self, *kids):
         self.val = PtrQualsSpec()
 
@@ -915,7 +964,6 @@ class OptPtrQuals(Nonterm):
 # are followed by an ident in this case (unlike in DDL, where it is followed
 # by a keyword).
 class ComputableShapePointer(Nonterm):
-
     def reduce_OPTIONAL_SimpleShapePointer_ASSIGN_GenExpr(self, *kids):
         self.val = kids[1].val
         self.val.compexpr = kids[3].val
@@ -1113,10 +1161,12 @@ class FreeComputableShapePointer(Nonterm):
         )
 
 
-class FreeComputableShapePointerList(ListNonterm,
-                                     element=FreeComputableShapePointer,
-                                     separator=tokens.T_COMMA,
-                                     allow_trailing_separator=True):
+class FreeComputableShapePointerList(
+    ListNonterm,
+    element=FreeComputableShapePointer,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
@@ -1188,13 +1238,12 @@ class OrderbyExpr(Nonterm):
     val: qlast.SortExpr
 
     def reduce_Expr_OptDirection_OptNonesOrder(self, *kids):
-        self.val = qlast.SortExpr(path=kids[0].val,
-                                  direction=kids[1].val,
-                                  nones_order=kids[2].val)
+        self.val = qlast.SortExpr(
+            path=kids[0].val, direction=kids[1].val, nones_order=kids[2].val
+        )
 
 
-class OrderbyList(ListNonterm, element=OrderbyExpr,
-                  separator=tokens.T_THEN):
+class OrderbyList(ListNonterm, element=OrderbyExpr, separator=tokens.T_THEN):
     val: list[qlast.SortExpr]
 
 
@@ -1306,44 +1355,32 @@ class BaseAtomicExpr(Nonterm):
 
     def reduce_DUNDERSOURCE(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__source__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__source__', span=kw.span)]
         )
 
     def reduce_DUNDERSUBJECT(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__subject__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__subject__', span=kw.span)]
         )
 
     def reduce_DUNDERNEW(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__new__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__new__', span=kw.span)]
         )
 
     def reduce_DUNDEROLD(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__old__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__old__', span=kw.span)]
         )
 
     def reduce_DUNDERSPECIFIED(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__specified__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__specified__', span=kw.span)]
         )
 
     def reduce_DUNDERDEFAULT(self, kw):
         self.val = qlast.Path(
-            steps=[
-                qlast.SpecialAnchor(name='__default__', span=kw.span)
-            ]
+            steps=[qlast.SpecialAnchor(name='__default__', span=kw.span)]
         )
 
     @parsing.precedence(precedence.P_UMINUS)
@@ -1447,8 +1484,7 @@ class Expr(Nonterm):
             self.val = expr
             expr.indirection.append(kids[1].val)
         else:
-            self.val = qlast.Indirection(arg=expr,
-                                         indirection=[kids[1].val])
+            self.val = qlast.Indirection(arg=expr, indirection=[kids[1].val])
 
     @parsing.precedence(precedence.P_UMINUS)
     def reduce_PLUS_Expr(self, *kids):
@@ -1468,100 +1504,107 @@ class Expr(Nonterm):
             self.val = qlast.UnaryOp(op=kids[0].val, operand=arg)
 
     def reduce_Expr_PLUS_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_DOUBLEPLUS_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_MINUS_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_STAR_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_SLASH_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_DOUBLESLASH_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_PERCENT_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_CIRCUMFLEX_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     @parsing.precedence(precedence.P_DOUBLEQMARK_OP)
     def reduce_Expr_DOUBLEQMARK_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     @parsing.precedence(precedence.P_COMPARE_OP)
     def reduce_Expr_CompareOp_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val,
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val, right=kids[2].val
+        )
 
     def reduce_Expr_AND_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val.upper(),
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val.upper(), right=kids[2].val
+        )
 
     def reduce_Expr_OR_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op=kids[1].val.upper(),
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op=kids[1].val.upper(), right=kids[2].val
+        )
 
     def reduce_NOT_Expr(self, *kids):
         self.val = qlast.UnaryOp(op=kids[0].val.upper(), operand=kids[1].val)
 
     def reduce_Expr_LIKE_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='LIKE',
-                               right=kids[2].val)
+        self.val = qlast.BinOp(left=kids[0].val, op='LIKE', right=kids[2].val)
 
     def reduce_Expr_NOT_LIKE_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='NOT LIKE',
-                               right=kids[3].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op='NOT LIKE', right=kids[3].val
+        )
 
     def reduce_Expr_ILIKE_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='ILIKE',
-                               right=kids[2].val)
+        self.val = qlast.BinOp(left=kids[0].val, op='ILIKE', right=kids[2].val)
 
     def reduce_Expr_NOT_ILIKE_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='NOT ILIKE',
-                               right=kids[3].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op='NOT ILIKE', right=kids[3].val
+        )
 
     def reduce_Expr_IS_TypeExpr(self, *kids):
-        self.val = qlast.IsOp(left=kids[0].val, op='IS',
-                              right=kids[2].val)
+        self.val = qlast.IsOp(left=kids[0].val, op='IS', right=kids[2].val)
 
     @parsing.precedence(precedence.P_IS)
     def reduce_Expr_IS_NOT_TypeExpr(self, *kids):
-        self.val = qlast.IsOp(left=kids[0].val, op='IS NOT',
-                              right=kids[3].val)
+        self.val = qlast.IsOp(left=kids[0].val, op='IS NOT', right=kids[3].val)
 
     def reduce_INTROSPECT_TypeExpr(self, *kids):
         self.val = qlast.Introspect(type=kids[1].val)
 
     def reduce_Expr_IN_Expr(self, *kids):
         inexpr = kids[2].val
-        self.val = qlast.BinOp(left=kids[0].val, op='IN',
-                               right=inexpr)
+        self.val = qlast.BinOp(left=kids[0].val, op='IN', right=inexpr)
 
     @parsing.precedence(precedence.P_IN)
     def reduce_Expr_NOT_IN_Expr(self, *kids):
         inexpr = kids[3].val
-        self.val = qlast.BinOp(left=kids[0].val, op='NOT IN',
-                               right=inexpr)
+        self.val = qlast.BinOp(left=kids[0].val, op='NOT IN', right=inexpr)
 
     @parsing.precedence(precedence.P_TYPECAST)
-    def reduce_LANGBRACKET_FullTypeExpr_RANGBRACKET_Expr(
-            self, *kids):
+    def reduce_LANGBRACKET_FullTypeExpr_RANGBRACKET_Expr(self, *kids):
         self.val = qlast.TypeCast(
             expr=kids[3].val,
             type=kids[1].val,
@@ -1569,8 +1612,7 @@ class Expr(Nonterm):
         )
 
     @parsing.precedence(precedence.P_TYPECAST)
-    def reduce_LANGBRACKET_OPTIONAL_FullTypeExpr_RANGBRACKET_Expr(
-            self, *kids):
+    def reduce_LANGBRACKET_OPTIONAL_FullTypeExpr_RANGBRACKET_Expr(self, *kids):
         self.val = qlast.TypeCast(
             expr=kids[4].val,
             type=kids[2].val,
@@ -1578,8 +1620,7 @@ class Expr(Nonterm):
         )
 
     @parsing.precedence(precedence.P_TYPECAST)
-    def reduce_LANGBRACKET_REQUIRED_FullTypeExpr_RANGBRACKET_Expr(
-            self, *kids):
+    def reduce_LANGBRACKET_REQUIRED_FullTypeExpr_RANGBRACKET_Expr(self, *kids):
         self.val = qlast.TypeCast(
             expr=kids[4].val,
             type=kids[2].val,
@@ -1600,16 +1641,15 @@ class Expr(Nonterm):
         pass
 
     def reduce_Expr_UNION_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='UNION',
-                               right=kids[2].val)
+        self.val = qlast.BinOp(left=kids[0].val, op='UNION', right=kids[2].val)
 
     def reduce_Expr_EXCEPT_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='EXCEPT',
-                               right=kids[2].val)
+        self.val = qlast.BinOp(left=kids[0].val, op='EXCEPT', right=kids[2].val)
 
     def reduce_Expr_INTERSECT_Expr(self, *kids):
-        self.val = qlast.BinOp(left=kids[0].val, op='INTERSECT',
-                               right=kids[2].val)
+        self.val = qlast.BinOp(
+            left=kids[0].val, op='INTERSECT', right=kids[2].val
+        )
 
 
 class IfThenElseExpr(Nonterm):
@@ -1681,13 +1721,16 @@ class NamedTupleElement(Nonterm):
     def reduce_ShortNodeName_ASSIGN_GenExpr(self, *kids):
         self.val = qlast.TupleElement(
             name=qlast.Ptr(name=kids[0].val.name, span=kids[0].span),
-            val=kids[2].val
+            val=kids[2].val,
         )
 
 
-class NamedTupleElementList(ListNonterm, element=NamedTupleElement,
-                            separator=tokens.T_COMMA,
-                            allow_trailing_separator=True):
+class NamedTupleElementList(
+    ListNonterm,
+    element=NamedTupleElement,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
@@ -1711,8 +1754,12 @@ class OptExprList(Nonterm):
         self.val = []
 
 
-class ExprList(ListNonterm, element=GenExpr, separator=tokens.T_COMMA,
-               allow_trailing_separator=True):
+class ExprList(
+    ListNonterm,
+    element=GenExpr,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     val: list[qlast.Expr]
 
 
@@ -1733,10 +1780,7 @@ class Constant(Nonterm):
         type_name, param_name = param.val.removeprefix('<lit ').split('>$')
         self.val = qlast.TypeCast(
             type=qlast.TypeName(
-                maintype=qlast.ObjectRef(
-                    name=type_name,
-                    module='__std__'
-                ),
+                maintype=qlast.ObjectRef(name=type_name, module='__std__'),
                 span=param.span,
             ),
             expr=qlast.QueryParameter(
@@ -1771,7 +1815,7 @@ class StringInterpolationTail(Nonterm):
                 qlast.StrInterpFragment(
                     expr=expr.val, suffix=lit.clean_value, span=self.span
                 ),
-            ]
+            ],
         )
 
     def reduce_Expr_STRINTERPCONT_StringInterpolationTail(self, *kids):
@@ -1868,8 +1912,7 @@ class AtomicExpr(Nonterm):
         pass
 
     @parsing.precedence(precedence.P_TYPECAST)
-    def reduce_LANGBRACKET_FullTypeExpr_RANGBRACKET_AtomicExpr(
-            self, *kids):
+    def reduce_LANGBRACKET_FullTypeExpr_RANGBRACKET_AtomicExpr(self, *kids):
         self.val = qlast.TypeCast(
             expr=kids[3].val,
             type=kids[1].val,
@@ -1892,7 +1935,7 @@ class PathStep(Nonterm):
 
         self.val = qlast.Ptr(
             name=kids[1].val.name,
-            direction=s_pointers.PointerDirection.Outbound
+            direction=s_pointers.PointerDirection.Outbound,
         )
 
     def reduce_DOT_ICONST(self, *kids):
@@ -1900,16 +1943,14 @@ class PathStep(Nonterm):
         from edb.schema import pointers as s_pointers
 
         self.val = qlast.Ptr(
-            name=kids[1].val,
-            direction=s_pointers.PointerDirection.Outbound
+            name=kids[1].val, direction=s_pointers.PointerDirection.Outbound
         )
 
     def reduce_DOTBW_PathStepName(self, *kids):
         from edb.schema import pointers as s_pointers
 
         self.val = qlast.Ptr(
-            name=kids[1].val.name,
-            direction=s_pointers.PointerDirection.Inbound
+            name=kids[1].val.name, direction=s_pointers.PointerDirection.Inbound
         )
 
     def reduce_DOTQ_PathStepName(self, *kids):
@@ -1927,7 +1968,7 @@ class PathStep(Nonterm):
         self.val = qlast.Ptr(
             name=kids[1].val.name,
             direction=s_pointers.PointerDirection.Outbound,
-            type='property'
+            type='property',
         )
 
     @parsing.inline(0)
@@ -1985,7 +2026,8 @@ class FuncApplication(Nonterm):
                 if argname in kwargs:
                     raise errors.EdgeQLSyntaxError(
                         f"duplicate named argument `{argname}`",
-                        span=argname_ctx)
+                        span=argname_ctx,
+                    )
 
                 last_named_seen = argname
                 kwargs[argname] = arg
@@ -1995,7 +2037,8 @@ class FuncApplication(Nonterm):
                     raise errors.EdgeQLSyntaxError(
                         f"positional argument after named "
                         f"argument `{last_named_seen}`",
-                        span=arg.span)
+                        span=arg.span,
+                    )
                 args.append(arg)
 
         self.val = qlast.FunctionCall(func=name, args=args, kwargs=kwargs)
@@ -2025,13 +2068,14 @@ class FuncCallArgExpr(Nonterm):
     def reduce_PARAMETER_ASSIGN_Expr(self, *kids):
         if kids[0].val[1].isdigit():
             raise errors.EdgeQLSyntaxError(
-                f"numeric named parameters are not supported",
-                span=kids[0].span)
+                f"numeric named parameters are not supported", span=kids[0].span
+            )
         else:
             raise errors.EdgeQLSyntaxError(
                 f"named parameters do not need a '$' prefix, "
                 f"rewrite as '{kids[0].val[1:]} := ...'",
-                span=kids[0].span)
+                span=kids[0].span,
+            )
 
 
 class FuncCallArg(Nonterm):
@@ -2063,8 +2107,12 @@ class FuncCallArg(Nonterm):
         )
 
 
-class FuncArgList(ListNonterm, element=FuncCallArg, separator=tokens.T_COMMA,
-                  allow_trailing_separator=True):
+class FuncArgList(
+    ListNonterm,
+    element=FuncCallArg,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
@@ -2089,8 +2137,7 @@ class PosCallArg(Nonterm):
             )
 
 
-class PosCallArgList(ListNonterm, element=PosCallArg,
-                     separator=tokens.T_COMMA):
+class PosCallArgList(ListNonterm, element=PosCallArg, separator=tokens.T_COMMA):
     pass
 
 
@@ -2139,13 +2186,13 @@ class AnyIdentifier(Nonterm):
             # few remaining reserved __keywords__.
             raise errors.EdgeQLSyntaxError(
                 "identifiers surrounded by double underscores are forbidden",
-                span=kids[0].span)
+                span=kids[0].span,
+            )
 
         self.val = name
 
 
-class DottedIdents(
-        ListNonterm, element=AnyIdentifier, separator=tokens.T_DOT):
+class DottedIdents(ListNonterm, element=AnyIdentifier, separator=tokens.T_DOT):
     pass
 
 
@@ -2161,7 +2208,8 @@ class ModuleName(ListNonterm, element=DotName, separator=tokens.T_DOUBLECOLON):
 
 
 class ColonedIdents(
-        ListNonterm, element=AnyIdentifier, separator=tokens.T_DOUBLECOLON):
+    ListNonterm, element=AnyIdentifier, separator=tokens.T_DOUBLECOLON
+):
     pass
 
 
@@ -2218,13 +2266,13 @@ class SimpleTypeName(Nonterm):
         )
 
 
-class SimpleTypeNameList(ListNonterm, element=SimpleTypeName,
-                         separator=tokens.T_COMMA):
+class SimpleTypeNameList(
+    ListNonterm, element=SimpleTypeName, separator=tokens.T_COMMA
+):
     pass
 
 
 class CollectionTypeName(Nonterm):
-
     def validate_subtype_list(self, lst):
         has_nonstrval = has_strval = has_items = False
         for el in lst.val:
@@ -2241,14 +2289,16 @@ class CollectionTypeName(Nonterm):
             # `enum<bbbb, 'aaaa'>`
             raise errors.EdgeQLSyntaxError(
                 "mixing string type literals and type names is not supported",
-                span=lst.span)
+                span=lst.span,
+            )
 
         if has_items and has_nonstrval:
             # Prohibit cases like `tuple<a: int64, int32>`
             raise errors.EdgeQLSyntaxError(
                 "mixing named and unnamed subtype declarations "
                 "is not supported",
-                span=lst.span)
+                span=lst.span,
+            )
 
     def reduce_NodeName_LANGBRACKET_RANGBRACKET(self, *kids):
         # Constructs like `enum<>` or `array<>` aren't legal.
@@ -2275,8 +2325,7 @@ class TypeName(Nonterm):
         pass
 
 
-class TypeNameList(ListNonterm, element=TypeName,
-                   separator=tokens.T_COMMA):
+class TypeNameList(ListNonterm, element=TypeName, separator=tokens.T_COMMA):
     pass
 
 
@@ -2375,8 +2424,12 @@ class Subtype(Nonterm):
         )
 
 
-class SubtypeList(ListNonterm, element=Subtype, separator=tokens.T_COMMA,
-                  allow_trailing_separator=True):
+class SubtypeList(
+    ListNonterm,
+    element=Subtype,
+    separator=tokens.T_COMMA,
+    allow_trailing_separator=True,
+):
     pass
 
 
@@ -2387,8 +2440,8 @@ class NodeName(Nonterm):
 
     def reduce_BaseName(self, base_name):
         self.val = qlast.ObjectRef(
-            module='::'.join(base_name.val[:-1]) or None,
-            name=base_name.val[-1])
+            module='::'.join(base_name.val[:-1]) or None, name=base_name.val[-1]
+        )
 
 
 class PtrNodeName(Nonterm):
@@ -2398,15 +2451,15 @@ class PtrNodeName(Nonterm):
 
     def reduce_PtrName(self, ptr_name):
         self.val = qlast.ObjectRef(
-            module='::'.join(ptr_name.val[:-1]) or None,
-            name=ptr_name.val[-1])
+            module='::'.join(ptr_name.val[:-1]) or None, name=ptr_name.val[-1]
+        )
 
 
 class PtrQualifiedNodeName(Nonterm):
     def reduce_QualifiedName(self, *kids):
         self.val = qlast.ObjectRef(
-            module='::'.join(kids[0].val[:-1]),
-            name=kids[0].val[-1])
+            module='::'.join(kids[0].val[:-1]), name=kids[0].val[-1]
+        )
 
 
 class ShortNodeName(Nonterm):
@@ -2418,9 +2471,7 @@ class ShortNodeName(Nonterm):
     # quoted or parenthesized.
 
     def reduce_Identifier(self, *kids):
-        self.val = qlast.ObjectRef(
-            module=None,
-            name=kids[0].val)
+        self.val = qlast.ObjectRef(module=None, name=kids[0].val)
 
 
 class PathNodeName(Nonterm):
@@ -2433,9 +2484,7 @@ class PathNodeName(Nonterm):
     # parenthesized.
 
     def reduce_PtrIdentifier(self, *kids):
-        self.val = qlast.ObjectRef(
-            module=None,
-            name=kids[0].val)
+        self.val = qlast.ObjectRef(module=None, name=kids[0].val)
 
 
 class AnyNodeName(Nonterm):
@@ -2451,9 +2500,7 @@ class AnyNodeName(Nonterm):
     # ambiguity with NodeName, etc.
 
     def reduce_AnyIdentifier(self, *kids):
-        self.val = qlast.ObjectRef(
-            module=None,
-            name=kids[0].val)
+        self.val = qlast.ObjectRef(module=None, name=kids[0].val)
 
 
 class Keyword(parsing.Nonterm):
@@ -2461,8 +2508,8 @@ class Keyword(parsing.Nonterm):
 
     Not a real nonterm on its own.
     """
-    def __init_subclass__(
-            cls, *, type, is_internal=False, **kwargs):
+
+    def __init_subclass__(cls, *, type, is_internal=False, **kwargs):
         super().__init_subclass__(is_internal=is_internal, **kwargs)
 
         if is_internal:
@@ -2471,82 +2518,89 @@ class Keyword(parsing.Nonterm):
         assert type in keywords.keyword_types
 
         for token in keywords.by_type[type].values():
+
             def method(inst, *kids):
                 inst.val = kids[0].val
+
             method.__doc__ = "%%reduce %s" % token
             method.__name__ = 'reduce_%s' % token
             setattr(cls, method.__name__, method)
 
 
-class UnreservedKeyword(Keyword,
-                        type=keywords.UNRESERVED_KEYWORD):
+class UnreservedKeyword(Keyword, type=keywords.UNRESERVED_KEYWORD):
     pass
 
 
-class PartialReservedKeyword(Keyword,
-                             type=keywords.PARTIAL_RESERVED_KEYWORD):
+class PartialReservedKeyword(Keyword, type=keywords.PARTIAL_RESERVED_KEYWORD):
     pass
 
 
-class ReservedKeyword(Keyword,
-                      type=keywords.RESERVED_KEYWORD):
+class ReservedKeyword(Keyword, type=keywords.RESERVED_KEYWORD):
     pass
 
 
 class SchemaObjectClassValue(typing.NamedTuple):
-
     itemclass: qltypes.SchemaObjectClass
 
 
 class SchemaObjectClass(Nonterm):
-
     def reduce_ALIAS(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.ALIAS)
+            itemclass=qltypes.SchemaObjectClass.ALIAS
+        )
 
     def reduce_ANNOTATION(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.ANNOTATION)
+            itemclass=qltypes.SchemaObjectClass.ANNOTATION
+        )
 
     def reduce_CAST(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.CAST)
+            itemclass=qltypes.SchemaObjectClass.CAST
+        )
 
     def reduce_CONSTRAINT(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.CONSTRAINT)
+            itemclass=qltypes.SchemaObjectClass.CONSTRAINT
+        )
 
     def reduce_FUNCTION(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.FUNCTION)
+            itemclass=qltypes.SchemaObjectClass.FUNCTION
+        )
 
     def reduce_LINK(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.LINK)
+            itemclass=qltypes.SchemaObjectClass.LINK
+        )
 
     def reduce_MODULE(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.MODULE)
+            itemclass=qltypes.SchemaObjectClass.MODULE
+        )
 
     def reduce_OPERATOR(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.OPERATOR)
+            itemclass=qltypes.SchemaObjectClass.OPERATOR
+        )
 
     def reduce_PROPERTY(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.PROPERTY)
+            itemclass=qltypes.SchemaObjectClass.PROPERTY
+        )
 
     def reduce_SCALAR_TYPE(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.SCALAR_TYPE)
+            itemclass=qltypes.SchemaObjectClass.SCALAR_TYPE
+        )
 
     def reduce_TYPE(self, *kids):
         self.val = SchemaObjectClassValue(
-            itemclass=qltypes.SchemaObjectClass.TYPE)
+            itemclass=qltypes.SchemaObjectClass.TYPE
+        )
 
 
 class SchemaItem(Nonterm):
-
     def reduce_SchemaObjectClass_NodeName(self, *kids):
         ref = kids[1].val
         ref.itemclass = kids[0].val.itemclass

@@ -23,7 +23,6 @@ from edb.common.term import Style16, Style256
 
 
 class TermStyleTests(unittest.TestCase):
-
     def test_common_term_style16(self):
         s = Style16(color='red', bgcolor='green', bold=True)
 

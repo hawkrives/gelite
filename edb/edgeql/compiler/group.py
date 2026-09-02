@@ -35,6 +35,7 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
     """
     Find aggregated uses of a target node that can be hoisted.
     """
+
     skip_hidden = True
     extra_skips = frozenset(['materialized_sets'])
 
@@ -52,8 +53,7 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
         # Track pathids that we've seen. pathids that we are interested
         # in but haven't seen get marked as False.
         self.seen: dict[irast.PathId, bool] = {}
-        self.skippable: dict[
-            Optional[irast.Set], frozenset[irast.PathId]] = {}
+        self.skippable: dict[Optional[irast.Set], frozenset[irast.PathId]] = {}
         self.scope_tree = ctx.path_scope
         # We don't bother trying to reuse the existing inference
         # context because we make singleton assumptions that it
@@ -152,8 +152,7 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
         # not return SET OF
         returns_set = node.typemod == qltypes.TypeModifier.SetOfType
         calls_sql_func = (
-            isinstance(node, irast.FunctionCall)
-            and node.func_sql_function
+            isinstance(node, irast.FunctionCall) and node.func_sql_function
         )
         for arg in node.args.values():
             typemod = arg.param_typemod
@@ -179,7 +178,8 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
                 # case in a few places.  Eventually we'll want to properly
                 # be able to serialize in the first place, though.
                 and not setgen.get_set_type(
-                    ir_set, ctx=self.ctx).contains_object(self.ctx.env.schema)
+                    ir_set, ctx=self.ctx
+                ).contains_object(self.ctx.env.schema)
             ):
                 old_seen = self.seen
                 self.seen = {}
@@ -189,10 +189,13 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
 
             force_fail = False
             if old_seen is not None:
-                self.skippable[ir_set] = frozenset({
-                    k for k, v in self.seen.items() if not v
-                    and self.scope_tree.is_visible(k)
-                })
+                self.skippable[ir_set] = frozenset(
+                    {
+                        k
+                        for k, v in self.seen.items()
+                        if not v and self.scope_tree.is_visible(k)
+                    }
+                )
                 for k, was_seen in self.seen.items():
                     # If we referred to some visible set and also
                     # spotted the target, we can't actually compile
@@ -214,8 +217,8 @@ class FindAggregatingUses(ast_visitor.NodeVisitor):
                 if (
                     ir_set in self.sightings
                     and inference.infer_cardinality(
-                        arg.expr, scope_tree=self.scope_tree,
-                        ctx=self.infctx).is_multi()
+                        arg.expr, scope_tree=self.scope_tree, ctx=self.infctx
+                    ).is_multi()
                 ):
                     force_fail = True
 
@@ -239,6 +242,5 @@ def infer_group_aggregates(
         )
         visitor.visit(stmt.result)
         stmt.group_aggregate_sets = {
-            k: visitor.skippable.get(k, frozenset())
-            for k in visitor.sightings
+            k: visitor.skippable.get(k, frozenset()) for k in visitor.sightings
         }

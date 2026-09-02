@@ -41,7 +41,6 @@ class Barrier:
 
 
 class TestServerConcurrentTransactions(tb.QueryTestCase):
-
     TRANSACTION_ISOLATION = False
 
     SETUP = '''
@@ -69,7 +68,7 @@ class TestServerConcurrentTransactions(tb.QueryTestCase):
         with self.assertRaises(edgedb.TransactionSerializationError):
             await self.execute_conflict_1(
                 'counter3',
-                edgedb.RetryOptions(attempts=1, backoff=edgedb.default_backoff)
+                edgedb.RetryOptions(attempts=1, backoff=edgedb.default_backoff),
             )
 
     async def execute_conflict_1(self, name, options=None):
@@ -98,7 +97,7 @@ class TestServerConcurrentTransactions(tb.QueryTestCase):
         with self.assertRaises(edgedb.TransactionSerializationError):
             await self.execute_conflict_2(
                 'counter5',
-                edgedb.RetryOptions(attempts=1, backoff=edgedb.default_backoff)
+                edgedb.RetryOptions(attempts=1, backoff=edgedb.default_backoff),
             )
 
     async def execute_conflict_2(self, name, options=None):
@@ -182,11 +181,14 @@ class TestServerConcurrentTransactions(tb.QueryTestCase):
             con = con.with_retry_options(options)
             con2 = con2.with_retry_options(options)
 
-        results = await asyncio.wait_for(asyncio.gather(
-            transaction1(con, f1),
-            transaction1(con2, f2),
-            return_exceptions=True,
-        ), 60)
+        results = await asyncio.wait_for(
+            asyncio.gather(
+                transaction1(con, f1),
+                transaction1(con2, f2),
+                return_exceptions=True,
+            ),
+            60,
+        )
         for e in results:
             if isinstance(e, BaseException):
                 raise e

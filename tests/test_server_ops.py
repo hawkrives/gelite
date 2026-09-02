@@ -18,7 +18,7 @@
 
 
 from __future__ import annotations
-from typing import Any, Mapping, NamedTuple, Callable
+from typing import Any, Mapping, Callable
 
 import asyncio
 import http
@@ -33,12 +33,10 @@ import subprocess
 import ssl
 import sys
 import tempfile
-import textwrap
 import time
 import unittest
 import urllib.error
 import urllib.request
-import uuid
 
 import edgedb
 
@@ -72,7 +70,6 @@ class TestServerApi(tb.ClusterTestCase):
 
 
 class TestServerOps(tb.TestCaseWithHttpClient):
-
     async def kill_process(self, proc: asyncio.subprocess.Process):
         proc.terminate()
         try:
@@ -92,7 +89,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         async with tb.start_edgedb_server(
             auto_shutdown_after=0,
         ) as sd:
-
             con1 = await sd.connect()
             self.assertEqual(await con1.query_single('SELECT 1'), 1)
 
@@ -105,7 +101,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await con2.aclose()
 
             with self.assertRaises(
-                    (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 # Since both con1 and con2 are now disconnected and
                 # the cluster was started with an "--auto-shutdown-after=0"
                 # option, we expect this connection to be rejected
@@ -119,15 +116,14 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await asyncio.sleep(2)
 
             with self.assertRaises(
-                    (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 await sd.connect(wait_until_available=0)
 
     async def test_server_ops_auto_shutdown_after_one_2(self):
         async with tb.start_edgedb_server(
             auto_shutdown_after=1,
-            http_endpoint_security=(
-                args.ServerEndpointSecurityMode.Optional
-            ),
+            http_endpoint_security=(args.ServerEndpointSecurityMode.Optional),
         ) as sd:
             await asyncio.sleep(0.5)
             self.assertEqual(sd.call_system_api('/server/status/ready'), 'OK')
@@ -140,13 +136,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await asyncio.sleep(2)
 
             with self.assertRaises(
-                (ConnectionError, edgedb.ClientConnectionError)):
+                (ConnectionError, edgedb.ClientConnectionError)
+            ):
                 await sd.connect(wait_until_available=0)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--bootstrap-command is not supported in multi-tenant mode",
-    )
     async def test_server_ops_bootstrap_script(self) -> None:
         # Test that "edgedb-server" works as expected with the
         # following arguments:
@@ -155,14 +148,19 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         # * "--bootstrap-command"
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--temp-dir',
             '--bootstrap-command=CREATE SUPERUSER ROLE test_bootstrap;',
             '--bootstrap-only',
             '--log-level=error',
-            '--max-backend-connections', '10',
+            '--max-backend-connections',
+            '10',
             '--tls-cert-mode=generate_self_signed',
         ]
 
@@ -174,8 +172,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         )
 
         try:
-            _, stderr = await asyncio.wait_for(
-                proc.communicate(), timeout=240)
+            _, stderr = await asyncio.wait_for(proc.communicate(), timeout=240)
         except asyncio.TimeoutError:
             if proc.returncode is None:
                 proc.terminate()
@@ -187,10 +184,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 f'STDERR: {stderr.decode()}',
             )
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--bootstrap-command is not supported in multi-tenant mode",
-    )
     async def test_server_ops_bootstrap_script_server(self):
         # Test that "edgedb-server" works as expected with the
         # following arguments:
@@ -199,7 +192,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         async with tb.start_edgedb_server(
             bootstrap_command='CREATE SUPERUSER ROLE test_bootstrap2 '
-                              '{ SET password := "tbs2" };'
+            '{ SET password := "tbs2" };'
         ) as sd:
             con = await sd.connect(user='test_bootstrap2', password='tbs2')
             try:
@@ -209,11 +202,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     @unittest.skipIf(
         platform.system() == "Darwin",
-        "https://github.com/edgedb/edgedb/issues/7789"
-    )
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--background is not supported in multi-tenante mode"
+        "https://github.com/edgedb/edgedb/issues/7789",
     )
     async def test_server_ops_background(self) -> None:
         # Test that "edgedb-server" works as expected with the
@@ -226,13 +215,18 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         os.close(status_fd)
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--temp-dir',
             '--log-level=debug',
             '--background',
-            '--emit-server-status', status_file,
+            '--emit-server-status',
+            status_file,
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
@@ -290,20 +284,28 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         os.close(status_fd)
 
         cmd = [
-            sys.executable, '-I', '-m', 'edb.server.main',
-            '--port', 'auto',
+            sys.executable,
+            '-I',
+            '-m',
+            'edb.server.main',
+            '--port',
+            'auto',
             '--testmode',
             '--log-level=debug',
-            '--emit-server-status', status_file,
-            '--emit-server-status', status_file_2,
+            '--emit-server-status',
+            status_file,
+            '--emit-server-status',
+            status_file_2,
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
-        if "GELITE_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
-            cmd.extend([
+        cmd.extend(
+            [
                 '--temp-dir',
-                '--max-backend-connections', '10',
-            ])
+                '--max-backend-connections',
+                '10',
+            ]
+        )
 
         proc = None
 
@@ -421,7 +423,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE admin SET password := "first";'
+                bootstrap_command='ALTER ROLE admin SET password := "first";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -429,11 +431,11 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 finally:
                     await con.aclose()
 
-        # The bootstrap command should not be run on subsequent server starts.
+            # The bootstrap command should not be run on subsequent server starts.
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE admin SET password := "second";'
+                bootstrap_command='ALTER ROLE admin SET password := "second";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -446,7 +448,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Scram,
-                bootstrap_command='ALTER ROLE edgedb SET password := "first";'
+                bootstrap_command='ALTER ROLE edgedb SET password := "first";',
             ) as sd:
                 con = await sd.connect(password='first')
                 try:
@@ -456,7 +458,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     async def test_server_ops_bogus_bind_addr_in_mix(self):
         async with tb.start_edgedb_server(
-            bind_addrs=('host.invalid', '127.0.0.1',),
+            bind_addrs=(
+                'host.invalid',
+                '127.0.0.1',
+            ),
         ) as sd:
             con = await sd.connect()
             try:
@@ -516,7 +521,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         with tempfile.TemporaryDirectory() as td:
             cluster = await pgcluster.get_local_pg_cluster(
-                td, max_connections=actual, log_level='s')
+                td, max_connections=actual, log_level='s'
+            )
             cluster.update_connection_params(
                 user='postgres',
                 database='template1',
@@ -675,9 +681,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
             await cluster.start()
             try:
-                await self._test_server_ops_ignore_other_tenants(
-                    td, 'postgres'
-                )
+                await self._test_server_ops_ignore_other_tenants(td, 'postgres')
             finally:
                 await cluster.stop()
 
@@ -731,10 +735,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             ),
             protocol.Sync(),
         )
-        await con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await con.recv_match(protocol.CommandComplete, status='SELECT')
         await con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -742,26 +743,30 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
     async def test_server_ops_cache_recompile_01(self):
         def measure_compilations(
-            sd: tb._EdgeDBServerData
+            sd: tb._EdgeDBServerData,
         ) -> Callable[[], float | int]:
-            return lambda: tb.parse_metrics(sd.fetch_metrics()).get(
-                'edgedb_server_edgeql_query_compilations_total'
-                '{tenant="localtest",path="compiler"}'
-            ) or 0
+            return (
+                lambda: tb.parse_metrics(sd.fetch_metrics()).get(
+                    'edgedb_server_edgeql_query_compilations_total'
+                    '{tenant="localtest",path="compiler"}'
+                )
+                or 0
+            )
 
         def measure_sql_compilations(
-            sd: tb._EdgeDBServerData
+            sd: tb._EdgeDBServerData,
         ) -> Callable[[], float | int]:
-            return lambda: tb.parse_metrics(sd.fetch_metrics()).get(
-                'edgedb_server_sql_compilations_total'
-                '{tenant="localtest"}'
-            ) or 0
+            return (
+                lambda: tb.parse_metrics(sd.fetch_metrics()).get(
+                    'edgedb_server_sql_compilations_total{tenant="localtest"}'
+                )
+                or 0
+            )
 
         with tempfile.TemporaryDirectory() as temp_dir:
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Trust,
-                net_worker_mode='disabled',
             ) as sd:
                 con = await sd.connect()
                 try:
@@ -966,7 +971,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
                 default_auth_method=args.ServerAuthMethod.Trust,
-                net_worker_mode='disabled',
             ) as sd:
                 con = await sd.connect()
                 try:
@@ -995,30 +999,24 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         async with tb.start_edgedb_server(
             default_auth_method=args.ServerAuthMethod.Trust,
-            net_worker_mode='disabled',
-            force_new=True,
         ) as sd:
             con = await sd.connect()
             con2 = None
             try:
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 0)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 0)
 
-                await con.execute('create extension graphql')
-                await con.execute('create extension pg_trgm')
+                await con.execute('create extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 1)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 1)
                 # The innards of extensions shouldn't be counted in
-                # feature use metrics. (pg_trgm has functions.)
+                # feature use metrics. (pg_unaccent has functions.)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 0)
 
-                await con.execute('drop extension graphql')
+                await con.execute('drop extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
 
                 self.assertEqual(metrics.get(_extkey('global'), 0), 0)
 
@@ -1044,9 +1042,9 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 await con.execute('create empty branch b2')
                 con2 = await sd.connect(database='b2')
                 await con2.execute('create function asdf() -> int64 using (0)')
-                await con2.execute('create extension graphql')
+                await con2.execute('create extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 1)
                 self.assertEqual(metrics.get(_featkey('global'), 0), 1)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 2)
 
@@ -1056,7 +1054,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 # Dropping the other branch clears them out
                 await con.execute('drop branch b2')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 1)
 
                 # More detailed testing
@@ -1126,23 +1124,21 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             con = http.client.HTTPConnection(sd.host, sd.port)
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 301)
-                resp_headers = {k.lower(): v.lower()
-                                for k, v in resp.getheaders()}
+                resp_headers = {
+                    k.lower(): v.lower() for k, v in resp.getheaders()
+                }
                 self.assertIn('location', resp_headers)
-                self.assertTrue(
-                    resp_headers['location'].startswith('https://'))
+                self.assertTrue(resp_headers['location'].startswith('https://'))
 
                 self.assertIn('strict-transport-security', resp_headers)
                 # By default we enforce HTTPS via HSTS on all routes.
                 self.assertEqual(
                     resp_headers['strict-transport-security'],
-                    'max-age=31536000')
+                    'max-age=31536000',
+                )
             finally:
                 con.close()
 
@@ -1168,14 +1164,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         async with tb.start_edgedb_server(
             http_endpoint_security=args.ServerEndpointSecurityMode.Optional,
         ) as sd:
-
             con = http.client.HTTPConnection(sd.host, sd.port)
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 404)
             finally:
@@ -1187,24 +1179,24 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             )
             tls_context.check_hostname = False
             con = http.client.HTTPSConnection(
-                sd.host, sd.port, context=tls_context)
+                sd.host, sd.port, context=tls_context
+            )
             con.connect()
             try:
-                con.request(
-                    'GET',
-                    f'http://{sd.host}:{sd.port}/blah404'
-                )
+                con.request('GET', f'http://{sd.host}:{sd.port}/blah404')
                 resp = con.getresponse()
                 self.assertEqual(resp.status, 404)
-                resp_headers = {k.lower(): v.lower()
-                                for k, v in resp.getheaders()}
+                resp_headers = {
+                    k.lower(): v.lower() for k, v in resp.getheaders()
+                }
 
                 self.assertIn('strict-transport-security', resp_headers)
                 # When --allow-insecure-http-clients is passed, we set
                 # max-age to 0, to let browsers know that it's safe
                 # for the user to open http://
                 self.assertEqual(
-                    resp_headers['strict-transport-security'], 'max-age=0')
+                    resp_headers['strict-transport-security'], 'max-age=0'
+                )
             finally:
                 con.close()
 
@@ -1226,6 +1218,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             tls_client_ca_file=client_ca_cert_file,
             security=args.ServerSecurityMode.Strict,
         ) as sd:
+
             def test(url):
                 # Connection without the client cert fails
                 tls_context = ssl.create_default_context(
@@ -1250,10 +1243,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             test(f'https://{sd.host}:{sd.port}/metrics')
             test(f'https://{sd.host}:{sd.port}/server/status/alive')
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--readiness-state-file is not allowed in multi-tenant mode",
-    )
     async def test_server_ops_readiness(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1275,7 +1264,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     )
 
                     self.assertEqual(
-                        status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                        status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                    )
 
                 # It is alive though.
                 with self.http_con(server=sd) as http_con:
@@ -1324,7 +1314,8 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     )
 
                     self.assertEqual(
-                        status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                        status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                    )
 
                 # Make ready by removing the file
                 rf.close()
@@ -1359,16 +1350,13 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                                 path='/server/status/ready',
                             )
                             self.assertEqual(
-                                status, http.HTTPStatus.SERVICE_UNAVAILABLE)
+                                status, http.HTTPStatus.SERVICE_UNAVAILABLE
+                            )
         finally:
             if os.path.exists(rf_name):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--readiness-state-file is not allowed in multi-tenant mode",
-    )
     async def test_server_ops_readonly(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1431,10 +1419,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "covered in test_server_ops_multi_tenant",
-    )
     async def test_server_ops_offline(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1474,10 +1458,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "covered in test_server_ops_multi_tenant",
-    )
     async def test_server_ops_blocked(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1497,8 +1477,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 await asyncio.sleep(0.01)
 
                 with self.assertRaisesRegex(
-                    edgedb.AvailabilityError,
-                    "quota exceeded"
+                    edgedb.AvailabilityError, "quota exceeded"
                 ):
                     await conn.execute("select 1")
 
@@ -1510,9 +1489,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 os.unlink(rf_name)
                 await asyncio.sleep(0.05)
                 async for tr in self.try_until_succeeds(
-                    ignore=(
-                        edgedb.AvailabilityError,
-                    ),
+                    ignore=(edgedb.AvailabilityError,),
                 ):
                     async with tr:
                         await conn.execute("select 1")
@@ -1549,427 +1526,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             raise
         return cluster, connect_args
 
-    async def test_server_ops_multi_tenant(self):
-        with (
-            tempfile.TemporaryDirectory() as td1,
-            tempfile.TemporaryDirectory() as td2,
-            tempfile.NamedTemporaryFile("w+") as conf_file,
-            tempfile.NamedTemporaryFile("w+") as rd1,
-            tempfile.NamedTemporaryFile("w+") as rd2,
-            tempfile.NamedTemporaryFile("w+") as cf1,
-            tempfile.NamedTemporaryFile("w+") as cf2,
-        ):
-            fs = []
-            conf = {}
-            for i, td, rd, cf in [(1, td1, rd1, cf1), (2, td2, rd2, cf2)]:
-                rd.file.write("default:ok")
-                rd.file.flush()
-                cf.write(textwrap.dedent(f"""
-                    [[magic_smtp_config]]
-                    _tname = "cfg::SMTPProviderConfig"
-                    name = "provider:{i}"
-                    sender = "sender@host{i}.com"
-                """))
-                cf.flush()
-                fs.append(self.loop.create_task(self._init_pg_cluster(td)))
-                conf[f"{i}.localhost"] = {
-                    "instance-name": f"localtest{i}",
-                    "backend-dsn": f'postgres:///?user=postgres&host={td}',
-                    "max-backend-connections": 10,
-                    "readiness-state-file": rd.name,
-                    "config-file": cf.name,
-                }
-            await asyncio.wait(fs)
-            cluster1, args1 = await fs[0]
-            cluster2, args2 = await fs[1]
-            args1["server_hostname"] = "1.localhost"
-            args2["server_hostname"] = "2.localhost"
-            try:
-                json.dump(conf, conf_file.file)
-                conf_file.file.flush()
-
-                runstate_dir = None if devmode.is_in_dev_mode() else td1
-                srv = tb.start_edgedb_server(
-                    runstate_dir=runstate_dir,
-                    multitenant_config=conf_file.name,
-                    max_allowed_connections=None,
-                    http_endpoint_security=args.ServerEndpointSecurityMode.Optional,
-                )
-                async with srv as sd:
-                    mtargs = MultiTenantArgs(
-                        srv,
-                        sd,
-                        conf_file,
-                        conf,
-                        args1,
-                        args2,
-                        rd1,
-                        rd2,
-                        cf1,
-                        cf2
-                    )
-                    test_prefix = '_test_server_ops_multi_tenant_'
-                    tests = [s for s in dir(self) if s.startswith(test_prefix)]
-                    for name in tests:
-                        i = name.replace(test_prefix, '')
-                        with self.subTest(name, i=i):
-                            await getattr(self, name)(mtargs)
-            finally:
-                try:
-                    await cluster1.stop()
-                finally:
-                    await cluster2.stop()
-
-    async def _test_server_ops_multi_tenant_1(
-        self, mtargs: MultiTenantArgs, **kwargs
-    ):
-        conn = await mtargs.sd.connect(**mtargs.args1, **kwargs)
-        try:
-            rv = await conn.query_single("select sys::get_instance_name()")
-            self.assertEqual(rv, "localtest1")
-        finally:
-            await conn.aclose()
-
-    async def _test_server_ops_multi_tenant_2(self, mtargs: MultiTenantArgs):
-        conn = await mtargs.sd.connect(**mtargs.args2)
-        try:
-            rv = await conn.query_single("select sys::get_instance_name()")
-            self.assertEqual(rv, "localtest2")
-        finally:
-            await conn.aclose()
-
-    async def _test_server_ops_multi_tenant_3(self, mtargs: MultiTenantArgs):
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n', data
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-        self.assertNotIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-        conf1 = mtargs.conf.pop("1.localhost")
-        mtargs.reload_server()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.AvailabilityError, timeout=30
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(mtargs)
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 1.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-        mtargs.conf["1.localhost"] = conf1
-        mtargs.reload_server()
-
-        async for tr in self.try_until_succeeds(
-            ignore=edgedb.AvailabilityError, timeout=30
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(mtargs)
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 2.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-    async def _test_server_ops_multi_tenant_4(self, mtargs: MultiTenantArgs):
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("offline:test")
-        mtargs.rd1.file.flush()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.ClientConnectionClosedError
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(
-                    mtargs,
-                    timeout=1,
-                    wait_until_available=0,
-                )
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("default:ok")
-        mtargs.rd1.file.flush()
-
-        await self._test_server_ops_multi_tenant_1(mtargs)
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-    async def _test_server_ops_multi_tenant_5(self, mtargs: MultiTenantArgs):
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("blocked:test")
-        mtargs.rd1.file.flush()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.AvailabilityError
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(
-                    mtargs,
-                    timeout=1,
-                    wait_until_available=0,
-                )
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("default:ok")
-        mtargs.rd1.file.flush()
-
-        await self._test_server_ops_multi_tenant_1(mtargs)
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-    async def _test_server_ops_global_compile_cache(
-        self, mtargs: MultiTenantArgs, ddl, i, **kwargs
-    ):
-        conn = await mtargs.sd.connect(**kwargs)
-        try:
-            await conn.execute(ddl)
-            await conn.execute('create extension pgcrypto')
-            await conn.execute('create extension auth')
-            await conn.execute(f'''
-                configure current database set
-                ext::auth::AuthConfig::auth_signing_key := '{"a" * 32}';
-
-                configure current database
-                insert ext::auth::EmailPasswordProviderConfig {{
-                    require_verification := false,
-                }};
-
-                configure current database set
-                current_email_provider_name := 'provider:{i}';
-            ''')
-        finally:
-            await conn.aclose()
-
-        with self.http_con(
-            mtargs.sd, server_hostname=kwargs['server_hostname']
-        ) as http_con:
-            async for tr in self.try_until_succeeds(ignore=AssertionError):
-                async with tr:
-                    _response, _, status = self.http_con_json_request(
-                        http_con,
-                        path=f"/db/{conn.dbname}/ext/auth/register",
-                        body={
-                            "provider": "builtin::local_emailpassword",
-                            "challenge": str(uuid.uuid4()),
-                            "email": "cache@example.com",
-                            "password": "secret",
-                        },
-                    )
-                    self.assertEqual(status, 201)
-
-    async def _test_server_ops_multi_tenant_6(self, mtargs: MultiTenantArgs):
-        # The 2 tenants has different user schema, make sure the auth queries
-        # work fine: the first run caches the queries and the second uses them
-        await self._test_server_ops_global_compile_cache(
-            mtargs,
-            "create type GlobalCache1 { create property name: str }",
-            1,
-            **mtargs.args1,
-        )
-        await self._test_server_ops_global_compile_cache(
-            mtargs,
-            "create type GlobalCache2 { create property active: bool }",
-            2,
-            **mtargs.args2,
-        )
-
-    async def _test_server_ops_multi_tenant_7(self, mtargs: MultiTenantArgs):
-        self.assertEqual(
-            (await mtargs.current_email_provider(1))["sender"],
-            "sender@host1.com",
-        )
-        self.assertEqual(
-            (await mtargs.current_email_provider(2))["sender"],
-            "sender@host2.com",
-        )
-
-        mtargs.cf1.seek(0)
-        mtargs.cf1.truncate(0)
-        mtargs.cf1.write(textwrap.dedent("""
-            [[magic_smtp_config]]
-            _tname = "cfg::SMTPProviderConfig"
-            name = "provider:1"
-            sender = "updated@example.com"
-        """))
-        mtargs.cf1.flush()
-        assert mtargs.srv.proc is not None
-        mtargs.srv.proc.send_signal(signal.SIGHUP)
-
-        async for tr in self.try_until_succeeds(
-            ignore=AssertionError, timeout=30
-        ):
-            async with tr:
-                self.assertEqual(
-                    (await mtargs.current_email_provider(1))["sender"],
-                    "updated@example.com",
-                )
-                self.assertEqual(
-                    (await mtargs.current_email_provider(2))["sender"],
-                    "sender@host2.com",
-                )
-
-    async def _test_server_ops_multi_tenant_8(self, mtargs: MultiTenantArgs):
-        # Start with 2 tenants
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n',
-            data,
-        )
-        await self._test_server_ops_multi_tenant_1(mtargs)
-
-        with tempfile.TemporaryDirectory() as td:
-            # Test adding tenant with a non-existing jwt-sub-allowlist-file
-            tf = tempfile.mktemp(dir=td)
-            conf = mtargs.conf["1.localhost"].copy()
-            conf.update({
-                "instance-name": "localtest3",
-                "jwt-sub-allowlist-file": tf,
-            })
-            mtargs.conf["3.localhost"] = conf
-            mtargs.reload_server()
-
-            # The tenant should not be ready at this moment, while the server
-            # keeps retrying to add the tenant
-            args3 = mtargs.args1.copy()
-            args3["server_hostname"] = "3.localhost"
-            with self.assertRaises(edgedb.AvailabilityError):
-                async for tr in self.try_until_succeeds(
-                    ignore=edgedb.AvailabilityError, timeout=3
-                ):
-                    async with tr:
-                        conn = await mtargs.sd.connect(**args3)
-                        await conn.aclose()
-
-            # Though, the metrics should reflect the ongoing attempt
-            data = mtargs.sd.fetch_metrics()
-            self.assertIn(
-                '\nedgedb_server_mt_tenant_add_total'
-                '{tenant="localtest3"} 1.0\n',
-                data,
-            )
-            self.assertIn(
-                '\nedgedb_server_mt_tenants_current 2.0\n',
-                data,
-            )
-
-            # Now, create the missing file and the tenant should be added
-            with open(tf, "w") as f:
-                f.write("\n")
-            async for tr in self.try_until_succeeds(
-                ignore=edgedb.AvailabilityError
-            ):
-                async with tr:
-                    conn = await mtargs.sd.connect(**args3)
-                    await conn.aclose()
-            data = mtargs.sd.fetch_metrics()
-            self.assertIn(
-                '\nedgedb_server_mt_tenant_add_total'
-                '{tenant="localtest3"} 1.0\n',
-                data,
-            )
-            self.assertIn(
-                '\nedgedb_server_mt_tenants_current 3.0\n',
-                data,
-            )
-
-    async def _test_server_ops_multi_tenant_9(self, mtargs: MultiTenantArgs):
-        sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        sslctx.check_hostname = False
-        sslctx.load_verify_locations(mtargs.sd.tls_cert_file)
-        self.assertEqual(
-            mtargs.sd.call_system_api(
-                "/server/status/alive", sslctx=sslctx, server_hostname=None,
-            ),
-            "OK",
-        )
-        self.assertEqual(
-            mtargs.sd.call_system_api(
-                "/server/status/ready", sslctx=sslctx, server_hostname=None,
-            ),
-            "OK",
-        )
-
-
-class MultiTenantArgs(NamedTuple):
-    srv: tb._EdgeDBServer
-    sd: tb._EdgeDBServerData
-    conf_file: tempfile._TemporaryFileWrapper
-    conf: dict[str, dict[str, Any]]
-    args1: dict[str, str]
-    args2: dict[str, str]
-    rd1: tempfile._TemporaryFileWrapper
-    rd2: tempfile._TemporaryFileWrapper
-    cf1: tempfile._TemporaryFileWrapper
-    cf2: tempfile._TemporaryFileWrapper
-    dbnames: list[str | None] = [None, None]
-
-    def reload_server(self):
-        self.conf_file.file.seek(0)
-        self.conf_file.file.truncate(0)
-        json.dump(self.conf, self.conf_file.file)
-        self.conf_file.file.flush()
-        self.srv.proc.send_signal(signal.SIGHUP)
-
-    def fetch_server_info(self, i):
-        return self.sd.fetch_server_info()["tenants"][f"{i}.localhost"]
-
-    async def current_email_provider(self, i):
-        tenant_info = self.fetch_server_info(i)
-        dbname = self.dbnames[i - 1]
-        if dbname is None:
-            conn = await self.sd.connect(**getattr(self, f"args{i}"))
-            try:
-                dbname = await conn.query_single("""\
-                    select sys::get_current_branch()
-                """)
-                self.dbnames[i - 1] = dbname
-            finally:
-                await conn.aclose()
-        return tenant_info["databases"][dbname]["current_email_provider"]
-
 
 class TestPGExtensions(tb.TestCase):
     async def test_edb_stat_statements(self):
@@ -1985,11 +1541,13 @@ class TestPGExtensions(tb.TestCase):
                 database='template1',
             )
             self.assertTrue(await cluster.ensure_initialized())
-            await cluster.start(server_settings={
-                'edb_stat_statements.track_planning': 'false',
-                'edb_stat_statements.track': 'dev',
-                'max_prepared_transactions': '5',
-            })
+            await cluster.start(
+                server_settings={
+                    'edb_stat_statements.track_planning': 'false',
+                    'edb_stat_statements.track': 'dev',
+                    'max_prepared_transactions': '5',
+                }
+            )
             try:
                 pg_config = buildmeta.get_pg_config_path()
                 env = os.environ.copy()
@@ -1998,11 +1556,16 @@ class TestPGExtensions(tb.TestCase):
                 env['PGPORT'] = params.port
                 env['PGUSER'] = params.user
                 env['PGDATABASE'] = params.database
-                subprocess.check_output([
-                    'make',
-                    f'PG_CONFIG={pg_config}',
-                    'installcheck',
-                ], cwd=str(ext_home), env=env, text=True)
+                subprocess.check_output(
+                    [
+                        'make',
+                        f'PG_CONFIG={pg_config}',
+                        'installcheck',
+                    ],
+                    cwd=str(ext_home),
+                    env=env,
+                    text=True,
+                )
             except subprocess.CalledProcessError as e:
                 output = ext_home / "regression.out"
                 if output.exists():

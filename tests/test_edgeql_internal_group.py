@@ -25,18 +25,20 @@ from edb.tools import test
 class TestEdgeQLGroupInternal(tb.QueryTestCase):
     '''These tests are focused on using the internal GROUP statement.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
-    SCHEMA_CARDS = os.path.join(os.path.dirname(__file__), 'schemas',
-                                'cards.esdl')
+    SCHEMA_CARDS = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards.esdl'
+    )
 
     SETUP = [
-        os.path.join(os.path.dirname(__file__), 'schemas',
-                     'issues_setup.edgeql'),
+        os.path.join(
+            os.path.dirname(__file__), 'schemas', 'issues_setup.edgeql'
+        ),
         'SET MODULE cards;',
-        os.path.join(os.path.dirname(__file__), 'schemas',
-                     'cards_setup.edgeql'),
+        os.path.join(
+            os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql'
+        ),
     ]
 
     async def test_edgeql_igroup_simple_01(self):
@@ -157,18 +159,30 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             IN g
             UNION { elements := array_agg(g) };
             ''',
-            tb.bag([
-                {"elements": tb.bag([
-                    {"name": "Imp"}, {"name": "Dragon"}])},
-                {"elements": tb.bag([
-                    {"name": "Bog monster"}, {"name": "Giant turtle"}])},
-                {"elements": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}])},
-                {"elements": tb.bag([
-                    {"name": "Sprite"},
-                    {"name": "Giant eagle"},
-                    {"name": "Djinn"}
-                ])}
-            ]),
+            tb.bag(
+                [
+                    {"elements": tb.bag([{"name": "Imp"}, {"name": "Dragon"}])},
+                    {
+                        "elements": tb.bag(
+                            [{"name": "Bog monster"}, {"name": "Giant turtle"}]
+                        )
+                    },
+                    {
+                        "elements": tb.bag(
+                            [{"name": "Dwarf"}, {"name": "Golem"}]
+                        )
+                    },
+                    {
+                        "elements": tb.bag(
+                            [
+                                {"name": "Sprite"},
+                                {"name": "Giant eagle"},
+                                {"name": "Djinn"},
+                            ]
+                        )
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_simple_bare_01(self):
@@ -181,12 +195,14 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             IN g
             UNION { elements := g };
             ''',
-            tb.bag([
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 3},
-            ]),
+            tb.bag(
+                [
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 3},
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_simple_bare_02(self):
@@ -199,12 +215,14 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             IN g
             UNION { elements := array_agg(g) };
             ''',
-            tb.bag([
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 2},
-                {"elements": [{"id": str}] * 3},
-            ]),
+            tb.bag(
+                [
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 2},
+                    {"elements": [{"id": str}] * 3},
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_by_01(self):
@@ -228,7 +246,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 {
                     'status': 'Open',
                     'sum': 3,
-                }
+                },
             ],
         )
 
@@ -246,10 +264,12 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 FILTER .sum > 5
                 ORDER BY .status;
             """,
-            [{
-                'status': 'Closed',
-                'sum': 7,
-            }],
+            [
+                {
+                    'status': 'Closed',
+                    'sum': 7,
+                }
+            ],
         )
 
     async def test_edgeql_igroup_result_alias_01(self):
@@ -264,7 +284,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     te := array_agg(DISTINCT Issue.time_estimate > 0),
                 ) ORDER BY _.te;
             ''',
-            [{'count': 2, 'te': []}, {'count': 1, 'te': [True]}]
+            [{'count': 2, 'te': []}, {'count': 1, 'te': [True]}],
         )
 
         await self.assert_query_result(
@@ -326,25 +346,31 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             [
                 {
                     'name': 'Elvis',
-                    'issues': [{
-                        'status': 'Closed',
-                        'count': 1,
-                    }, {
-                        'status': 'Open',
-                        'count': 1,
-                    }]
+                    'issues': [
+                        {
+                            'status': 'Closed',
+                            'count': 1,
+                        },
+                        {
+                            'status': 'Open',
+                            'count': 1,
+                        },
+                    ],
                 },
                 {
                     'name': 'Yury',
-                    'issues': [{
-                        'status': 'Closed',
-                        'count': 1,
-                    }, {
-                        'status': 'Open',
-                        'count': 1,
-                    }]
+                    'issues': [
+                        {
+                            'status': 'Closed',
+                            'count': 1,
+                        },
+                        {
+                            'status': 'Open',
+                            'count': 1,
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_igroup_returning_01(self):
@@ -401,7 +427,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 {
                     'name': 'Open',
                     'nums': {'1', '2'},
-                }
+                },
             ],
         )
 
@@ -435,7 +461,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 {
                     'name': 'Open',
                     'nums': {'1', '2'},
-                }
+                },
             ],
         )
 
@@ -608,7 +634,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                         {'cost': 2, 'name': 'Bog monster'},
                         {'cost': 3, 'name': 'Giant turtle'},
                     ],
-                }
+                },
             ],
             always_typenames=True,
         )
@@ -694,7 +720,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                         {'cost': 2, 'name': 'Bog monster'},
                         {'cost': 3, 'name': 'Giant turtle'},
                     ],
-                }
+                },
             ],
             always_typenames=True,
         )
@@ -778,8 +804,8 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                         {'cost': 2, 'name': 'Bog monster'},
                         {'cost': 3, 'name': 'Giant turtle'},
                     ],
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_igroup_by_tuple_01(self):
@@ -803,12 +829,8 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 ) ORDER BY .status;
             """,
             [
-                {
-                    'status': '', 'sum': 9, 'time_estimate': 0
-                },
-                {
-                    'status': 'Open', 'sum': 1, 'time_estimate': 3000
-                }
+                {'status': '', 'sum': 9, 'time_estimate': 0},
+                {'status': 'Open', 'sum': 1, 'time_estimate': 3000},
             ],
         )
 
@@ -837,13 +859,19 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             """,
             [
                 {
-                    'status': 'Open', 'sum': 1, 'time_estimate': 3000,
+                    'status': 'Open',
+                    'sum': 1,
+                    'time_estimate': 3000,
                 },
                 {
-                    'status': 'Open', 'sum': 2, 'time_estimate': 0,
+                    'status': 'Open',
+                    'sum': 2,
+                    'time_estimate': 0,
                 },
                 {
-                    'status': 'Closed', 'sum': 7, 'time_estimate': 0,
+                    'status': 'Closed',
+                    'sum': 7,
+                    'time_estimate': 0,
                 },
             ],
         )
@@ -865,15 +893,9 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 ) ORDER BY Stat THEN Est > 0;
             """,
             [
-                {
-                    'status': 'Closed', 'sum': 7, 'time_estimate': 0
-                },
-                {
-                    'status': 'Open', 'sum': 2, 'time_estimate': 0
-                },
-                {
-                    'status': 'Open', 'sum': 1, 'time_estimate': 3000
-                }
+                {'status': 'Closed', 'sum': 7, 'time_estimate': 0},
+                {'status': 'Open', 'sum': 2, 'time_estimate': 0},
+                {'status': 'Open', 'sum': 1, 'time_estimate': 3000},
             ],
         )
 
@@ -912,7 +934,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'status': 'Open',
                     'time_estimate': 3000,
                     'numbers': [1],
-                }
+                },
             ],
         )
 
@@ -955,7 +977,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'time_estimate': 3000,
                     'numbers': [1],
                     'watchers': ['Yury'],
-                }
+                },
             ],
         )
 
@@ -985,21 +1007,13 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 ORDER BY .status THEN .x;
             """,
             [
-                {
-                    'status': 'Closed',
-                    'numbers': ['4'],
-                    'watchers': []
-                },
-                {
-                    'status': 'Closed',
-                    'numbers': ['3'],
-                    'watchers': ['Elvis']
-                },
+                {'status': 'Closed', 'numbers': ['4'], 'watchers': []},
+                {'status': 'Closed', 'numbers': ['3'], 'watchers': ['Elvis']},
                 {
                     'status': 'Open',
                     'numbers': ['1', '2'],
-                    'watchers': ['Elvis', 'Yury']
-                }
+                    'watchers': ['Elvis', 'Yury'],
+                },
             ],
         )
 
@@ -1028,21 +1042,9 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     THEN .cnt;
             """,
             [
-                {
-                    'status': 'Closed',
-                    'numbers': [4],
-                    'watchers': 0
-                },
-                {
-                    'status': 'Closed',
-                    'numbers': [3],
-                    'watchers': 1
-                },
-                {
-                    'status': 'Open',
-                    'numbers': [1, 2],
-                    'watchers': 2
-                }
+                {'status': 'Closed', 'numbers': [4], 'watchers': 0},
+                {'status': 'Closed', 'numbers': [3], 'watchers': 1},
+                {'status': 'Open', 'numbers': [1, 2], 'watchers': 2},
             ],
         )
 
@@ -1069,8 +1071,8 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 [['Bog monster', 'Giant eagle'], 22, int],
                 [['Giant turtle', 'Golem'], 22, int],
                 [['Djinn'], 11, int],
-                [['Dragon'], 11, int]
-            ]
+                [['Dragon'], 11, int],
+            ],
         )
 
     async def test_edgeql_igroup_by_multiple_07b(self):
@@ -1096,8 +1098,8 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 [['Bog monster', 'Giant eagle'], 22],
                 [['Giant turtle', 'Golem'], 22],
                 [['Djinn'], 11],
-                [['Dragon'], 11]
-            ]
+                [['Dragon'], 11],
+            ],
         )
 
     async def test_edgeql_igroup_linkproperty_simple_02(self):
@@ -1138,7 +1140,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'cards': ['Bog monster', 'Giant turtle'],
                     'count': 19,
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_igroup_linkproperty_simple_03(self):
@@ -1165,7 +1167,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 {'name': ['Carol'], 'nickname': 'Firefighter'},
                 {'name': ['Dave'], 'nickname': 'Grumpy'},
                 {'name': ['Bob'], 'nickname': 'Swampy'},
-            ]
+            ],
         )
 
     @test.xerror("linkprops - can't find scope statement")
@@ -1207,16 +1209,16 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'total': 10,
                     'elements': [
                         {'name': 'Fire', 'count': 4},
-                        {'name': 'Water', 'count': 6}
-                    ]
+                        {'name': 'Water', 'count': 6},
+                    ],
                 },
                 {
                     'name': 'Bob',
                     'total': 12,
                     'elements': [
                         {'name': 'Earth', 'count': 6},
-                        {'name': 'Water', 'count': 6}
-                    ]
+                        {'name': 'Water', 'count': 6},
+                    ],
                 },
                 {
                     'name': 'Carol',
@@ -1224,8 +1226,8 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'elements': [
                         {'name': 'Air', 'count': 8},
                         {'name': 'Earth', 'count': 6},
-                        {'name': 'Water', 'count': 5}
-                    ]
+                        {'name': 'Water', 'count': 5},
+                    ],
                 },
                 {
                     'name': 'Dave',
@@ -1234,10 +1236,10 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                         {'name': 'Air', 'count': 6},
                         {'name': 'Earth', 'count': 1},
                         {'name': 'Fire', 'count': 1},
-                        {'name': 'Water', 'count': 2}
-                    ]
-                }
-            ]
+                        {'name': 'Water', 'count': 2},
+                    ],
+                },
+            ],
         )
 
     @test.xerror("linkprops - can't find scope statement")
@@ -1293,7 +1295,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     'count': 1,
                     'cards': ['Bog monster', 'Giant turtle'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_igroup_scalar_01a(self):
@@ -1309,10 +1311,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     values := array_agg(I ORDER BY I)
                 ) ORDER BY _r.values;
             """,
-            [
-                {'values': [1, 3]},
-                {'values': [2, 4]}
-            ]
+            [{'values': [1, 3]}, {'values': [2, 4]}],
         )
 
     async def test_edgeql_igroup_scalar_01b(self):
@@ -1328,10 +1327,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     values := array_agg((SELECT _ := I ORDER BY _))
                 ) ORDER BY _r.values;
             """,
-            [
-                {'values': [1, 3]},
-                {'values': [2, 4]}
-            ]
+            [{'values': [1, 3]}, {'values': [2, 4]}],
         )
 
     async def test_edgeql_igroup_to_freeobject_01(self):
@@ -1343,18 +1339,26 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 BY e
                 IN g UNION { z := g };
             """,
-            tb.bag([
-                {"z": tb.bag(
-                    [{"name": "Bog monster"}, {"name": "Giant turtle"}])},
-                {"z": tb.bag(
-                    [{"name": "Imp"}, {"name": "Dragon"}])},
-                {"z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}])},
-                {"z": tb.bag([
-                    {"name": "Sprite"},
-                    {"name": "Giant eagle"},
-                    {"name": "Djinn"},
-                ])}
-            ])
+            tb.bag(
+                [
+                    {
+                        "z": tb.bag(
+                            [{"name": "Bog monster"}, {"name": "Giant turtle"}]
+                        )
+                    },
+                    {"z": tb.bag([{"name": "Imp"}, {"name": "Dragon"}])},
+                    {"z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}])},
+                    {
+                        "z": tb.bag(
+                            [
+                                {"name": "Sprite"},
+                                {"name": "Giant eagle"},
+                                {"name": "Djinn"},
+                            ]
+                        )
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_to_freeobject_02(self):
@@ -1366,18 +1370,26 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 BY e
                 IN g UNION { z := g });
             """,
-            tb.bag([
-                {"z": tb.bag(
-                    [{"name": "Bog monster"}, {"name": "Giant turtle"}])},
-                {"z": tb.bag(
-                    [{"name": "Imp"}, {"name": "Dragon"}])},
-                {"z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}])},
-                {"z": tb.bag([
-                    {"name": "Sprite"},
-                    {"name": "Giant eagle"},
-                    {"name": "Djinn"},
-                ])}
-            ])
+            tb.bag(
+                [
+                    {
+                        "z": tb.bag(
+                            [{"name": "Bog monster"}, {"name": "Giant turtle"}]
+                        )
+                    },
+                    {"z": tb.bag([{"name": "Imp"}, {"name": "Dragon"}])},
+                    {"z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}])},
+                    {
+                        "z": tb.bag(
+                            [
+                                {"name": "Sprite"},
+                                {"name": "Giant eagle"},
+                                {"name": "Djinn"},
+                            ]
+                        )
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_to_freeobject_03(self):
@@ -1415,7 +1427,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                 UNION
                 (WITH z := e, SELECT z);
             """,
-            {"Water", "Fire", "Earth", "Air"}
+            {"Water", "Fire", "Earth", "Air"},
         )
 
     async def test_edgeql_using_rebind_02(self):
@@ -1432,7 +1444,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             """,
             tb.bag(
                 [{"z": "Fire"}, {"z": "Water"}, {"z": "Earth"}, {"z": "Air"}]
-            )
+            ),
         )
 
     async def test_edgeql_using_rebind_03(self):
@@ -1449,7 +1461,7 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
             """,
             tb.bag(
                 [{"z": "Fire"}, {"z": "Water"}, {"z": "Earth"}, {"z": "Air"}]
-            )
+            ),
         )
 
     async def test_edgeql_igroup_filter_01(self):
@@ -1463,17 +1475,24 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     SELECT { key := {e := e}, z := g } FILTER e != 'Air')
                 );
             """,
-            tb.bag([
-                {
-                    "key": {"e": "Water"},
-                    "z": tb.bag(
-                        [{"name": "Bog monster"}, {"name": "Giant turtle"}])
-                },
-                {"key": {"e": "Fire"}, "z": tb.bag([
-                    {"name": "Imp"}, {"name": "Dragon"}])},
-                {"key": {"e": "Earth"}, "z": tb.bag([
-                    {"name": "Dwarf"}, {"name": "Golem"}])}
-            ])
+            tb.bag(
+                [
+                    {
+                        "key": {"e": "Water"},
+                        "z": tb.bag(
+                            [{"name": "Bog monster"}, {"name": "Giant turtle"}]
+                        ),
+                    },
+                    {
+                        "key": {"e": "Fire"},
+                        "z": tb.bag([{"name": "Imp"}, {"name": "Dragon"}]),
+                    },
+                    {
+                        "key": {"e": "Earth"},
+                        "z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}]),
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_filter_02(self):
@@ -1487,17 +1506,24 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     SELECT { key := {e := e}, z := g } FILTER .key.e != 'Air')
                 );
             """,
-            tb.bag([
-                {
-                    "key": {"e": "Water"},
-                    "z": tb.bag(
-                        [{"name": "Bog monster"}, {"name": "Giant turtle"}])
-                },
-                {"key": {"e": "Fire"}, "z": tb.bag([
-                    {"name": "Imp"}, {"name": "Dragon"}])},
-                {"key": {"e": "Earth"}, "z": tb.bag([
-                    {"name": "Dwarf"}, {"name": "Golem"}])}
-            ])
+            tb.bag(
+                [
+                    {
+                        "key": {"e": "Water"},
+                        "z": tb.bag(
+                            [{"name": "Bog monster"}, {"name": "Giant turtle"}]
+                        ),
+                    },
+                    {
+                        "key": {"e": "Fire"},
+                        "z": tb.bag([{"name": "Imp"}, {"name": "Dragon"}]),
+                    },
+                    {
+                        "key": {"e": "Earth"},
+                        "z": tb.bag([{"name": "Dwarf"}, {"name": "Golem"}]),
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_reshape_01(self):
@@ -1514,12 +1540,14 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     avg_cost := count(.elements),
                 };
             """,
-            tb.bag([
-                {"avg_cost": 3, "element": "Air"},
-                {"avg_cost": 2, "element": "Earth"},
-                {"avg_cost": 2, "element": "Fire"},
-                {"avg_cost": 2, "element": "Water"},
-            ])
+            tb.bag(
+                [
+                    {"avg_cost": 3, "element": "Air"},
+                    {"avg_cost": 2, "element": "Earth"},
+                    {"avg_cost": 2, "element": "Fire"},
+                    {"avg_cost": 2, "element": "Water"},
+                ]
+            ),
         )
 
     async def test_edgeql_igroup_reshape_02(self):
@@ -1536,10 +1564,12 @@ class TestEdgeQLGroupInternal(tb.QueryTestCase):
                     avg_cost := count(.elements),
                 };
             """,
-            tb.bag([
-                {"avg_cost": 3, "element": "Air"},
-                {"avg_cost": 2, "element": "Earth"},
-                {"avg_cost": 2, "element": "Fire"},
-                {"avg_cost": 2, "element": "Water"},
-            ])
+            tb.bag(
+                [
+                    {"avg_cost": 3, "element": "Air"},
+                    {"avg_cost": 2, "element": "Earth"},
+                    {"avg_cost": 2, "element": "Fire"},
+                    {"avg_cost": 2, "element": "Water"},
+                ]
+            ),
         )

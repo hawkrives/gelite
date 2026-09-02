@@ -33,9 +33,7 @@ class Token(BaseCode):
 
 
 class Code(BaseCode):
-    tokens = struct.Field(
-        checked.CheckedList[Token], default=None, coerce=True
-    )
+    tokens = struct.Field(checked.CheckedList[Token], default=None, coerce=True)
 
 
 class Whitespace(Token):

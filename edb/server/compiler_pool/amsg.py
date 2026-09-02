@@ -55,8 +55,8 @@ class MessageStream:
                     return
 
             if self._curmsg_len > 0 and len(self._buffer) >= self._curmsg_len:
-                msg = self._buffer[:self._curmsg_len]
-                self._buffer = self._buffer[self._curmsg_len:]
+                msg = self._buffer[: self._curmsg_len]
+                self._buffer = self._buffer[self._curmsg_len :]
                 self._curmsg_len = -1
                 yield msg
             else:
@@ -138,8 +138,11 @@ class HubProtocol(asyncio.Protocol):
                     waiter.set_exception(exc)
             else:
                 for waiter in self._resp_waiters.values():
-                    waiter.set_exception(ConnectionError(
-                        'lost connection to the worker during a call'))
+                    waiter.set_exception(
+                        ConnectionError(
+                            'lost connection to the worker during a call'
+                        )
+                    )
             self._resp_waiters = {}
 
         self._on_connection_lost(self._pid)
@@ -240,7 +243,6 @@ class ServerProtocol:
 
 
 class Server:
-
     _sockname: str
     _loop: asyncio.AbstractEventLoop
     _srv: Optional[asyncio.AbstractServer]
@@ -289,8 +291,8 @@ class Server:
 
     async def start(self) -> None:
         self._srv = await self._loop.create_unix_server(
-            self._proto_factory,
-            path=self._sockname)
+            self._proto_factory, path=self._sockname
+        )
 
     async def stop(self) -> None:
         if self._srv is None:

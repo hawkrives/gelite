@@ -19,7 +19,6 @@
 
 """EdgeQL compiler statement-level context management."""
 
-
 from __future__ import annotations
 
 from typing import (
@@ -78,7 +77,6 @@ def init_context(
     options: coptions.CompilerOptions,
     inlining_context: Optional[context.ContextLevel] = None,
 ) -> context.ContextLevel:
-
     if not schema.get_global(s_mod.Module, '__derived__', None):
         schema, _ = s_mod.Module.create_in_schema(
             schema,
@@ -117,7 +115,8 @@ def init_context(
         had_optional = False
         for singleton_ent in options.singletons:
             singleton, optional = (
-                singleton_ent if isinstance(singleton_ent, tuple)
+                singleton_ent
+                if isinstance(singleton_ent, tuple)
                 else (singleton_ent, False)
             )
             had_optional |= optional
@@ -150,7 +149,8 @@ def init_context(
     if options.path_prefix_anchor is not None:
         path_prefix = options.anchors[options.path_prefix_anchor]
         ctx.partial_path_prefix = compile_anchor(
-            options.path_prefix_anchor, path_prefix, ctx=ctx)
+            options.path_prefix_anchor, path_prefix, ctx=ctx
+        )
         ctx.partial_path_prefix.anchor = options.path_prefix_anchor
         ctx.partial_path_prefix.show_as_anchor = options.path_prefix_anchor
 
@@ -179,15 +179,11 @@ def init_context(
 def fini_expression(
     ir: irast.Set, *, ctx: context.ContextLevel
 ) -> irast.Statement | irast.ConfigCommand:
-
     ctx.path_scope = ctx.env.path_scope
 
     ir = eta_expand.eta_expand_ir(ir, toplevel=True, ctx=ctx)
 
-    if (
-        isinstance(ir, irast.Set)
-        and pathctx.get_set_scope(ir, ctx=ctx) is None
-    ):
+    if isinstance(ir, irast.Set) and pathctx.get_set_scope(ir, ctx=ctx) is None:
         ir = setgen.scoped_set(ir, ctx=ctx)
 
     # Compile any triggers that were triggered by the query
@@ -200,11 +196,11 @@ def fini_expression(
     # but don't appear in `ir` must be added here.
     extra_exprs: list[irast.Set] = []
     extra_exprs += [
-        rw for rw in ctx.env.type_rewrites.values()
-        if isinstance(rw, irast.Set)
+        rw for rw in ctx.env.type_rewrites.values() if isinstance(rw, irast.Set)
     ]
     extra_exprs += [
-        p.sub_params.decoder_ir for p in ctx.env.query_parameters.values()
+        p.sub_params.decoder_ir
+        for p in ctx.env.query_parameters.values()
         if p.sub_params and p.sub_params.decoder_ir
     ]
     extra_exprs += [
@@ -241,9 +237,11 @@ def fini_expression(
 
     for extra in extra_exprs:
         inference.infer_cardinality(
-            extra, scope_tree=ctx.path_scope, ctx=inf_ctx)
+            extra, scope_tree=ctx.path_scope, ctx=inf_ctx
+        )
         inference.infer_multiplicity(
-            extra, scope_tree=ctx.path_scope, ctx=inf_ctx)
+            extra, scope_tree=ctx.path_scope, ctx=inf_ctx
+        )
 
     # Fix up weak namespaces
     _rewrite_weak_namespaces(all_exprs, ctx)
@@ -279,8 +277,8 @@ def fini_expression(
     expr_type = setgen.get_set_type(ir, ctx=ctx)
 
     in_polymorphic_func = (
-        ctx.env.options.func_params is not None and
-        ctx.env.options.func_params.has_polymorphic(ctx.env.schema)
+        ctx.env.options.func_params is not None
+        and ctx.env.options.func_params.has_polymorphic(ctx.env.schema)
     )
     if (
         not in_polymorphic_func
@@ -291,7 +289,8 @@ def fini_expression(
             raise errors.QueryError(
                 'expression returns value of indeterminate type',
                 hint='Consider using an explicit type cast.',
-                span=ctx.env.type_origins.get(anytype))
+                span=ctx.env.type_origins.get(anytype),
+            )
 
     # Clear out exprs that we decided to omit from the IR
     for ir_set in exprs_to_clear:
@@ -351,9 +350,9 @@ def fini_expression(
     return result
 
 
-def _get_type_rewrites(ctx: context.ContextLevel) -> dict[
-    tuple[uuid.UUID, bool], irast.Set
-]:
+def _get_type_rewrites(
+    ctx: context.ContextLevel,
+) -> dict[tuple[uuid.UUID, bool], irast.Set]:
     return {
         (typ.id, not skip_subtypes): s
         for (typ, skip_subtypes), s in ctx.env.type_rewrites.items()
@@ -380,7 +379,7 @@ def collect_params(ctx: context.ContextLevel) -> list[irast.Param]:
 
 
 def collect_server_param_conversions(
-    ctx: context.ContextLevel
+    ctx: context.ContextLevel,
 ) -> tuple[
     list[irast.ServerParamConversion],
     list[irast.Param],
@@ -407,8 +406,8 @@ def collect_server_param_conversions(
     extra_ordering: dict[str, int] = {}
     for param_name in sorted(ctx.env.server_param_conversions.keys()):
         if param_name not in script_ordering:
-            extra_ordering[param_name] = (
-                len(script_ordering) + len(extra_ordering)
+            extra_ordering[param_name] = len(script_ordering) + len(
+                extra_ordering
             )
     script_ordering.update(extra_ordering)
 
@@ -419,13 +418,15 @@ def collect_server_param_conversions(
     # Now flatten it out, including all sub_params, making sure subparams
     # appear in the right order.
     for param_name, conversion_name, conversion in lparams:
-        conversions.append(irast.ServerParamConversion(
-            param_name=param_name,
-            conversion_name=conversion_name,
-            additional_info=conversion.additional_info,
-            script_param_index=conversion.script_param_index,
-            constant_value=conversion.constant_value,
-        ))
+        conversions.append(
+            irast.ServerParamConversion(
+                param_name=param_name,
+                conversion_name=conversion_name,
+                additional_info=conversion.additional_info,
+                script_param_index=conversion.script_param_index,
+                constant_value=conversion.constant_value,
+            )
+        )
         params.append(conversion.ir_param)
         if conversion.ir_param.sub_params:
             params.extend(conversion.ir_param.sub_params.params)
@@ -439,8 +440,7 @@ def _fixup_materialized_sets(
     skips = {'materialized_sets'}
     children = []
     for ir in irs:
-        children += ast_visitor.find_children(
-            ir, irast.Stmt, extra_skips=skips)
+        children += ast_visitor.find_children(ir, irast.Stmt, extra_skips=skips)
 
     to_clear = []
     for stmt in ordered.OrderedSet(children):
@@ -485,9 +485,9 @@ def _fixup_materialized_sets(
                         if (
                             reason_parent.is_visible(b, allow_group=True)
                         ) and not all(
-                            use_scope and use_scope.parent
-                            and use_scope.parent.is_visible(
-                                b, allow_group=True)
+                            use_scope
+                            and use_scope.parent
+                            and use_scope.parent.is_visible(b, allow_group=True)
                             for use_scope in use_scopes
                         ):
                             good_reason = True
@@ -513,10 +513,11 @@ def _fixup_materialized_sets(
                     if not use_set.path_id.is_linkprop_path():
                         to_clear.append(use_set)
 
-            assert (
-                not any(use.src_path() for use in mat_set.uses)
-                or isinstance(mat_set.materialized.expr, irast.Pointer)
-            ), f"materialized ptr {mat_set.uses} missing pointer"
+            assert not any(
+                use.src_path() for use in mat_set.uses
+            ) or isinstance(mat_set.materialized.expr, irast.Pointer), (
+                f"materialized ptr {mat_set.uses} missing pointer"
+            )
             mat_set.finalized = True
 
     return to_clear
@@ -526,7 +527,8 @@ def _find_visible_binding_refs(
     ir: irast.Base, *, ctx: context.ContextLevel
 ) -> list[irast.Set]:
     children = ast_visitor.find_children(
-        ir, irast.Set, lambda n: n.is_visible_binding_ref)
+        ir, irast.Set, lambda n: n.is_visible_binding_ref
+    )
     return children
 
 
@@ -537,11 +539,13 @@ def _try_namespace_fix(
     for prefix in path_id.iter_prefixes():
         replacement = scope.find_visible(prefix, allow_group=True)
         if (
-            replacement and replacement.path_id
+            replacement
+            and replacement.path_id
             and prefix != replacement.path_id
         ):
             new = irtyputils.replace_pathid_prefix(
-                path_id, prefix, replacement.path_id)
+                path_id, prefix, replacement.path_id
+            )
 
             return new
 
@@ -582,9 +586,9 @@ def _rewrite_weak_namespaces(
                 ir_set.path_id = _try_namespace_fix(scope, ir_set.path_id)
 
 
-def _get_all_pathids(irs: Sequence[irast.Base]) -> set[
-    tuple[irast.PathId, irast.Set | None]
-]:
+def _get_all_pathids(
+    irs: Sequence[irast.Base],
+) -> set[tuple[irast.PathId, irast.Set | None]]:
     all_ids: set[tuple[irast.PathId, irast.Set | None]] = set()
     for ir in irs:
         for ir_set in ast_visitor.find_children(ir, irast.Set):
@@ -627,9 +631,8 @@ def _collapse_factoring_protected(
     all_ids = _get_all_pathids(irs)
 
     for ir_set in ordered.OrderedSet(children):
-        if (
-            ir_set.path_scope_id is None
-            or not irutils.is_implicit_wrapper(ir_set.expr)
+        if ir_set.path_scope_id is None or not irutils.is_implicit_wrapper(
+            ir_set.expr
         ):
             continue
 
@@ -713,14 +716,14 @@ def _fixup_schema_view(*, ctx: context.ContextLevel) -> None:
             tgt = vptr.get_target(ctx.env.schema)
             assert tgt is not None
 
-            if (tgt.is_union_type(ctx.env.schema)
-                    and tgt.get_is_opaque_union(ctx.env.schema)):
+            if tgt.is_union_type(ctx.env.schema) and tgt.get_is_opaque_union(
+                ctx.env.schema
+            ):
                 # Opaque unions should manifest as std::BaseObject
                 # in schema views.
                 ctx.env.schema = vptr.set_target(
                     ctx.env.schema,
-                    ctx.env.schema.get(
-                        'std::BaseObject', type=s_types.Type),
+                    ctx.env.schema.get('std::BaseObject', type=s_types.Type),
                 )
 
             if not isinstance(vptr, s_sources.Source):
@@ -774,7 +777,7 @@ def _elide_derived_ancestors(
         ctx.env.schema = obj.set_field_value(
             ctx.env.schema,
             'ancestors',
-            s_obj.compute_ancestors(ctx.env.schema, obj)
+            s_obj.compute_ancestors(ctx.env.schema, obj),
         )
 
 
@@ -784,7 +787,6 @@ def compile_anchor(
     *,
     ctx: context.ContextLevel,
 ) -> irast.Set:
-
     show_as_anchor = True
 
     if isinstance(anchor, s_types.Type):
@@ -793,8 +795,9 @@ def compile_anchor(
         ctx.env.type_rewrites[anchor, False] = None
         step = setgen.class_set(anchor, ctx=ctx)
 
-    elif (isinstance(anchor, s_pointers.Pointer) and
-            not anchor.is_link_property(ctx.env.schema)):
+    elif isinstance(anchor, s_pointers.Pointer) and not anchor.is_link_property(
+        ctx.env.schema
+    ):
         src = anchor.get_source(ctx.env.schema)
         if src is not None:
             assert isinstance(src, s_objtypes.ObjectType)
@@ -814,13 +817,14 @@ def compile_anchor(
                 setgen.class_set(src, ctx=ctx),
                 ptrcls,
                 s_pointers.PointerDirection.Outbound,
-                ctx=ctx)
+                ctx=ctx,
+            )
 
         step = path
 
-    elif (isinstance(anchor, s_pointers.Pointer) and
-            anchor.is_link_property(ctx.env.schema)):
-
+    elif isinstance(anchor, s_pointers.Pointer) and anchor.is_link_property(
+        ctx.env.schema
+    ):
         anchor_source = anchor.get_source(ctx.env.schema)
         assert isinstance(anchor_source, s_pointers.Pointer)
         anchor_source_source = anchor_source.get_source(ctx.env.schema)
@@ -841,13 +845,12 @@ def compile_anchor(
                 setgen.class_set(src, ctx=ctx),
                 ptrcls,
                 s_pointers.PointerDirection.Outbound,
-                ctx=ctx)
+                ctx=ctx,
+            )
 
         step = setgen.extend_path(
-            path,
-            anchor,
-            s_pointers.PointerDirection.Outbound,
-            ctx=ctx)
+            path, anchor, s_pointers.PointerDirection.Outbound, ctx=ctx
+        )
 
     elif isinstance(anchor, qlast.Base):
         step = dispatch.compile(anchor, ctx=ctx)
@@ -858,7 +861,8 @@ def compile_anchor(
     elif isinstance(anchor, irast.PathId):
         stype = typegen.type_from_typeref(anchor.target, env=ctx.env)
         step = setgen.class_set(
-            stype, path_id=anchor, ignore_rewrites=True, ctx=ctx)
+            stype, path_id=anchor, ignore_rewrites=True, ctx=ctx
+        )
 
     else:
         raise RuntimeError(f'unexpected anchor value: {anchor!r}')
@@ -875,7 +879,6 @@ def populate_anchors(
     *,
     ctx: context.ContextLevel,
 ) -> None:
-
     for name, val in anchors.items():
         ctx.anchors[name] = compile_anchor(name, val, ctx=ctx)
 
@@ -884,13 +887,12 @@ def declare_view(
     expr: qlast.Expr,
     alias: s_name.Name,
     *,
-    factoring_fence: bool=False,
-    fully_detached: bool=False,
+    factoring_fence: bool = False,
+    fully_detached: bool = False,
     binding_kind: irast.BindingKind,
-    path_id_namespace: Optional[frozenset[str]]=None,
+    path_id_namespace: Optional[frozenset[str]] = None,
     ctx: context.ContextLevel,
 ) -> irast.Set:
-
     pinned_pid_ns = path_id_namespace
 
     with ctx.newscope(fenced=True) as subctx:
@@ -931,9 +933,8 @@ def declare_view(
                 view_name = s_name.QualName(
                     module=ctx.derived_target_module or '__derived__',
                     name=s_name.get_specialized_name(
-                        alias,
-                        ctx.aliases.get('w')
-                    )
+                        alias, ctx.aliases.get('w')
+                    ),
                 )
 
         subctx.toplevel_result_view_name = view_name
@@ -953,7 +954,8 @@ def declare_view(
             if path_id_namespace is None:
                 path_id_namespace = ctx.path_id_namespace
             view_set.path_id = view_set.path_id.replace_namespace(
-                path_id_namespace)
+                path_id_namespace
+            )
 
         ctx.aliased_views[alias] = view_set
         ctx.env.expr_view_cache[expr, alias] = view_set
@@ -1038,7 +1040,8 @@ def check_params(params: dict[str, irast.Param]) -> None:
         if param.name.isdecimal() != first_argname.isdecimal():
             raise errors.QueryError(
                 f'cannot combine positional and named parameters '
-                f'in the same query')
+                f'in the same query'
+            )
 
     if first_argname.isdecimal():
         args_decnames = {int(arg) for arg in params}
@@ -1048,7 +1051,8 @@ def check_params(params: dict[str, irast.Param]) -> None:
             missing_args_repr = ', '.join(f'${a}' for a in missing_args)
             raise errors.QueryError(
                 f'missing {missing_args_repr} positional argument'
-                f'{"s" if len(missing_args) > 1 else ""}')
+                f'{"s" if len(missing_args) > 1 else ""}'
+            )
 
 
 def throw_on_shaped_param(
@@ -1057,7 +1061,7 @@ def throw_on_shaped_param(
     raise errors.QueryError(
         f'cannot apply a shape to the parameter',
         hint='Consider adding parentheses around the parameter and type cast',
-        span=shape.span
+        span=shape.span,
     )
 
 
@@ -1068,14 +1072,16 @@ def throw_on_loose_param(
         if ctx.env.options.schema_object_context is s_constr.Constraint:
             raise errors.InvalidConstraintDefinitionError(
                 f'dollar-prefixed "$parameters" cannot be used here',
-                span=param.span)
+                span=param.span,
+            )
         else:
             raise errors.InvalidFunctionDefinitionError(
                 f'dollar-prefixed "$parameters" cannot be used here',
-                span=param.span)
+                span=param.span,
+            )
     raise errors.QueryError(
-        f'missing a type cast before the parameter',
-        span=param.span)
+        f'missing a type cast before the parameter', span=param.span
+    )
 
 
 def preprocess_script(
@@ -1087,25 +1093,20 @@ def preprocess_script(
     consistent types.
     """
     params_lists = [
-        astutils.find_parameters(stmt, ctx.modaliases)
-        for stmt in stmts
+        astutils.find_parameters(stmt, ctx.modaliases) for stmt in stmts
     ]
 
     if loose_params := [
-        loose for params in params_lists
-        for loose in params.loose_params
+        loose for params in params_lists for loose in params.loose_params
     ]:
         throw_on_loose_param(loose_params[0], ctx)
 
     if shaped_params := [
-        shaped for params in params_lists
-        for shaped in params.shaped_params
+        shaped for params in params_lists for shaped in params.shaped_params
     ]:
         throw_on_shaped_param(shaped_params[0][0], shaped_params[0][1], ctx)
 
-    casts = [
-        cast for params in params_lists for cast in params.cast_params
-    ]
+    casts = [cast for params in params_lists for cast in params.cast_params]
     params = {}
     for cast, modaliases in casts:
         assert isinstance(cast.expr, qlast.QueryParameter)
@@ -1123,7 +1124,8 @@ def preprocess_script(
                 raise errors.QueryError(
                     'queries compiled to accept JSON parameters do not '
                     'accept positional parameters',
-                    span=cast.expr.span)
+                    span=cast.expr.span,
+                )
 
         # for ObjectType parameters, we inject intermediate cast to uuid,
         # so parameter is uuid and then cast to ObjectType
@@ -1174,7 +1176,7 @@ def preprocess_script(
             if name.isdecimal():
                 return int(name)
             elif name.startswith(arg_prefix):
-                return int(k[0][len(arg_prefix):])
+                return int(k[0][len(arg_prefix) :])
             else:
                 return -1
 

@@ -20,14 +20,6 @@ with Gel. These libraries provide a common set of functionality.
   queries against your database. Under the hood, this query is executed using
   Gel's efficient binary protocol.
 
-.. note::
-
-  For some use cases, you may not need a client library. Gel allows you to
-  execute :ref:`queries over HTTP <ref_edgeql_http>`. This is slower than the
-  binary protocol and lacks support for transactions and rich data types, but
-  may be suitable if a client library isn't available for your language of
-  choice.
-
 Available libraries
 ===================
 

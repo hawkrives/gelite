@@ -25,10 +25,9 @@ from edb.tools import test
 
 
 class TestEdgeQLTutorial(tb.QueryTestCase):
-
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_tutorial(self):
         await self.con.execute(r'''
@@ -133,24 +132,30 @@ class TestEdgeQLTutorial(tb.QueryTestCase):
                 }
                 FILTER .title ILIKE 'blade runner%';
             ''',
-            [{
-                'title': 'Blade Runner 2049',
-                'year': 2017,
-                'director': {
-                    'first_name': 'Denis',
-                    'last_name': 'Villeneuve',
-                },
-                'cast': [{
-                    'first_name': 'Harrison',
-                    'last_name': 'Ford',
-                }, {
-                    'first_name': 'Ryan',
-                    'last_name': 'Gosling',
-                }, {
-                    'first_name': 'Ana',
-                    'last_name': 'de Armas',
-                }],
-            }],
+            [
+                {
+                    'title': 'Blade Runner 2049',
+                    'year': 2017,
+                    'director': {
+                        'first_name': 'Denis',
+                        'last_name': 'Villeneuve',
+                    },
+                    'cast': [
+                        {
+                            'first_name': 'Harrison',
+                            'last_name': 'Ford',
+                        },
+                        {
+                            'first_name': 'Ryan',
+                            'last_name': 'Gosling',
+                        },
+                        {
+                            'first_name': 'Ana',
+                            'last_name': 'de Armas',
+                        },
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -241,18 +246,24 @@ class TestEdgeQLTutorial(tb.QueryTestCase):
                 }
                 FILTER .title = 'Dune';
             ''',
-            [{
-                'title': 'Dune',
-                'year': None,
-                'director': {
-                    'name': 'Denis Villeneuve',
-                },
-                'cast': [{
-                    'name': 'Jason Momoa',
-                }, {
-                    'name': 'Oscar Isaac',
-                }, {
-                    'name': 'Zendaya',
-                }],
-            }],
+            [
+                {
+                    'title': 'Dune',
+                    'year': None,
+                    'director': {
+                        'name': 'Denis Villeneuve',
+                    },
+                    'cast': [
+                        {
+                            'name': 'Jason Momoa',
+                        },
+                        {
+                            'name': 'Oscar Isaac',
+                        },
+                        {
+                            'name': 'Zendaya',
+                        },
+                    ],
+                }
+            ],
         )

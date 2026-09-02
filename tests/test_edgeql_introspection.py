@@ -24,8 +24,7 @@ from edb.tools import test
 
 
 class TestIntrospection(tb.QueryTestCase):
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
     SETUP = """
     """
@@ -42,7 +41,7 @@ class TestIntrospection(tb.QueryTestCase):
             SELECT ObjectType { name, bases: {name}, ancestors: {name} }
             FILTER .name LIKE 'schema::%' AND 'std::Object' IN .ancestors.name;
             """,
-            []
+            [],
         )
 
     async def test_edgeql_introspection_objtype_01(self):
@@ -72,13 +71,13 @@ class TestIntrospection(tb.QueryTestCase):
                 {'name': 'default::Status'},
                 {'name': 'default::Text'},
                 {'name': 'default::URL'},
-                {'name': 'default::User'}
-            ]
+                {'name': 'default::User'},
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_objtype_02(self):
         await self.assert_query_result(
@@ -93,24 +92,31 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER ObjectType.name = 'default::User';
             """,
-            [{
-                'name': 'default::User',
-                'abstract': False,
-                'pointers': [{
-                    'name': '__type__',
-                }, {
-                    'name': 'id',
-                }, {
-                    'name': 'name',
-                }, {
-                    'name': 'todo',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::User',
+                    'abstract': False,
+                    'pointers': [
+                        {
+                            'name': '__type__',
+                        },
+                        {
+                            'name': 'id',
+                        },
+                        {
+                            'name': 'name',
+                        },
+                        {
+                            'name': 'todo',
+                        },
+                    ],
+                }
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_objtype_03(self):
         await self.assert_query_result(
@@ -125,22 +131,28 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER ObjectType.name = 'default::Owned';
             """,
-            [{
-                'name': 'default::Owned',
-                'abstract': True,
-                'pointers': [{
-                    'name': '__type__',
-                }, {
-                    'name': 'id',
-                }, {
-                    'name': 'owner',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::Owned',
+                    'abstract': True,
+                    'pointers': [
+                        {
+                            'name': '__type__',
+                        },
+                        {
+                            'name': 'id',
+                        },
+                        {
+                            'name': 'owner',
+                        },
+                    ],
+                }
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_objtype_04(self):
         await self.assert_query_result(
@@ -155,19 +167,26 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER ObjectType.name = 'default::User';
             """,
-            [{
-                'name': 'default::User',
-                'abstract': False,
-                'pointers': [{
-                    'name': '__type__',
-                }, {
-                    'name': 'id',
-                }, {
-                    'name': 'name',
-                }, {
-                    'name': 'todo',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::User',
+                    'abstract': False,
+                    'pointers': [
+                        {
+                            'name': '__type__',
+                        },
+                        {
+                            'name': 'id',
+                        },
+                        {
+                            'name': 'name',
+                        },
+                        {
+                            'name': 'todo',
+                        },
+                    ],
+                }
+            ],
         )
 
     # XXX: This warning is wrong
@@ -187,19 +206,23 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER ObjectType.name = 'default::User';
             """,
-            [{
-                'name': 'default::User',
-                'abstract': False,
-                'pointers': [{
-                    'name': 'todo',
-                    'cardinality': 'Many',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::User',
+                    'abstract': False,
+                    'pointers': [
+                        {
+                            'name': 'todo',
+                            'cardinality': 'Many',
+                        }
+                    ],
+                }
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_objtype_06(self):
         await self.assert_query_result(
@@ -219,38 +242,45 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER .name LIKE '%Comment';
             """,
-            [{
-                'name': 'default::Comment',
-                'links': [{
-                    'name': '__type__',
-                    'target': {
-                        'name': 'schema::ObjectType',
-                        'compound_type': False,
-                    },
-                    'cardinality': 'One',
-                }, {
-                    'name': 'issue',
-                    'target': {
-                        'name': 'default::Issue',
-                        'compound_type': False,
-                    },
-                    'cardinality': 'One',
-                }, {
-                    'name': 'owner',
-                    'target': {
-                        'name': 'default::User',
-                        'compound_type': False,
-                    },
-                    'cardinality': 'One',
-                }, {
-                    'name': 'parent',
-                    'target': {
-                        'name': 'default::Comment',
-                        'compound_type': False,
-                    },
-                    'cardinality': 'One',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::Comment',
+                    'links': [
+                        {
+                            'name': '__type__',
+                            'target': {
+                                'name': 'schema::ObjectType',
+                                'compound_type': False,
+                            },
+                            'cardinality': 'One',
+                        },
+                        {
+                            'name': 'issue',
+                            'target': {
+                                'name': 'default::Issue',
+                                'compound_type': False,
+                            },
+                            'cardinality': 'One',
+                        },
+                        {
+                            'name': 'owner',
+                            'target': {
+                                'name': 'default::User',
+                                'compound_type': False,
+                            },
+                            'cardinality': 'One',
+                        },
+                        {
+                            'name': 'parent',
+                            'target': {
+                                'name': 'default::Comment',
+                                'compound_type': False,
+                            },
+                            'cardinality': 'One',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_objtype_07(self):
@@ -276,8 +306,8 @@ class TestIntrospection(tb.QueryTestCase):
                 },
                 {
                     'name': 'default::User',
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_introspection_objtype_08(self):
@@ -304,8 +334,8 @@ class TestIntrospection(tb.QueryTestCase):
                 },
                 {
                     'name': 'default::User',
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_introspection_objtype_09(self):
@@ -326,17 +356,13 @@ class TestIntrospection(tb.QueryTestCase):
                 FILTER
                     .name = 'default::Issue';
             """,
-            [{
-                'properties': [
-                    {
-                        'target': {
-                            'element_type': {
-                                'name': 'std::str'
-                            }
-                        }
-                    }
-                ]
-            }]
+            [
+                {
+                    'properties': [
+                        {'target': {'element_type': {'name': 'std::str'}}}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_introspection_bases_01(self):
@@ -354,27 +380,38 @@ class TestIntrospection(tb.QueryTestCase):
                 FILTER
                     .name = 'default::Issue';
             """,
-            [{
-                'bases': [{
-                    'name': 'default::Named',
-                }, {
-                    'name': 'default::Owned',
-                }, {
-                    'name': 'default::Text',
-                }],
-
-                'ancestors': [{
-                    'name': 'default::Named',
-                }, {
-                    'name': 'default::Owned',
-                }, {
-                    'name': 'default::Text',
-                }, {
-                    'name': 'std::Object',
-                }, {
-                    'name': 'std::BaseObject',
-                }],
-            }]
+            [
+                {
+                    'bases': [
+                        {
+                            'name': 'default::Named',
+                        },
+                        {
+                            'name': 'default::Owned',
+                        },
+                        {
+                            'name': 'default::Text',
+                        },
+                    ],
+                    'ancestors': [
+                        {
+                            'name': 'default::Named',
+                        },
+                        {
+                            'name': 'default::Owned',
+                        },
+                        {
+                            'name': 'default::Text',
+                        },
+                        {
+                            'name': 'std::Object',
+                        },
+                        {
+                            'name': 'std::BaseObject',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_link_01(self):
@@ -391,16 +428,22 @@ class TestIntrospection(tb.QueryTestCase):
                     .name = 'todo'
                     AND EXISTS .source;
             """,
-            [{
-                'name': 'todo',
-                'properties': [{
-                    'name': 'rank',
-                }, {
-                    'name': 'source',
-                }, {
-                    'name': 'target',
-                }]
-            }]
+            [
+                {
+                    'name': 'todo',
+                    'properties': [
+                        {
+                            'name': 'rank',
+                        },
+                        {
+                            'name': 'source',
+                        },
+                        {
+                            'name': 'target',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_link_02(self):
@@ -410,10 +453,12 @@ class TestIntrospection(tb.QueryTestCase):
                 select schema::Pointer { name, abstract }
                 filter .name = 'std::link';
             """,
-            [{
-                'name': 'std::link',
-                'abstract': True,
-            }]
+            [
+                {
+                    'name': 'std::link',
+                    'abstract': True,
+                }
+            ],
         )
 
     async def test_edgeql_introspection_locality(self):
@@ -430,32 +475,38 @@ class TestIntrospection(tb.QueryTestCase):
                 FILTER
                     .name = 'default::URL'
             """,
-            [{
-                'properties': [{
-                    "name": "address",
-                    "inherited_fields": [],
-                    "@owned": True
-                }, {
-                    "name": "id",
-                    "inherited_fields": {
-                        "cardinality",
-                        "default",
-                        "readonly",
-                        "required",
-                        "target",
-                    },
-                    "@owned": False
-                }, {
-                    "name": "name",
-                    "inherited_fields": {
-                        "cardinality",
-                        "readonly",
-                        "required",
-                        "target",
-                    },
-                    "@owned": False
-                }]
-            }]
+            [
+                {
+                    'properties': [
+                        {
+                            "name": "address",
+                            "inherited_fields": [],
+                            "@owned": True,
+                        },
+                        {
+                            "name": "id",
+                            "inherited_fields": {
+                                "cardinality",
+                                "default",
+                                "readonly",
+                                "required",
+                                "target",
+                            },
+                            "@owned": False,
+                        },
+                        {
+                            "name": "name",
+                            "inherited_fields": {
+                                "cardinality",
+                                "readonly",
+                                "required",
+                                "target",
+                            },
+                            "@owned": False,
+                        },
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_01(self):
@@ -475,19 +526,17 @@ class TestIntrospection(tb.QueryTestCase):
                     .name LIKE '%my_one_of%' AND
                     NOT EXISTS .<constraints;
             """,
-            [{
-                'name': 'default::my_one_of',
-                'params': [
-                    {
-                        'num': 1,
-                        'type': {
-                            'element_type': {
-                                'name': 'anytype'
-                            }
+            [
+                {
+                    'name': 'default::my_one_of',
+                    'params': [
+                        {
+                            'num': 1,
+                            'type': {'element_type': {'name': 'anytype'}},
                         }
-                    }
-                ]
-            }]
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_02(self):
@@ -508,19 +557,17 @@ class TestIntrospection(tb.QueryTestCase):
                     .name LIKE '%my_one_of%' AND
                     NOT EXISTS .<constraints;
             """,
-            [{
-                'name': 'default::my_one_of',
-                'params': [
-                    {
-                        'num': 1,
-                        'type': {
-                            'element_type': {
-                                'name': 'anytype'
-                            }
+            [
+                {
+                    'name': 'default::my_one_of',
+                    'params': [
+                        {
+                            'num': 1,
+                            'type': {'element_type': {'name': 'anytype'}},
                         }
-                    }
-                ]
-            }]
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_03(self):
@@ -542,28 +589,28 @@ class TestIntrospection(tb.QueryTestCase):
                     .name LIKE '%std::one_of%' AND
                     NOT EXISTS .<constraints;
             """,
-            [{
-                'name': 'std::one_of',
-                'params': [
-                    {
-                        'num': 0,
-                        'kind': 'PositionalParam',
-                        'type': {
-                            'type': 'schema::PseudoType',
-                        }
-                    },
-                    {
-                        'num': 1,
-                        'kind': 'VariadicParam',
-                        'type': {
-                            'type': 'schema::Array',
-                            'element_type': {
-                                'name': 'anytype'
-                            }
-                        }
-                    }
-                ]
-            }]
+            [
+                {
+                    'name': 'std::one_of',
+                    'params': [
+                        {
+                            'num': 0,
+                            'kind': 'PositionalParam',
+                            'type': {
+                                'type': 'schema::PseudoType',
+                            },
+                        },
+                        {
+                            'num': 1,
+                            'kind': 'VariadicParam',
+                            'type': {
+                                'type': 'schema::Array',
+                                'element_type': {'name': 'anytype'},
+                            },
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_04(self):
@@ -585,16 +632,13 @@ class TestIntrospection(tb.QueryTestCase):
                     AND .subject[IS schema::Property].source.name
                         = 'default::Text';
             """,
-            [{
-                'name': 'std::max_len_value',
-                'subject': {
-                    'name': 'body'
-                },
-                'params': [{
-                    'num': 1,
-                    '@value': '10000'
-                }]
-            }]
+            [
+                {
+                    'name': 'std::max_len_value',
+                    'subject': {'name': 'body'},
+                    'params': [{'num': 1, '@value': '10000'}],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_05(self):
@@ -623,51 +667,51 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER .name = 'default::Text';
             """,
-            [{
-                'name': 'default::Text',
-                'properties': [
-                    {
-                        'name': 'body',
-                        'constraints': [
-                            {
-                                'name': 'std::max_len_value',
-                                'expr': '(__subject__ <= max)',
-                                'annotations': [],
-                                'subject': {'name': 'body'},
-                                'params': [
-                                    {
-                                        'name': 'max',
-                                        'type': {'name': 'std::int64'},
-                                        '@value': '10000'
-                                    }
-                                ],
-                                'return_typemod': 'SingletonType',
-                                'return_type': {'name': 'std::bool'},
-                                'errmessage':
-                                    '{__subject__} must be no longer than '
-                                    '{max} characters.'
-                            }
-                        ]
-                    },
-                    {
-                        'name': 'id',
-                        'constraints': [
-                            {
-                                'name': 'std::exclusive',
-                                'expr': 'std::_is_exclusive(__subject__)',
-                                'annotations': [],
-                                'subject': {'name': 'id'},
-                                'params': [],
-                                'return_typemod': 'SingletonType',
-                                'return_type': {'name': 'std::bool'},
-                                'errmessage':
-                                    '{__subject__} violates exclusivity '
-                                    'constraint'
-                            }
-                        ]
-                    }
-                ]
-            }]
+            [
+                {
+                    'name': 'default::Text',
+                    'properties': [
+                        {
+                            'name': 'body',
+                            'constraints': [
+                                {
+                                    'name': 'std::max_len_value',
+                                    'expr': '(__subject__ <= max)',
+                                    'annotations': [],
+                                    'subject': {'name': 'body'},
+                                    'params': [
+                                        {
+                                            'name': 'max',
+                                            'type': {'name': 'std::int64'},
+                                            '@value': '10000',
+                                        }
+                                    ],
+                                    'return_typemod': 'SingletonType',
+                                    'return_type': {'name': 'std::bool'},
+                                    'errmessage': '{__subject__} must be no longer than '
+                                    '{max} characters.',
+                                }
+                            ],
+                        },
+                        {
+                            'name': 'id',
+                            'constraints': [
+                                {
+                                    'name': 'std::exclusive',
+                                    'expr': 'std::_is_exclusive(__subject__)',
+                                    'annotations': [],
+                                    'subject': {'name': 'id'},
+                                    'params': [],
+                                    'return_typemod': 'SingletonType',
+                                    'return_type': {'name': 'std::bool'},
+                                    'errmessage': '{__subject__} violates exclusivity '
+                                    'constraint',
+                                }
+                            ],
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_constraint_06(self):
@@ -695,29 +739,29 @@ class TestIntrospection(tb.QueryTestCase):
                 }
                 FILTER .name = 'default::EmulatedEnum';
             """,
-            [{
-
-                'name': 'default::EmulatedEnum',
-                'constraints': [
-                    {
-                        'name': 'std::one_of',
-                        'expr': 'std::contains(vals, __subject__)',
-                        'annotations': [],
-                        'subject': {'name': 'default::EmulatedEnum'},
-                        'params': [
-                            {
-                                'name': 'vals',
-                                'type': {'type': 'schema::Array'},
-                                '@value': "['v1','v2']"
-                            }
-                        ],
-                        'return_typemod': 'SingletonType',
-                        'return_type': {'name': 'std::bool'},
-                        'errmessage':
-                            "{__subject__} must be one of: {vals}."
-                    }
-                ]
-            }]
+            [
+                {
+                    'name': 'default::EmulatedEnum',
+                    'constraints': [
+                        {
+                            'name': 'std::one_of',
+                            'expr': 'std::contains(vals, __subject__)',
+                            'annotations': [],
+                            'subject': {'name': 'default::EmulatedEnum'},
+                            'params': [
+                                {
+                                    'name': 'vals',
+                                    'type': {'type': 'schema::Array'},
+                                    '@value': "['v1','v2']",
+                                }
+                            ],
+                            'return_typemod': 'SingletonType',
+                            'return_type': {'name': 'std::bool'},
+                            'errmessage': "{__subject__} must be one of: {vals}.",
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_introspection_function_01(self):
@@ -757,7 +801,7 @@ class TestIntrospection(tb.QueryTestCase):
                     "annotations": [
                         {
                             "name": "std::description",
-                            "@value": "Return the number of elements in a set."
+                            "@value": "Return the number of elements in a set.",
                         }
                     ],
                     "params": [
@@ -767,7 +811,7 @@ class TestIntrospection(tb.QueryTestCase):
                             "num": 0,
                             "typemod": "SetOfType",
                             "type": {"name": "anytype"},
-                            "default": None
+                            "default": None,
                         }
                     ],
                     "return_typemod": "SingletonType",
@@ -783,29 +827,33 @@ class TestIntrospection(tb.QueryTestCase):
                     "annotations": [
                         {
                             "name": "std::description",
-                            "@value": "Return the server version as a tuple."
+                            "@value": "Return the server version as a tuple.",
                         }
                     ],
                     "params": [],
                     "return_typemod": "SingletonType",
                     "return_type": {
                         "element_types": [
-                            {"name": "major",
-                             "type": {"name": "std::int64"}},
-                            {"name": "minor",
-                             "type": {"name": "std::int64"}},
-                            {"name": "stage",
-                             "type": {"name": "sys::VersionStage"}},
-                            {"name": "stage_no",
-                             "type": {"name": "std::int64"}},
-                            {"name": "local",
-                             "type": {"name": "array<std::str>"}}
+                            {"name": "major", "type": {"name": "std::int64"}},
+                            {"name": "minor", "type": {"name": "std::int64"}},
+                            {
+                                "name": "stage",
+                                "type": {"name": "sys::VersionStage"},
+                            },
+                            {
+                                "name": "stage_no",
+                                "type": {"name": "std::int64"},
+                            },
+                            {
+                                "name": "local",
+                                "type": {"name": "array<std::str>"},
+                            },
                         ]
                     },
                     "language": "EdgeQL",
                     "body": str,
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_introspection_function_02(self):
@@ -822,7 +870,7 @@ class TestIntrospection(tb.QueryTestCase):
                 {
                     "name": "std::count",
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_introspection_volatility_01(self):
@@ -841,19 +889,13 @@ class TestIntrospection(tb.QueryTestCase):
                 ORDER BY .name;
             """,
             [
-                {
-                    'name': 'std::datetime_current',
-                    'volatility': 'Volatile'
-                },
+                {'name': 'std::datetime_current', 'volatility': 'Volatile'},
                 {
                     'name': 'std::datetime_of_transaction',
-                    'volatility': 'Stable'
+                    'volatility': 'Stable',
                 },
-                {
-                    'name': 'std::re_match',
-                    'volatility': 'Immutable'
-                }
-            ]
+                {'name': 'std::re_match', 'volatility': 'Immutable'},
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -884,16 +926,13 @@ class TestIntrospection(tb.QueryTestCase):
                 {
                     'name': 'std::+',
                     'params': [
-                        {
-                            'name': 'l',
-                            'type': {'name': 'std::datetime'}
-                        },
+                        {'name': 'l', 'type': {'name': 'std::datetime'}},
                         {
                             'name': 'r',
                             'type': {'name': 'std::duration'},
                         },
                     ],
-                    'volatility': 'Immutable'
+                    'volatility': 'Immutable',
                 },
                 {
                     'name': 'std::+',
@@ -907,9 +946,9 @@ class TestIntrospection(tb.QueryTestCase):
                             'type': {'name': 'std::duration'},
                         },
                     ],
-                    'volatility': 'Immutable'
-                }
-            ]
+                    'volatility': 'Immutable',
+                },
+            ],
         )
 
     async def test_edgeql_introspection_volatility_03(self):
@@ -931,14 +970,14 @@ class TestIntrospection(tb.QueryTestCase):
                 {
                     'from_type': {'name': 'std::str'},
                     'to_type': {'name': 'std::datetime'},
-                    'volatility': 'Stable'
+                    'volatility': 'Stable',
                 },
                 {
                     'from_type': {'name': 'std::str'},
                     'to_type': {'name': 'std::duration'},
-                    'volatility': 'Immutable'
-                }
-            ]
+                    'volatility': 'Immutable',
+                },
+            ],
         )
 
     async def test_edgeql_introspection_meta_01(self):
@@ -1116,7 +1155,7 @@ class TestIntrospection(tb.QueryTestCase):
             r"""
                 SELECT schema::Object IS std::BaseObject;
             """,
-            [True] * res
+            [True] * res,
         )
 
         # ...but not std::Objects
@@ -1124,7 +1163,7 @@ class TestIntrospection(tb.QueryTestCase):
             r"""
                 SELECT schema::Object IS NOT std::Object;
             """,
-            [True] * res
+            [True] * res,
         )
 
         # Try it in a sub scope!
@@ -1132,7 +1171,7 @@ class TestIntrospection(tb.QueryTestCase):
             r"""
                 SELECT {schema::Object} IS std::BaseObject;
             """,
-            [True] * res
+            [True] * res,
         )
 
         # ...but not std::Objects
@@ -1140,12 +1179,12 @@ class TestIntrospection(tb.QueryTestCase):
             r"""
                 SELECT {schema::Object} IS NOT std::Object;
             """,
-            [True] * res
+            [True] * res,
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_meta_14(self):
         await self.assert_query_result(
@@ -1166,7 +1205,7 @@ class TestIntrospection(tb.QueryTestCase):
                 {'name': 'default::Owned'},
                 {'name': 'default::Text'},
                 {'name': 'default::my_one_of'},
-            ]
+            ],
         )
 
     async def test_edgeql_introspection_meta_15(self):
@@ -1220,7 +1259,7 @@ class TestIntrospection(tb.QueryTestCase):
                 WITH MODULE schema
                 SELECT DISTINCT (`Function` IS VolatilitySubject);
             ''',
-            [True]
+            [True],
         )
 
         await self.assert_query_result(
@@ -1228,7 +1267,7 @@ class TestIntrospection(tb.QueryTestCase):
                 WITH MODULE schema
                 SELECT DISTINCT (Cast IS VolatilitySubject);
             ''',
-            [True]
+            [True],
         )
 
         await self.assert_query_result(
@@ -1236,7 +1275,7 @@ class TestIntrospection(tb.QueryTestCase):
                 WITH MODULE schema
                 SELECT DISTINCT (Operator IS VolatilitySubject);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_introspection_meta_default_01(self):
@@ -1275,7 +1314,7 @@ class TestIntrospection(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_meta_default_03(self):
         await self.assert_query_result(
@@ -1315,14 +1354,14 @@ class TestIntrospection(tb.QueryTestCase):
                             'required': False,
                             'readonly': False,
                         },
-                    ]
+                    ],
                 }
             ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_introspection_meta_default_04(self):
         await self.assert_query_result(
@@ -1348,15 +1387,15 @@ class TestIntrospection(tb.QueryTestCase):
                         {'name': 'annotations', 'required': False},
                         {'name': 'params', 'required': False},
                         {'name': 'return_type', 'required': False},
-                    ]
+                    ],
                 },
                 {
                     'name': 'schema::Parameter',
                     'links': [
                         {'name': '__type__', 'required': True},
                         {'name': 'type', 'required': True},
-                    ]
-                }
+                    ],
+                },
             ],
         )
 
@@ -1424,7 +1463,7 @@ class TestIntrospection(tb.QueryTestCase):
                 {'name': 'default::Text', 'count': 0},
                 {'name': 'default::URL', 'count': 0},
                 {'name': 'default::User', 'count': 2},
-            ]
+            ],
         )
 
         await self.con.execute(r"""
@@ -1474,9 +1513,9 @@ class TestIntrospection(tb.QueryTestCase):
                 {
                     "name": "annotations",
                     "pointers": [{"name": "value", "required": False}],
-                    "required": False
+                    "required": False,
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_default_injection_collision_02(self):
@@ -1498,9 +1537,9 @@ class TestIntrospection(tb.QueryTestCase):
                 {
                     "name": "annotations",
                     "pointers": [{"name": "value", "asdf": False}],
-                    "required": False
+                    "required": False,
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_introspection_reverse_01(self):
@@ -1518,7 +1557,7 @@ class TestIntrospection(tb.QueryTestCase):
                     "from_casts": [{"allow_implicit": False}],
                     "name": "std::BaseObject",
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_introspection_reverse_02(self):
@@ -1609,5 +1648,5 @@ class TestIntrospection(tb.QueryTestCase):
                 children := .<bases[IS Type],
                 descendants := .<ancestors[IS Type]
             } LIMIT 0''',
-            []
+            [],
         )

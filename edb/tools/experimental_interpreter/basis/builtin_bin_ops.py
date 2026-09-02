@@ -94,8 +94,13 @@ def in_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
             if isinstance(singleton, RefVal):
                 assert all(isinstance(v, RefVal) for v in l)
                 return [
-                    BoolVal(singleton.refid in [v.refid   # type: ignore
-                                                for v in l])
+                    BoolVal(
+                        singleton.refid
+                        in [
+                            v.refid  # type: ignore
+                            for v in l
+                        ]
+                    )
                 ]
             elif all(isinstance(v, e.ScalarVal) for v in l) and isinstance(
                 singleton, e.ScalarVal

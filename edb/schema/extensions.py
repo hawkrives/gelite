@@ -50,7 +50,6 @@ class ExtensionPackage(
     qlkind=qltypes.SchemaObjectClass.EXTENSION_PACKAGE,
     data_safe=False,
 ):
-
     # Note: !!!!!!
     # ExtensionPackage, like all GlobalObjects, needs to store its
     # data in globally stored JSON instead of via reflection schema.
@@ -77,14 +76,11 @@ class ExtensionPackage(
         compcoef=0.9,
     )
 
-    sql_setup_script = so.SchemaField(
-        str, default=None, compcoef=0.9)
+    sql_setup_script = so.SchemaField(str, default=None, compcoef=0.9)
 
-    sql_teardown_script = so.SchemaField(
-        str, default=None, compcoef=0.9)
+    sql_teardown_script = so.SchemaField(str, default=None, compcoef=0.9)
 
-    ext_module = so.SchemaField(
-        str, default=None, compcoef=0.9)
+    ext_module = so.SchemaField(str, default=None, compcoef=0.9)
 
     # It uses str instead of direct references so we can stick
     # versions in there eventually
@@ -112,7 +108,6 @@ class ExtensionPackageMigration(
     qlkind=qltypes.SchemaObjectClass.EXTENSION_PACKAGE_MIGRATION,
     data_safe=False,
 ):
-
     # Note: !!!!!!
     # ExtensionPackageMigration, like all GlobalObjects, needs to store its
     # data in globally stored JSON instead of via reflection schema.
@@ -136,11 +131,9 @@ class ExtensionPackageMigration(
         compcoef=0.9,
     )
 
-    sql_early_script = so.SchemaField(
-        str, default=None, compcoef=0.9)
+    sql_early_script = so.SchemaField(str, default=None, compcoef=0.9)
 
-    sql_late_script = so.SchemaField(
-        str, default=None, compcoef=0.9)
+    sql_late_script = so.SchemaField(str, default=None, compcoef=0.9)
 
     @classmethod
     def get_shortname_static(cls, name: sn.Name) -> sn.UnqualName:
@@ -157,7 +150,6 @@ class Extension(
     qlkind=qltypes.SchemaObjectClass.EXTENSION,
     data_safe=False,
 ):
-
     package = so.SchemaField(
         ExtensionPackage,
         compcoef=0.9,
@@ -207,13 +199,12 @@ class ExtensionPackageCommand(
     s_anno.AnnotationSubjectCommand[ExtensionPackage],
     context_class=ExtensionPackageCommandContext,
 ):
-
     @classmethod
     def _classname_from_ast(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.ObjectDDL,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> sn.UnqualName:
         assert isinstance(astnode, qlast.ExtensionPackageCommand)
         parsed_version = verutils.parse_version(astnode.version.value)
@@ -225,23 +216,17 @@ class ExtensionPackageCommand(
 def get_package(
     name: sn.Name, version: Optional[verutils.Version], schema: s_schema.Schema
 ) -> ExtensionPackage:
-    filters = [
-        lambda schema, pkg: (
-            pkg.get_shortname(schema) == name
-        )
-    ]
+    filters = [lambda schema, pkg: (pkg.get_shortname(schema) == name)]
     # Version specs are always implicitly >=.
     if version is not None:
-        filters.append(
-            lambda schema, pkg: (
-                pkg.get_version(schema) >= version
-            )
-        )
+        filters.append(lambda schema, pkg: (pkg.get_version(schema) >= version))
 
-    pkgs = list(schema.get_objects(
-        type=ExtensionPackage,
-        extra_filters=filters,
-    ))
+    pkgs = list(
+        schema.get_objects(
+            type=ExtensionPackage,
+            extra_filters=filters,
+        )
+    )
 
     if not pkgs:
         dname = str(name)
@@ -277,16 +262,14 @@ def get_package_migrations(
     #
     # That will have some fiddliness, though, with when SQL extension
     # upgrades and SQL scripts run?
-    filters = [
-        lambda schema, mig: (
-            mig.get_shortname(schema) == name
-        )
-    ]
+    filters = [lambda schema, mig: (mig.get_shortname(schema) == name)]
 
-    migs = list(schema.get_objects(
-        type=ExtensionPackageMigration,
-        extra_filters=filters,
-    ))
+    migs = list(
+        schema.get_objects(
+            type=ExtensionPackageMigration,
+            extra_filters=filters,
+        )
+    )
     # Build a graph of available migrations.  We make this
     # complicated, just in case, but probably it will be simple.
     # TODO: What about missing packages?
@@ -351,7 +334,7 @@ class CreateExtensionPackage(
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
                 'user-defined extension packages are not supported yet',
-                span=astnode.span
+                span=astnode.span,
             )
 
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
@@ -381,8 +364,8 @@ class CreateExtensionPackage(
             node.body = qlast.NestedQLBlock(
                 text=op.new_value,
                 commands=cast(
-                    list[qlast.DDLOperation],
-                    qlparser.parse_block(op.new_value)),
+                    list[qlast.DDLOperation], qlparser.parse_block(op.new_value)
+                ),
             )
         elif op.property == 'version':
             node.version = qlast.Constant.string(
@@ -429,18 +412,20 @@ class ExtensionPackageMigrationCommand(
     s_anno.AnnotationSubjectCommand[ExtensionPackageMigration],
     context_class=ExtensionPackageCommandContext,
 ):
-
     @classmethod
     def _classname_from_ast(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.ObjectDDL,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> sn.UnqualName:
-        assert isinstance(astnode, (
-            qlast.CreateExtensionPackageMigration,
-            qlast.DropExtensionPackageMigration,
-        ))
+        assert isinstance(
+            astnode,
+            (
+                qlast.CreateExtensionPackageMigration,
+                qlast.DropExtensionPackageMigration,
+            ),
+        )
         from_version = verutils.parse_version(astnode.from_version.value)
         to_version = verutils.parse_version(astnode.to_version.value)
         quals = ['pkg-migration', str(from_version), str(to_version)]
@@ -464,7 +449,7 @@ class CreateExtensionPackageMigration(
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
                 'user-defined extension packages are not supported yet',
-                span=astnode.span
+                span=astnode.span,
             )
 
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
@@ -496,8 +481,8 @@ class CreateExtensionPackageMigration(
             node.body = qlast.NestedQLBlock(
                 text=op.new_value,
                 commands=cast(
-                    list[qlast.DDLOperation],
-                    qlparser.parse_block(op.new_value)),
+                    list[qlast.DDLOperation], qlparser.parse_block(op.new_value)
+                ),
             )
         elif op.property == 'from_version':
             node.from_version = qlast.Constant.string(
@@ -557,7 +542,8 @@ class ExtensionCommand(
                 builtin = 'built-in ' if pkg.get_builtin(schema) else ''
                 raise errors.SchemaError(
                     f'{builtin}extension {self.classname} missing '
-                    f'version for {dep_name}')
+                    f'version for {dep_name}'
+                )
             dep_name, dep_version_s = dep_name.split('>=')
             dep = schema.get_global(Extension, dep_name, default=None)
             if not dep:
@@ -620,7 +606,7 @@ class CreateExtension(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.DDLOperation,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> CreateExtension:
         assert isinstance(astnode, qlast.CreateExtension)
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
@@ -657,8 +643,7 @@ class CreateExtension(
             if script:
                 block, _ = qlparser.parse_extension_package_body_block(script)
                 for subastnode in block.commands:
-                    subcmd = sd.compile_ddl(
-                        schema, subastnode, context=context)
+                    subcmd = sd.compile_ddl(schema, subastnode, context=context)
                     if subcmd is not None:
                         self.add(subcmd)
 
@@ -708,7 +693,8 @@ class CreateExtension(
         node = super()._get_ast(schema, context, parent_node=parent_node)
         assert isinstance(node, qlast.CreateExtension)
         pkg = self.get_resolved_attribute_value(
-            'package', schema=schema, context=context)
+            'package', schema=schema, context=context
+        )
         # When performing dumps we don't want to include the extension version
         # as we're not guaranteed that the same version will be avaialble when
         # restoring the dump. We also have no mechanism of installing a specific
@@ -742,7 +728,7 @@ class AlterExtension(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.DDLOperation,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> AlterExtension:
         assert isinstance(astnode, qlast.AlterExtension)
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
@@ -827,19 +813,23 @@ class AlterExtension(
                 script = self.migration.get_script(schema)
                 if script:
                     block, _ = qlparser.parse_extension_package_body_block(
-                        script)
+                        script
+                    )
                     for subastnode in block.commands:
                         subcmd = sd.compile_ddl(
-                            schema, subastnode, context=context)
+                            schema, subastnode, context=context
+                        )
                         if subcmd is not None:
                             self.add(subcmd)
             else:
                 for migration in migrations:
-                    self.add(AlterExtension(
-                        classname=self.classname,
-                        to_version=migration.get_to_version(schema),
-                        migration=migration,
-                    ))
+                    self.add(
+                        AlterExtension(
+                            classname=self.classname,
+                            to_version=migration.get_to_version(schema),
+                            migration=migration,
+                        )
+                    )
 
         return schema
 
@@ -848,7 +838,6 @@ class DeleteExtension(
     ExtensionCommand,
     sd.DeleteObject[Extension],
 ):
-
     astnode = qlast.DropExtension
 
     def _delete_begin(
@@ -869,20 +858,14 @@ class DeleteExtension(
 
         def _name_in_mod(name: sn.Name) -> bool:
             return (
-                (
-                    isinstance(name, sn.QualName)
-                    and (
-                        name.module == module
-                        or name.module.startswith(module + '::')
-                    )
+                isinstance(name, sn.QualName)
+                and (
+                    name.module == module
+                    or name.module.startswith(module + '::')
                 )
-                or (
-                    isinstance(name, sn.UnqualName)
-                    and (
-                        name == module_name
-                        or name.name.startswith(module + '::')
-                    )
-                )
+            ) or (
+                isinstance(name, sn.UnqualName)
+                and (name == module_name or name.name.startswith(module + '::'))
             )
 
         # Clean up the casts separately because we can't keep them in
@@ -896,10 +879,9 @@ class DeleteExtension(
             included_modules=(sn.UnqualName('__ext_casts__'),),
             type=s_casts.Cast,
         ):
-            if (
-                _name_in_mod(obj.get_from_type(schema).get_name(schema))
-                or _name_in_mod(obj.get_to_type(schema).get_name(schema))
-            ):
+            if _name_in_mod(
+                obj.get_from_type(schema).get_name(schema)
+            ) or _name_in_mod(obj.get_to_type(schema).get_name(schema)):
                 drop = obj.init_delta_command(
                     schema,
                     sd.DeleteObject,
@@ -912,10 +894,9 @@ class DeleteExtension(
             included_modules=(sn.UnqualName('__ext_index_matches__'),),
             type=s_indexes.IndexMatch,
         ):
-            if (
-                _name_in_mod(im.get_valid_type(schema).get_name(schema))
-                or _name_in_mod(im.get_index(schema).get_name(schema))
-            ):
+            if _name_in_mod(
+                im.get_valid_type(schema).get_name(schema)
+            ) or _name_in_mod(im.get_index(schema).get_name(schema)):
                 self.add(im.init_delta_command(schema, sd.DeleteObject))
 
         def filt(schema: s_schema.Schema, obj: so.Object) -> bool:
@@ -929,7 +910,8 @@ class DeleteExtension(
             if _name_in_mod(m.get_name(schema))
         ]
         delta = s_ddl.delta_schemas(
-            schema, schema,
+            schema,
+            schema,
             included_modules=module_names,
             schema_b_filters=[filt],
             include_extensions=True,
@@ -942,6 +924,7 @@ class DeleteExtension(
         # This is horrific, but it does actually work and is built
         # around codepaths that are heavily tested.
         from . import ddl
+
         for subast in ddl.ddlast_from_delta(None, schema, delta):
             # We want to clean the casts right before we're cleaning the
             # scalar types. Cleaning casts earlier may cause issues with

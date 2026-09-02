@@ -26,7 +26,7 @@ import functools
 
 
 def chain_decorators[TC: Callable](
-    funcs: Sequence[Callable[[TC], TC]]
+    funcs: Sequence[Callable[[TC], TC]],
 ) -> Callable[[TC], TC]:
     def f(func: TC) -> TC:
         for dec in reversed(funcs):
@@ -58,9 +58,7 @@ def _is_container_type(cls):
 
 @functools.lru_cache(1024)
 def _is_iterable_type(cls):
-    return (
-        issubclass(cls, collections.abc.Iterable)
-    )
+    return issubclass(cls, collections.abc.Iterable)
 
 
 def is_container(obj):

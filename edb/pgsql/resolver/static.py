@@ -102,7 +102,6 @@ def eval_TypeCast(
         return None
 
     if isinstance(arg, pgast.StringConstant):
-
         type_name = name_in_pg_catalog(expr.type_name.name)
 
         if type_name == 'text':
@@ -296,9 +295,8 @@ def eval_FuncCall(
         if args := eval_list(expr.args, ctx=ctx):
             name, value, is_local = args
             if isinstance(name, pgast.StringConstant):
-                if (
-                    isinstance(value, pgast.StringConstant)
-                    and isinstance(is_local, pgast.BooleanConstant)
+                if isinstance(value, pgast.StringConstant) and isinstance(
+                    is_local, pgast.BooleanConstant
                 ):
                     if (
                         name.val == "search_path"
@@ -319,14 +317,10 @@ def eval_FuncCall(
 
         elif args := eval_list(expr.args[1:], ctx=ctx):
             value, is_local = args
-            if (
-                isinstance(value, pgast.StringConstant)
-                and isinstance(is_local, pgast.BooleanConstant)
+            if isinstance(value, pgast.StringConstant) and isinstance(
+                is_local, pgast.BooleanConstant
             ):
-                if (
-                    value.val == "view, foreign-table"
-                    and not is_local.val
-                ):
+                if value.val == "view, foreign-table" and not is_local.val:
                     return value
 
         raise errors.QueryError(
@@ -372,9 +366,7 @@ def eval_FuncCall(
 
     if fn_name in cast_arg_to_regclass:
         regclass_oid = cast_to_regclass(expr.args[0], ctx=ctx)
-        return pgast.FuncCall(
-            name=('pg_catalog', fn_name), args=[regclass_oid]
-        )
+        return pgast.FuncCall(name=('pg_catalog', fn_name), args=[regclass_oid])
 
     if num_allowed_args := PRIVILEGE_INQUIRY_FUNCTIONS_ARGS.get(fn_name, None):
         # For privilege inquiry functions, we strip the leading user (role),
@@ -409,22 +401,18 @@ def eval_FuncCall(
         # our *_is_visible functions need search_path, passed in as an array
         arg_1 = pgast.ArrayExpr(
             elements=[
-                pgast.StringConstant(val=v)
-                for v in ctx.options.search_path
+                pgast.StringConstant(val=v) for v in ctx.options.search_path
             ]
         )
 
         return pgast.FuncCall(
-            name=(V('edgedbsql'), fn_name),
-            args=[arg_0, arg_1]
+            name=(V('edgedbsql'), fn_name), args=[arg_0, arg_1]
         )
 
     return None
 
 
-def require_string_param(
-    expr: pgast.FuncCall, ctx: Context
-) -> str:
+def require_string_param(expr: pgast.FuncCall, ctx: Context) -> str:
     args = eval_list(expr.args, ctx=ctx)
 
     arg = args[0] if args and len(args) == 1 else None
@@ -432,15 +420,13 @@ def require_string_param(
         raise errors.QueryError(
             f"function pg_catalog.{expr.name[-1]} requires a string literal",
             span=expr.span,
-            pgext_code=pgerror.ERROR_UNDEFINED_FUNCTION
+            pgext_code=pgerror.ERROR_UNDEFINED_FUNCTION,
         )
 
     return arg.val
 
 
-def require_bool_param(
-    expr: pgast.FuncCall, ctx: Context
-) -> bool:
+def require_bool_param(expr: pgast.FuncCall, ctx: Context) -> bool:
     args = eval_list(expr.args, ctx=ctx)
 
     arg = args[0] if args and len(args) == 1 else None
@@ -448,7 +434,7 @@ def require_bool_param(
         raise errors.QueryError(
             f"function pg_catalog.{expr.name[-1]} requires a boolean literal",
             span=expr.span,
-            pgext_code=pgerror.ERROR_UNDEFINED_FUNCTION
+            pgext_code=pgerror.ERROR_UNDEFINED_FUNCTION,
         )
 
     return arg.val
@@ -482,9 +468,7 @@ def cast_to_regclass(param: pgast.BaseExpr, ctx: Context) -> pgast.BaseExpr:
             type_name=pgast.TypeName(name=('pg_catalog', 'regclass')),
         )
     else:
-        return pgast.FuncCall(
-            name=(V('edgedbsql'), "to_regclass"), args=[expr]
-        )
+        return pgast.FuncCall(name=(V('edgedbsql'), "to_regclass"), args=[expr])
 
 
 def eval_current_schemas(
@@ -504,24 +488,28 @@ def eval_current_schemas(
     return pgast.ArrayExpr(elements=[pgast.StringConstant(val=r) for r in res])
 
 
-VALUE_FUNC_PASS_THROUGH = frozenset({
-    val_func_op.CURRENT_DATE,
-    val_func_op.CURRENT_TIME,
-    val_func_op.CURRENT_TIME_N,
-    val_func_op.CURRENT_TIMESTAMP,
-    val_func_op.CURRENT_TIMESTAMP_N,
-    val_func_op.LOCALTIME,
-    val_func_op.LOCALTIME_N,
-    val_func_op.LOCALTIMESTAMP,
-    val_func_op.LOCALTIMESTAMP_N,
-})
+VALUE_FUNC_PASS_THROUGH = frozenset(
+    {
+        val_func_op.CURRENT_DATE,
+        val_func_op.CURRENT_TIME,
+        val_func_op.CURRENT_TIME_N,
+        val_func_op.CURRENT_TIMESTAMP,
+        val_func_op.CURRENT_TIMESTAMP_N,
+        val_func_op.LOCALTIME,
+        val_func_op.LOCALTIME_N,
+        val_func_op.LOCALTIMESTAMP,
+        val_func_op.LOCALTIMESTAMP_N,
+    }
+)
 
-VALUE_FUNC_USER = frozenset({
-    val_func_op.CURRENT_ROLE,
-    val_func_op.CURRENT_USER,
-    val_func_op.USER,
-    val_func_op.SESSION_USER,
-})
+VALUE_FUNC_USER = frozenset(
+    {
+        val_func_op.CURRENT_ROLE,
+        val_func_op.CURRENT_USER,
+        val_func_op.USER,
+        val_func_op.SESSION_USER,
+    }
+)
 
 
 def eval_current_user(

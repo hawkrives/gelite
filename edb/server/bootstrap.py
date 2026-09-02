@@ -131,7 +131,7 @@ class PGConnectionProxy:
         if self._dbname:
             self._conn = await self._cluster.connect(
                 source_description=self._source_description,
-                database=self._dbname
+                database=self._dbname,
             )
         else:
             self._conn = await self._cluster.connect(
@@ -173,6 +173,7 @@ class PGConnectionProxy:
         async def _task() -> None:
             assert self._conn is not None
             await self._conn.sql_execute(sql)
+
         return await self._retry_conn_errors(_task)
 
     async def sql_fetch(
@@ -184,6 +185,7 @@ class PGConnectionProxy:
         async def _task() -> list[tuple[bytes, ...]]:
             assert self._conn is not None
             return await self._conn.sql_fetch(sql, args=args)
+
         return await self._retry_conn_errors(_task)
 
     async def sql_fetch_val(
@@ -195,6 +197,7 @@ class PGConnectionProxy:
         async def _task() -> bytes:
             assert self._conn is not None
             return await self._conn.sql_fetch_val(sql, args=args)
+
         return await self._retry_conn_errors(_task)
 
     async def sql_fetch_col(
@@ -206,6 +209,7 @@ class PGConnectionProxy:
         async def _task() -> list[bytes]:
             assert self._conn is not None
             return await self._conn.sql_fetch_col(sql, args=args)
+
         return await self._retry_conn_errors(_task)
 
     def terminate(self) -> None:
@@ -216,7 +220,6 @@ class PGConnectionProxy:
 
 @dataclasses.dataclass
 class BootstrapContext:
-
     cluster: pgcluster.BaseCluster
     conn: PGConnectionProxy | pgcon.PGConnection
     args: edbargs.ServerConfig
@@ -228,7 +231,6 @@ async def _execute(conn, query):
 
 
 async def _execute_block(conn, block: dbops.SQLBlock) -> None:
-
     if not block.is_transactional():
         stmts = block.get_statements()
     else:
@@ -248,7 +250,8 @@ def _execute_edgeql_ddl[Schema_T: s_schema.Schema](
     for ddl_cmd in edgeql.parse_block(ddltext):
         assert isinstance(ddl_cmd, qlast.DDLCommand)
         delta_command = s_ddl.delta_from_ddl(
-            ddl_cmd, modaliases={}, schema=schema, stdmode=stdmode)
+            ddl_cmd, modaliases={}, schema=schema, stdmode=stdmode
+        )
 
         schema = delta_command.apply(schema, context)  # type: ignore
 
@@ -381,8 +384,9 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
                 r.rolname = $1
             """,
             args=[
-                ctx.cluster.get_role_name(
-                    edbdef.GELITE_SUPERGROUP).encode("utf-8"),
+                ctx.cluster.get_role_name(edbdef.GELITE_SUPERGROUP).encode(
+                    "utf-8"
+                ),
             ],
         )
 
@@ -426,9 +430,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
                 FROM pg_database
                 WHERE datname LIKE '%' || $1
             ''',
-            args=(
-                edbdef.GELITE_SYSTEM_DB.encode("utf-8"),
-            ),
+            args=(edbdef.GELITE_SYSTEM_DB.encode("utf-8"),),
         )
     else:
         result = await ctx.conn.sql_fetch_col(
@@ -438,8 +440,9 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
                 WHERE datname = $1
             ''',
             args=(
-                ctx.cluster.get_db_name(
-                    edbdef.GELITE_SYSTEM_DB).encode("utf-8"),
+                ctx.cluster.get_db_name(edbdef.GELITE_SYSTEM_DB).encode(
+                    "utf-8"
+                ),
             ),
         )
 
@@ -495,7 +498,6 @@ async def _store_static_bin_cache_conn(
     key: str,
     data: bytes,
 ) -> None:
-
     text = trampoline.fixup_query(f"""\
         INSERT INTO edgedbinstdata_VER.instdata (key, bin)
         VALUES(
@@ -520,7 +522,6 @@ async def _store_static_text_cache(
     key: str,
     data: str,
 ) -> None:
-
     text = trampoline.fixup_query(f"""\
         INSERT INTO edgedbinstdata_VER.instdata (key, text)
         VALUES(
@@ -537,7 +538,6 @@ async def _store_static_json_cache(
     key: str,
     data: str,
 ) -> None:
-
     text = trampoline.fixup_query(f"""\
         INSERT INTO edgedbinstdata_VER.instdata (key, json)
         VALUES(
@@ -553,7 +553,7 @@ def _process_delta_params[Schema_T: s_schema.Schema](
     delta: sd.Command,
     schema: Schema_T,
     params: params.BackendRuntimeParams,
-    stdmode: bool=True,
+    stdmode: bool = True,
     **kwargs,
 ) -> tuple[
     Schema_T,
@@ -674,8 +674,9 @@ def _get_schema_object_ids(
         if isinstance(cmd, s_func.CreateCallableObject):
             backend_name = cmd.get_attribute_value('backend_name')
             if backend_name:
-                schema_object_ids[
-                    cmd.classname, f'{qlclass}-backend_name'] = backend_name
+                schema_object_ids[cmd.classname, f'{qlclass}-backend_name'] = (
+                    backend_name
+                )
 
     return schema_object_ids
 
@@ -691,7 +692,7 @@ def prepare_repair_patch(
     compiler = edbcompiler.new_compiler(
         std_schema=stdschema,
         reflection_schema=reflschema,
-        schema_class_layout=schema_class_layout
+        schema_class_layout=schema_class_layout,
     )
 
     compilerctx = edbcompiler.new_compiler_context(
@@ -717,7 +718,9 @@ async def get_existing_view_columns(
     # there is also a table with the same name but "_dummy"
     # at the end) and collect all their columns in order.
     schema = pg_common.versioned_schema("edgedbstd")
-    return json.loads(await conn.sql_fetch_val(f'''\
+    return json.loads(
+        await conn.sql_fetch_val(
+            f'''\
         select json_object_agg(v.relname, (
             select json_agg(a.attname order by a.attnum)
             from pg_catalog.pg_attribute as a
@@ -731,7 +734,9 @@ async def get_existing_view_columns(
         on v.relnamespace = ns.oid
         where ns.nspname = '{schema}' OR ns.nspname = 'edgedbpub'
 
-    '''.encode('utf-8')))
+    '''.encode('utf-8')
+        )
+    )
 
 
 async def gather_patch_info(
@@ -763,10 +768,10 @@ def prepare_patch(
     schema_class_layout: s_refl.SchemaClassLayout,
     backend_params: params.BackendRuntimeParams,
     patch_info: Optional[dict[str, list[str]]],
-    user_schema: Optional[s_schema.Schema]=None,
-    global_schema: Optional[s_schema.Schema]=None,
+    user_schema: Optional[s_schema.Schema] = None,
+    global_schema: Optional[s_schema.Schema] = None,
     *,
-    dbname: Optional[str]=None,
+    dbname: Optional[str] = None,
 ) -> PatchEntry:
     val = f'{pg_common.quote_literal(json.dumps(num + 1))}::jsonb'
     # TODO: This is an INSERT because 2.0 shipped without num_patches.
@@ -809,7 +814,8 @@ def prepare_patch(
             # update is installed.
             extension_name = kind.split('|')[-1]
             extension = user_schema.get_global(
-                s_exts.Extension, extension_name, default=None)
+                s_exts.Extension, extension_name, default=None
+            )
 
             if not extension:
                 return (update,), (), {}
@@ -823,7 +829,7 @@ def prepare_patch(
                 user_schema,
                 global_schema,
                 schema_class_layout,
-                backend_params
+                backend_params,
             )
         except errors.EdgeDBError as e:
             if isinstance(e, errors.InternalServerError):
@@ -871,9 +877,11 @@ def prepare_patch(
             # First apply it to the regular schema, just so we can update
             # stdschema
             delta_command = s_ddl.delta_from_ddl(
-                ddl_cmd, modaliases={}, schema=schema, stdmode=True)
+                ddl_cmd, modaliases={}, schema=schema, stdmode=True
+            )
             schema, _, _ = _process_delta_params(
-                delta_command, schema, backend_params)
+                delta_command, schema, backend_params
+            )
 
             # We need to extract all ids of new objects created when
             # applying it to the regular schema, so that we can make sure
@@ -883,10 +891,15 @@ def prepare_patch(
             # Then apply it to the reflschema, which we will use to drive
             # the actual table updating.
             delta_command = s_ddl.delta_from_ddl(
-                ddl_cmd, modaliases={}, schema=reflschema,
-                schema_object_ids=schema_object_ids, stdmode=True)
+                ddl_cmd,
+                modaliases={},
+                schema=reflschema,
+                schema_object_ids=schema_object_ids,
+                stdmode=True,
+            )
             reflschema, plan, tplan = _process_delta_params(
-                delta_command, reflschema, backend_params)
+                delta_command, reflschema, backend_params
+            )
             std_plans.append(delta_command)
             plan.generate(subblock)
             tplan.generate(subblock)
@@ -906,7 +919,8 @@ def prepare_patch(
             # update is installed.
             extension_name = kind.split('|')[-1]
             extension = user_schema.get_global(
-                s_exts.Extension, extension_name, default=None)
+                s_exts.Extension, extension_name, default=None
+            )
 
             if not extension:
                 return (update,), (), {}
@@ -924,7 +938,9 @@ def prepare_patch(
                 ddl_cmd = qlast.DDLQuery(query=ddl_cmd)
 
             delta_command = s_ddl.delta_from_ddl(
-                ddl_cmd, modaliases={}, schema=cschema,
+                ddl_cmd,
+                modaliases={},
+                schema=cschema,
                 stdmode=False,
                 testmode=True,
             )
@@ -936,7 +952,8 @@ def prepare_patch(
             ):
                 delta_command.discard(sub)
             cschema, plan, tplan = _process_delta_params(
-                delta_command, cschema, backend_params)
+                delta_command, cschema, backend_params
+            )
             std_plans.append(delta_command)
             plan.generate(subblock)
             tplan.generate(subblock)
@@ -975,14 +992,15 @@ def prepare_patch(
         )
 
         reflschema, plan, tplan = _process_delta_params(
-            reflection.intro_schema_delta, reflschema, backend_params)
+            reflection.intro_schema_delta, reflschema, backend_params
+        )
         plan.generate(subblock)
         tplan.generate(subblock)
 
         compiler = edbcompiler.new_compiler(
             std_schema=schema,
             reflection_schema=reflschema,
-            schema_class_layout=schema_class_layout
+            schema_class_layout=schema_class_layout,
         )
 
         local_intro_sql, global_intro_sql = compile_intro_queries_stdlib(
@@ -991,23 +1009,28 @@ def prepare_patch(
             reflection=reflection,
         )
 
-        updates.update(dict(
-            classlayout=reflection.class_layout,
-            local_intro_query=local_intro_sql.encode('utf-8'),
-            global_intro_query=global_intro_sql.encode('utf-8'),
-        ))
+        updates.update(
+            dict(
+                classlayout=reflection.class_layout,
+                local_intro_query=local_intro_sql.encode('utf-8'),
+                global_intro_query=global_intro_sql.encode('utf-8'),
+            )
+        )
 
         # This part is wildly hinky
         # We need to delete all the support views and recreate them at the end
         support_view_commands = dbops.CommandGroup()
-        support_view_commands.add_commands([
-            dbops.CreateView(view)
-            for view in metaschema._generate_schema_alias_views(
-                reflschema, sn.UnqualName('schema')
-            ) + metaschema._generate_schema_alias_views(
-                reflschema, sn.UnqualName('sys')
-            )
-        ])
+        support_view_commands.add_commands(
+            [
+                dbops.CreateView(view)
+                for view in metaschema._generate_schema_alias_views(
+                    reflschema, sn.UnqualName('schema')
+                )
+                + metaschema._generate_schema_alias_views(
+                    reflschema, sn.UnqualName('sys')
+                )
+            ]
+        )
         support_view_commands.add_commands(
             metaschema._generate_sql_information_schema(
                 backend_params.instance_params.version
@@ -1030,7 +1053,8 @@ def prepare_patch(
         if '+exts' in kind:
             for extview in metaschema._generate_extension_views(reflschema):
                 support_view_commands.add_command(
-                    dbops.CreateView(extview, or_replace=True))
+                    dbops.CreateView(extview, or_replace=True)
+                )
 
         # Though we always update the instdata for the config system,
         # because it is currently the most convenient way to make sure
@@ -1040,7 +1064,8 @@ def prepare_patch(
         # Similarly, only do config system updates if requested.
         if '+config' in kind:
             support_view_commands.add_command(
-                metaschema.get_config_views(schema, existing_view_columns))
+                metaschema.get_config_views(schema, existing_view_columns)
+            )
             support_view_commands.add_command(
                 metaschema._get_regenerated_config_support_functions(
                     config_spec
@@ -1056,19 +1081,21 @@ def prepare_patch(
             compiler,
             config_spec,
         )
-        updates.update(dict(
-            sysqueries=json.dumps(sysqueries).encode('utf-8'),
-            report_configs_typedesc_1_0=report_configs_typedesc_1_0,
-            report_configs_typedesc_2_0=report_configs_typedesc_2_0,
-            configspec=config.spec_to_json(config_spec).encode('utf-8'),
-        ))
+        updates.update(
+            dict(
+                sysqueries=json.dumps(sysqueries).encode('utf-8'),
+                report_configs_typedesc_1_0=report_configs_typedesc_1_0,
+                report_configs_typedesc_2_0=report_configs_typedesc_2_0,
+                configspec=config.spec_to_json(config_spec).encode('utf-8'),
+            )
+        )
 
         support_view_commands.generate(subblock)
 
     compiler = edbcompiler.new_compiler(
         std_schema=schema,
         reflection_schema=reflschema,
-        schema_class_layout=schema_class_layout
+        schema_class_layout=schema_class_layout,
     )
 
     compilerctx = edbcompiler.new_compiler_context(
@@ -1091,25 +1118,30 @@ def prepare_patch(
         debug.dump_code(patch, lexer='sql')
 
     if not global_schema_update:
-        updates.update(dict(
-            std_and_reflection_schema=(schema, reflschema),
-        ))
+        updates.update(
+            dict(
+                std_and_reflection_schema=(schema, reflschema),
+            )
+        )
 
     bins = (
-        'std_and_reflection_schema', 'global_schema', 'classlayout',
-        'report_configs_typedesc_1_0', 'report_configs_typedesc_2_0',
+        'std_and_reflection_schema',
+        'global_schema',
+        'classlayout',
+        'report_configs_typedesc_1_0',
+        'report_configs_typedesc_2_0',
     )
     rawbin = (
-        'report_configs_typedesc_1_0', 'report_configs_typedesc_2_0',
+        'report_configs_typedesc_1_0',
+        'report_configs_typedesc_2_0',
     )
     jsons = (
-        'sysqueries', 'configspec',
+        'sysqueries',
+        'configspec',
     )
     # This is unversioned because it is consumed by a function in metaschema.
     # (And only by a function in metaschema.)
-    unversioned = (
-        'configspec',
-    )
+    unversioned = ('configspec',)
     # Just for the system database, we need to update the cached pickle
     # of everything.
     version_key = patches.get_version_key(num + 1)
@@ -1122,21 +1154,25 @@ def prepare_patch(
             if k not in rawbin:
                 v = pickle.dumps(v, protocol=pickle.HIGHEST_PROTOCOL)
             val = f'{pg_common.quote_bytea_literal(v)}'
-            sys_updates += (trampoline.fixup_query(f'''
+            sys_updates += (
+                trampoline.fixup_query(f'''
                 INSERT INTO edgedbinstdata_VER.instdata (key, bin)
                 VALUES({key}, {val})
                 ON CONFLICT (key)
                 DO UPDATE SET bin = {val};
-            '''),)
+            '''),
+            )
         else:
             typ, col = ('jsonb', 'json') if k in jsons else ('text', 'text')
             val = f'{pg_common.quote_literal(v.decode("utf-8"))}::{typ}'
-            sys_updates += (trampoline.fixup_query(f'''
+            sys_updates += (
+                trampoline.fixup_query(f'''
                 INSERT INTO edgedbinstdata_VER.instdata (key, {col})
                 VALUES({key}, {val})
                 ON CONFLICT (key)
                 DO UPDATE SET {col} = {val};
-            '''),)
+            '''),
+            )
         if k in unversioned:
             spatches += (sys_updates[-1],)
 
@@ -1185,9 +1221,7 @@ async def create_branch(
     # exist from the std schema, so we need to skip those. We also
     # need to skip recreating the schema. This requires doing some
     # annoying postprocessing.
-    to_skip = [
-        str(obj.id) for obj in schema.get_objects(type=s_types.Tuple)
-    ]
+    to_skip = [str(obj.id) for obj in schema.get_objects(type=s_types.Tuple)]
     old_lines = schema_dump.decode('utf-8').split('\n')
     new_lines = []
     skipping = False
@@ -1225,7 +1259,8 @@ async def create_branch(
     # 'default' module on each side. (Since it isn't in the stdschema,
     # and could have an old id persisted from an in-place upgrade.)
     to_delete: set[s_obj.Object] = {
-        prop for prop in schema.get_objects(type=s_props.Property)
+        prop
+        for prop in schema.get_objects(type=s_props.Property)
         if prop.get_cardinality(schema).is_multi()
         and prop.get_name(schema).module not in irtyputils.VIEW_MODULES
     }
@@ -1235,9 +1270,11 @@ async def create_branch(
         name = pg_common.get_backend_name(schema, target, catenate=True)
         await conn.sql_execute(f'delete from {name}'.encode('utf-8'))
 
-    await conn.sql_execute(trampoline.fixup_query(f'''
+    await conn.sql_execute(
+        trampoline.fixup_query(f'''
         delete from edgedbinstdata_VER.instdata where key = 'configspec_ext'
-    ''').encode('utf-8'))
+    ''').encode('utf-8')
+    )
 
     # Do the dump/restore for the data. We always need to copy over
     # edgedbstd, since it has the reflected schema. We copy over
@@ -1258,19 +1295,22 @@ async def create_branch(
         '--on-conflict-do-nothing',
     ]
     await cluster._copy_database(
-        src_dbname, tgt_dbname, dump_args, [],
+        src_dbname,
+        tgt_dbname,
+        dump_args,
+        [],
     )
 
     # Restore the search_path as the dump might have altered it.
     await conn.sql_execute(
-        b"SELECT pg_catalog.set_config('search_path', 'edgedb', false)")
+        b"SELECT pg_catalog.set_config('search_path', 'edgedb', false)"
+    )
 
     # Fixup the backend ids in the schema to match what is actually in pg.
     await conn.sql_execute(backend_id_fixup_sql)
 
 
 class StdlibBits(NamedTuple):
-
     #: User-visible std.
     stdschema: s_schema.Schema
     #: Shadow extended schema for reflection..
@@ -1353,7 +1393,8 @@ def _make_stdlib(
     for ddl_cmd in edgeql.parse_block(ddl_text):
         assert isinstance(ddl_cmd, qlast.DDLCommand)
         delta_command = s_ddl.delta_from_ddl(
-            ddl_cmd, modaliases={}, schema=schema, stdmode=True)
+            ddl_cmd, modaliases={}, schema=schema, stdmode=True
+        )
 
         # Apply and adapt delta, build native delta plan, which
         # will also update the schema.
@@ -1372,11 +1413,13 @@ def _make_stdlib(
     plan.generate(current_block)
     trampolines.extend(tplan.trampolines)
 
-    stdglobals = '\n'.join([
-        f'''CREATE SUPERUSER ROLE {edbdef.GELITE_SUPERUSER} {{
+    stdglobals = '\n'.join(
+        [
+            f'''CREATE SUPERUSER ROLE {edbdef.GELITE_SUPERUSER} {{
             SET id := <uuid>'{global_ids[edbdef.GELITE_SUPERUSER]}'
         }};''',
-    ])
+        ]
+    )
 
     schema = _execute_edgeql_ddl(schema, stdglobals)
 
@@ -1388,7 +1431,8 @@ def _make_stdlib(
 
     reflection = s_refl.generate_structure(schema)
     reflschema, reflplan, treflplan = _process_delta(
-        ctx, reflection.intro_schema_delta, schema)
+        ctx, reflection.intro_schema_delta, schema
+    )
 
     # Any collection types that made it into reflschema need to get
     # to get pulled back into the stdschema, or else they will be in
@@ -1399,7 +1443,7 @@ def _make_stdlib(
             delta.add(obj.as_shell(reflschema).as_create_delta(reflschema))
             schema = cast(
                 s_schema.ChainedSchema,
-                delta.apply(schema, sd.CommandContext(stdmode=True))
+                delta.apply(schema, sd.CommandContext(stdmode=True)),
             )
     assert isinstance(schema, s_schema.ChainedSchema)
 
@@ -1479,7 +1523,8 @@ def _make_stdlib(
         sqltext=sqltext,
         inplace_upgrade_scalar_text=scalar_block.to_string(),
         inplace_upgrade_extension_packages_text=(
-            extension_package_block.to_string()),
+            extension_package_block.to_string()
+        ),
         trampolines=trampolines,
         types=types,
         classlayout=reflection.class_layout,
@@ -1510,7 +1555,8 @@ async def _amend_stdlib(
     for ddl_cmd in edgeql.parse_block(ddl_text):
         assert isinstance(ddl_cmd, qlast.DDLCommand)
         delta_command = s_ddl.delta_from_ddl(
-            ddl_cmd, modaliases={}, schema=schema, stdmode=True)
+            ddl_cmd, modaliases={}, schema=schema, stdmode=True
+        )
 
         # Apply and adapt delta, build native delta plan, which
         # will also update the schema.
@@ -1540,18 +1586,22 @@ async def _amend_stdlib(
 
     sqltext = topblock.to_string()
 
-    return stdlib._replace(
-        stdschema=schema.get_top_schema(),
-        global_schema=schema.get_global_schema(),
-        reflschema=reflschema,
-    ), sqltext, trampolines
+    return (
+        stdlib._replace(
+            stdschema=schema.get_top_schema(),
+            global_schema=schema.get_global_schema(),
+            reflschema=reflschema,
+        ),
+        sqltext,
+        trampolines,
+    )
 
 
 def compile_intro_queries_stdlib(
     *,
     compiler: edbcompiler.Compiler,
     user_schema: s_schema.Schema,
-    global_schema: s_schema.Schema=s_schema.EMPTY_SCHEMA,
+    global_schema: s_schema.Schema = s_schema.EMPTY_SCHEMA,
     reflection: s_refl.SchemaReflectionParts,
 ) -> tuple[str, str]:
     compilerctx = edbcompiler.new_compiler_context(
@@ -1585,14 +1635,16 @@ def compile_intro_queries_stdlib(
         )
 
     local_intro_sql = ' UNION ALL '.join(
-        f'({x})' for x in sql_intro_local_parts)
+        f'({x})' for x in sql_intro_local_parts
+    )
     local_intro_sql = f'''
         WITH intro(c) AS ({local_intro_sql})
         SELECT json_agg(intro.c) FROM intro
     '''
 
     global_intro_sql = ' UNION ALL '.join(
-        f'({x})' for x in sql_intro_global_parts)
+        f'({x})' for x in sql_intro_global_parts
+    )
     global_intro_sql = f'''
         WITH intro(c) AS ({global_intro_sql})
         SELECT json_agg(intro.c) FROM intro
@@ -1630,7 +1682,8 @@ def read_data_cache(
     if cache_dir is None:
         cache_dir = _get_cache_dir()
     return buildmeta.read_data_cache(
-        src_hash, file_name, source_dir=cache_dir, pickled=pickled)
+        src_hash, file_name, source_dir=cache_dir, pickled=pickled
+    )
 
 
 def cleanup_tpldbdump(tpldbdump: bytes) -> bytes:
@@ -1715,8 +1768,7 @@ async def _init_stdlib(
     stdlib_was_none = stdlib is None
     if stdlib is None:
         logger.info('Compiling the standard library...')
-        stdlib = _make_stdlib(
-            ctx, in_dev_mode or testmode, global_ids)
+        stdlib = _make_stdlib(ctx, in_dev_mode or testmode, global_ids)
 
     config_spec = config.load_spec_from_schema(stdlib.stdschema)
 
@@ -1738,9 +1790,11 @@ async def _init_stdlib(
     # We need to set this up early, since later code depends on the
     # backend_instance_params of the instdata table. But it also
     # obviously can't go into the tpldbdump, since it is dynamic.
-    trampolines.extend(await metaschema.generate_instdata_table(
-        conn,
-    ))
+    trampolines.extend(
+        await metaschema.generate_instdata_table(
+            conn,
+        )
+    )
     await _populate_misc_instance_data(ctx)
 
     backend_params = cluster.get_runtime_params()
@@ -1751,7 +1805,8 @@ async def _init_stdlib(
     trampolines.extend(stdlib.trampolines)
 
     eff_tpldbdump = (
-        tpldbdump_inplace if args.inplace_upgrade_prepare else tpldbdump)
+        tpldbdump_inplace if args.inplace_upgrade_prepare else tpldbdump
+    )
     if eff_tpldbdump is None:
         logger.info('Populating internal SQL structures...')
         assert bootstrap_commands is not None
@@ -1801,7 +1856,9 @@ async def _init_stdlib(
                 edbdef.GELITE_TEMPLATE_DB, global_metadata
             ).code_with_block(pl_block)
 
-            pl_block.add_command(textwrap.dedent(trampoline.fixup_query(f"""\
+            pl_block.add_command(
+                textwrap.dedent(
+                    trampoline.fixup_query(f"""\
                 IF (edgedb_VER.get_backend_capabilities()
                     & {int(params.BackendCapabilities.CREATE_DATABASE)}) != 0
                 THEN
@@ -1809,7 +1866,9 @@ async def _init_stdlib(
                 ELSE
                 {textwrap.indent(set_single_db_metadata_text, '    ')}
                 END IF
-                """)))
+                """)
+                )
+            )
 
             text = pl_block.to_string()
 
@@ -1824,10 +1883,9 @@ async def _init_stdlib(
                 ],
                 dump_object_owners=False,
             )
-            tpldbdump_inplace = (
-                stdlib.inplace_upgrade_scalar_text.encode('utf-8') +
-                cleanup_tpldbdump(tpldbdump_inplace)
-            )
+            tpldbdump_inplace = stdlib.inplace_upgrade_scalar_text.encode(
+                'utf-8'
+            ) + cleanup_tpldbdump(tpldbdump_inplace)
 
             buildmeta.write_data_cache(
                 (tpldbdump, tpldbdump_inplace),
@@ -1848,7 +1906,8 @@ async def _init_stdlib(
         await _execute(conn, eff_tpldbdump.decode('utf-8'))
         # Restore the search_path as the dump might have altered it.
         await conn.sql_execute(
-            b"SELECT pg_catalog.set_config('search_path', 'edgedb', false)")
+            b"SELECT pg_catalog.set_config('search_path', 'edgedb', false)"
+        )
 
     if not in_dev_mode and testmode:
         # Running tests on a production build.
@@ -1894,8 +1953,7 @@ async def _init_stdlib(
     typemap = await conn.sql_fetch_val(sql.encode("utf-8"))
     for entry in json.loads(typemap):
         t = schema.get_by_id(uuidgen.UUID(entry['id']))
-        schema = t.set_field_value(
-            schema, 'backend_id', entry['backend_id'])
+        schema = t.set_field_value(schema, 'backend_id', entry['backend_id'])
 
     # Patch functions referring to extensions, because
     # some backends require extensions to be hosted in
@@ -1939,9 +1997,11 @@ async def _init_stdlib(
         stdlib.global_intro_query,
     )
 
-    trampolines.extend(await metaschema.generate_support_views(
-        conn, stdlib.reflschema, cluster.get_runtime_params()
-    ))
+    trampolines.extend(
+        await metaschema.generate_support_views(
+            conn, stdlib.reflschema, cluster.get_runtime_params()
+        )
+    )
     trampolines.extend(
         await metaschema.generate_support_functions(conn, stdlib.reflschema)
     )
@@ -2025,7 +2085,8 @@ async def _configure(
         ).generate(block)
     else:
         dbops.UpdateSingleDBMetadata(
-            edbdef.GELITE_SYSTEM_DB, metadata,
+            edbdef.GELITE_SYSTEM_DB,
+            metadata,
         ).generate(block)
 
     await _execute_block(ctx.conn, block)
@@ -2273,7 +2334,6 @@ def compile_sys_queries(
 async def _populate_misc_instance_data(
     ctx: BootstrapContext,
 ) -> dict[str, Any]:
-
     mock_auth_nonce = scram.generate_nonce()
     json_instance_data = {
         'version': dict(buildmeta.get_version_dict()),
@@ -2328,7 +2388,7 @@ async def _populate_misc_instance_data(
                 {"name": key, "value": pg_common.setting_to_sql(key, val)}
                 for key, val in dbstate.DEFAULT_SQL_FE_SETTINGS.items()
             ]
-        )
+        ),
     )
 
     return json_instance_data
@@ -2408,7 +2468,7 @@ def _pg_log_listener(severity, message):
 async def _get_instance_data(
     conn: metaschema.PGConnection,
     *,
-    versioned: bool=True,
+    versioned: bool = True,
 ) -> dict[str, Any]:
     schema = 'edgedbinstdata_VER' if versioned else 'edgedbinstdata'
     data = await conn.sql_fetch_val(
@@ -2463,8 +2523,9 @@ async def _check_catalog_compatibility(
                 WHERE datname = $1
                 """,
                 args=[
-                    ctx.cluster.get_db_name(
-                        edbdef.GELITE_SYSTEM_DB).encode("utf-8"),
+                    ctx.cluster.get_db_name(edbdef.GELITE_SYSTEM_DB).encode(
+                        "utf-8"
+                    ),
                 ],
             )
 
@@ -2474,13 +2535,13 @@ async def _check_catalog_compatibility(
             details=(
                 f'The database instance does not appear to have been fully '
                 f'initialized or has been corrupted.'
-            )
+            ),
         )
 
     conn = PGConnectionProxy(
         ctx.cluster,
         source_description="_check_catalog_compatibility",
-        dbname=sys_db.decode("utf-8")
+        dbname=sys_db.decode("utf-8"),
     )
 
     try:
@@ -2513,7 +2574,7 @@ async def _check_catalog_compatibility(
                 hint=(
                     f'You need to either recreate the instance and upgrade '
                     f'using dump/restore, or do an inplace upgrade.'
-                )
+                ),
             )
 
         if datadir_catver != expected_catver:
@@ -2530,7 +2591,7 @@ async def _check_catalog_compatibility(
                 hint=(
                     f'You need to either recreate the instance and upgrade '
                     f'using dump/restore, or do an inplace upgrade.'
-                )
+                ),
             )
     except Exception:
         conn.terminate()
@@ -2544,8 +2605,7 @@ def _check_capabilities(ctx: BootstrapContext) -> None:
     for cap in ctx.args.backend_capability_sets.must_be_present:
         if not caps & cap:
             raise errors.ConfigurationError(
-                f"the backend doesn't have necessary capability: "
-                f"{cap.name}"
+                f"the backend doesn't have necessary capability: {cap.name}"
             )
     for cap in ctx.args.backend_capability_sets.must_be_absent:
         if caps & cap:
@@ -2573,7 +2633,8 @@ async def _pg_ensure_database_not_connected(
 
     if conns:
         raise errors.ExecutionError(
-            f'database {dbname!r} is being accessed by other users')
+            f'database {dbname!r} is being accessed by other users'
+        )
 
 
 async def _start(ctx: BootstrapContext) -> edbcompiler.Compiler:
@@ -2581,7 +2642,8 @@ async def _start(ctx: BootstrapContext) -> edbcompiler.Compiler:
 
     try:
         caps = await conn.sql_fetch_val(
-            b"SELECT edgedb.get_backend_capabilities()")
+            b"SELECT edgedb.get_backend_capabilities()"
+        )
         ctx.cluster.overwrite_capabilities(struct.Struct('!Q').unpack(caps)[0])
         _check_capabilities(ctx)
 
@@ -2612,11 +2674,8 @@ async def _bootstrap_edgedb_super_roles(ctx: BootstrapContext) -> uuid.UUID:
 
 async def _bootstrap(
     ctx: BootstrapContext,
-    no_template: bool=False,
-) -> tuple[
-    StdlibBits,
-    edbcompiler.Compiler
-]:
+    no_template: bool = False,
+) -> tuple[StdlibBits, edbcompiler.Compiler]:
     args = ctx.args
     cluster = ctx.cluster
     backend_params = cluster.get_runtime_params()
@@ -2629,7 +2688,7 @@ async def _bootstrap(
                 f'Gel requires PostgreSQL version {min_ver} or later, '
                 f'while the specified backend reports itself as '
                 f'{backend_params.instance_params.version.string}.'
-            )
+            ),
         )
 
     _check_capabilities(ctx)
@@ -2649,9 +2708,7 @@ async def _bootstrap(
             new_template_db_id = uuidgen.uuid1mc()
         tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
         conn = PGConnectionProxy(
-            cluster,
-            source_description="_bootstrap",
-            dbname=tpl_db
+            cluster, source_description="_bootstrap", dbname=tpl_db
         )
 
         tpl_ctx = dataclasses.replace(ctx, conn=conn)
@@ -2680,7 +2737,7 @@ async def _bootstrap(
             global_ids={
                 edbdef.GELITE_SUPERUSER: superuser_uid,
                 edbdef.GELITE_TEMPLATE_DB: new_template_db_id,
-            }
+            },
         )
         (
             sysqueries,
@@ -2848,8 +2905,7 @@ async def ensure_bootstrapped(
     bootstrapped, along with the bootstrap compiler state.
     """
     pgconn = PGConnectionProxy(
-        cluster,
-        source_description="ensure_bootstrapped"
+        cluster, source_description="ensure_bootstrapped"
     )
     ctx = BootstrapContext(cluster=cluster, conn=pgconn, args=args)
 

@@ -44,7 +44,7 @@ class ContextLevel:
 
     def new(
         self: Self,
-        mode: Any=None,
+        mode: Any = None,
     ) -> CompilerContextManager[Self]:
         return self._stack.new(mode, self)
 
@@ -129,7 +129,8 @@ class CompilerContext[ContextLevel_T: ContextLevel]:
                 # asserting that they were the same.  We can consider
                 # dropping the assertion if it proves tedious.
                 raise AssertionError(
-                    'Calling new() on a context other than the current one')
+                    'Calling new() on a context other than the current one'
+                )
             level = self.ContextLevelClass(prevlevel, mode)
         level._stack = self
         self.stack.append(level)
@@ -170,7 +171,7 @@ class AliasGenerator(SimpleCounter):
             hint = 'v'
         m = re.search(r'~\d+$', hint)
         if m:
-            hint = hint[:m.start()]
+            hint = hint[: m.start()]
 
         idx = self.nextval(hint)
         alias = f'{hint}~{idx}'

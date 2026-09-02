@@ -27,7 +27,6 @@ BackendVersion = buildmeta.BackendVersion
 
 
 class BackendCapabilities(enum.IntFlag):
-
     NONE = 0
     #: Whether CREATE ROLE .. SUPERUSER is allowed
     SUPERUSER_ACCESS = 1 << 0
@@ -55,7 +54,6 @@ ALL_BACKEND_CAPABILITIES = (
 
 
 class BackendInstanceParams(NamedTuple):
-
     capabilities: BackendCapabilities
     version: BackendVersion
     tenant_id: str
@@ -71,7 +69,6 @@ class BackendInstanceParams(NamedTuple):
 
 
 class BackendRuntimeParams(NamedTuple):
-
     instance_params: BackendInstanceParams
     session_authorization_role: Optional[str] = None
 
@@ -103,8 +100,7 @@ class BackendRuntimeParams(NamedTuple):
     @property
     def has_create_role(self) -> bool:
         return bool(
-            self.instance_params.capabilities
-            & BackendCapabilities.CREATE_ROLE
+            self.instance_params.capabilities & BackendCapabilities.CREATE_ROLE
         )
 
     @property
@@ -149,7 +145,7 @@ def get_default_runtime_params(
                 micro=0,
                 releaselevel='final',
                 serial=0,
-                string='100.0'
+                string='100.0',
             )
 
         instance_params = dict(

@@ -31,13 +31,11 @@ CP2 = typing.TypeVar('CP2', contravariant=True)
 
 
 class Connector(typing.Protocol[CP1]):
-
     def __call__(self, dbname: str) -> typing.Awaitable[CP1]:
         pass
 
 
 class Disconnector(typing.Protocol[CP2]):
-
     def __call__(self, conn: CP2) -> typing.Awaitable[None]:
         pass
 
@@ -74,7 +72,6 @@ class Snapshot:
 
 
 class StatsCollector(typing.Protocol):
-
     def __call__(self, stats: Snapshot) -> None:
         pass
 
@@ -331,13 +328,6 @@ class Pool[C: typing.Hashable]:
         self._pool._prune(id, dbname)
         await self._prunes[id]
         del self._prunes[id]
-
-    async def prune_all_connections(self) -> None:
-        # Brutally close all connections. This is used by HA failover.
-        coros = []
-        for conn in self._conns.values():
-            coros.append(self._disconnect(conn))
-        await asyncio.gather(*coros, return_exceptions=True)
 
     @property
     def active_conns(self) -> int:

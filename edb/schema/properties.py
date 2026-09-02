@@ -48,7 +48,6 @@ class Property(
     qlkind=qltypes.SchemaObjectClass.PROPERTY,
     data_safe=False,
 ):
-
     def derive_ref(
         self,
         schema: s_schema.Schema,
@@ -59,21 +58,25 @@ class Property(
         **kwargs: Any,
     ) -> tuple[s_schema.Schema, Property]:
         from . import links as s_links
+
         if target is None:
             target = self.get_target(schema)
 
         schema, ptr = super().derive_ref(
-            schema, referrer, target=target, attrs=attrs, **kwargs)
+            schema, referrer, target=target, attrs=attrs, **kwargs
+        )
 
         ptr_sn = str(ptr.get_shortname(schema))
 
         if ptr_sn == 'std::source':
             assert isinstance(referrer, s_links.Link)
             schema = ptr.set_field_value(
-                schema, 'target', referrer.get_source(schema))
+                schema, 'target', referrer.get_source(schema)
+            )
         elif ptr_sn == 'std::target':
             schema = ptr.set_field_value(
-                schema, 'target', referrer.get_field_value(schema, 'target'))
+                schema, 'target', referrer.get_field_value(schema, 'target')
+            )
 
         assert isinstance(ptr, Property)
         return schema, ptr
@@ -93,8 +96,11 @@ class Property(
                 raise NotImplementedError
 
         similarity = super().compare(
-            other, our_schema=our_schema,
-            their_schema=their_schema, context=context)
+            other,
+            our_schema=our_schema,
+            their_schema=their_schema,
+            context=context,
+        )
 
         if (
             not self.is_non_concrete(our_schema)
@@ -116,7 +122,8 @@ class Property(
                 our_schema=our_schema,
                 their_schema=their_schema,
                 context=context,
-                compcoef=field.compcoef)
+                compcoef=field.compcoef,
+            )
             if target_coef < 1:
                 similarity *= target_coef
         return similarity
@@ -127,7 +134,7 @@ class Property(
         return not self.is_endpoint_pointer(schema)
 
     @classmethod
-    def is_property(cls, schema: Optional[s_schema.Schema]=None) -> bool:
+    def is_property(cls, schema: Optional[s_schema.Schema] = None) -> bool:
         return True
 
     def has_user_defined_properties(self, schema: s_schema.Schema) -> bool:
@@ -159,9 +166,7 @@ class Property(
 
     @classmethod
     def get_root_classes(cls) -> tuple[sn.QualName, ...]:
-        return (
-            sn.QualName(module='std', name='property'),
-        )
+        return (sn.QualName(module='std', name='property'),)
 
     @classmethod
     def get_default_base_name(self) -> sn.QualName:
@@ -174,9 +179,7 @@ class Property(
     ) -> bool:
         return not self.is_endpoint_pointer(schema)
 
-    def init_delta_command[
-        ObjectCommand_T: sd.ObjectCommand[so.Object]
-    ](
+    def init_delta_command[ObjectCommand_T: sd.ObjectCommand[so.Object]](
         self,
         schema: s_schema.Schema,
         cmdtype: type[ObjectCommand_T],
@@ -220,7 +223,6 @@ class PropertyCommand(
     context_class=PropertyCommandContext,
     referrer_context_class=PropertySourceContext,
 ):
-
     def validate_object(
         self,
         schema: s_schema.Schema,
@@ -236,13 +238,14 @@ class PropertyCommand(
         if scls.is_special_pointer(schema):
             return
 
-        if (
-            scls.is_link_property(schema)
-            and not scls.is_pure_computable(schema)
+        if scls.is_link_property(schema) and not scls.is_pure_computable(
+            schema
         ):
             # link properties cannot be multi
-            if (self.get_attribute_value('cardinality')
-                    is qltypes.SchemaCardinality.Many):
+            if (
+                self.get_attribute_value('cardinality')
+                is qltypes.SchemaCardinality.Many
+            ):
                 raise errors.InvalidPropertyDefinitionError(
                     "multi properties aren't supported for links",
                     span=self.span,
@@ -261,9 +264,10 @@ class PropertyCommand(
                 span=span,
             )
 
-        if (target_type.is_object_type()
-                or (isinstance(target_type, s_types.Collection)
-                    and target_type.contains_object(schema))):
+        if target_type.is_object_type() or (
+            isinstance(target_type, s_types.Collection)
+            and target_type.contains_object(schema)
+        ):
             span = self.get_attribute_span('target')
             raise errors.InvalidPropertyTargetError(
                 f'invalid property type: expected a scalar type, '
@@ -300,8 +304,7 @@ class CreateProperty(
     PropertyCommand,
     pointers.CreatePointer[Property],
 ):
-    astnode = [qlast.CreateConcreteProperty,
-               qlast.CreateProperty]
+    astnode = [qlast.CreateConcreteProperty, qlast.CreateProperty]
 
     referenced_astnode = qlast.CreateConcreteProperty
 
@@ -326,14 +329,12 @@ class CreateProperty(
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field == 'required'
-            and issubclass(astnode, qlast.CreateConcreteProperty)
+        if field == 'required' and issubclass(
+            astnode, qlast.CreateConcreteProperty
         ):
             return 'is_required'
-        elif (
-            field == 'cardinality'
-            and issubclass(astnode, qlast.CreateConcreteProperty)
+        elif field == 'cardinality' and issubclass(
+            astnode, qlast.CreateConcreteProperty
         ):
             return 'cardinality'
         else:
@@ -350,8 +351,8 @@ class CreateProperty(
 
         if op.property == 'target' and link:
             if isinstance(node, qlast.CreateConcreteProperty):
-                expr: Optional[s_expr.Expression] = (
-                    self.get_attribute_value('expr')
+                expr: Optional[s_expr.Expression] = self.get_attribute_value(
+                    'expr'
                 )
                 if expr is not None:
                     node.target = expr.parse()
@@ -422,8 +423,7 @@ class AlterProperty(
     PropertyCommand,
     pointers.AlterPointer[Property],
 ):
-    astnode = [qlast.AlterConcreteProperty,
-               qlast.AlterProperty]
+    astnode = [qlast.AlterConcreteProperty, qlast.AlterProperty]
 
     referenced_astnode = qlast.AlterConcreteProperty
 
@@ -480,8 +480,7 @@ class DeleteProperty(
     PropertyCommand,
     pointers.DeletePointer[Property],
 ):
-    astnode = [qlast.DropConcreteProperty,
-               qlast.DropProperty]
+    astnode = [qlast.DropConcreteProperty, qlast.DropProperty]
 
     referenced_astnode = qlast.DropConcreteProperty
 

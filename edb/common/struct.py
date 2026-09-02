@@ -50,8 +50,7 @@ NoDefault: Final = NoDefaultT.NoDefault
 class Field[T](ProtoField):
     """``Field`` objects: attributes of :class:`Struct`."""
 
-    __slots__ = ('name', 'type', 'default', 'coerce', 'formatters',
-                 'frozen')
+    __slots__ = ('name', 'type', 'default', 'coerce', 'formatters', 'frozen')
 
     name: str
 
@@ -85,9 +84,12 @@ class Field[T](ProtoField):
 
     def copy(self) -> Field[T]:
         return self.__class__(
-            self.type, self.default, coerce=self.coerce,
+            self.type,
+            self.default,
+            coerce=self.coerce,
             str_formatter=self.formatters['str'],
-            repr_formatter=self.formatters['repr'])
+            repr_formatter=self.formatters['repr'],
+        )
 
     def adapt(self, value: Any) -> T:
         # cast() below due to https://github.com/python/mypy/issues/7920
@@ -106,7 +108,6 @@ class Field[T](ProtoField):
 
 
 class StructMeta(type):
-
     _fields: dict[str, Field[Any]]
     _sorted_fields: dict[str, Field[Any]]
 
@@ -128,7 +129,8 @@ class StructMeta(type):
             if not isinstance(v, Field):
                 raise TypeError(
                     f'cannot create {name} class: struct.Field expected, '
-                    f'got {type(v)}')
+                    f'got {type(v)}'
+                )
 
             v.name = k
             myfields[k] = v
@@ -172,7 +174,8 @@ class StructMeta(type):
 
         cls._fields = fields
         cls._sorted_fields = collections.OrderedDict(
-            sorted(fields.items(), key=lambda e: e[0]))
+            sorted(fields.items(), key=lambda e: e[0])
+        )
         fa = '{}.{}_fields'.format(cls.__module__, cls.__name__)
         setattr(cls, fa, myfields)
         return cls
@@ -185,7 +188,8 @@ class StructMeta(type):
 
     def get_ownfields(cls) -> dict[str, Field[Any]]:
         return getattr(  # type: ignore
-            cls, '{}.{}_fields'.format(cls.__module__, cls.__name__))
+            cls, '{}.{}_fields'.format(cls.__module__, cls.__name__)
+        )
 
 
 class Struct(metaclass=StructMeta):
@@ -321,8 +325,7 @@ class Struct(metaclass=StructMeta):
 
     def __str__(self) -> str:
         fields = ', '.join(
-            f'{name}={value}'
-            for name, value in self.formatfields('str')
+            f'{name}={value}' for name, value in self.formatfields('str')
         )
         if fields:
             fields = f' {fields}'
@@ -330,8 +333,7 @@ class Struct(metaclass=StructMeta):
 
     def __repr__(self) -> str:
         fields = ', '.join(
-            f'{name}={value}'
-            for name, value in self.formatfields('repr')
+            f'{name}={value}' for name, value in self.formatfields('repr')
         )
         if fields:
             fields = f' {fields}'
@@ -355,8 +357,12 @@ class Struct(metaclass=StructMeta):
             fmt = '{} {} invalid argument{} for struct {}.{}'
             plural = len(extra) > 1
             msg = fmt.format(
-                ', '.join(extra), 'are' if plural else 'is an', 's' if plural
-                else '', self.__class__.__module__, self.__class__.__name__)
+                ', '.join(extra),
+                'are' if plural else 'is an',
+                's' if plural else '',
+                self.__class__.__module__,
+                self.__class__.__name__,
+            )
             raise TypeError(msg)
 
     def _getdefault[T](
@@ -369,9 +375,13 @@ class Struct(metaclass=StructMeta):
             value = field.default()  # type: ignore
         elif field.default is NoDefault:
             raise TypeError(
-                '%s.%s.%s is required' % (
-                    self.__class__.__module__, self.__class__.__name__,
-                    field_name))
+                '%s.%s.%s is required'
+                % (
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                    field_name,
+                )
+            )
         else:
             value = field.default
 
@@ -384,7 +394,8 @@ class Struct(metaclass=StructMeta):
             field = self.__class__.get_field(field_name)
             if field is None:
                 raise TypeError(
-                    f'{field_name} is not a valid field in this struct')
+                    f'{field_name} is not a valid field in this struct'
+                )
             try:
                 return self._getdefault(field_name, field)
             except TypeError:
@@ -425,13 +436,18 @@ class RTStruct(Struct):
         super().__setattr__(name, value)
 
     def _check_field_type[T](self, field: Field[T], name: str, value: Any) -> T:
-        if (field.type and value is not None and
-                not isinstance(value, field.type)):
+        if (
+            field.type
+            and value is not None
+            and not isinstance(value, field.type)
+        ):
             if field.coerce:
                 ftype = field.type
 
-                if issubclass(ftype, (checked.AbstractCheckedList,
-                                      checked.AbstractCheckedSet)):
+                if issubclass(
+                    ftype,
+                    (checked.AbstractCheckedList, checked.AbstractCheckedSet),
+                ):
                     val_list = []
                     for v in value:
                         if v is not None and not isinstance(v, ftype.type):
@@ -443,8 +459,7 @@ class RTStruct(Struct):
                     for k, v in value.items():
                         if k is not None and not isinstance(k, ftype.keytype):
                             k = ftype.keytype(k)
-                        if (v is not None and
-                                not isinstance(v, ftype.valuetype)):
+                        if v is not None and not isinstance(v, ftype.valuetype):
                             v = ftype.valuetype(v)
                         val_dict[k] = v
 
@@ -454,13 +469,20 @@ class RTStruct(Struct):
                     return ftype(value)  # type: ignore
                 except Exception as ex:
                     raise TypeError(
-                        'cannot coerce {!r} value {!r} '
-                        'to {}'.format(name, value, ftype)) from ex
+                        'cannot coerce {!r} value {!r} to {}'.format(
+                            name, value, ftype
+                        )
+                    ) from ex
 
             raise TypeError(
                 '{}.{}.{}: expected {} but got {!r}'.format(
-                    self.__class__.__module__, self.__class__.__name__, name,
-                    field.type.__name__, value))
+                    self.__class__.__module__,
+                    self.__class__.__name__,
+                    name,
+                    field.type.__name__,
+                    value,
+                )
+            )
 
         return value  # type: ignore
 

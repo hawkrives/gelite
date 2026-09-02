@@ -47,7 +47,6 @@ class Rewrite(
     qlkind=qltypes.SchemaObjectClass.REWRITE,
     data_safe=True,
 ):
-
     kind = so.SchemaField(
         qltypes.RewriteKind,
         coerce=True,
@@ -75,7 +74,8 @@ class Rewrite(
 
     def get_ptr_target(self, schema: s_schema.Schema) -> s_types.Type:
         pointer: s_pointers.Pointer = cast(
-            's_pointers.Pointer', self.get_subject(schema))
+            's_pointers.Pointer', self.get_subject(schema)
+        )
         ptr_target = pointer.get_target(schema)
         assert ptr_target
         return ptr_target
@@ -287,7 +287,8 @@ class RewriteCommand(
     ) -> Optional[s_expr.Expression]:
         if field.name == 'expr':
             return s_types.type_dummy_expr(
-                self.scls.get_ptr_target(schema), schema)
+                self.scls.get_ptr_target(schema), schema
+            )
         else:
             raise NotImplementedError(f'unhandled field {field.name!r}')
 

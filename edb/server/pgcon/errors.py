@@ -104,7 +104,6 @@ CONNECTION_ERROR_CODES = [
 
 
 class BackendError(Exception):
-
     def __init__(self, *, fields: dict[str, str]) -> None:
         msg = fields.get('M', f'error code {fields["C"]}')
         self.fields = fields

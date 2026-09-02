@@ -14,27 +14,12 @@ importantly, they can add new ways of interacting with the database.
 Built-in extensions
 ===================
 
-.. api-index:: edgeql_http, graphql, auth, ai, pg_trgm, pg_unaccent, pgcrypto,
-               pgvector
+.. api-index:: pg_unaccent
 
-There are a few built-in extensions available:
-
-- ``edgeql_http``: enables :ref:`EdgeQL over HTTP <ref_edgeql_http>`,
-- ``graphql``: enables :ref:`GraphQL <ref_graphql_index>`,
-- ``auth``: enables :ref:`Gel Auth <ref_guide_auth>`,
-- ``ai``: enables :ref:`ext::ai module <ref_ai_extai_reference>`,
-
-- ``pg_trgm``: enables ``ext::pg_trgm``, which re-exports
-  `pgtrgm <https://www.postgresql.org/docs/current/pgtrgm.html>`__,
+There is one built-in extension available:
 
 - ``pg_unaccent``: enables ``ext::pg_unaccent``, which re-exports
   `unaccent <https://www.postgresql.org/docs/current/unaccent.html>`__,
-
-- ``pgcrypto``: enables ``ext::pgcrypto``, which re-exports
-  `pgcrypto <https://www.postgresql.org/docs/current/pgcrypto.html>`__,
-
-- ``pgvector``: enables ``ext::pgvector``, which re-exports
-  `pgvector <https://github.com/pgvector/pgvector/>`__,
 
 .. _ref_datamodel_using_extension:
 
@@ -160,19 +145,12 @@ the current :versionreplace:`database;5.0:branch`.
 Examples
 ^^^^^^^^
 
-Enable :ref:`GraphQL <ref_graphql_index>` extension for the current
-schema:
-
-.. code-block:: edgeql
-
-  create extension graphql;
-
-Enable :ref:`EdgeQL over HTTP <ref_edgeql_http>` extension for the
+Enable the ``pg_unaccent`` extension for the
 current :versionreplace:`database;5.0:branch`:
 
 .. code-block:: edgeql
 
-  create extension edgeql_http;
+  create extension pg_unaccent;
 
 
 drop extension
@@ -193,16 +171,9 @@ the current |branch|.
 Examples
 ^^^^^^^^
 
-Disable :ref:`GraphQL <ref_graphql_index>` extension for the current
-schema:
-
-.. code-block:: edgeql
-
-  drop extension graphql;
-
-Disable :ref:`EdgeQL over HTTP <ref_edgeql_http>` extension for the
+Disable the ``pg_unaccent`` extension for the
 current :versionreplace:`database;5.0:branch`:
 
 .. code-block:: edgeql
 
-  drop extension edgeql_http;
+  drop extension pg_unaccent;

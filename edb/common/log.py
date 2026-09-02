@@ -29,7 +29,6 @@ current_tenant = contextvars.ContextVar("current_tenant", default="-")
 
 
 class EdgeDBLogger(logging.Logger):
-
     def makeRecord(
         self,
         name,

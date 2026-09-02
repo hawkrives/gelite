@@ -29,11 +29,11 @@ import edgedb
 class TestEdgeQLExprAliases(tb.QueryTestCase):
     '''The scope is to test expression aliases.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
-    SETUP = [os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards_setup.edgeql')]
+    SETUP = [
+        os.path.join(os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql')
+    ]
 
     async def test_edgeql_aliases_basic_01(self):
         await self.assert_query_result(
@@ -48,16 +48,16 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             [
                 {
                     'name': 'Djinn',
-                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}]
+                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}],
                 },
                 {
                     'name': 'Giant eagle',
-                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}]
+                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}],
                 },
                 {
                     'name': 'Sprite',
-                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}]
-                }
+                    'owners': [{'name': 'Carol'}, {'name': 'Dave'}],
+                },
             ],
         )
 
@@ -185,19 +185,16 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             [
                 {
                     'name': 'Djinn',
-                    'owners': [{'name_upper': 'CAROL'},
-                               {'name_upper': 'DAVE'}],
+                    'owners': [{'name_upper': 'CAROL'}, {'name_upper': 'DAVE'}],
                 },
                 {
                     'name': 'Dragon',
-                    'owners': [{'name_upper': 'ALICE'},
-                               {'name_upper': 'DAVE'}],
+                    'owners': [{'name_upper': 'ALICE'}, {'name_upper': 'DAVE'}],
                 },
                 {
                     'name': 'Dwarf',
-                    'owners': [{'name_upper': 'BOB'},
-                               {'name_upper': 'CAROL'}],
-                }
+                    'owners': [{'name_upper': 'BOB'}, {'name_upper': 'CAROL'}],
+                },
             ],
         )
 
@@ -234,16 +231,18 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                         }
                     }
             ''',
-            [{
-                'target': {
-                    'name': 'default::__DCard__owners',
-                    'pointers': [
-                        {
-                            'name': 'name_upper',
-                        }
-                    ]
+            [
+                {
+                    'target': {
+                        'name': 'default::__DCard__owners',
+                        'pointers': [
+                            {
+                                'name': 'name_upper',
+                            }
+                        ],
+                    }
                 }
-            }]
+            ],
         )
 
     async def test_edgeql_aliases_filter_01(self):
@@ -279,12 +278,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 }
                 FILTER .name = 'Djinn';
             ''',
-            [{
-                'owners': [
-                    {'name': 'Carol'},
-                    {'name': 'Dave'}
-                ]
-            }]
+            [{'owners': [{'name': 'Carol'}, {'name': 'Dave'}]}],
         )
 
     async def test_edgeql_computable_link_02(self):
@@ -297,23 +291,11 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 ORDER BY User.name;
             ''',
             [
-                {
-                    'name': 'Alice',
-                    'deck_cost': 11
-                },
-                {
-                    'name': 'Bob',
-                    'deck_cost': 9
-                },
-                {
-                    'name': 'Carol',
-                    'deck_cost': 16
-                },
-                {
-                    'name': 'Dave',
-                    'deck_cost': 20
-                }
-            ]
+                {'name': 'Alice', 'deck_cost': 11},
+                {'name': 'Bob', 'deck_cost': 9},
+                {'name': 'Carol', 'deck_cost': 16},
+                {'name': 'Dave', 'deck_cost': 20},
+            ],
         )
 
     async def test_edgeql_computable_aliased_link_01(self):
@@ -327,20 +309,16 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 }
                 FILTER .name = 'Alice';
             ''',
-            [{
-                'my_name': 'Alice',
-                'my_friends': [
-                    {
-                        '@nickname': 'Swampy'
-                    },
-                    {
-                        '@nickname': 'Firefighter'
-                    },
-                    {
-                        '@nickname': 'Grumpy'
-                    },
-                ]
-            }]
+            [
+                {
+                    'my_name': 'Alice',
+                    'my_friends': [
+                        {'@nickname': 'Swampy'},
+                        {'@nickname': 'Firefighter'},
+                        {'@nickname': 'Grumpy'},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_computable_nested_01(self):
@@ -361,15 +339,17 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     )
                 } FILTER .name = 'Giant turtle';
             ''',
-            [{
-                'name': 'Giant turtle',
-                'owned': [
-                    {'fr0': 3, 'fr1': 3, 'name': 'Alice'},
-                    {'fr0': 0, 'fr1': 0, 'name': 'Bob'},
-                    {'fr0': 0, 'fr1': 0, 'name': 'Carol'},
-                    {'fr0': 1, 'fr1': 1, 'name': 'Dave'},
-                ]
-            }]
+            [
+                {
+                    'name': 'Giant turtle',
+                    'owned': [
+                        {'fr0': 3, 'fr1': 3, 'name': 'Alice'},
+                        {'fr0': 0, 'fr1': 0, 'name': 'Bob'},
+                        {'fr0': 0, 'fr1': 0, 'name': 'Carol'},
+                        {'fr0': 1, 'fr1': 1, 'name': 'Dave'},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_computable_nested_02(self):
@@ -388,17 +368,16 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 FILTER EXISTS .ava_owners
                 ORDER BY .name
             ''',
-            [{
-                'name': 'Djinn',
-                'ava_owners': [{
-                    'typename': 'default::Bot'
-                }],
-            }, {
-                'name': 'Dragon',
-                'ava_owners': [{
-                    'typename': 'default::User'
-                }],
-            }]
+            [
+                {
+                    'name': 'Djinn',
+                    'ava_owners': [{'typename': 'default::Bot'}],
+                },
+                {
+                    'name': 'Dragon',
+                    'ava_owners': [{'typename': 'default::User'}],
+                },
+            ],
         )
 
     async def test_edgeql_computable_nested_03(self):
@@ -419,17 +398,16 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 FILTER EXISTS .ava_owners
                 ORDER BY .name;
             ''',
-            [{
-                'name': 'Djinn',
-                'ava_owners': [{
-                    'typename': {'default::Bot'}
-                }],
-            }, {
-                'name': 'Dragon',
-                'ava_owners': [{
-                    'typename': {'default::User'}
-                }],
-            }]
+            [
+                {
+                    'name': 'Djinn',
+                    'ava_owners': [{'typename': {'default::Bot'}}],
+                },
+                {
+                    'name': 'Dragon',
+                    'ava_owners': [{'typename': {'default::User'}}],
+                },
+            ],
         )
 
     async def test_edgeql_aliases_shape_propagation_01(self):
@@ -530,7 +508,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_aliases_if_else_02(self):
         await self.assert_query_result(
@@ -596,8 +574,17 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
 
     async def test_edgeql_aliases_if_else_03(self):
         res = [
-            ['Air', 'Air', 'Air', 'Earth', 'Earth', 'Fire', 'Fire', 'Water',
-             'Water'],
+            [
+                'Air',
+                'Air',
+                'Air',
+                'Earth',
+                'Earth',
+                'Fire',
+                'Fire',
+                'Water',
+                'Water',
+            ],
             ['1', '1', '1', '2', '2', '3', '3', '4', '5'],
             [False, False, False, True, True],
         ]
@@ -609,7 +596,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 SELECT _ := User.deck.element
                 ORDER BY _;
             """,
-            res[0]
+            res[0],
         )
 
         await self.assert_query_result(
@@ -617,7 +604,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 SELECT _ := <str>User.deck.cost
                 ORDER BY _;
             """,
-            res[1]
+            res[1],
         )
 
         await self.assert_query_result(
@@ -625,7 +612,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 SELECT _ := {User.name[0] = 'A', EXISTS User.friends}
                 ORDER BY _;
             """,
-            res[2]
+            res[2],
         )
 
         await self.assert_query_result(
@@ -804,7 +791,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 }
                 FILTER .name = '1st';
             """,
-            res
+            res,
         )
 
     async def test_edgeql_aliases_clauses_01(self):
@@ -829,7 +816,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 }
                 FILTER .name = 'Alice';
             """,
-            res
+            res,
         )
 
     async def test_edgeql_aliases_limit_01(self):
@@ -883,11 +870,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 }
                 FILTER .name = 'Alice';
             """,
-            [{
-                'deck': [
-                    {}
-                ]
-            }]
+            [{'deck': [{}]}],
         )
 
     async def test_edgeql_aliases_esdl_01(self):
@@ -909,7 +892,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     'name': 'Giant turtle',
                     'owned_by_alice': True,
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -921,13 +904,9 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 ORDER BY .name;
             """,
             [
-                {
-                    'name': 'Dwarf'
-                },
-                {
-                    'name': 'Imp'
-                },
-            ]
+                {'name': 'Dwarf'},
+                {'name': 'Imp'},
+            ],
         )
 
     async def test_edgeql_aliases_collection_01(self):
@@ -943,7 +922,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     'name': 'Djinn',
                     'el_cost': ['Air', 4],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_aliases_collection_02(self):
@@ -953,7 +932,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             """,
             [
                 ['Air', 4],
-            ]
+            ],
         )
 
     async def test_edgeql_aliases_collection_03(self):
@@ -967,7 +946,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             """,
             [
                 ['Air', 4],
-            ]
+            ],
         )
 
     async def test_edgeql_aliases_collection_04(self):
@@ -981,7 +960,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             """,
             [
                 ['Air'],
-            ]
+            ],
         )
 
     async def test_edgeql_aliases_collection_05(self):
@@ -995,7 +974,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             """,
             [
                 ['Air'],
-            ]
+            ],
         )
 
     async def test_edgeql_aliases_subqueries_01(self):
@@ -1006,7 +985,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     (EarthOrFireCard.name)
                 ))
             """,
-            [16]
+            [16],
         )
 
     async def test_edgeql_aliases_subqueries_02(self):
@@ -1017,7 +996,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     (SELECT EarthOrFireCard.name)
                 ))
             """,
-            [16]
+            [16],
         )
 
     async def test_edgeql_aliases_subqueries_03(self):
@@ -1028,7 +1007,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     (EarthOrFireCard.name)
                 ))
             """,
-            [16]
+            [16],
         )
 
     async def test_edgeql_aliases_subqueries_04(self):
@@ -1039,7 +1018,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     (SELECT EarthOrFireCard.name)
                 ))
             """,
-            [16]
+            [16],
         )
 
     async def test_edgeql_aliases_introspection(self):
@@ -1052,9 +1031,11 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 FILTER .from_alias AND .name LIKE 'default::Air%'
                 ORDER BY .name
             """,
-            [{
-                'name': 'default::AirCard',
-            }]
+            [
+                {
+                    'name': 'default::AirCard',
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -1075,14 +1056,19 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                     AND .name = 'default::tuple_alias'
                 ORDER BY .name
             """,
-            [{
-                'name': 'default::tuple_alias',
-                'element_types': [{
-                    'name': 'std::str',
-                }, {
-                    'name': 'std::int64',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::tuple_alias',
+                    'element_types': [
+                        {
+                            'name': 'std::str',
+                        },
+                        {
+                            'name': 'std::int64',
+                        },
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -1091,7 +1077,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
                 filter .name = 'winner'
                 and .source.name = 'default::AwardAlias'
             """,
-            [{"name": "winner", "target": {"from_alias": True}}]
+            [{"name": "winner", "target": {"from_alias": True}}],
         )
 
     async def test_edgeql_aliases_backlinks_01(self):
@@ -1127,7 +1113,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             r"""
                 select count((detached FireCard, detached FireCard))
             """,
-            [4]
+            [4],
         )
 
     async def test_edgeql_aliases_coll_types_01(self):
@@ -1153,7 +1139,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'default::best_card'}]
+            [{'name': 'default::best_card'}],
         )
 
         await self.con.execute('''
@@ -1164,7 +1150,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -1176,7 +1162,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'my_mod::best_card'}]
+            [{'name': 'my_mod::best_card'}],
         )
 
         await self.con.execute('''
@@ -1187,7 +1173,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_aliases_schema_types_02(self):
@@ -1202,7 +1188,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'default::best_card'}]
+            [{'name': 'default::best_card'}],
         )
 
         await self.con.execute('''
@@ -1213,7 +1199,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -1227,7 +1213,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'my_mod::best_card'}]
+            [{'name': 'my_mod::best_card'}],
         )
 
         await self.con.execute('''
@@ -1238,7 +1224,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_aliases_schema_types_03(self):
@@ -1260,7 +1246,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             [
                 {'name': 'default::__best_card__Card'},
                 {'name': 'default::best_card'},
-            ]
+            ],
         )
 
         await self.con.execute('''
@@ -1271,7 +1257,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -1290,7 +1276,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             [
                 {'name': 'my_mod::__best_card__Card'},
                 {'name': 'my_mod::best_card'},
-            ]
+            ],
         )
 
         await self.con.execute('''
@@ -1301,7 +1287,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_aliases_array_of_array_01(self):

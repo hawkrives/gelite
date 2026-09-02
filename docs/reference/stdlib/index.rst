@@ -29,14 +29,10 @@ Standard Library
     objects
     abstract
     constraints
-    net
     fts
     sys
     cfg
-    pgcrypto
-    pg_trgm
     pg_unaccent
-    pgvector
     postgis
     deprecated
 
@@ -108,4 +104,3 @@ Utilities
 Extensions
 ----------
 
-- :ref:`ext::pgvector <ref_ext_pgvector>`

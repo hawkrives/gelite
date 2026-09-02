@@ -112,7 +112,8 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # Run a describe command in psql
         cmd = [
             pg_bin_dir / 'psql',
-            '--dbname', dsn,
+            '--dbname',
+            dsn,
             '-c',
             '\\d "Person"',
         ]
@@ -123,7 +124,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 check=True,
                 text=True,
                 stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT
+                stderr=subprocess.STDOUT,
             )
         except subprocess.CalledProcessError as e:
             raise AssertionError(
@@ -216,7 +217,6 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 1, cols)
 
     async def test_sql_query_05(self):
-
         query = '''
             SeLeCt mve.title as tiT, perSon.first_name
             FROM "Movie" mve, "Person" person
@@ -934,14 +934,10 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
 
     async def test_sql_query_38a(self):
-        res = await self.squery_values(
-            'VALUES (1), (NULL)'
-        )
+        res = await self.squery_values('VALUES (1), (NULL)')
         self.assertEqual(res, [[1], [None]])
 
-        res = await self.squery_values(
-            'VALUES (NULL), (1)'
-        )
+        res = await self.squery_values('VALUES (NULL), (1)')
         self.assertEqual(res, [[None], [1]])
 
     async def test_sql_query_39(self):
@@ -1131,7 +1127,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # we'd ideally want a message that hints that it should use quotes
 
         with self.assertRaisesRegex(
-            asyncpg.UndefinedColumnError, 'column \"name\" does not exist'
+            asyncpg.UndefinedColumnError, 'column "name" does not exist'
         ):
             await self.squery_values('SELECT name FROM User')
 
@@ -1267,8 +1263,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_54(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedParameterError, 'param out of bounds: \\$0',
-            hint='query parameters start with 1'
+            asyncpg.UndefinedParameterError,
+            'param out of bounds: \\$0',
+            hint='query parameters start with 1',
         ):
             await self.scon.fetch(
                 '''
@@ -1283,16 +1280,21 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             SELECT ROW(TRUE, 1, 1.1, 'hello', x'012', b'001')
             ''',
         )
-        self.assertEqual(res, [[
-            (
-                True,
-                1,
-                decimal.Decimal('1.1'),
-                'hello',
-                asyncpg.BitString.frombytes(b'\x01\x20', 12),
-                asyncpg.BitString.frombytes(b'\x20', 3),
-            )
-        ]])
+        self.assertEqual(
+            res,
+            [
+                [
+                    (
+                        True,
+                        1,
+                        decimal.Decimal('1.1'),
+                        'hello',
+                        asyncpg.BitString.frombytes(b'\x01\x20', 12),
+                        asyncpg.BitString.frombytes(b'\x20', 3),
+                    )
+                ]
+            ],
+        )
 
     async def test_sql_query_56(self):
         # recursive
@@ -1309,13 +1311,16 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             SELECT n FROM integers
             ''',
         )
-        self.assertEqual(res, [
-            [0],
-            [1],
-            [2],
-            [3],
-            [4],
-        ])
+        self.assertEqual(
+            res,
+            [
+                [0],
+                [1],
+                [2],
+                [3],
+                [4],
+            ],
+        )
 
         res = await self.squery_values(
             '''
@@ -1330,17 +1335,20 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             SELECT n, val FROM fibonacci;
             '''
         )
-        self.assertEqual(res, [
-            [1, 1],
-            [2, 1],
-            [3, 2],
-            [4, 3],
-            [5, 5],
-            [6, 8],
-            [7, 13],
-            [8, 21],
-            [9, 34],
-        ])
+        self.assertEqual(
+            res,
+            [
+                [1, 1],
+                [2, 1],
+                [3, 2],
+                [4, 3],
+                [5, 5],
+                [6, 8],
+                [7, 13],
+                [8, 21],
+                [9, 34],
+            ],
+        )
 
         res = await self.squery_values(
             '''
@@ -1361,12 +1369,15 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             SELECT f.n, f.val FROM fibonacci f, integers i where f.n = i.n;
             '''
         )
-        self.assertEqual(res, [
-            [1, 1],
-            [2, 1],
-            [3, 2],
-            [4, 3],
-        ])
+        self.assertEqual(
+            res,
+            [
+                [1, 1],
+                [2, 1],
+                [3, 2],
+                [4, 3],
+            ],
+        )
 
         res = await self.squery_values(
             '''
@@ -1381,13 +1392,16 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             SELECT * FROM a, integers;
             '''
         )
-        self.assertEqual(res, [
-            [12, 0],
-            [12, 1],
-            [12, 2],
-            [12, 3],
-            [12, 4],
-        ])
+        self.assertEqual(
+            res,
+            [
+                [12, 0],
+                [12, 1],
+                [12, 2],
+                [12, 3],
+                [12, 4],
+            ],
+        )
 
     async def test_sql_query_57(self):
         res = await self.squery_values(
@@ -1400,20 +1414,20 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             [
                 [1],
                 [2],
-            ]
+            ],
         )
 
         res = await self.squery_values(
             f'''
             (select 1) union (select 2) LIMIT $1;
             ''',
-            1
+            1,
         )
         self.assertEqual(
             res,
             [
                 [1],
-            ]
+            ],
         )
 
     @test.xfail('''
@@ -1443,9 +1457,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
 
     async def test_sql_query_60(self):
-        await self.squery_values(
-            "SELECT json_build_object('hello', TRUE)"
-        )
+        await self.squery_values("SELECT json_build_object('hello', TRUE)")
         with self.assertRaisesRegex(
             asyncpg.exceptions.IndeterminateDatatypeError,
             'could not determine data type of parameter \\$1',
@@ -1455,16 +1467,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             )
 
     async def test_sql_query_61(self):
-        await self.squery_values(
-            "SELECT ROW('hello')"
-        )
+        await self.squery_values("SELECT ROW('hello')")
         with self.assertRaisesRegex(
             asyncpg.exceptions.IndeterminateDatatypeError,
             'could not determine data type of parameter \\$1',
         ):
-            await self.squery_values(
-                "SELECT 'a', ROW($1)", 'hello'
-            )
+            await self.squery_values("SELECT 'a', ROW($1)", 'hello')
 
     async def test_sql_query_62(self):
         # calls of various functions with constants that are extracted
@@ -1650,7 +1658,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             '''
         )
         for [tbl_name, columns_from_information_schema] in tables:
-            if tbl_name.split('.')[0] in ('cfg', 'schema', 'sys', '"ext::ai"'):
+            if tbl_name.split('.')[0] in ('cfg', 'schema', 'sys'):
                 continue
 
             try:
@@ -1790,7 +1798,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 ['genre_id', '__::genre'],
                 ['pages', '__::foo'],
                 ['title', None],
-            ]
+            ],
         )
 
     async def test_sql_query_schemas_01(self):
@@ -2056,7 +2064,6 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             await con.aclose()
 
     async def test_sql_query_privileges_01(self):
-
         res = await self.squery_values(
             '''
             select has_database_privilege($1, 'CONNECT');
@@ -2274,10 +2281,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
         # columns: 0      1      2
         #          source target role
-        self.assertEqual(
-            {row[2] for row in res},
-            {"Captain Miller", ""}
-        )
+        self.assertEqual({row[2] for row in res}, {"Captain Miller", ""})
 
     async def test_sql_query_copy_06(self):
         # COPY does not support query parameters
@@ -2301,7 +2305,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             [
                 ['Chronicles of Narnia', '206'],
                 ['Hunger Games', '374'],
-            ]
+            ],
         )
 
     async def test_sql_query_copy_07(self):
@@ -2857,9 +2861,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         await self.scon.execute(
             """SET LOCAL "global default::filter_title" TO 'summary'"""
         )
-        await self.scon.execute(
-            'INSERT INTO "ContentSummary" DEFAULT VALUES'
-        )
+        await self.scon.execute('INSERT INTO "ContentSummary" DEFAULT VALUES')
 
     async def test_sql_query_access_policy_03b(self):
         # access policies for dml
@@ -2882,9 +2884,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # allowed with no access policies
         await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
 
-        await self.scon.execute(
-            'INSERT INTO "ContentSummary" DEFAULT VALUES'
-        )
+        await self.scon.execute('INSERT INTO "ContentSummary" DEFAULT VALUES')
 
     async def test_sql_query_access_policy_04(self):
         # access policies without inheritance
@@ -3563,7 +3563,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_native_query_18(self):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
-            'column \"asdf\" does not exist',
+            'column "asdf" does not exist',
             _position=35,
         ):
             await self.con.query_sql(
@@ -3598,9 +3598,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ''')
 
     async def test_sql_native_query_21(self):
-        await self.assert_sql_query_result(
-            "SELECT 1 as a", [{"a": 1}]
-        )
+        await self.assert_sql_query_result("SELECT 1 as a", [{"a": 1}])
 
         await self.assert_sql_query_result(
             "SELECT 'test' as a", [{"a": "test"}]
@@ -3620,9 +3618,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.UnsupportedFeatureError, 'not supported: COPY'
         ):
-            await self.assert_sql_query_result(
-                'COPY "Genre" TO STDOUT', []
-            )
+            await self.assert_sql_query_result('COPY "Genre" TO STDOUT', [])
 
     async def test_sql_native_query_25(self):
         # implict limit
@@ -3711,7 +3707,6 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
 
 class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
-
     SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'movies.esdl')
     SCHEMA_INVENTORY = os.path.join(
         os.path.dirname(__file__), 'schemas', 'inventory.esdl'
@@ -3895,15 +3890,11 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         # bytea_output
 
         await self.scon.execute('SET bytea_output TO hex')
-        res = await self.scon.fetchval(
-            "SELECT '\\x01abcdef01'::bytea::text"
-        )
+        res = await self.scon.fetchval("SELECT '\\x01abcdef01'::bytea::text")
         self.assertEqual(res, r'\x01abcdef01')
 
         await self.scon.execute('SET bytea_output TO escape')
-        res = await self.scon.fetchval(
-            "SELECT '\\x01abcdef01'::bytea::text"
-        )
+        res = await self.scon.fetchval("SELECT '\\x01abcdef01'::bytea::text")
         self.assertEqual(res, r'\001\253\315\357\001')
 
     async def test_sql_query_set_07(self):

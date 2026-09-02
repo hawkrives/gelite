@@ -19,7 +19,6 @@
 
 """EdgeQL trigger compilation."""
 
-
 from __future__ import annotations
 
 from typing import Optional, Collection
@@ -78,7 +77,8 @@ def compile_trigger(
             env=ctx.env,
         )
         new_set = setgen.class_set(
-            source, path_id=new_path, ignore_rewrites=True, ctx=sctx)
+            source, path_id=new_path, ignore_rewrites=True, ctx=sctx
+        )
         new_set.expr = irast.TriggerAnchor(typeref=new_set.typeref)
 
         old_set = None
@@ -92,7 +92,8 @@ def compile_trigger(
                 env=ctx.env,
             )
             old_set = setgen.class_set(
-                source, path_id=old_path, ignore_rewrites=True, ctx=sctx)
+                source, path_id=old_path, ignore_rewrites=True, ctx=sctx
+            )
             old_set.expr = irast.TriggerAnchor(typeref=old_set.typeref)
             anchors['__old__'] = old_set
         if qltypes.TriggerKind.Delete not in kinds:
@@ -127,9 +128,7 @@ def compile_trigger(
     taffected = {
         (typegen.type_to_typeref(t, env=ctx.env), ir) for t, ir in affected
     }
-    tall = {
-        typegen.type_to_typeref(t, env=ctx.env) for t in all_typs
-    }
+    tall = {typegen.type_to_typeref(t, env=ctx.env) for t in all_typs}
 
     return irast.Trigger(
         expr=trigger_set,
@@ -163,7 +162,8 @@ def compile_triggers_phase(
         kind = TRIGGER_KINDS[type(stmt)]
 
         stype = schemactx.concretify(
-            setgen.get_set_type(stmt.result, ctx=ctx), ctx=ctx)
+            setgen.get_set_type(stmt.result, ctx=ctx), ctx=ctx
+        )
         assert isinstance(stype, s_objtypes.ObjectType)
         # For updates and deletes, we need to look to see if any
         # descendant types have triggers.
@@ -174,7 +174,9 @@ def compile_triggers_phase(
 
         # Process all the types, starting with the base type
         for subtype in sorted(stypes, key=lambda t: t != stype):
-            if (defining_trigger_on and defining_trigger_kinds
+            if (
+                defining_trigger_on
+                and defining_trigger_kinds
                 and kind in defining_trigger_kinds
                 and subtype.issubclass(ctx.env.schema, defining_trigger_on)
             ):
@@ -201,8 +203,9 @@ def compile_triggers_phase(
     # sort these by name just to avoid weird nondeterminism
     return tuple(
         compile_trigger(trigger, affected, all_typs, ctx=ctx)
-        for trigger, (affected, all_typs)
-        in sorted(trigger_map.items(), key=lambda t: t[0].get_name(schema))
+        for trigger, (affected, all_typs) in sorted(
+            trigger_map.items(), key=lambda t: t[0].get_name(schema)
+        )
     )
 
 
@@ -211,12 +214,12 @@ def compile_triggers(
     ctx: context.ContextLevel,
 ) -> tuple[tuple[irast.Trigger, ...], ...]:
     defining_trigger = (
-        ctx.env.options.schema_object_context == s_triggers.Trigger)
+        ctx.env.options.schema_object_context == s_triggers.Trigger
+    )
     defining_trigger_on = None
     defining_trigger_kinds = None
-    if (
-        defining_trigger and
-        isinstance(ctx.env.options, options.CompilerOptions)
+    if defining_trigger and isinstance(
+        ctx.env.options, options.CompilerOptions
     ):
         defining_trigger_on = ctx.env.options.trigger_type
         defining_trigger_kinds = ctx.env.options.trigger_kinds
@@ -230,7 +233,7 @@ def compile_triggers(
             ctx.env.dml_stmts[start:],
             defining_trigger_on,
             defining_trigger_kinds,
-            ctx=ctx
+            ctx=ctx,
         )
         new_causes: set[tuple[irast.TypeRef, qltypes.TriggerKind]] = {
             (affected_type, kind)

@@ -265,10 +265,7 @@ def show_expr(expr: e.Expr) -> str:
             return "for " + show_expr(bound) + " union " + show_expr(next)
         case e.OptionalForExpr(bound=bound, next=next):
             return (
-                "for optional "
-                + show_expr(bound)
-                + " union "
-                + show_expr(next)
+                "for optional " + show_expr(bound) + " union " + show_expr(next)
             )
         case e.ShapedExprExpr(expr=subject, shape=shape):
             return show_expr(subject) + " " + show_expr(shape)
@@ -354,10 +351,7 @@ def show_constraint(constraint: e.Constraint) -> str:
     match constraint:
         case e.ExclusiveConstraint(name=name, delegated=delegated):
             return (
-                "exclusive("
-                + name
-                + ")"
-                + (", delegated" if delegated else "")
+                "exclusive(" + name + ")" + (", delegated" if delegated else "")
             )
         case _:
             raise ValueError('Unimplemented', constraint)

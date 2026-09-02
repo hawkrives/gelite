@@ -70,12 +70,10 @@ from edb.server import daemon
 from edb.server import defines
 from edb.server import instdata
 from edb.server import protocol
-from edb.server import net_worker
 from edb.server import tenant as edbtenant
 from edb.server.protocol import binary  # type: ignore
 from edb.server.protocol import pg_ext  # type: ignore
 from edb.server.protocol import ui_ext  # type: ignore
-from edb.server.protocol.auth_ext import pkce
 from edb.server import metrics
 from edb.server import pgcon
 
@@ -133,9 +131,6 @@ class BaseServer:
     _compiler_pool: compiler_pool.AbstractPool | None
     compilation_config_serializer: sertypes.CompilationConfigSerializer
     _http_request_logger: asyncio.Task | None
-    _auth_gc: asyncio.Task | None
-    _net_worker_http: asyncio.Task | None
-    _net_worker_http_gc: asyncio.Task | None
 
     def __init__(
         self,
@@ -145,7 +140,6 @@ class BaseServer:
         compiler_pool_size: int,
         compiler_worker_branch_limit,
         compiler_pool_mode: srvargs.CompilerPoolMode,
-        compiler_pool_addr: tuple[str, int],
         nethosts: Sequence[str],
         netport: int,
         compiler_worker_max_rss: Optional[int] = None,
@@ -154,20 +148,22 @@ class BaseServer:
         daemonized: bool = False,
         pidfile_dir: Optional[pathlib.Path] = None,
         binary_endpoint_security: srvargs.ServerEndpointSecurityMode = (
-            srvargs.ServerEndpointSecurityMode.Tls),
+            srvargs.ServerEndpointSecurityMode.Tls
+        ),
         http_endpoint_security: srvargs.ServerEndpointSecurityMode = (
-            srvargs.ServerEndpointSecurityMode.Tls),
+            srvargs.ServerEndpointSecurityMode.Tls
+        ),
         auto_shutdown_after: float = -1,
         echo_runtime_info: bool = False,
         status_sinks: Sequence[Callable[[str], None]] = (),
         default_auth_method: srvargs.ServerAuthMethods = (
-            srvargs.DEFAULT_AUTH_METHODS),
+            srvargs.DEFAULT_AUTH_METHODS
+        ),
         admin_ui: bool = False,
         cors_always_allowed_origins: Optional[str] = None,
         disable_dynamic_system_config: bool = False,
         compiler_state: edbcompiler.CompilerState,
         use_monitor_fs: bool = False,
-        net_worker_mode: srvargs.NetWorkerMode = srvargs.NetWorkerMode.Default,
     ):
         self.__loop = asyncio.get_running_loop()
         self._use_monitor_fs = use_monitor_fs
@@ -177,11 +173,13 @@ class BaseServer:
         self._refl_schema = compiler_state.refl_schema
         self._std_schema = compiler_state.std_schema
         assert compiler_state.global_intro_query is not None
-        self._global_intro_query = (
-            compiler_state.global_intro_query.encode("utf-8"))
+        self._global_intro_query = compiler_state.global_intro_query.encode(
+            "utf-8"
+        )
         assert compiler_state.local_intro_query is not None
-        self._local_intro_query = (
-            compiler_state.local_intro_query.encode("utf-8"))
+        self._local_intro_query = compiler_state.local_intro_query.encode(
+            "utf-8"
+        )
 
         # Used to tag PG notifications to later disambiguate them.
         self._server_id = str(uuid.uuid4())
@@ -194,7 +192,6 @@ class BaseServer:
         self._compiler_pool_size = compiler_pool_size
         self._compiler_worker_branch_limit = compiler_worker_branch_limit
         self._compiler_pool_mode = compiler_pool_mode
-        self._compiler_pool_addr = compiler_pool_addr
         self._compiler_worker_max_rss = compiler_worker_max_rss
         self._system_compile_cache = lru.LRUMapping(
             maxsize=defines._MAX_QUERIES_CACHE_SYSTEM
@@ -231,14 +228,11 @@ class BaseServer:
         self._servers = {}
 
         self._http_query_cache = cache.StatementsCache(
-            maxsize=defines.HTTP_PORT_QUERY_CACHE_SIZE)
+            maxsize=defines.HTTP_PORT_QUERY_CACHE_SIZE
+        )
 
         self._http_last_minute_requests = windowedsum.WindowedSum()
         self._http_request_logger = None
-        self._auth_gc = None
-        self._net_worker_http = None
-        self._net_worker_http_gc = None
-        self._net_worker_mode = net_worker_mode
 
         self._stop_evt = asyncio.Event()
         self._tls_cert_file: str | Any = None
@@ -251,7 +245,8 @@ class BaseServer:
 
         self._default_auth_method_spec = default_auth_method
         self._default_auth_methods = self._get_auth_method_types(
-            default_auth_method)
+            default_auth_method
+        )
         self._binary_endpoint_security = binary_endpoint_security
         self._http_endpoint_security = http_endpoint_security
 
@@ -259,14 +254,18 @@ class BaseServer:
 
         self._admin_ui = admin_ui
 
-        self._cors_always_allowed_origins = [
-            re.compile(
-                '^' + origin
-                    .replace('.', '\\.')
-                    .replace('*', '.*') + '$'
-            ) if '*' in origin else origin
-            for origin in cors_always_allowed_origins.split(',')
-        ] if cors_always_allowed_origins else []
+        self._cors_always_allowed_origins = (
+            [
+                re.compile(
+                    '^' + origin.replace('.', '\\.').replace('*', '.*') + '$'
+                )
+                if '*' in origin
+                else origin
+                for origin in cors_always_allowed_origins.split(',')
+            ]
+            if cors_always_allowed_origins
+            else []
+        )
 
         self._file_watch_handles = []
         self._tls_certs_reload_retry_handle: Any | asyncio.TimerHandle = None
@@ -333,15 +332,11 @@ class BaseServer:
 
     def on_binary_client_connected(self, conn):
         self._binary_conns[conn] = True
-        metrics.current_client_connections.inc(
-            1.0, conn.get_tenant_label()
-        )
+        metrics.current_client_connections.inc(1.0, conn.get_tenant_label())
 
     def on_binary_client_authed(self, conn):
         self._report_connections(event='opened')
-        metrics.total_client_connections.inc(
-            1.0, conn.get_tenant_label()
-        )
+        metrics.total_client_connections.inc(1.0, conn.get_tenant_label())
 
     def on_binary_client_after_idling(self, conn):
         try:
@@ -357,9 +352,7 @@ class BaseServer:
     def on_binary_client_disconnected(self, conn):
         self._binary_conns.pop(conn, None)
         self._report_connections(event="closed")
-        metrics.current_client_connections.dec(
-            1.0, conn.get_tenant_label()
-        )
+        metrics.current_client_connections.dec(1.0, conn.get_tenant_label())
         self.maybe_auto_shutdown()
 
     def maybe_delay_auto_shutdown(self):
@@ -375,7 +368,8 @@ class BaseServer:
             and self._auto_shutdown_handler is None
         ):
             self._auto_shutdown_handler = self.__loop.call_later(
-                self._auto_shutdown_after, self.request_auto_shutdown)
+                self._auto_shutdown_after, self.request_auto_shutdown
+            )
 
     def _report_connections(self, *, event: str) -> None:
         log_metrics.info(
@@ -426,7 +420,8 @@ class BaseServer:
             if parent_dir / os.fsdecode(file_modified) == path:
                 try:
                     new_handle = self.__loop._monitor_fs(  # type: ignore
-                        path_str, callback)
+                        path_str, callback
+                    )
                 except FileNotFoundError:
                     pass
                 else:
@@ -449,11 +444,13 @@ class BaseServer:
                 try:
                     # Then, see if we can directly re-watch the target path
                     handle = self.__loop._monitor_fs(  # type: ignore
-                        path_str, callback)
+                        path_str, callback
+                    )
                 except FileNotFoundError:
                     # If not, watch the parent directory to wait for recreation
                     handle = self.__loop._monitor_fs(  # type: ignore
-                        str(parent_dir), watch_dir)
+                        str(parent_dir), watch_dir
+                    )
                 self._file_watch_handles.append(handle)
 
         # ... we depend on an event loop internal _monitor_fs
@@ -493,10 +490,9 @@ class BaseServer:
 
         sys_config = self._get_sys_config()
         if not self._listen_hosts:
-            self._listen_hosts = (
-                self.config_lookup('listen_addresses', sys_config)
-                or ('localhost',)
-            )
+            self._listen_hosts = self.config_lookup(
+                'listen_addresses', sys_config
+            ) or ('localhost',)
 
         if self._listen_port is None:
             self._listen_port = (
@@ -519,14 +515,16 @@ class BaseServer:
             self._idle_gc_handler = None
 
         session_idle_timeout = self.config_lookup(
-            'session_idle_timeout', self._get_sys_config())
+            'session_idle_timeout', self._get_sys_config()
+        )
 
         timeout = session_idle_timeout.to_microseconds()
         timeout /= 1_000_000.0  # convert to seconds
 
         if timeout > 0:
             self._idle_gc_handler = self.__loop.call_later(
-                timeout, self._idle_gc_collector)
+                timeout, self._idle_gc_collector
+            )
 
         return timeout
 
@@ -612,11 +610,8 @@ class BaseServer:
             refl_schema=self._refl_schema,
             schema_class_layout=self._schema_class_layout,
         )
-        if self._compiler_pool_mode == srvargs.CompilerPoolMode.Remote:
-            args['address'] = self._compiler_pool_addr
-        else:
-            if self._compiler_worker_max_rss is not None:
-                args['worker_max_rss'] = self._compiler_worker_max_rss
+        if self._compiler_worker_max_rss is not None:
+            args['worker_max_rss'] = self._compiler_worker_max_rss
         return args
 
     async def _destroy_compiler_pool(self):
@@ -632,9 +627,7 @@ class BaseServer:
     ) -> bytes:
         return await conn.sql_fetch_val(self._global_intro_query)
 
-    def _parse_global_schema(
-        self, json_data: Any
-    ) -> s_schema.Schema:
+    def _parse_global_schema(self, json_data: Any) -> s_schema.Schema:
         return s_refl.parse_schema(
             base_schema=self._std_schema,
             data=json_data,
@@ -773,9 +766,9 @@ class BaseServer:
         port: int,
     ) -> asyncio.base_events.Server:
         admin_unix_sock_path = os.path.join(
-            self._runstate_dir, f'.s.GEL.admin.{port}')
-        symlink = os.path.join(
-            self._runstate_dir, f'.s.EDGEDB.admin.{port}')
+            self._runstate_dir, f'.s.GEL.admin.{port}'
+        )
+        symlink = os.path.join(self._runstate_dir, f'.s.EDGEDB.admin.{port}')
 
         exists = False
         try:
@@ -798,7 +791,7 @@ class BaseServer:
             lambda: binary.new_edge_connection(
                 self, self._get_admin_tenant(), external_auth=True
             ),
-            admin_unix_sock_path
+            admin_unix_sock_path,
         )
         os.chmod(admin_unix_sock_path, stat.S_IRUSR | stat.S_IWUSR)
         logger.info('Serving admin on %s', admin_unix_sock_path)
@@ -845,21 +838,26 @@ class BaseServer:
                                 self._start_server(host, port)
                             )
             except Exception:
-                await self._stop_servers([
-                    fut.result() for fut in start_tasks.values()
-                    if (
-                        fut.done()
-                        and fut.exception() is None
-                        and fut.result() is not None
-                    )
-                ])
+                await self._stop_servers(
+                    [
+                        fut.result()
+                        for fut in start_tasks.values()
+                        if (
+                            fut.done()
+                            and fut.exception() is None
+                            and fut.result() is not None
+                        )
+                    ]
+                )
                 raise
 
-            servers.update({
-                host: srv
-                for host, fut in start_tasks.items()
-                if (srv := fut.result()) is not None
-            })
+            servers.update(
+                {
+                    host: srv
+                    for host, fut in start_tasks.items()
+                    if (srv := fut.result()) is not None
+                }
+            )
 
         # Fail if none of the servers can be started, except when the admin
         # server on a UNIX domain socket will be started.
@@ -875,8 +873,9 @@ class BaseServer:
             if port:
                 addr_str = f"{{{', '.join(addr[0] for addr in addrs)}}}:{port}"
             else:
-                addr_str = f"""{{{', '.join(
-                    f'{addr[0]}:{addr[1]}' for addr in addrs)}}}"""
+                addr_str = f"""{{{
+                    ', '.join(f'{addr[0]}:{addr[1]}' for addr in addrs)
+                }}}"""
         elif addrs:
             addr_str = f'{addrs[0][0]}:{addrs[0][1]}'
             port = addrs[0][1]
@@ -897,11 +896,9 @@ class BaseServer:
         return servers, port, addrs
 
     def _sni_callback(self, sslobj, server_name, sslctx):
-        # Match the given SNI for a pre-registered Tenant instance,
-        # and temporarily store in memory indexed by sslobj for future
-        # retrieval, see also retrieve_tenant() below.
-        #
-        # Used in multi-tenant server only. This method must not fail.
+        # Matched the SNI against a pre-registered Tenant in the
+        # multi-tenant server, which has been removed. There is one tenant
+        # now, so there is nothing to match. This method must not fail.
         pass
 
     def reload_tls(self, tls_cert_file, tls_key_file, client_ca_file):
@@ -914,9 +911,7 @@ class BaseServer:
         def _tls_private_key_password():
             nonlocal tls_password_needed
             tls_password_needed = True
-            return (
-                os.environ.get('GELITE_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
-            )
+            return os.environ.get('GELITE_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
 
         sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         sslctx_pgext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -972,7 +967,8 @@ class BaseServer:
                 sslctx_pgext.load_verify_locations(client_ca_file)
             except ssl.SSLError as e:
                 raise StartupError(
-                    f"Cannot load client CA certificates - {e}") from e
+                    f"Cannot load client CA certificates - {e}"
+                ) from e
             sslctx.verify_mode = ssl.CERT_OPTIONAL
             sslctx_pgext.verify_mode = ssl.CERT_OPTIONAL
 
@@ -1003,7 +999,7 @@ class BaseServer:
                     logger.critical(str(e))
                     self.request_shutdown()
                 else:
-                    delay = defines._TLS_CERT_RELOAD_EXP_INTERVAL * 2 ** retry
+                    delay = defines._TLS_CERT_RELOAD_EXP_INTERVAL * 2**retry
                     logger.warning("%s; retrying in %.1f seconds.", e, delay)
                     self._tls_certs_reload_retry_handle = (
                         self.__loop.call_later(
@@ -1094,14 +1090,6 @@ class BaseServer:
             pidfile.acquire()
 
         await self._after_start_servers()
-        self._auth_gc = self.__loop.create_task(pkce.gc(self))
-        if self._net_worker_mode is srvargs.NetWorkerMode.Default:
-            self._net_worker_http = self.__loop.create_task(
-                net_worker.http(self)
-            )
-            self._net_worker_http_gc = self.__loop.create_task(
-                net_worker.gc(self)
-            )
 
         if self._echo_runtime_info:
             ri = {
@@ -1119,7 +1107,8 @@ class BaseServer:
 
         if self._auto_shutdown_after > 0:
             self._auto_shutdown_handler = self.__loop.call_later(
-                self._auto_shutdown_after, self.request_auto_shutdown)
+                self._auto_shutdown_after, self.request_auto_shutdown
+            )
 
     def _get_status(self) -> dict[str, Any]:
         return {
@@ -1151,12 +1140,6 @@ class BaseServer:
 
         if self._http_request_logger is not None:
             self._http_request_logger.cancel()
-        if self._auth_gc is not None:
-            self._auth_gc.cancel()
-        if self._net_worker_http is not None:
-            self._net_worker_http.cancel()
-        if self._net_worker_http_gc is not None:
-            self._net_worker_http_gc.cancel()
 
         for handle in self._file_watch_handles:
             handle.cancel()
@@ -1212,7 +1195,8 @@ class BaseServer:
                 listen_port=self._listen_port,
             ),
             instance_config=config.debug_serialize_config(
-                self._get_sys_config()),
+                self._get_sys_config()
+            ),
             compiler_pool=(
                 self._compiler_pool.get_debug_info()
                 if self._compiler_pool
@@ -1244,7 +1228,7 @@ class BaseServer:
         # The client connection must proceed on a Tenant instance. In cases:
         #   1. plain-text connection without TLS handshake
         #   2. TLS handshake didn't provide SNI
-        #   3. SNI didn't match any Tenant (retrieve_tenant() returned None)
+        #   3. retrieve_tenant() returned None
         # this method will be called for a "default" tenant to use.
         #
         # The caller must be ready to handle errors raised in this method, and
@@ -1334,8 +1318,7 @@ class Server(BaseServer):
         # instead recompiled it, and it created new objects, those
         # objects might have a different id in the std schema and
         # in the actual user db.
-        result = await instdata.get_instdata(
-            conn, f'patch_log_{idx}', 'bin')
+        result = await instdata.get_instdata(conn, f'patch_log_{idx}', 'bin')
         if result:
             return pickle.loads(result)
         else:
@@ -1362,20 +1345,26 @@ class Server(BaseServer):
                 )
 
                 entry = bootstrap.prepare_patch(
-                    num, kind, patch, self._std_schema, self._refl_schema,
+                    num,
+                    kind,
+                    patch,
+                    self._std_schema,
+                    self._refl_schema,
                     self._schema_class_layout,
                     self._tenant.get_backend_runtime_params(),
                     patch_info=patch_info,
                 )
 
                 await bootstrap._store_static_bin_cache_conn(
-                    conn, f'patch_log_{idx}', pickle.dumps(entry))
+                    conn, f'patch_log_{idx}', pickle.dumps(entry)
+                )
 
             patches[num] = entry
             _, _, updates = entry
             if 'std_and_reflection_schema' in updates:
                 self._std_schema, self._refl_schema = updates[
-                    'std_and_reflection_schema']
+                    'std_and_reflection_schema'
+                ]
                 # +config patches might modify config_spec, which requires
                 # a reload of it from the schema.
                 if '+config' in kind:
@@ -1391,10 +1380,12 @@ class Server(BaseServer):
             if 'sysqueries' in updates:
                 queries = json.loads(updates['sysqueries'])
                 self._sys_queries = immutables.Map(
-                    {k: q.encode() for k, q in queries.items()})
+                    {k: q.encode() for k, q in queries.items()}
+                )
             if 'report_configs_typedesc' in updates:
-                self._report_config_typedesc = (
-                    updates['report_configs_typedesc'])
+                self._report_config_typedesc = updates[
+                    'report_configs_typedesc'
+                ]
 
         return patches
 
@@ -1403,7 +1394,7 @@ class Server(BaseServer):
         dbname: str,
         conn: pgcon.PGConnection,
         patches: dict[int, bootstrap.PatchEntry],
-        sys: bool=False,
+        sys: bool = False,
     ) -> None:
         """Apply any un-applied patches to the database."""
         num_patches = await self._tenant.get_patch_count(conn)
@@ -1433,16 +1424,20 @@ class Server(BaseServer):
                     assert state.global_intro_query and state.local_intro_query
                     global_schema = self._parse_global_schema(
                         await conn.sql_fetch_val(
-                            state.global_intro_query.encode('utf-8')),
+                            state.global_intro_query.encode('utf-8')
+                        ),
                     )
                     user_schema = self._parse_user_schema(
                         await conn.sql_fetch_val(
-                            state.local_intro_query.encode('utf-8')),
+                            state.local_intro_query.encode('utf-8')
+                        ),
                         global_schema,
                     )
 
                     entry = bootstrap.prepare_patch(
-                        num, kind, patch,
+                        num,
+                        kind,
+                        patch,
                         state.std_schema,
                         state.refl_schema,
                         state.schema_class_layout,
@@ -1458,7 +1453,8 @@ class Server(BaseServer):
                 if sql:
                     await conn.sql_execute(sql)
                 logger.info(
-                    "finished applying patch %d to database '%s'", num, dbname)
+                    "finished applying patch %d to database '%s'", num, dbname
+                )
 
     async def _maybe_patch_db(
         self, dbname: str, patches: dict[int, bootstrap.PatchEntry], sem: Any
@@ -1470,9 +1466,8 @@ class Server(BaseServer):
                 async with self._tenant.direct_pgcon(dbname) as conn:
                     await self._maybe_apply_patches(dbname, conn, patches)
         except Exception as e:
-            if (
-                isinstance(e, errors.EdgeDBError)
-                and not isinstance(e, errors.InternalServerError)
+            if isinstance(e, errors.EdgeDBError) and not isinstance(
+                e, errors.InternalServerError
             ):
                 raise
             raise errors.InternalServerError(
@@ -1499,13 +1494,13 @@ class Server(BaseServer):
             # Patch all the databases
             for dbname in dbnames:
                 if dbname != defines.GELITE_SYSTEM_DB:
-                    g.create_task(
-                        self._maybe_patch_db(dbname, patches, sem))
+                    g.create_task(self._maybe_patch_db(dbname, patches, sem))
 
             # Patch the template db, so that any newly created databases
             # will have the patches.
-            g.create_task(self._maybe_patch_db(
-                defines.GELITE_TEMPLATE_DB, patches, sem))
+            g.create_task(
+                self._maybe_patch_db(defines.GELITE_TEMPLATE_DB, patches, sem)
+            )
 
         await self._tenant.ensure_database_not_connected(
             defines.GELITE_TEMPLATE_DB
@@ -1520,7 +1515,8 @@ class Server(BaseServer):
         # always use the correct schema when compiling patches.
         async with self._tenant.use_sys_pgcon() as syscon:
             await self._maybe_apply_patches(
-                defines.GELITE_SYSTEM_DB, syscon, patches, sys=True)
+                defines.GELITE_SYSTEM_DB, syscon, patches, sys=True
+            )
 
     def _load_schema(self, result, version_key) -> s_schema.Schema:
         res = pickle.loads(result[2:])
@@ -1535,25 +1531,23 @@ class Server(BaseServer):
             version_key = pg_patches.get_version_key(patch_count)
 
             result = await instdata.get_instdata(
-                syscon, f'sysqueries{version_key}', 'json')
+                syscon, f'sysqueries{version_key}', 'json'
+            )
             queries = json.loads(result)
             self._sys_queries = immutables.Map(
-                {k: q.encode() for k, q in queries.items()})
-
-            self._report_config_typedesc[(1, 0)] = (
-                await instdata.get_instdata(
-                    syscon,
-                    f'report_configs_typedesc_1_0{version_key}',
-                    'bin',
-                )
+                {k: q.encode() for k, q in queries.items()}
             )
 
-            self._report_config_typedesc[(2, 0)] = (
-                await instdata.get_instdata(
-                    syscon,
-                    f'report_configs_typedesc_2_0{version_key}',
-                    'bin',
-                )
+            self._report_config_typedesc[(1, 0)] = await instdata.get_instdata(
+                syscon,
+                f'report_configs_typedesc_1_0{version_key}',
+                'bin',
+            )
+
+            self._report_config_typedesc[(2, 0)] = await instdata.get_instdata(
+                syscon,
+                f'report_configs_typedesc_2_0{version_key}',
+                'bin',
             )
 
     def _reload_stmt_cache_size(self):
@@ -1566,9 +1560,7 @@ class Server(BaseServer):
     async def _restart_servers_new_addr(self, nethosts, netport):
         if not netport:
             raise RuntimeError('cannot restart without network port specified')
-        nethosts, has_ipv4_wc, has_ipv6_wc = await _resolve_interfaces(
-            nethosts
-        )
+        nethosts, has_ipv4_wc, has_ipv6_wc = await _resolve_interfaces(nethosts)
         servers_to_stop = []
         servers_to_stop_early = []
         servers = {}
@@ -1875,8 +1867,10 @@ def _cleanup_wildcard_addrs(
         return (
             ['0.0.0.0', '::'],
             [
-                str(a) for a in
-                ((named_hosts | ipv4_hosts | ipv6_hosts) - {ipv4_wc, ipv6_wc})
+                str(a)
+                for a in (
+                    (named_hosts | ipv4_hosts | ipv6_hosts) - {ipv4_wc, ipv6_wc}
+                )
             ],
             True,
             True,
@@ -1920,11 +1914,9 @@ async def _resolve_host(host: str) -> list[str] | Exception:
 async def _resolve_interfaces(
     hosts: Sequence[str],
 ) -> tuple[Sequence[str], bool, bool]:
-
     async with asyncio.TaskGroup() as g:
         resolve_tasks = {
-            host: g.create_task(_resolve_host(host))
-            for host in hosts
+            host: g.create_task(_resolve_host(host)) for host in hosts
         }
 
     addrs = []
@@ -1932,19 +1924,20 @@ async def _resolve_interfaces(
         result = fut.result()
         if isinstance(result, Exception):
             logger.warning(
-                f"could not translate host name {host!r} to address: {result}")
+                f"could not translate host name {host!r} to address: {result}"
+            )
         else:
             addrs.extend(result)
 
-    (
-        clean_addrs, rejected_addrs, has_ipv4_wc, has_ipv6_wc
-    ) = _cleanup_wildcard_addrs(addrs)
+    (clean_addrs, rejected_addrs, has_ipv4_wc, has_ipv6_wc) = (
+        _cleanup_wildcard_addrs(addrs)
+    )
 
     if rejected_addrs:
         logger.warning(
-            "wildcard addresses found in listen_addresses; " +
-            "discarding the other addresses: " +
-            ", ".join(repr(h) for h in rejected_addrs)
+            "wildcard addresses found in listen_addresses; "
+            + "discarding the other addresses: "
+            + ", ".join(repr(h) for h in rejected_addrs)
         )
 
     return clean_addrs, has_ipv4_wc, has_ipv6_wc

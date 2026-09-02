@@ -22,7 +22,6 @@ from edb.testbase import server as tb
 
 
 class TestServerParamConversions(tb.QueryTestCase):
-
     SETUP = '''
         create type Result {
             create property n: int64;
@@ -135,7 +134,7 @@ class TestServerParamConversions(tb.QueryTestCase):
         # Scalar expression
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "Argument 'val' must be a constant or query parameter"
+            "Argument 'val' must be a constant or query parameter",
         ):
             await self.assert_query_result(
                 'select simple_to_str(1 + 2)',
@@ -150,7 +149,7 @@ class TestServerParamConversions(tb.QueryTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "Argument 'val' must be a constant or query parameter"
+            "Argument 'val' must be a constant or query parameter",
         ):
             await self.assert_query_result(
                 'select simple_to_str(global foo)',
@@ -168,7 +167,7 @@ class TestServerParamConversions(tb.QueryTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "Argument 'val' must be a constant or query parameter"
+            "Argument 'val' must be a constant or query parameter",
         ):
             await self.assert_query_result(
                 'select simple_to_str(global foo)',
@@ -183,7 +182,7 @@ class TestServerParamConversions(tb.QueryTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "Argument 'val' must be a constant or query parameter"
+            "Argument 'val' must be a constant or query parameter",
         ):
             await self.assert_query_result(
                 'select simple_to_str(foo)',
@@ -206,8 +205,7 @@ class TestServerParamConversions(tb.QueryTestCase):
     async def test_server_param_conversions_simple_08(self):
         # Array literal
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Argument 'val' must be a query parameter"
+            edgedb.QueryError, "Argument 'val' must be a query parameter"
         ):
             await self.assert_query_result(
                 'select simple_from_array(["hello", "world", "!"])',
@@ -217,8 +215,7 @@ class TestServerParamConversions(tb.QueryTestCase):
     async def test_server_param_conversions_simple_09(self):
         # Array expression
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Argument 'val' must be a query parameter"
+            edgedb.QueryError, "Argument 'val' must be a query parameter"
         ):
             await self.assert_query_result(
                 'select simple_from_array(array_agg({"hello", "world", "!"}))',
@@ -232,8 +229,7 @@ class TestServerParamConversions(tb.QueryTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Argument 'val' must be a query parameter"
+            edgedb.QueryError, "Argument 'val' must be a query parameter"
         ):
             await self.assert_query_result(
                 'select simple_from_array(global foo)',
@@ -250,8 +246,7 @@ class TestServerParamConversions(tb.QueryTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Argument 'val' must be a query parameter"
+            edgedb.QueryError, "Argument 'val' must be a query parameter"
         ):
             await self.assert_query_result(
                 'select simple_from_array(global foo)',
@@ -265,8 +260,7 @@ class TestServerParamConversions(tb.QueryTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            "Argument 'val' must be a query parameter"
+            edgedb.QueryError, "Argument 'val' must be a query parameter"
         ):
             await self.assert_query_result(
                 'select simple_from_array(foo)',
@@ -436,8 +430,7 @@ class TestServerParamConversions(tb.QueryTestCase):
     async def test_server_param_conversions_multi_07(self):
         # Function called only if all param conversions applied
         async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'function .* does not exist'
+            edgedb.QueryError, r'function .* does not exist'
         ):
             await self.assert_query_result(
                 'select multi_to_str_and_float(<int64>$0, <float64>$1)',
@@ -511,7 +504,7 @@ class TestServerParamConversions(tb.QueryTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
             r"Function 'default::simple_to_str\(val: std::str\)' "
-            r"is not allowed in a config statement."
+            r"is not allowed in a config statement.",
         ):
             await self.con.execute('''
                 set global foo := simple_to_str(123);
@@ -578,7 +571,7 @@ class TestServerParamConversions(tb.QueryTestCase):
             insert Result { n := 1, val := simple_to_str(<int64>$0) };
             insert Result { n := 2, val := "456" };
             ''',
-            123
+            123,
         )
 
         await self.assert_query_result(
@@ -596,7 +589,7 @@ class TestServerParamConversions(tb.QueryTestCase):
             insert Result { n := 1, val := simple_to_str(<int64>$0) };
             insert Result { n := 2, val := simple_to_str(<int64>$0) };
             ''',
-            123
+            123,
         )
 
         await self.assert_query_result(

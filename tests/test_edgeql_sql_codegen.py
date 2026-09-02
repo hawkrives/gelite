@@ -18,7 +18,6 @@
 
 
 import os.path
-import re
 
 from edb.testbase import lang as tb
 
@@ -29,7 +28,6 @@ from edb.edgeql import parser as qlparser
 from edb.pgsql import ast as pgast
 from edb.pgsql import compiler as pg_compiler
 from edb.pgsql import codegen as pg_codegen
-from edb.pgsql import common as pg_common
 
 
 class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
@@ -38,23 +36,26 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
     Tests can be written by inspecting the AST or the generated text.
     """
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
-    SCHEMA_cards = os.path.join(os.path.dirname(__file__), 'schemas',
-                                'cards.esdl')
+    SCHEMA_cards = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards.esdl'
+    )
 
     @classmethod
     def get_schema_script(cls):
         script = super().get_schema_script()
         # Setting internal params like is_inlined in the schema
         # doesn't work right so we override the script to add DDL.
-        return script + '''
+        return (
+            script
+            + '''
             create function cards::ins_bot(name: str) -> cards::Bot {
                 set is_inlined := true;
                 using (insert cards::Bot { name := "asdf" });
             };
         '''
+        )
 
     def _compile_to_tree(self, source):
         qltree = qlparser.parse_query(source)
@@ -85,9 +86,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             table_obj = self.schema.get("default::" + table)
             count = sql.count(str(table_obj.id))
             self.assertEqual(
-                count,
-                1,
-                f"{table} referenced more than once: {sql}")
+                count, 1, f"{table} referenced more than once: {sql}"
+            )
 
     def test_codegen_no_self_join_single(self):
         self.no_self_join_test("SELECT Issue.status", ["Issue", "Status"])
@@ -101,8 +101,9 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         # One distinguishing characteristic of an optional wrapper is
         # selecting '("m~1" = first_value("m~1") OVER ())'
         self.assertNotIn(
-            "OVER ()", sql,
-            "optional wrapper generated when it shouldn't be needed"
+            "OVER ()",
+            sql,
+            "optional wrapper generated when it shouldn't be needed",
         )
 
     SCHEMA_pol = '''
@@ -160,10 +161,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             select pol::PolOwned
         ''')
         count = sql.count('IS NOT DISTINCT FROM')
-        self.assertEqual(
-            count, 1,
-            ".id ?= <uuid>{} not elided"
-        )
+        self.assertEqual(count, 1, ".id ?= <uuid>{} not elided")
 
     def test_codegen_order_by_not_subquery_01(self):
         sql = self._compile_to_tree('''
@@ -173,13 +171,14 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             sql,
             pgast.SelectStmt,
             lambda x: bool(x.sort_clause),
-            terminate_early=True
+            terminate_early=True,
         )[0]
 
         # Make sure that a simple order by on a property is not compiled
         # as a subquery in the ORDER BY, which pg fails to use an index for.
         self.assertIsInstance(
-            child.sort_clause[0].node, pgast.ColumnRef,
+            child.sort_clause[0].node,
+            pgast.ColumnRef,
             "simple sort clause is not a column ref",
         )
 
@@ -192,13 +191,14 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             sql,
             pgast.SelectStmt,
             lambda x: bool(x.sort_clause),
-            terminate_early=True
+            terminate_early=True,
         )[0]
 
         # Make sure that a simple order by on a property is not compiled
         # as a subquery in the ORDER BY, which pg fails to use an index for.
         self.assertIsInstance(
-            child.sort_clause[0].node, pgast.Expr,
+            child.sort_clause[0].node,
+            pgast.Expr,
             "simple sort clause is not a op expr",
         )
 
@@ -209,8 +209,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertNotIn(
-            "exclusion_violation", sql,
-            "update has unnecessary conflict check"
+            "exclusion_violation", sql, "update has unnecessary conflict check"
         )
 
     SCHEMA_constraints = r'''
@@ -231,8 +230,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertNotIn(
-            "exclusion_violation", sql,
-            "update has unnecessary conflict check"
+            "exclusion_violation", sql, "update has unnecessary conflict check"
         )
 
     def test_codegen_group_simple_01(self):
@@ -246,20 +244,22 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             tree,
             pgast.SelectStmt,
             lambda x: bool(x.group_clause),
-            terminate_early=True
+            terminate_early=True,
         )[0]
         group_sql = pg_codegen.generate_source(child, pretty=True)
 
         # We want no array_agg in the group - it should just be able
         # to do a count
         self.assertNotIn(
-            "array_agg", group_sql,
+            "array_agg",
+            group_sql,
             "group has unnecessary array_agg",
         )
 
         # And we want no uuid generation, which is a huge perf killer
         self.assertNotIn(
-            "uuid_generate", group_sql,
+            "uuid_generate",
+            group_sql,
             "group has unnecessary uuid_generate",
         )
 
@@ -272,20 +272,22 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             tree,
             pgast.SelectStmt,
             lambda x: bool(x.group_clause),
-            terminate_early=True
+            terminate_early=True,
         )[0]
         group_sql = pg_codegen.generate_source(child, pretty=True)
 
         # We want no array_agg in the group - it should just be able
         # to do a count
         self.assertNotIn(
-            "array_agg", group_sql,
+            "array_agg",
+            group_sql,
             "group has unnecessary array_agg",
         )
 
         # And we want no uuid generation, which is a huge perf killer
         self.assertNotIn(
-            "uuid_generate", group_sql,
+            "uuid_generate",
+            group_sql,
             "group has unnecessary uuid_generate",
         )
 
@@ -299,7 +301,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertNotIn(
-            "array_agg", sql,
+            "array_agg",
+            sql,
             "group has unnecessary array_agg",
         )
 
@@ -310,10 +313,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         count = sql.count('["1"]')
-        self.assertEqual(
-            count,
-            1,
-            f"argument needlessly duplicated")
+        self.assertEqual(count, 1, f"argument needlessly duplicated")
 
     def test_codegen_filtered_link_no_semijoin(self):
         sql = self._compile('''
@@ -323,7 +323,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
        ''')
 
         self.assertNotIn(
-            " IN ", sql,
+            " IN ",
+            sql,
             "unexpected semi-join",
         )
 
@@ -335,7 +336,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
        ''')
 
         self.assertNotIn(
-            " IN ", sql,
+            " IN ",
+            sql,
             "unexpected semi-join",
         )
 
@@ -350,7 +352,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
        ''')
 
         self.assertNotIn(
-            " IN ", sql,
+            " IN ",
+            sql,
             "unexpected semi-join",
         )
 
@@ -360,10 +363,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             order by .name = <str>$0
        ''')
         count = sql.count('SELECT')
-        self.assertEqual(
-            count,
-            1,
-            f"ORDER BY subquery not optimized out")
+        self.assertEqual(count, 1, f"ORDER BY subquery not optimized out")
 
     def test_codegen_tuples_no_extra_serialized(self):
         sql = self._compile('''
@@ -371,7 +371,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
        ''')
 
         self.assertNotIn(
-            "0_serialized~1", sql,
+            "0_serialized~1",
+            sql,
             "pointless extra query outputs",
         )
 
@@ -425,7 +426,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         self.assertNotIn(
             str(card_obj.id),
             sql,
-            "Card being selected when SpecialCard should suffice"
+            "Card being selected when SpecialCard should suffice",
         )
 
     def test_codegen_materialized_01(self):
@@ -435,10 +436,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         count = sql.count('+')
-        self.assertEqual(
-            count,
-            1,
-            f"addition not materialized")
+        self.assertEqual(count, 1, f"addition not materialized")
 
     def test_codegen_materialized_02(self):
         sql = self._compile('''
@@ -449,16 +447,10 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         count = sql.count('+')
-        self.assertEqual(
-            count,
-            1,
-            f"addition not materialized")
+        self.assertEqual(count, 1, f"addition not materialized")
 
         count = sql.count('Alice')
-        self.assertEqual(
-            count,
-            1,
-            f"filter not materialized")
+        self.assertEqual(count, 1, f"filter not materialized")
 
     def test_codegen_unless_conflict_01(self):
         # Should have no conflict check because it has no subtypes
@@ -468,8 +460,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertIn(
-            "ON CONFLICT", sql,
-            "insert unless conflict not using ON CONFLICT"
+            "ON CONFLICT", sql, "insert unless conflict not using ON CONFLICT"
         )
 
     def test_codegen_unless_conflict_02(self):
@@ -481,8 +472,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertIn(
-            "ON CONFLICT", sql,
-            "insert unless conflict not using ON CONFLICT"
+            "ON CONFLICT", sql, "insert unless conflict not using ON CONFLICT"
         )
 
     SCHEMA_asdf = r'''
@@ -507,8 +497,7 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         ''')
 
         self.assertIn(
-            "ON CONFLICT", sql,
-            "insert unless conflict not using ON CONFLICT"
+            "ON CONFLICT", sql, "insert unless conflict not using ON CONFLICT"
         )
 
     def test_codegen_inlined_insert_01(self):
@@ -524,44 +513,8 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
         # The table should only be referenced once, in the INSERT.
         # If we reference it more than that, we're probably selecting it.
         self.assertEqual(
-            count,
-            1,
-            f"Bot selected from and not just inserted: {sql}")
-
-    def test_codegen_inlined_insert_02(self):
-        # Test that we don't use an overlay when selecting from a
-        # net::http::schedule_request
-        sql = self._compile('''
-            with
-                nh as module std::net::http,
-                url := <str>$url,
-                request := (
-                    nh::schedule_request(
-                        url,
-                        method := nh::Method.`GET`
-                    )
-                )
-            select request {
-                id,
-                state,
-                failure,
-                response,
-            }
-        ''')
-
-        schema_name = pg_common.versioned_schema('edgedbstd')
-        table_obj = self.schema.get("std::net::http::ScheduledRequest")
-        # Search for the table with versioned schema to exclude matches from
-        # access policies.
-        pattern = schema_name + r"\.['\"]" + str(table_obj.id) + r"['\"]"
-        count = len(re.findall(pattern, sql))
-
-        # The table should only be referenced once, in the INSERT.
-        # If we reference it more than that, we're probably selecting it.
-        self.assertEqual(
-            count,
-            1,
-            f"ScheduledRequest selected from and not just inserted: {sql}")
+            count, 1, f"Bot selected from and not just inserted: {sql}"
+        )
 
     SCHEMA_gcache = r'''
         global b := true;

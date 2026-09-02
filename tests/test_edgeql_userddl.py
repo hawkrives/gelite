@@ -31,10 +31,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_01(self):
         # testing anytype polymorphism
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_01.*'
-                r'generic types are not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_01.*'
+            r'generic types are not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_01(
                     a: anytype
@@ -47,10 +48,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_02(self):
         # testing anyreal polymorphism, which is an actual abstract
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_02.*'
-                r'generic types are not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_02.*'
+            r'generic types are not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_02(
                     a: anyreal
@@ -63,10 +65,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_03(self):
         # testing anytype as return type
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_03.*'
-                r'generic types are not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_03.*'
+            r'generic types are not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_03(
                     a: str
@@ -79,10 +82,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_04(self):
         # testing anyreal as return type
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_04.*'
-                r'generic types are not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_04.*'
+            r'generic types are not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_04(
                     a: str
@@ -94,10 +98,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_05.*'
-                r'USING SQL FUNCTION.*not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_05.*'
+            r'USING SQL FUNCTION.*not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_05(
                     a: str
@@ -107,10 +112,11 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_06(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*func_06.*'
-                r'USING SQL.*not supported in '
-                r'user-defined functions'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*func_06.*'
+            r'USING SQL.*not supported in '
+            r'user-defined functions',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_06(
                     a: str
@@ -120,8 +126,9 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_07(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'user-defined operators are not supported'):
+            edgedb.UnsupportedFeatureError,
+            r'user-defined operators are not supported',
+        ):
             await self.con.execute('''
                 CREATE INFIX OPERATOR
                 std::`+` (l: std::str, r: std::str) -> std::str
@@ -130,8 +137,9 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_08(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'user-defined casts are not supported'):
+            edgedb.UnsupportedFeatureError,
+            r'user-defined casts are not supported',
+        ):
             await self.con.execute('''
                 CREATE CAST FROM std::int64 TO std::duration {
                     USING SQL CAST;
@@ -141,8 +149,9 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_09(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot create.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot create.*module std is read-only',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION std::func_09(
                     a: str
@@ -154,8 +163,9 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_10(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot create.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot create.*module std is read-only',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION std::math::func_10(
                     a: str
@@ -167,32 +177,36 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_11(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot create.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot create.*module std is read-only',
+        ):
             await self.con.execute('''
                 CREATE TYPE std::Foo_11;
             ''')
 
     async def test_edgeql_userddl_12(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot create.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot create.*module std is read-only',
+        ):
             await self.con.execute('''
                 CREATE TYPE std::math::Foo_11;
             ''')
 
     async def test_edgeql_userddl_13(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot delete.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot delete.*module std is read-only',
+        ):
             await self.con.execute('''
                 DROP TYPE std::Object;
             ''')
 
     async def test_edgeql_userddl_15(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot alter.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot alter.*module std is read-only',
+        ):
             await self.con.execute('''
                 ALTER TYPE std::Object {
                     CREATE PROPERTY foo_15 -> std::str;
@@ -201,26 +215,29 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_17(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot delete.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot delete.*module std is read-only',
+        ):
             await self.con.execute('''
                 DROP MODULE std;
             ''')
 
     async def test_edgeql_userddl_18(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'cannot delete.*module std is read-only'):
+            edgedb.SchemaDefinitionError,
+            r'cannot delete.*module std is read-only',
+        ):
             await self.con.execute('''
                 DROP MODULE std::math;
             ''')
 
     async def test_edgeql_userddl_19(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'cannot create.*func_19.*'
-                r'SET OF parameters in user-defined EdgeQL '
-                r'functions are not supported'):
+            edgedb.UnsupportedFeatureError,
+            r'cannot create.*func_19.*'
+            r'SET OF parameters in user-defined EdgeQL '
+            r'functions are not supported',
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func_19(
                     a: SET OF str
@@ -256,8 +273,9 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_21(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"'force_return_cast' is not a valid field"):
+            edgedb.SchemaDefinitionError,
+            r"'force_return_cast' is not a valid field",
+        ):
             await self.con.execute('''
                 CREATE FUNCTION func(
                     a: str
@@ -293,7 +311,7 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_23(self):
         with self.assertRaisesRegex(
             edgedb.UnsupportedFeatureError,
-            'user-defined pseudo types are not supported'
+            'user-defined pseudo types are not supported',
         ):
             await self.con.execute('CREATE PSEUDO TYPE foo;')
 
@@ -317,8 +335,8 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
     async def test_edgeql_userddl_25(self):
         # testing fallback
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"'fallback' is not a valid field"):
+            edgedb.SchemaDefinitionError, r"'fallback' is not a valid field"
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION func_25(
                     a: bool
@@ -343,8 +361,8 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"'fallback' is not a valid field"):
+            edgedb.SchemaDefinitionError, r"'fallback' is not a valid field"
+        ):
             await self.con.execute(r'''
                 ALTER FUNCTION func_26(
                     a: bool
@@ -366,8 +384,8 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"'fallback' is not a valid field"):
+            edgedb.SchemaDefinitionError, r"'fallback' is not a valid field"
+        ):
             await self.con.execute(r'''
                 ALTER FUNCTION func_27(
                     a: bool
@@ -380,8 +398,8 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
 
     async def test_edgeql_userddl_28(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"cannot extend system type"):
+            edgedb.SchemaDefinitionError, r"cannot extend system type"
+        ):
             await self.con.execute(r'''
             create type Foo extending cfg::ConfigObject;
             ''')
@@ -395,25 +413,29 @@ class TestEdgeQLUserDDL(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError, "module ext is read-only"):
+            edgedb.SchemaDefinitionError, "module ext is read-only"
+        ):
             await self.con.execute('''
                 create module ext::_test::foo;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError, "module ext is read-only"):
+            edgedb.SchemaDefinitionError, "module ext is read-only"
+        ):
             await self.con.execute('''
                 create type ext::_test::foo;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError, "module ext is read-only"):
+            edgedb.SchemaDefinitionError, "module ext is read-only"
+        ):
             await self.con.execute('''
                 alter type ext::_test::X { create property x -> str };
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError, "module ext is read-only"):
+            edgedb.SchemaDefinitionError, "module ext is read-only"
+        ):
             await self.con.execute('''
                 drop type ext::_test::X;
             ''')

@@ -90,12 +90,15 @@ class TestDDLExtensions(tb.DDLTestCase):
             json_only=True,
         )
 
-        await self.migrate("""
+        await self.migrate(
+            """
             using extension ltree version '2.0';
             module default {
                 type Foo { property x -> ext::ltree::ltree };
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             '''
@@ -109,9 +112,11 @@ class TestDDLExtensions(tb.DDLTestCase):
         ''')
 
     async def test_edgeql_extensions_01(self):
-        pg_ver = edb.buildmeta.parse_pg_version(await self.con.query_single('''
+        pg_ver = edb.buildmeta.parse_pg_version(
+            await self.con.query_single('''
             select sys::_postgres_version();
-        '''))
+        ''')
+        )
         # Skip if postgres is old, since it doesn't have ltree 1.3
         if pg_ver.major < 17:
             self.skipTest('Postgres version too old')
@@ -354,7 +359,8 @@ class TestDDLExtensions(tb.DDLTestCase):
             ''')
 
     async def _extension_test_02b(self):
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension varchar version "1.0";
             module default {
                 scalar type vc5 extending ext::varchar::varchar<5>;
@@ -362,7 +368,9 @@ class TestDDLExtensions(tb.DDLTestCase):
                     foo: vc5;
                 };
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.con.execute('''
             insert X { foo := <vc5>"0123456789" }
@@ -378,11 +386,14 @@ class TestDDLExtensions(tb.DDLTestCase):
 
         # Try dropping everything that uses it but not the extension
         async with self._run_and_rollback():
-            await self.migrate(r"""
+            await self.migrate(
+                r"""
                 using extension varchar version "1.0";
                 module default {
                 }
-            """, module=None)
+            """,
+                module=None,
+            )
 
         # Try dropping everything including the extension
         await self.migrate('')
@@ -455,9 +466,10 @@ class TestDDLExtensions(tb.DDLTestCase):
         ''')
         try:
             async with self.assertRaisesRegexTx(
-                    edgedb.UnsupportedBackendFeatureError,
-                    r"could not find extension satisfying ltree >=1000.0: "
-                    r"only found versions 1\."):
+                edgedb.UnsupportedBackendFeatureError,
+                r"could not find extension satisfying ltree >=1000.0: "
+                r"only found versions 1\.",
+            ):
                 await self.con.execute(r"""
                     CREATE EXTENSION ltree_broken;
                 """)
@@ -476,9 +488,10 @@ class TestDDLExtensions(tb.DDLTestCase):
         ''')
         try:
             async with self.assertRaisesRegexTx(
-                    edgedb.UnsupportedBackendFeatureError,
-                    r"could not find extension satisfying loltree >=1.0: "
-                    r"extension not found"):
+                edgedb.UnsupportedBackendFeatureError,
+                r"could not find extension satisfying loltree >=1.0: "
+                r"extension not found",
+            ):
                 await self.con.execute(r"""
                     CREATE EXTENSION ltree_broken;
                 """)
@@ -568,7 +581,8 @@ class TestDDLExtensions(tb.DDLTestCase):
 
         if not in_tx:
             with self.assertRaisesRegex(
-                    edgedb.ConfigurationError, "is not allowed"):
+                edgedb.ConfigurationError, "is not allowed"
+            ):
                 await self.con.execute('''
                     configure instance set ext::_conf::Config::config_name :=
                         "session!";
@@ -651,9 +665,7 @@ class TestDDLExtensions(tb.DDLTestCase):
                 value := 'quux',
             };
         ''')
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError, "protected"
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, "protected"):
             await self.con.execute('''
                 configure current database insert ext::_conf::SingleObj {
                     name := 'single',
@@ -687,16 +699,37 @@ class TestDDLExtensions(tb.DDLTestCase):
         await _check(
             config_name='ready',
             objs=[
-                dict(name='1', value='foo', tname='ext::_conf::Obj',
-                     opt_value=None),
-                dict(name='2', value='bar', tname='ext::_conf::Obj',
-                     opt_value='opt.'),
-                dict(name='3', value='baz', extra=42,
-                     tname='ext::_conf::SubObj', opt_value=None),
-                dict(name='4', value='foo',
-                     tname='ext::_conf::SecretObj', opt_value=None),
-                dict(name='5', value='quux',
-                     tname='ext::_conf::SecretObj', opt_value=None),
+                dict(
+                    name='1',
+                    value='foo',
+                    tname='ext::_conf::Obj',
+                    opt_value=None,
+                ),
+                dict(
+                    name='2',
+                    value='bar',
+                    tname='ext::_conf::Obj',
+                    opt_value='opt.',
+                ),
+                dict(
+                    name='3',
+                    value='baz',
+                    extra=42,
+                    tname='ext::_conf::SubObj',
+                    opt_value=None,
+                ),
+                dict(
+                    name='4',
+                    value='foo',
+                    tname='ext::_conf::SecretObj',
+                    opt_value=None,
+                ),
+                dict(
+                    name='5',
+                    value='quux',
+                    tname='ext::_conf::SecretObj',
+                    opt_value=None,
+                ),
             ],
             obj=dict(name='single', value='val', fixed='fixed!'),
         )
@@ -808,26 +841,50 @@ class TestDDLExtensions(tb.DDLTestCase):
                     key=lambda x: x['name'],
                 ),
                 [
-                    {'_tname': 'ext::_conf::Obj',
-                     'name': '1', 'value': 'foo', 'opt_value': None},
-                    {'_tname': 'ext::_conf::Obj',
-                     'name': '2', 'value': 'bar', 'opt_value': 'opt.'},
-                    {'_tname': 'ext::_conf::SubObj',
-                     'name': '3', 'value': 'baz', 'extra': 42,
-                     'duration_config': 'PT10M',
-                     'opt_value': None},
-                    {'_tname': 'ext::_conf::SecretObj',
-                     'name': '4', 'value': 'foo',
-                     'opt_value': None, 'secret': {'redacted': True}},
-                    {'_tname': 'ext::_conf::SecretObj',
-                     'name': '5', 'value': 'quux',
-                     'opt_value': None, 'secret': None},
+                    {
+                        '_tname': 'ext::_conf::Obj',
+                        'name': '1',
+                        'value': 'foo',
+                        'opt_value': None,
+                    },
+                    {
+                        '_tname': 'ext::_conf::Obj',
+                        'name': '2',
+                        'value': 'bar',
+                        'opt_value': 'opt.',
+                    },
+                    {
+                        '_tname': 'ext::_conf::SubObj',
+                        'name': '3',
+                        'value': 'baz',
+                        'extra': 42,
+                        'duration_config': 'PT10M',
+                        'opt_value': None,
+                    },
+                    {
+                        '_tname': 'ext::_conf::SecretObj',
+                        'name': '4',
+                        'value': 'foo',
+                        'opt_value': None,
+                        'secret': {'redacted': True},
+                    },
+                    {
+                        '_tname': 'ext::_conf::SecretObj',
+                        'name': '5',
+                        'value': 'quux',
+                        'opt_value': None,
+                        'secret': None,
+                    },
                 ],
             )
             self.assertEqual(
                 config['ext::_conf::Config::obj'],
-                {'_tname': 'ext::_conf::SingleObj',
-                 'name': 'single', 'value': 'val', 'fixed': 'fixed!'},
+                {
+                    '_tname': 'ext::_conf::SingleObj',
+                    'name': 'single',
+                    'value': 'val',
+                    'fixed': 'fixed!',
+                },
             )
 
         val = await self.con.query_single('''
@@ -979,12 +1036,15 @@ class TestDDLExtensions(tb.DDLTestCase):
             ''')
 
     async def _extension_test_06b(self):
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension bar version "2.0";
             module default {
                 function lol() -> str using (ext::bar::fubar())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             'select lol()',
@@ -993,19 +1053,25 @@ class TestDDLExtensions(tb.DDLTestCase):
 
         # Try dropping everything that uses it but not the extension
         async with self._run_and_rollback():
-            await self.migrate(r"""
+            await self.migrate(
+                r"""
                 using extension bar version "2.0";
                 module default {
                 }
-            """, module=None)
+            """,
+                module=None,
+            )
 
         # Try dropping it but adding bar
         async with self._run_and_rollback():
-            await self.migrate(r"""
+            await self.migrate(
+                r"""
                 using extension bar version "2.0";
                 module default {
                 }
-            """, module=None)
+            """,
+                module=None,
+            )
 
         # Try dropping everything including the extension
         await self.migrate('')
@@ -1015,12 +1081,15 @@ class TestDDLExtensions(tb.DDLTestCase):
         # versions; you need to drop it and recreate everything, which
         # obviously is not great.
 
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension bar version '1.0';
             module default {
                 function lol() -> str using (ext::bar::fubar())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             'select lol()',
@@ -1033,14 +1102,17 @@ class TestDDLExtensions(tb.DDLTestCase):
         with self.assertRaisesRegex(
             edgedb.SchemaError,
             "cannot install extension 'foo' version 2.0: "
-            "version 1.0 is already installed"
+            "version 1.0 is already installed",
         ):
-            await self.migrate(r"""
+            await self.migrate(
+                r"""
                 using extension bar version '1.0';
                 using extension foo version '2.0';
                 module default {
                 }
-            """, module=None)
+            """,
+                module=None,
+            )
 
     async def test_edgeql_extensions_06(self):
         # Make an extension with dependencies
@@ -1085,24 +1157,30 @@ class TestDDLExtensions(tb.DDLTestCase):
             ''')
 
     async def _extension_test_07(self):
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension asdf version "1.0";
             module default {
                 function lol() -> int64 using (ext::asdf::getver())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             'select lol()',
             [1],
         )
 
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension asdf version "3.0";
             module default {
                 function lol() -> int64 using (ext::asdf::getver())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             'select lol()',
@@ -1165,12 +1243,15 @@ class TestDDLExtensions(tb.DDLTestCase):
             ''')
 
     async def _extension_test_08(self):
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension bar version "1.0";
             module default {
                 function lol() -> str using (ext::bar::fubar())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
 
         await self.assert_query_result(
             'select lol()',
@@ -1187,12 +1268,15 @@ class TestDDLExtensions(tb.DDLTestCase):
             """)
 
         # Migration should work, though, since it will create the dependency.
-        await self.migrate(r"""
+        await self.migrate(
+            r"""
             using extension bar version "2.0";
             module default {
                 function lol() -> str using (ext::bar::fubar())
             }
-        """, module=None)
+        """,
+            module=None,
+        )
         await self.assert_query_result(
             'select lol()',
             ['foobar'],

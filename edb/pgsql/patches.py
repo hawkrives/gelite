@@ -65,5 +65,4 @@ The current kinds are:
  * sql-introspection - refresh all sql introspection views
  * ...+testmode - only run the patch in testmode. Works with any patch kind.
 """
-PATCHES: list[tuple[str, str]] = [
-]
+PATCHES: list[tuple[str, str]] = []

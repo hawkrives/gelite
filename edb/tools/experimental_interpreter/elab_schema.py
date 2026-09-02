@@ -35,9 +35,7 @@ def elab_schema_cardinality(
     )
 
 
-def elab_schema_target_tp(
-    target: Optional[qlast.Expr | qlast.TypeExpr]
-) -> Tp:
+def elab_schema_target_tp(target: Optional[qlast.Expr | qlast.TypeExpr]) -> Tp:
     return (
         elab_single_type_expr(target)
         if isinstance(target, qlast.TypeExpr)
@@ -158,7 +156,7 @@ def elab_create_object_tp(
                                 )
                             else:
                                 print(
-                                    "WARNING: " "not implemented pltarget",
+                                    "WARNING: not implemented pltarget",
                                     pltarget,
                                 )
                             if pl_has_set_default is not None:
@@ -225,9 +223,7 @@ def elab_create_object_tp(
                                         set_field_name,
                                     )
                         case _:
-                            print_warning(
-                                "WARNING: not " "implemented pcmd", pcmd
-                            )
+                            print_warning("WARNING: not implemented pcmd", pcmd)
                 final_target_type = construct_final_schema_target_tp(
                     base_target_type, link_property_tps
                 )
@@ -274,8 +270,7 @@ def elab_create_object_tp(
                         indexes.append([elab_single_proj(index_expr_elab)])
                     case e.UnnamedTupleExpr(exprs):
                         if all(
-                            isinstance(expr, e.ObjectProjExpr)
-                            for expr in exprs
+                            isinstance(expr, e.ObjectProjExpr) for expr in exprs
                         ):
                             indexes.append(
                                 [elab_single_proj(expr) for expr in exprs]

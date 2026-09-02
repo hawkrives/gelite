@@ -36,7 +36,6 @@ from edb.common import debug
 from edb.common import markup
 from edb.common.log import current_tenant
 
-from edb.graphql import extension as graphql_ext
 
 from edb.server import args as srvargs
 from edb.server import config, metrics as srv_metrics
@@ -52,14 +51,10 @@ from edb.server.pgproto.debug cimport PG_DEBUG
 
 from . import auth
 from . cimport auth_helpers
-from . import edgeql_ext
 from . import metrics
 from . import server_info
-from . import notebook_ext
 from . import system_api
 from . import ui_ext
-from . import auth_ext
-from . import ai_ext
 
 
 HTTPStatus = http.HTTPStatus
@@ -634,93 +629,12 @@ cdef class HttpProtocol:
                     response.close_connection = True
 
             else:
-                if await self._handle_cors(
-                    request, response,
-                    dbname=dbname,
-                    allow_methods=['GET', 'POST'],
-                    allow_headers=[
-                        'Authorization', 'X-EdgeDB-User', 'X-Gel-User'
-                    ],
-                    expose_headers=(
-                        ['EdgeDB-Protocol-Version', 'Gel-Protocol-Version']
-                        if extname == 'notebook'
-                        else ['WWW-Authenticate'] if extname != 'auth'
-                        else None
-                    ),
-                    allow_credentials=True
-                ):
-                    return
-
-                # Check if this is a request to a registered extension
-                if extname == 'edgeql':
-                    extname = 'edgeql_http'
-                if extname == 'ext':
-                    if path_parts_len < 4:
-                        return self._not_found(request, response)
-                    extname = path_parts[3]
-                    args = path_parts[4:]
-                else:
-                    args = path_parts[3:]
-
-                role_name = None
-                if extname != 'auth':
-                    role_name = await self._check_http_auth(
-                        request, response, dbname
-                    )
-                    if not role_name:
-                        return
-
-                db = self.tenant.maybe_get_db(dbname=dbname)
-                if db is None:
-                    return self._not_found(request, response)
-
-                if extname not in db.extensions:
-                    return self._not_found(request, response)
-
-                if extname == 'graphql':
-                    await graphql_ext.handle_request(
-                        request, response, db, role_name, args, self.tenant
-                    )
-                elif extname == 'notebook':
-                    await notebook_ext.handle_request(
-                        request, response, db, role_name, args, self.tenant
-                    )
-                elif extname == 'edgeql_http':
-                    await edgeql_ext.handle_request(
-                        request, response, db, role_name, args, self.tenant
-                    )
-                elif extname == 'ai':
-                    await ai_ext.handle_request(
-                        self,
-                        request, response, db, role_name, args, self.tenant
-                    )
-                elif extname == 'auth':
-                    netloc = (
-                        f"{request_url.host.decode()}:{request_url.port}"
-                            if request_url.port
-                            else request_url.host.decode()
-                    )
-                    ext_base_path = f"{request_url.schema.decode()}://" \
-                                    f"{netloc}/{route}/" \
-                                    f"{urllib.parse.quote(dbname)}/ext/auth"
-                    handler = auth_ext.http.Router(
-                        db=db,
-                        base_path=ext_base_path,
-                        tenant=self.tenant,
-                    )
-                    await handler.handle_request(request, response, args)
-                    if args:
-                        if args[0] == 'ui':
-                            if not (len(args) > 1 and args[1] == "_static"):
-                                srv_metrics.auth_ui_renders.inc(
-                                    1.0, self.get_tenant_label()
-                                )
-                        else:
-                            srv_metrics.auth_api_calls.inc(
-                                1.0, self.get_tenant_label()
-                            )
-                else:
-                    return self._not_found(request, response)
+                # Reached only when there is a path segment after the
+                # branch name. Every extension that served HTTP - graphql,
+                # notebook, edgeql_http, ai and auth - has been removed, so
+                # nothing resolves there any more. The bare /db/<name>/ and
+                # /branch/<name>/ still tunnel the binary protocol above.
+                return self._not_found(request, response)
 
         elif route == 'auth':
             if await self._handle_cors(
@@ -893,100 +807,6 @@ cdef class HttpProtocol:
         response.status = http.HTTPStatus.UNAUTHORIZED
         response.close_connection = True
 
-    async def _check_http_auth(
-        self,
-        HttpRequest request,
-        HttpResponse response,
-        str dbname,
-    ):
-        dbindex: dbview.DatabaseIndex = self.tenant._dbindex
-
-        scheme = None
-        try:
-            # Extract the username from the relevant request headers
-            scheme, auth_payload = auth_helpers.extract_token_from_auth_data(
-                request.authorization)
-            username, opt_password = auth_helpers.extract_http_user(
-                scheme, auth_payload, request.params)
-            username = self.tenant.resolve_user_name(username)
-
-            # Fetch the configured auth methods
-            authmethods = await self.tenant.get_auth_methods(
-                username, srvargs.ServerConnTransport.SIMPLE_HTTP)
-
-            auth_errors = {}
-
-            for authmethod in authmethods:
-                authmethod_name = authmethod._tspec.name.split('::')[1]
-                try:
-                    # If the auth method and the provided auth information
-                    # match, try to resolve the authentication.
-                    if authmethod_name == 'JWT' and scheme == 'bearer':
-                        auth_helpers.auth_jwt(
-                            self.tenant, auth_payload, username, dbname)
-                    elif authmethod_name == 'Password' and scheme == 'basic':
-                        auth_helpers.auth_basic(
-                            self.tenant, username, opt_password)
-                    elif authmethod_name == 'Trust':
-                        pass
-                    elif authmethod_name == 'SCRAM':
-                        raise errors.AuthenticationError(
-                            'authentication failed: '
-                            'SCRAM authentication required but not '
-                            'supported for HTTP'
-                        )
-                    elif authmethod_name == 'mTLS':
-                        if (
-                            self.http_endpoint_security
-                            is srvargs.ServerEndpointSecurityMode.Tls
-                            or self.is_tls
-                        ):
-                            auth_helpers.auth_mtls_with_user(
-                                self.transport, username)
-                    else:
-                        raise errors.AuthenticationError(
-                            'authentication failed: wrong method used')
-
-                except errors.AuthenticationError as e:
-                    auth_errors[authmethod_name] = e
-
-                else:
-                    break
-
-            if len(auth_errors) == len(authmethods):
-                if len(auth_errors) > 1:
-                    desc = "; ".join(
-                        f"{k}: {e.args[0]}" for k, e in auth_errors.items())
-                    raise errors.AuthenticationError(
-                        f"all authentication methods failed: {desc}")
-                else:
-                    raise next(iter(auth_errors.values()))
-
-            role = self.tenant.get_roles().get(username)
-            if not role:
-                raise errors.AuthenticationError('authentication failed')
-            branches = role['branches']
-            if '*' not in branches and dbname not in branches:
-                raise errors.AuthenticationError(
-                    f"authentication failed: user does not have permission for "
-                    f"database branch '{dbname}'"
-                )
-
-        except Exception as ex:
-            if debug.flags.server:
-                markup.dump(ex)
-
-            self._unauthorized(request, response, str(ex))
-
-            # If no scheme was specified, add a WWW-Authenticate header
-            if scheme == '':
-                response.custom_headers['WWW-Authenticate'] = (
-                    'Basic realm="edgedb", Bearer'
-                )
-
-            return None
-
-        return username
 
     async def _authenticate_for_default_conn_transport(
         self,

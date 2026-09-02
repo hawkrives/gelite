@@ -120,16 +120,11 @@ async def debounce[T](
             # If we aren't current waiting, and we got a
             # notification recently, arrange to wait some before
             # sending it.
-            if (
-                target_time is None
-                and t - last_signal < DELAY_AMT
-            ):
+            if target_time is None and t - last_signal < DELAY_AMT:
                 target_time = t + DELAY_AMT
             # If we were already waiting, wait a little longer, though
             # not longer than MAX_WAIT.
-            elif (
-                target_time is not None
-            ):
+            elif target_time is not None:
                 target_time = min(
                     max(t + DELAY_AMT, target_time),
                     last_signal + MAX_WAIT,

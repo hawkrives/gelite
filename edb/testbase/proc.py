@@ -45,9 +45,11 @@ class ProcTest(server.TestCase):
             sock = socket.fromfd(
                 int(sys.argv[3]), socket.AF_UNIX, socket.SOCK_STREAM
             )
-            cls.parent_reader, cls.parent_writer = (
-                await asyncio.open_connection(sock=sock)
-            )
+            (
+                cls.parent_reader,
+                cls.parent_writer,
+            ) = await asyncio.open_connection(sock=sock)
+
         cls.loop.run_until_complete(_setup())
 
     exec(sys.argv[2], globals(), locals())

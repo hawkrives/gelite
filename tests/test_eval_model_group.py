@@ -43,29 +43,37 @@ class TestModelGroupTests(unittest.TestCase):
         assert_data_shape.assert_data_shape(result, expected, self.fail)
 
     def test_model_group_00(self):
-        res = bag([
-            {
-                "el": "Air",
-                "cards": bag([
-                    {"name": "Djinn"},
-                    {"name": "Giant eagle"},
-                    {"name": "Sprite"},
-                ]),
-            },
-            {
-                "el": "Earth",
-                "cards": bag([{"name": "Dwarf"}, {"name": "Golem"}]),
-            },
-            {"el": "Fire", "cards": bag([
-                {"name": "Dragon"}, {"name": "Imp"}])},
-            {
-                "el": "Water",
-                "cards": bag([
-                    {"name": "Bog monster"},
-                    {"name": "Giant turtle"},
-                ]),
-            },
-        ])
+        res = bag(
+            [
+                {
+                    "el": "Air",
+                    "cards": bag(
+                        [
+                            {"name": "Djinn"},
+                            {"name": "Giant eagle"},
+                            {"name": "Sprite"},
+                        ]
+                    ),
+                },
+                {
+                    "el": "Earth",
+                    "cards": bag([{"name": "Dwarf"}, {"name": "Golem"}]),
+                },
+                {
+                    "el": "Fire",
+                    "cards": bag([{"name": "Dragon"}, {"name": "Imp"}]),
+                },
+                {
+                    "el": "Water",
+                    "cards": bag(
+                        [
+                            {"name": "Bog monster"},
+                            {"name": "Giant turtle"},
+                        ]
+                    ),
+                },
+            ]
+        )
 
         # Two implementations of the same query
         self.assert_test_query(

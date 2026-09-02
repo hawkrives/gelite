@@ -47,7 +47,6 @@ async def handle_request(
             try:
                 tenant = server.get_default_tenant()
             except Exception:
-                # Multi-tenant server doesn't have default tenant
                 pass
         if tenant is None and not is_tenant_host:
             _response(
@@ -140,7 +139,7 @@ async def _ping(
             ping_compiler = tg.create_task(
                 tenant.server.get_compiler_pool().health_check()
             )
-    except *TimeoutError:
+    except* TimeoutError:
         if isinstance(ping_backend.exception(), TimeoutError):
             who = "the backend"
         else:

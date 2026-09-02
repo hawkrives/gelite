@@ -109,38 +109,46 @@ class Link(
     qlkind=qltypes.SchemaObjectClass.LINK,
     data_safe=False,
 ):
-
     on_target_delete = so.SchemaField(
         LinkTargetDeleteAction,
         default=LinkTargetDeleteAction.Restrict,
         coerce=True,
         compcoef=0.9,
-        merge_fn=merge_actions)
+        merge_fn=merge_actions,
+    )
 
     on_source_delete = so.SchemaField(
         LinkSourceDeleteAction,
         default=LinkSourceDeleteAction.Allow,
         coerce=True,
         compcoef=0.9,
-        merge_fn=merge_actions)
+        merge_fn=merge_actions,
+    )
 
     def get_target(self, schema: s_schema.Schema) -> s_objtypes.ObjectType:
         return self.get_field_value(  # type: ignore[no-any-return]
-            schema, 'target')
+            schema, 'target'
+        )
 
     def is_link_property(self, schema: s_schema.Schema) -> bool:
         return False
 
     def has_user_defined_properties(self, schema: s_schema.Schema) -> bool:
-        return bool([p for p in self.get_pointers(schema).objects(schema)
-                     if not p.is_special_pointer(schema)
-                     and not p.is_pure_computable(schema)])
+        return bool(
+            [
+                p
+                for p in self.get_pointers(schema).objects(schema)
+                if not p.is_special_pointer(schema)
+                and not p.is_pure_computable(schema)
+            ]
+        )
 
     def get_source(
         self, schema: s_schema.Schema
     ) -> Optional[s_objtypes.ObjectType]:
         return self.get_field_value(  # type: ignore[no-any-return]
-            schema, 'source')
+            schema, 'source'
+        )
 
     def get_source_type(self, schema: s_schema.Schema) -> s_objtypes.ObjectType:
         source = self.get_source(schema)
@@ -162,8 +170,11 @@ class Link(
                 raise NotImplementedError()
 
         return super().compare(
-            other, our_schema=our_schema,
-            their_schema=their_schema, context=context)
+            other,
+            our_schema=our_schema,
+            their_schema=their_schema,
+            context=context,
+        )
 
     def set_target(
         self,
@@ -217,7 +228,6 @@ class LinkCommand(
     context_class=LinkCommandContext,
     referrer_context_class=LinkSourceCommandContext,
 ):
-
     def _append_subcmd_ast(
         self,
         schema: s_schema.Schema,
@@ -228,7 +238,6 @@ class LinkCommand(
         if (
             isinstance(subcmd, pointers.PointerCommand)
             and subcmd.classname != self.classname
-
         ):
             pname = sn.shortname_from_fullname(subcmd.classname)
             if pname.name in {'source', 'target'}:
@@ -290,9 +299,9 @@ class LinkCommand(
             )
 
         if (
-            scls.get_required(schema) and
-            scls.get_on_target_delete(schema) ==
-                qltypes.LinkTargetDeleteAction.DeferredRestrict
+            scls.get_required(schema)
+            and scls.get_on_target_delete(schema)
+            == qltypes.LinkTargetDeleteAction.DeferredRestrict
         ):
             raise errors.InvalidLinkTargetError(
                 'required links may not use `on target delete '
@@ -313,8 +322,9 @@ class LinkCommand(
         # it isn't marked as required.)  We intervene here to mark all
         # __type__ links required when rendering for SDL/TEXT.
         if context.declarative and node is not None:
-            assert isinstance(node, (qlast.CreateConcreteLink,
-                                     qlast.CreateLink))
+            assert isinstance(
+                node, (qlast.CreateConcreteLink, qlast.CreateLink)
+            )
             if node.name.name == '__type__':
                 assert isinstance(node, qlast.CreateConcretePointer)
                 node.is_required = True
@@ -325,8 +335,9 @@ class LinkCommand(
         schema: s_schema.Schema,
         context: sd.CommandContext,
         refdict: so.RefDict,
-    ) -> tuple[s_schema.Schema,
-               dict[sn.Name, type[sd.ObjectCommand[so.Object]]]]:
+    ) -> tuple[
+        s_schema.Schema, dict[sn.Name, type[sd.ObjectCommand[so.Object]]]
+    ]:
         if self.scls.get_computable(schema) and refdict.attr != 'pointers':
             # If the link is a computable, the inheritance would only
             # happen in the case of aliasing, and in that case we only
@@ -362,14 +373,12 @@ class CreateLink(
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field == 'required'
-            and issubclass(astnode, qlast.CreateConcreteLink)
+        if field == 'required' and issubclass(
+            astnode, qlast.CreateConcreteLink
         ):
             return 'is_required'
-        elif (
-            field == 'cardinality'
-            and issubclass(astnode, qlast.CreateConcreteLink)
+        elif field == 'cardinality' and issubclass(
+            astnode, qlast.CreateConcreteLink
         ):
             return 'cardinality'
         else:
@@ -410,7 +419,8 @@ class CreateLink(
                 new_type = (
                     op.new_value.resolve(schema)
                     if isinstance(op.new_value, so.ObjectShell)
-                    else op.new_value)
+                    else op.new_value
+                )
                 assert isinstance(new_type, s_types.Type)
                 new_type_ast = utils.typeref_to_ast(schema, op.new_value)
                 cast_expr = None
@@ -419,7 +429,8 @@ class CreateLink(
                 # since there should be no data to cast, but the DDL side
                 # of things doesn't know that since the command is split up.
                 if old_type and not old_type.assignment_castable_to(
-                        new_type, schema):
+                    new_type, schema
+                ):
                     cast_expr = qlast.TypeCast(
                         type=new_type_ast,
                         expr=qlast.Set(elements=[]),
@@ -466,9 +477,9 @@ class CreateLink(
 
         base_prop_name = sn.QualName('std', 'source')
         s_name = sn.get_specialized_name(
-            sn.QualName('__', 'source'), str(self.classname))
-        src_prop_name = sn.QualName(
-            name=s_name, module=self.classname.module)
+            sn.QualName('__', 'source'), str(self.classname)
+        )
+        src_prop_name = sn.QualName(name=s_name, module=self.classname.module)
 
         src_prop = properties.CreateProperty(
             classname=src_prop_name,
@@ -490,18 +501,20 @@ class CreateLink(
         src_prop.set_attribute_value('required', True)
         src_prop.set_attribute_value('readonly', True)
         src_prop.set_attribute_value('owned', True)
-        src_prop.set_attribute_value('from_alias',
-                                     self.scls.get_from_alias(schema))
-        src_prop.set_attribute_value('cardinality',
-                                     qltypes.SchemaCardinality.One)
+        src_prop.set_attribute_value(
+            'from_alias', self.scls.get_from_alias(schema)
+        )
+        src_prop.set_attribute_value(
+            'cardinality', qltypes.SchemaCardinality.One
+        )
 
         cmd.prepend(src_prop)
 
         base_prop_name = sn.QualName('std', 'target')
         s_name = sn.get_specialized_name(
-            sn.QualName('__', 'target'), str(self.classname))
-        tgt_prop_name = sn.QualName(
-            name=s_name, module=self.classname.module)
+            sn.QualName('__', 'target'), str(self.classname)
+        )
+        tgt_prop_name = sn.QualName(name=s_name, module=self.classname.module)
 
         tgt_prop = properties.CreateProperty(
             classname=tgt_prop_name,
@@ -524,10 +537,12 @@ class CreateLink(
         tgt_prop.set_attribute_value('required', False)
         tgt_prop.set_attribute_value('readonly', True)
         tgt_prop.set_attribute_value('owned', True)
-        tgt_prop.set_attribute_value('from_alias',
-                                     self.scls.get_from_alias(schema))
-        tgt_prop.set_attribute_value('cardinality',
-                                     qltypes.SchemaCardinality.One)
+        tgt_prop.set_attribute_value(
+            'from_alias', self.scls.get_from_alias(schema)
+        )
+        tgt_prop.set_attribute_value(
+            'cardinality', qltypes.SchemaCardinality.One
+        )
 
         cmd.prepend(tgt_prop)
 
@@ -553,7 +568,6 @@ class SetLinkType(
     referrer_context_class=LinkSourceCommandContext,
     field='target',
 ):
-
     def _alter_begin(
         self,
         schema: s_schema.Schema,
@@ -569,7 +583,8 @@ class SetLinkType(
             tgt_prop = scls.maybe_get_ptr(schema, sn.UnqualName('target'))
             if tgt_prop:
                 tgt_prop_alter = tgt_prop.init_delta_command(
-                    schema, sd.AlterObject)
+                    schema, sd.AlterObject
+                )
                 tgt_prop_alter.set_attribute_value('target', new_target)
                 self.add(tgt_prop_alter)
 
@@ -611,9 +626,7 @@ class SetTargetDeletePolicy(sd.Command):
         astnode: qlast.DDLOperation,
         context: sd.CommandContext,
     ) -> sd.AlterObjectProperty:
-        return sd.AlterObjectProperty(
-            property='on_target_delete'
-        )
+        return sd.AlterObjectProperty(property='on_target_delete')
 
     @classmethod
     def _cmd_tree_from_ast(
@@ -639,9 +652,7 @@ class SetSourceDeletePolicy(sd.Command):
         astnode: qlast.DDLOperation,
         context: sd.CommandContext,
     ) -> sd.AlterObjectProperty:
-        return sd.AlterObjectProperty(
-            property='on_source_delete'
-        )
+        return sd.AlterObjectProperty(property='on_source_delete')
 
     @classmethod
     def _cmd_tree_from_ast(

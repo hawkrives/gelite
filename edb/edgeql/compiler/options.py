@@ -19,7 +19,6 @@
 
 """EdgeQL compiler options."""
 
-
 from __future__ import annotations
 from typing import Any, Optional, Mapping, Collection, TYPE_CHECKING
 
@@ -105,7 +104,6 @@ class GlobalCompilerOptions:
 
 @dataclass(kw_only=True)
 class CompilerOptions(GlobalCompilerOptions):
-
     #: Module name aliases.
     modaliases: Mapping[Optional[str], str] = dc_field(default_factory=dict)
 
@@ -136,9 +134,9 @@ class CompilerOptions(GlobalCompilerOptions):
     #: A set of schema types and links that should be treated
     #: as singletons in the context of this compilation.
     #: If a tuple is provided, the boolean argument indicates it is optional.
-    singletons: Collection[
-        SourceOrPathId | tuple[SourceOrPathId, bool]
-    ] = frozenset()
+    singletons: Collection[SourceOrPathId | tuple[SourceOrPathId, bool]] = (
+        frozenset()
+    )
 
     #: Type references that should be remaped to another type.  This
     #: is for dealing with remapping explicit type names in schema

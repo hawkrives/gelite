@@ -120,7 +120,6 @@ class DatabaseExists(base.Condition):
 
 
 class CreateDatabase(ddl.CreateObject, ddl.NonTransactionalDDLOperation):
-
     def __init__(self, object, *, template: str | None, **kwargs):
         super().__init__(object, **kwargs)
         self.template = template
@@ -141,18 +140,15 @@ class CreateDatabase(ddl.CreateObject, ddl.NonTransactionalDDLOperation):
         if self.object.lc_ctype:
             extra += f' LC_CTYPE={ql(self.object.lc_ctype)}'
 
-        return (f'CREATE DATABASE {self.object.get_id()} {extra}')
+        return f'CREATE DATABASE {self.object.get_id()} {extra}'
 
 
-class DropDatabase(ddl.SchemaObjectOperation,
-                   ddl.NonTransactionalDDLOperation):
-
+class DropDatabase(ddl.SchemaObjectOperation, ddl.NonTransactionalDDLOperation):
     def code(self) -> str:
         return f'DROP DATABASE {qi(self.name)}'
 
 
-class RenameDatabase(ddl.AlterObject,
-                     ddl.NonTransactionalDDLOperation):
+class RenameDatabase(ddl.AlterObject, ddl.NonTransactionalDDLOperation):
     def __init__(self, object, *, old_name: str, **kwargs):
         super().__init__(object, **kwargs)
         self.old_name = old_name

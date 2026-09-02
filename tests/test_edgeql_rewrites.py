@@ -25,7 +25,6 @@ from edb.testbase import server as tb
 
 
 class TestRewrites(tb.DDLTestCase):
-
     SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'movies.esdl')
     # Setting up some rewrites makes the tests run a bit faster
     # because we don't need to recompile the delta scripts for it.
@@ -310,7 +309,7 @@ class TestRewrites(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidReferenceError,
-            r"__old__ cannot be used in this expression"
+            r"__old__ cannot be used in this expression",
         ):
             await self.con.execute(
                 '''
@@ -398,33 +397,33 @@ class TestRewrites(tb.DDLTestCase):
         await self.con.execute('insert Library')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Collection set { elements := {} }')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Library set { elements := {} }')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Collection set { name := "x" }')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Library set { name := "x" }')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Collection set { }')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'elements"):
+            edgedb.InvalidLinkTargetError, r"invalid target for link 'elements"
+        ):
             await self.con.execute('update Library set { }')
 
     async def test_edgeql_rewrites_11(self):
@@ -702,11 +701,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "foo", 'tname': "foo"},
-                {'name': "bar", 'tname': "bar"},
-                {'name': "baz", 'tname': "baz"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "foo", 'tname': "foo"},
+                    {'name': "bar", 'tname': "bar"},
+                    {'name': "baz", 'tname': "baz"},
+                ]
+            ),
         )
 
         await self.con.execute('''
@@ -723,11 +724,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "spam", 'tname': "spam"},
-                {'name': "eggs", 'tname': "eggs"},
-                {'name': "ham", 'tname': "ham"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "spam", 'tname': "spam"},
+                    {'name': "eggs", 'tname': "eggs"},
+                    {'name': "ham", 'tname': "ham"},
+                ]
+            ),
         )
 
         await self.con.execute('''
@@ -738,11 +741,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "spam!", 'tname': "spam!"},
-                {'name': "eggs!", 'tname': "eggs!"},
-                {'name': "ham!", 'tname': "ham!"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "spam!", 'tname': "spam!"},
+                    {'name': "eggs!", 'tname': "eggs!"},
+                    {'name': "ham!", 'tname': "ham!"},
+                ]
+            ),
         )
 
     async def test_edgeql_rewrites_19(self):
@@ -775,11 +780,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "foo", 'tname': "foo!"},
-                {'name': "bar", 'tname': "bar!"},
-                {'name': "baz", 'tname': "baz!"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "foo", 'tname': "foo!"},
+                    {'name': "bar", 'tname': "bar!"},
+                    {'name': "baz", 'tname': "baz!"},
+                ]
+            ),
         )
 
         await self.con.execute('''
@@ -796,11 +803,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "spam", 'tname': "spam!"},
-                {'name': "eggs", 'tname': "eggs!"},
-                {'name': "ham", 'tname': "ham!"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "spam", 'tname': "spam!"},
+                    {'name': "eggs", 'tname': "eggs!"},
+                    {'name': "ham", 'tname': "ham!"},
+                ]
+            ),
         )
 
         await self.con.execute('''
@@ -811,11 +820,13 @@ class TestRewrites(tb.DDLTestCase):
             '''
                 select D { name, tname := .t.name }
             ''',
-            tb.bag([
-                {'name': "spam!", 'tname': "spam!!"},
-                {'name': "eggs!", 'tname': "eggs!!"},
-                {'name': "ham!", 'tname': "ham!!"},
-            ]),
+            tb.bag(
+                [
+                    {'name': "spam!", 'tname': "spam!!"},
+                    {'name': "eggs!", 'tname': "eggs!!"},
+                    {'name': "ham!", 'tname': "ham!!"},
+                ]
+            ),
         )
 
     async def test_edgeql_rewrites_20(self):
@@ -856,7 +867,7 @@ class TestRewrites(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule"
+            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule",
         ):
             await self.con.execute('''
                 INSERT Conflicted
@@ -865,7 +876,7 @@ class TestRewrites(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule"
+            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule",
         ):
             await self.con.execute('''
                 INSERT Conflicted { a := 'hello' }
@@ -874,7 +885,7 @@ class TestRewrites(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule"
+            r"INSERT UNLESS CONFLICT cannot be used on .* have a rewrite rule",
         ):
             await self.con.execute('''
                 INSERT Conflicted { a := 'hello' }
@@ -1066,13 +1077,11 @@ class TestRewrites(tb.DDLTestCase):
             '''
         )
         await self.assert_query_result(
-            'select Foo { will_be_true }',
-            [{'will_be_true': False}]
+            'select Foo { will_be_true }', [{'will_be_true': False}]
         )
         await self.con.execute('update Foo set { };')
         await self.assert_query_result(
-            'select Foo { will_be_true }',
-            [{'will_be_true': True}]
+            'select Foo { will_be_true }', [{'will_be_true': True}]
         )
 
     async def test_edgeql_rewrites_28(self):
@@ -1097,9 +1106,9 @@ class TestRewrites(tb.DDLTestCase):
             [
                 {
                     'coordinates': {'lat': 40.07987, 'lng': 20.56509},
-                    'updated_at': 'now'
+                    'updated_at': 'now',
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_rewrites_29(self):
@@ -1158,7 +1167,7 @@ class TestRewrites(tb.DDLTestCase):
             '''
             select B.has_updated;
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_rewrites_32(self):
@@ -1181,8 +1190,7 @@ class TestRewrites(tb.DDLTestCase):
 
     async def test_edgeql_rewrites_33(self):
         async with self.assertRaisesRegexTx(
-            edgedb.InterfaceError,
-            r"more than one element"
+            edgedb.InterfaceError, r"more than one element"
         ):
             await self.con.query_single('''
                 update Asdf set {}
@@ -1223,8 +1231,7 @@ class TestRewrites(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            r""
+            edgedb.ConstraintViolationError, r""
         ):
             await self.con.execute('''
                 update CT set { a := 'x' }
@@ -1240,8 +1247,7 @@ class TestRewrites(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            r""
+            edgedb.ConstraintViolationError, r""
         ):
             await self.con.execute('''
                 select {(insert CT { a := "y" }), (insert CS { a := "y" })}

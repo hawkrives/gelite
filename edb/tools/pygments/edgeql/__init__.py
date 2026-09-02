@@ -30,25 +30,34 @@ __all__ = ['EdgeQLLexer']
 
 unreserved_keywords = meta.EdgeQL.unreserved_keywords
 reserved_keywords = meta.EdgeQL.reserved_keywords
-builtins = sorted(set(
-    meta.EdgeQL.type_builtins + meta.EdgeQL.constraint_builtins +
-    meta.EdgeQL.fn_builtins))
+builtins = sorted(
+    set(
+        meta.EdgeQL.type_builtins
+        + meta.EdgeQL.constraint_builtins
+        + meta.EdgeQL.fn_builtins
+    )
+)
 stdmodules = meta.EdgeQL.module_builtins
 # Operators need to be sorted from longest to shortest to match
 # correctly. Lexicographical sort is added on top of that for
 # stability, but is not itself important.
-operators = sorted(meta.EdgeQL.operators,
-                   key=lambda x: (len(x), x), reverse=True)
+operators = sorted(
+    meta.EdgeQL.operators, key=lambda x: (len(x), x), reverse=True
+)
 # the operator symbols need to be escaped
 operators = ['\\' + '\\'.join(op) for op in operators]
 
 # navigation punctuation needs to be processed similar to operators
-navigation = sorted(meta.EdgeQL.navigation,
-                    key=lambda x: (len(x), x), reverse=True)
+navigation = sorted(
+    meta.EdgeQL.navigation, key=lambda x: (len(x), x), reverse=True
+)
 # the operator symbols need to be escaped
-navigation = ['\\' + '\\'.join(nav) for nav in navigation
-              # exclude '.' for the moment
-              if nav != '.']
+navigation = [
+    '\\' + '\\'.join(nav)
+    for nav in navigation
+    # exclude '.' for the moment
+    if nav != '.'
+]
 
 
 class EdgeQLLexer(RegexLexer):
@@ -59,8 +68,8 @@ class EdgeQLLexer(RegexLexer):
     tokens = {
         'root': [
             include('comments'),
-            (fr"(?x)({' | '.join(operators)})", token.Operator),
-            (fr"(?x)({' | '.join(navigation)})", token.Punctuation.Navigation),
+            (rf"(?x)({' | '.join(operators)})", token.Operator),
+            (rf"(?x)({' | '.join(navigation)})", token.Punctuation.Navigation),
             include('keywords'),
             (r'@\w+', token.Name.Decorator),
             (r'\$[\w\d]+', token.Name.Variable),
@@ -74,42 +83,55 @@ class EdgeQLLexer(RegexLexer):
             (r'#.*?\n', token.Comment.Singleline),
         ],
         'keywords': [
-            (r'(?i)\b(?<![:\.<>@])(__source__|__subject__)\b',
-             token.Name.Builtin.Pseudo),
-
+            (
+                r'(?i)\b(?<![:\.<>@])(__source__|__subject__)\b',
+                token.Name.Builtin.Pseudo,
+            ),
             (r'\b(__type__)\b', token.Name.Builtin.Pseudo),
-
-            (fr'''(?ix)
+            (
+                rf'''(?ix)
                 \b(?<![:\.<>@])(
                     {' | '.join(reserved_keywords)}
-                )\b''', token.Keyword.Reserved),
-
+                )\b''',
+                token.Keyword.Reserved,
+            ),
             # Unreserved keywords should lose their special meaning
             # when part of a path or fully-qualified name.
-            (fr'''(?ix)
+            (
+                rf'''(?ix)
                 \b(?<![:\.<>@])(
                     {' | '.join(unreserved_keywords)}
-                )\b(?![:\.<>@])''', token.Keyword.Reserved),
-
-            (fr'''(?x)
+                )\b(?![:\.<>@])''',
+                token.Keyword.Reserved,
+            ),
+            (
+                rf'''(?x)
                 \b(?<!\.)(
                     {' | '.join(stdmodules)}
-                )\b(?=::)''', token.Name.Builtin),
-
-            (fr'''(?x)
+                )\b(?=::)''',
+                token.Name.Builtin,
+            ),
+            (
+                rf'''(?x)
                 \b(?<!\.)(
                     {' | '.join(builtins)}
-                )\b''', token.Name.Builtin),
+                )\b''',
+                token.Name.Builtin,
+            ),
         ],
         'strings': [
-            (r'''(?x)
+            (
+                r'''(?x)
                 (?P<Q>(r?)['"])
                 (?:
                     (\\['"] | \n | .)*?
                 )
                 (?P=Q)
-            ''', token.String),
-            (r'''(?x)
+            ''',
+                token.String,
+            ),
+            (
+                r'''(?x)
                 (?P<Q>
                     # capture the opening quote in group Q
                     (
@@ -120,11 +142,14 @@ class EdgeQLLexer(RegexLexer):
                     (\\['"] | \n | .)*?
                 )
                 (?P=Q)
-            ''', token.String.Other),
-            (r'`.*?`', token.String.Backtick)
+            ''',
+                token.String.Other,
+            ),
+            (r'`.*?`', token.String.Backtick),
         ],
         'numbers': [
-            (r'''(?x)
+            (
+                r'''(?x)
                 (?<!\w)
                     (?:
                         (?: \d+ (?:\.\d+)?
@@ -134,7 +159,9 @@ class EdgeQLLexer(RegexLexer):
                         (?: \d+\.\d+)
                     )
                     n?
-            ''', token.Number),
+            ''',
+                token.Number,
+            ),
             (r'(?<!\w)\d+n?', token.Number),
         ],
     }

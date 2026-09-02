@@ -81,9 +81,7 @@ building your application.
   The documentation for Gel's set of official client libraries for
   JavaScript/TypeScript, Python, Go, and Rust. All client libraries implement
   Gel's binary protocol and provide a standard interface for executing
-  queries. If you're using another language, you can execute queries
-  :ref:`over HTTP <ref_edgeql_http>`.  This section also includes
-  documentation for Gel's :ref:`GraphQL <ref_graphql_overview>` endpoint.
+  queries.
 
 - **CLI**
   Complete reference for the |gelcmd| command-line tool. The CLI is
@@ -117,8 +115,7 @@ EdgeQL.
 - **Client Libraries** —
   To actually execute queries, you'll use one of our client libraries for
   JavaScript, Go, or Python; find your preferred library under :ref:`Client
-  Libraries <ref_clients_index>`. If you're using another language, you can
-  still use Gel! You can execute :ref:`queries via HTTP <ref_edgeql_http>`.
+  Libraries <ref_clients_index>`.
 - **Deployment** —
   To publish a Gel-backed application, you'll need to deploy Gel. Refer
   to :ref:`Guides > Deployment <ref_guide_deployment>` for step-by-step

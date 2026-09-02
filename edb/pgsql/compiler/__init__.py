@@ -43,7 +43,7 @@ from . import dml
 from . import pathctx
 from . import aliases
 
-from .context import OutputFormat as OutputFormat # NOQA
+from .context import OutputFormat as OutputFormat  # NOQA
 
 if TYPE_CHECKING:
     import enums as pgce
@@ -78,12 +78,12 @@ def compile_ir_to_sql_tree(
             irast.PathId,
             tuple[
                 pgast.BaseRelation | pgast.CommonTableExpr,
-                tuple[pgce.PathAspect, ...]
+                tuple[pgce.PathAspect, ...],
             ],
         ]
     ] = None,
     json_parameters: bool = False,
-    backend_runtime_params: Optional[pgparams.BackendRuntimeParams]=None,
+    backend_runtime_params: Optional[pgparams.BackendRuntimeParams] = None,
     cache_as_function: bool = False,
     alias_generator: Optional[aliases.AliasGenerator] = None,
     versioned_stdlib: bool = True,
@@ -135,7 +135,8 @@ def compile_ir_to_sql_tree(
         query_globals.sort(key=lambda g: g.is_permission)
 
         scope_tree_nodes = {
-            node.unique_id: node for node in scope_tree.descendants
+            node.unique_id: node
+            for node in scope_tree.descendants
             if node.unique_id is not None
         }
 
@@ -261,10 +262,10 @@ def new_external_rvar(
 
     if not path_id.is_ptr_path():
         rvar = pgast.RelRangeVar(
-            relation=rel, typeref=path_id.target, alias=alias)
+            relation=rel, typeref=path_id.target, alias=alias
+        )
     else:
-        rvar = pgast.RelRangeVar(
-            relation=rel, alias=alias)
+        rvar = pgast.RelRangeVar(relation=rel, alias=alias)
 
     for (output_pid, output_aspects), colname in outputs.items():
         var = pgast.ColumnRef(name=[colname])

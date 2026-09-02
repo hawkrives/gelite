@@ -26,7 +26,14 @@ class Precedence(parsing.Precedence, assoc='fail', is_internal=True):
     pass
 
 
-class P_UNION(Precedence, assoc='left', tokens=('UNION', 'EXCEPT',)):
+class P_UNION(
+    Precedence,
+    assoc='left',
+    tokens=(
+        'UNION',
+        'EXCEPT',
+    ),
+):
     pass
 
 
@@ -74,7 +81,7 @@ class P_COMPARE_OP(
         'LANGBRACKET',
         'RANGBRACKET',
         'EQUALS',
-    )
+    ),
 ):
     pass
 
@@ -83,13 +90,15 @@ class P_IS(Precedence, assoc='nonassoc', tokens=('IS',)):
     pass
 
 
-class P_ADD_OP(Precedence, assoc='left',
-               tokens=('PLUS', 'MINUS', 'DOUBLEPLUS')):
+class P_ADD_OP(
+    Precedence, assoc='left', tokens=('PLUS', 'MINUS', 'DOUBLEPLUS')
+):
     pass
 
 
-class P_MUL_OP(Precedence, assoc='left',
-               tokens=('STAR', 'SLASH', 'DOUBLESLASH', 'PERCENT')):
+class P_MUL_OP(
+    Precedence, assoc='left', tokens=('STAR', 'SLASH', 'DOUBLESLASH', 'PERCENT')
+):
     pass
 
 
@@ -117,13 +126,13 @@ class P_UMINUS(Precedence, assoc='right'):
     pass
 
 
-class P_EXISTS(Precedence, assoc='right', tokens=('EXISTS',),
-               rel_to_last='='):
+class P_EXISTS(Precedence, assoc='right', tokens=('EXISTS',), rel_to_last='='):
     pass
 
 
-class P_DISTINCT(Precedence, assoc='right', tokens=('DISTINCT',),
-                 rel_to_last='='):
+class P_DISTINCT(
+    Precedence, assoc='right', tokens=('DISTINCT',), rel_to_last='='
+):
     pass
 
 
@@ -169,20 +178,20 @@ class P_AT(Precedence, assoc='left', tokens=('AT',)):
 
 # XXX: I don't remember why this helps.
 
+
 class P_REQUIRED(Precedence, assoc='right', tokens=('REQUIRED',)):
     pass
 
 
-class P_MULTI(Precedence, assoc='right', tokens=('MULTI',),
-              rel_to_last='='):
+class P_MULTI(Precedence, assoc='right', tokens=('MULTI',), rel_to_last='='):
     pass
 
 
-class P_OPTIONAL(Precedence, assoc='right', tokens=('OPTIONAL',),
-                 rel_to_last='='):
+class P_OPTIONAL(
+    Precedence, assoc='right', tokens=('OPTIONAL',), rel_to_last='='
+):
     pass
 
 
-class P_SINGLE(Precedence, assoc='right', tokens=('SINGLE',),
-               rel_to_last='='):
+class P_SINGLE(Precedence, assoc='right', tokens=('SINGLE',), rel_to_last='='):
     pass

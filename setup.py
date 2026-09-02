@@ -1108,24 +1108,8 @@ setuptools.setup(
         ),
 
         setuptools_extension.Extension(
-            "edb.server.protocol.notebook_ext",
-            ["edb/server/protocol/notebook_ext.pyx"],
-            extra_compile_args=EXT_CFLAGS,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
             "edb.server.protocol.ui_ext",
             ["edb/server/protocol/ui_ext.pyx"],
-            extra_compile_args=EXT_CFLAGS,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
-            "edb.server.protocol.edgeql_ext",
-            ["edb/server/protocol/edgeql_ext.pyx"],
             extra_compile_args=EXT_CFLAGS,
             extra_link_args=EXT_LDFLAGS,
             include_dirs=EXT_INC_DIRS,
@@ -1155,14 +1139,6 @@ setuptools.setup(
         ),
 
         setuptools_extension.Extension(
-            "edb.graphql.extension",
-            ["edb/graphql/extension.pyx"],
-            extra_compile_args=EXT_CFLAGS,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
             "edb.pgsql.parser.parser",
             ["edb/pgsql/parser/parser.pyx"],
             extra_compile_args=EXT_CFLAGS + _protobuf_c_cflags,
@@ -1184,12 +1160,6 @@ setuptools.setup(
         setuptools_rust.RustExtension(
             "edb._edgeql_parser",
             path="edb/edgeql-parser/edgeql-parser-python/Cargo.toml",
-            features=["python_extension"],
-            binding=setuptools_rust.Binding.PyO3,
-        ),
-        setuptools_rust.RustExtension(
-            "edb._graphql_rewrite",
-            path="edb/graphql-rewrite/Cargo.toml",
             features=["python_extension"],
             binding=setuptools_rust.Binding.PyO3,
         ),

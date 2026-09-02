@@ -32,7 +32,6 @@ from edb import edgeql, errors
 from edb.common import uuidgen
 from edb.edgeql import qltypes
 from edb.edgeql import tokenizer
-from edb.graphql import tokenizer as gql_tokenizer
 from edb.server import config, defines
 from edb.server.pgproto.pgproto cimport WriteBuffer, ReadBuffer
 from edb.pgsql import parser as pgparser
@@ -50,7 +49,6 @@ cdef object IN_FMT_JSON = enums.InputFormat.JSON
 cdef object IN_LANG_EDGEQL = enums.InputLanguage.EDGEQL
 cdef object IN_LANG_SQL = enums.InputLanguage.SQL
 cdef object IN_LANG_SQL_PARAMS = enums.InputLanguage.SQL_PARAMS
-cdef object IN_LANG_GRAPHQL = enums.InputLanguage.GRAPHQL
 
 cdef char MASK_JSON_PARAMETERS  = 1 << 0
 cdef char MASK_EXPECT_ONE       = 1 << 1
@@ -93,8 +91,6 @@ cdef char serialize_input_language(val):
         return b'S'
     elif val is IN_LANG_SQL_PARAMS:
         return b'P'
-    elif val is IN_LANG_GRAPHQL:
-        return b'G'
     else:
         raise errors.BinaryProtocolError(f'unknown input language {val!r}')
 
@@ -106,8 +102,6 @@ cdef deserialize_input_language(char lang):
         return IN_LANG_SQL
     elif lang == b'P':
         return IN_LANG_SQL_PARAMS
-    elif lang == b'G':
-        return IN_LANG_GRAPHQL
     else:
         raise errors.BinaryProtocolError(
             f'unknown input language {lang.to_bytes(1, "big")!r}')
@@ -475,8 +469,6 @@ cdef _deserialize_comp_req_v1(
         source = pgparser.deserialize(serialized_source)
     elif input_language is enums.InputLanguage.SQL_PARAMS:
         source = SQLParamsSource.deserialize(serialized_source)
-    elif input_language is enums.InputLanguage.GRAPHQL:
-        source = gql_tokenizer.deserialize(serialized_source, query_text)
     else:
         raise AssertionError(
             f"unexpected source language in serialized "

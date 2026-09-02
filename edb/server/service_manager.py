@@ -37,8 +37,7 @@ def _stream_socket_from_fd(fd: int) -> Optional[socket.socket]:
         sock = socket.socket(fileno=fd)
     except OSError:
         logger.warning(
-            f"activation file descriptor {fd} is not a socket "
-            f", ignoring"
+            f"activation file descriptor {fd} is not a socket , ignoring"
         )
         return None
 
@@ -160,9 +159,9 @@ if sys.platform == "darwin":
         else:
             raise LaunchActivateSocketError(result)
 
-    def launchd_get_activation_listen_sockets() -> (
-        dict[str, list[socket.socket]]
-    ):
+    def launchd_get_activation_listen_sockets() -> dict[
+        str, list[socket.socket]
+    ]:
         names = ["edgedb-server"]
         sockets: dict[str, list[socket.socket]] = {}
 
@@ -172,7 +171,8 @@ if sys.platform == "darwin":
             except LaunchActivateSocketError as e:
                 logger.warning(
                     f"could not activate socket {name}: "
-                    f"launch_activate_socket() returned {e.errno}")
+                    f"launch_activate_socket() returned {e.errno}"
+                )
                 continue
 
             for fd in fds:
@@ -185,9 +185,9 @@ if sys.platform == "darwin":
 
 else:
 
-    def launchd_get_activation_listen_sockets() -> (
-        dict[str, list[socket.socket]]
-    ):
+    def launchd_get_activation_listen_sockets() -> dict[
+        str, list[socket.socket]
+    ]:
         return {}
 
 

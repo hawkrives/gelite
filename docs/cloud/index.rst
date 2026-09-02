@@ -12,7 +12,6 @@ Cloud
 
     cli
     web
-    http_gql
     deploy/index
     deploy/vercel
     deploy/netlify

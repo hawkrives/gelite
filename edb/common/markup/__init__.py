@@ -31,7 +31,6 @@ from .elements.base import Markup  # noqa
 
 
 class MarkupCapableMixin:
-
     def __init_subclass__(cls, **kwargs):
         super().__init_subclass__(**kwargs)
         if hasattr(cls, 'as_markup'):
@@ -42,7 +41,6 @@ class MarkupExceptionContext(
     exceptions.ExceptionContext,
     MarkupCapableMixin,
 ):
-
     @abc.abstractclassmethod  # type: ignore
     def as_markup(cls, *, ctx):
         pass

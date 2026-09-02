@@ -30,8 +30,7 @@ from edb.edgeql import parser as qlparser
 class TestEdgeQLIRScopeTree(tb.BaseEdgeQLCompilerTest):
     """Unit tests for scope tree logic."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
     def run_test(self, *, source, spec, expected):
         qltree = qlparser.parse_query(source)
@@ -41,7 +40,7 @@ class TestEdgeQLIRScopeTree(tb.BaseEdgeQLCompilerTest):
             options=compiler.CompilerOptions(
                 apply_query_rewrites=False,
                 modaliases={None: 'default'},
-            )
+            ),
         )
 
         root = ir.scope_tree
@@ -52,35 +51,47 @@ class TestEdgeQLIRScopeTree(tb.BaseEdgeQLCompilerTest):
                 f' \n{root.pformat()}'
             )
 
-    @tb.must_fail(errors.QueryError,
-                  "reference to 'User.name' changes the interpretation",
-                  line=3, col=16)
+    @tb.must_fail(
+        errors.QueryError,
+        "reference to 'User.name' changes the interpretation",
+        line=3,
+        col=16,
+    )
     def test_edgeql_ir_scope_tree_bad_01(self):
         """
         SELECT User.deck
         FILTER User.name
         """
 
-    @tb.must_fail(errors.QueryError,
-                  "reference to 'User' changes the interpretation",
-                  line=3, col=16)
+    @tb.must_fail(
+        errors.QueryError,
+        "reference to 'User' changes the interpretation",
+        line=3,
+        col=16,
+    )
     def test_edgeql_ir_scope_tree_bad_02(self):
         """
         SELECT User.deck
         FILTER User.deck@count
         """
 
-    @tb.must_fail(errors.QueryError,
-                  "reference to 'User' changes the interpretation",
-                  line=2, col=35)
+    @tb.must_fail(
+        errors.QueryError,
+        "reference to 'User' changes the interpretation",
+        line=2,
+        col=35,
+    )
     def test_edgeql_ir_scope_tree_bad_03(self):
         """
         SELECT User.deck { foo := User }
         """
 
-    @tb.must_fail(errors.QueryError,
-                  "reference to 'User.name' changes the interpretation",
-                  line=2, col=40)
+    @tb.must_fail(
+        errors.QueryError,
+        "reference to 'User.name' changes the interpretation",
+        line=2,
+        col=40,
+    )
     def test_edgeql_ir_scope_tree_bad_04(self):
         """
         UPDATE User.deck SET { name := User.name }
@@ -97,9 +108,12 @@ class TestEdgeQLIRScopeTree(tb.BaseEdgeQLCompilerTest):
         """
         # This one is fine now, since it is a property
 
-    @tb.must_fail(errors.InvalidReferenceError,
-                  "cannot reference correlated set 'User' here",
-                  line=2, col=45)
+    @tb.must_fail(
+        errors.InvalidReferenceError,
+        "cannot reference correlated set 'User' here",
+        line=2,
+        col=45,
+    )
     def test_edgeql_ir_scope_tree_bad_06(self):
         """
         UPDATE User SET { avatar := (UPDATE .avatar SET { text := "foo" }) }

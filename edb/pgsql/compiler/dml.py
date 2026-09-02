@@ -69,7 +69,6 @@ from . import relgen
 
 
 class DMLParts(NamedTuple):
-
     dml_ctes: Mapping[
         irast.TypeRef,
         tuple[pgast.CommonTableExpr, pgast.PathRangeVar],
@@ -106,9 +105,7 @@ def init_dml_stmt(
         range_cte = get_dml_range(ir_stmt, ctx=ctx)
         range_rvar = pgast.RelRangeVar(
             relation=range_cte,
-            alias=pgast.Alias(
-                aliasname=ctx.env.aliases.get(hint='range')
-            )
+            alias=pgast.Alias(aliasname=ctx.env.aliases.get(hint='range')),
         )
     else:
         range_cte = None
@@ -141,10 +138,9 @@ def init_dml_stmt(
     for typeref in typerefs:
         if typeref.union:
             continue
-        if (
-            isinstance(typeref.name_hint, sn.QualName)
-            and typeref.name_hint.module in ('sys', 'cfg')
-        ):
+        if isinstance(
+            typeref.name_hint, sn.QualName
+        ) and typeref.name_hint.module in ('sys', 'cfg'):
             continue
         dml_cte, dml_rvar = gen_dml_cte(
             ir_stmt,
@@ -158,7 +154,8 @@ def init_dml_stmt(
     else_cte = None
     if (
         isinstance(ir_stmt, irast.InsertStmt)
-        and ir_stmt.on_conflict and ir_stmt.on_conflict.else_ir is not None
+        and ir_stmt.on_conflict
+        and ir_stmt.on_conflict.else_ir is not None
     ):
         dml_cte = pgast.CommonTableExpr(
             query=pgast.SelectStmt(),
@@ -183,7 +180,7 @@ def gen_dml_union(
     ir_stmt: irast.MutatingStmt,
     parts: DMLParts,
     *,
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> tuple[pgast.CommonTableExpr, pgast.PathRangeVar]:
     dml_entries = list(parts.dml_ctes.values())
     if parts.else_cte:
@@ -244,7 +241,6 @@ def gen_dml_cte(
     typeref: irast.TypeRef,
     ctx: context.CompilerContextLevel,
 ) -> tuple[pgast.CommonTableExpr, pgast.PathRangeVar]:
-
     subject_ir_set = ir_stmt.subject
     subject_path_id = subject_ir_set.path_id
 
@@ -282,7 +278,8 @@ def gen_dml_cte(
                 for_mutation=False,
                 include_descendants=False,
                 dml_source=[
-                    k for k in ctx.dml_stmts.keys()
+                    k
+                    for k in ctx.dml_stmts.keys()
                     if isinstance(k, irast.MutatingLikeStmt)
                 ],
                 ctx=ctx,
@@ -336,8 +333,7 @@ def gen_dml_cte(
     ctx.path_scope.maps.clear()
 
     if range_rvar is not None:
-        relctx.pull_path_namespace(
-            target=dml_stmt, source=range_rvar, ctx=ctx)
+        relctx.pull_path_namespace(target=dml_stmt, source=range_rvar, ctx=ctx)
 
         # Auxiliary relations are always joined via the WHERE
         # clause due to the structure of the UPDATE/DELETE SQL statements.
@@ -349,7 +345,7 @@ def gen_dml_cte(
             op='=',
             rexpr=pathctx.get_rvar_path_identity_var(
                 range_rvar, subject_path_id, env=ctx.env
-            )
+            ),
         )
 
         # Do any read-side filtering
@@ -388,7 +384,6 @@ def wrap_dml_cte(
     *,
     ctx: context.CompilerContextLevel,
 ) -> pgast.PathRangeVar:
-
     wrapper = ctx.rel
     dml_rvar = relctx.rvar_for_rel(
         dml_cte,
@@ -400,7 +395,8 @@ def wrap_dml_cte(
 
     if ctx.dml_stmt_stack:
         relctx.reuse_type_rel_overlays(
-            dml_source=ir_stmt, dml_stmts=ctx.dml_stmt_stack, ctx=ctx)
+            dml_source=ir_stmt, dml_stmts=ctx.dml_stmt_stack, ctx=ctx
+        )
 
     return dml_rvar
 
@@ -411,14 +407,15 @@ def put_iterator_bond(
 ) -> None:
     if iterator:
         pathctx.put_path_bond(
-            select, iterator.path_id, iterator=iterator.iterator_bond)
+            select, iterator.path_id, iterator=iterator.iterator_bond
+        )
 
 
 def merge_iterator_scope(
     iterator: Optional[pgast.IteratorCTE],
     select: pgast.SelectStmt,
     *,
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> None:
     while iterator:
         ctx.path_scope[iterator.path_id] = select
@@ -429,7 +426,7 @@ def merge_iterator(
     iterator: Optional[pgast.IteratorCTE],
     select: pgast.SelectStmt,
     *,
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> Optional[pgast.PathRangeVar]:
     merge_iterator_scope(iterator, select, ctx=ctx)
 
@@ -438,15 +435,18 @@ def merge_iterator(
 
         put_iterator_bond(iterator, select)
         relctx.include_rvar(
-            select, iterator_rvar,
-            aspects=(pgce.PathAspect.VALUE, iterator.aspect) + (
+            select,
+            iterator_rvar,
+            aspects=(pgce.PathAspect.VALUE, iterator.aspect)
+            + (
                 (pgce.PathAspect.SOURCE,)
-                if iterator.path_id.is_objtype_path() else
-                ()
+                if iterator.path_id.is_objtype_path()
+                else ()
             ),
             path_id=iterator.path_id,
             overwrite_path_rvar=True,
-            ctx=ctx)
+            ctx=ctx,
+        )
         # We need nested iterators to re-export their enclosing
         # iterators in some cases that the path_id_mask blocks
         # otherwise.
@@ -471,7 +471,6 @@ def fini_dml_stmt(
     *,
     ctx: context.CompilerContextLevel,
 ) -> None:
-
     union_cte, union_rvar = gen_dml_union(ir_stmt, parts, ctx=ctx)
 
     if len(parts.dml_ctes) > 1 or parts.else_cte:
@@ -489,8 +488,13 @@ def fini_dml_stmt(
         assert len(parts.dml_ctes) == 1
         cte = next(iter(parts.dml_ctes.values()))[0]
         relctx.add_type_rel_overlay(
-            ir_stmt.subject.typeref, context.OverlayOp.UNION, cte,
-            dml_stmts=dml_stack, path_id=ir_stmt.subject.path_id, ctx=ctx)
+            ir_stmt.subject.typeref,
+            context.OverlayOp.UNION,
+            cte,
+            dml_stmts=dml_stack,
+            path_id=ir_stmt.subject.path_id,
+            ctx=ctx,
+        )
     elif isinstance(ir_stmt, irast.UpdateStmt):
         base_typeref = ir_stmt.subject.typeref.real_material_type
 
@@ -514,13 +518,23 @@ def fini_dml_stmt(
             # First, filter out objects that have been updated, then union them
             # back in. (If we just did union, we'd see the old values also.)
             relctx.add_type_rel_overlay(
-                typeref, context.OverlayOp.FILTER, cte,
+                typeref,
+                context.OverlayOp.FILTER,
+                cte,
                 stop_ref=stop_ref,
-                dml_stmts=dml_stack, path_id=ir_stmt.subject.path_id, ctx=ctx)
+                dml_stmts=dml_stack,
+                path_id=ir_stmt.subject.path_id,
+                ctx=ctx,
+            )
             relctx.add_type_rel_overlay(
-                typeref, context.OverlayOp.UNION, cte,
+                typeref,
+                context.OverlayOp.UNION,
+                cte,
                 stop_ref=stop_ref,
-                dml_stmts=dml_stack, path_id=ir_stmt.subject.path_id, ctx=ctx)
+                dml_stmts=dml_stack,
+                path_id=ir_stmt.subject.path_id,
+                ctx=ctx,
+            )
 
         process_extra_conflicts(ir_stmt=ir_stmt, dml_parts=parts, ctx=ctx)
     elif isinstance(ir_stmt, irast.DeleteStmt):
@@ -535,9 +549,14 @@ def fini_dml_stmt(
                 stop_ref = base_typeref
 
             relctx.add_type_rel_overlay(
-                typeref, context.OverlayOp.EXCEPT, cte,
+                typeref,
+                context.OverlayOp.EXCEPT,
+                cte,
                 stop_ref=stop_ref,
-                dml_stmts=dml_stack, path_id=ir_stmt.subject.path_id, ctx=ctx)
+                dml_stmts=dml_stack,
+                path_id=ir_stmt.subject.path_id,
+                ctx=ctx,
+            )
 
     clauses.compile_output(ir_stmt.result, ctx=ctx)
 
@@ -573,7 +592,8 @@ def get_dml_range(
         relgen.ensure_source_rvar(target_ir_set, range_stmt, ctx=subctx)
 
         pathctx.get_path_identity_output(
-            range_stmt, target_ir_set.path_id, env=subctx.env)
+            range_stmt, target_ir_set.path_id, env=subctx.env
+        )
 
         if ir_qual_expr is not None:
             with subctx.new() as wctx:
@@ -581,7 +601,9 @@ def get_dml_range(
                 range_stmt.where_clause = astutils.extend_binop(
                     range_stmt.where_clause,
                     clauses.compile_filter_clause(
-                        ir_qual_expr, ir_qual_card, ctx=wctx))
+                        ir_qual_expr, ir_qual_card, ctx=wctx
+                    ),
+                )
 
         range_stmt.path_id_mask.discard(target_ir_set.path_id)
         pathctx.put_path_bond(range_stmt, target_ir_set.path_id)
@@ -596,11 +618,8 @@ def get_dml_range(
 
 
 def compile_iterator_cte(
-    iterator_set: irast.Set,
-    *,
-    ctx: context.CompilerContextLevel
+    iterator_set: irast.Set, *, ctx: context.CompilerContextLevel
 ) -> Optional[pgast.IteratorCTE]:
-
     last_iterator = ctx.enclosing_cte_iterator
 
     # If this iterator has already been compiled to a CTE, use
@@ -609,8 +628,11 @@ def compile_iterator_cte(
     if iterator_set in ctx.dml_stmts:
         iterator_cte = ctx.dml_stmts[iterator_set]
         return pgast.IteratorCTE(
-            path_id=iterator_set.path_id, cte=iterator_cte,
-            parent=last_iterator, iterator_bond=True)
+            path_id=iterator_set.path_id,
+            cte=iterator_cte,
+            parent=last_iterator,
+            iterator_bond=True,
+        )
 
     with ctx.newrel() as ictx:
         ictx.scope_tree = ctx.scope_tree
@@ -621,7 +643,8 @@ def compile_iterator_cte(
         clauses.setup_iterator_volatility(last_iterator, ctx=ictx)
 
         clauses.compile_iterator_expr(
-            ictx.rel, iterator_set, is_dml=True, ctx=ictx)
+            ictx.rel, iterator_set, is_dml=True, ctx=ictx
+        )
         if iterator_set.path_id.is_objtype_path():
             relgen.ensure_source_rvar(iterator_set, ictx.rel, ctx=ictx)
         ictx.rel.path_id = iterator_set.path_id
@@ -656,15 +679,16 @@ def _mk_dynamic_get_path(
     """
 
     def dynamic_get_path(
-        rel: pgast.Query, path_id: irast.PathId, *,
+        rel: pgast.Query,
+        path_id: irast.PathId,
+        *,
         flavor: str,
-        aspect: str, env: context.Environment
+        aspect: str,
+        env: context.Environment,
     ) -> Optional[pgast.BaseExpr | pgast.PathRangeVar]:
-        if (
-            flavor != 'normal'
-            or aspect not in (
-                pgce.PathAspect.VALUE, pgce.PathAspect.IDENTITY
-            )
+        if flavor != 'normal' or aspect not in (
+            pgce.PathAspect.VALUE,
+            pgce.PathAspect.IDENTITY,
         ):
             return None
         if rptr := path_id.rptr():
@@ -680,6 +704,7 @@ def _mk_dynamic_get_path(
             raise LookupError('only pointers appear in insert fallback')
         # Properties that aren't specified are {}
         return pgast.NullConstant()
+
     return dynamic_get_path
 
 
@@ -754,10 +779,9 @@ def process_insert_body(
     # This is to make it easy for access policies to operate on the result
     # of the INSERT.
     fallback_rvar = pgast.DynamicRangeVar(
-        dynamic_get_path=_mk_dynamic_get_path(ptr_map, typeref))
-    pathctx.put_path_source_rvar(
-        select, ir_stmt.subject.path_id, fallback_rvar
+        dynamic_get_path=_mk_dynamic_get_path(ptr_map, typeref)
     )
+    pathctx.put_path_source_rvar(select, ir_stmt.subject.path_id, fallback_rvar)
     pathctx.put_path_value_rvar(select, ir_stmt.subject.path_id, fallback_rvar)
 
     # compile contents CTE
@@ -780,8 +804,7 @@ def process_insert_body(
         ir_stmt, select, ptr_map, elements, iterator, inner_iterator, ctx
     )
     single_external = [
-        ir for ir in external_inserts
-        if ir.expr.dir_cardinality.is_single()
+        ir for ir in external_inserts if ir.expr.dir_cardinality.is_single()
     ]
 
     # Put the select that builds the tuples to insert into its own CTE.
@@ -813,7 +836,8 @@ def process_insert_body(
             pol_ctx.rel_overlays = context.RelOverlays()
 
     needs_insert_on_conflict = bool(
-        ir_stmt.on_conflict and not on_conflict_fake_iterator)
+        ir_stmt.on_conflict and not on_conflict_fake_iterator
+    )
 
     # The first serious bit of trickiness: if there are rewrites, the link
     # table updates need to be done *before* we compute the rewrites, since
@@ -889,9 +913,7 @@ def process_insert_body(
         if '~' not in (name := not_none(value.name))
     ]
     insert_stmt.select_stmt = pgast.SelectStmt(
-        target_list=[
-            pgast.ResTarget(val=col) for col in insert_stmt.cols
-        ],
+        target_list=[pgast.ResTarget(val=col) for col in insert_stmt.cols],
         from_clause=[contents_rvar],
     )
     pathctx.put_path_bond(insert_stmt, ir_stmt.subject.path_id)
@@ -908,9 +930,11 @@ def process_insert_body(
         merge_iterator(iterator, ictx.rel, ctx=ictx)
         insert_rvar = relctx.rvar_for_rel(real_insert_cte, ctx=ctx)
         relctx.include_rvar(
-            ictx.rel, insert_rvar, ir_stmt.subject.path_id, ctx=ictx)
+            ictx.rel, insert_rvar, ir_stmt.subject.path_id, ctx=ictx
+        )
         relctx.include_rvar(
-            ictx.rel, contents_rvar, ir_stmt.subject.path_id, ctx=ictx)
+            ictx.rel, contents_rvar, ir_stmt.subject.path_id, ctx=ictx
+        )
     # TODO: set up dml_parts with a SelectStmt for inserts always?
     insert_cte.query = ictx.rel
 
@@ -938,7 +962,8 @@ def process_insert_body(
         force_policy_checks(
             policy_cte,
             (insert_stmt,) + tuple(cte.query for cte in link_ctes),
-            ctx=ctx)
+            ctx=ctx,
+        )
 
     for link_cte in link_ctes:
         ctx.toplevel_stmt.append_cte(link_cte)
@@ -1009,27 +1034,31 @@ def process_insert_rewrites(
         handled.add(ext_ir.expr.ptrref.shortname.name)
         with ctx.subrel() as ectx:
             ext_rvar = relctx.new_pointer_rvar(
-                ext_ir, link_bias=True, src_rvar=iterator_rvar, ctx=ectx)
+                ext_ir, link_bias=True, src_rvar=iterator_rvar, ctx=ectx
+            )
             relctx.include_rvar(ectx.rel, ext_rvar, ext_ir.path_id, ctx=ectx)
             # Make the subquery output the target
-            pathctx.get_path_value_output(
-                ectx.rel, ext_ir.path_id, env=ctx.env)
+            pathctx.get_path_value_output(ectx.rel, ext_ir.path_id, env=ctx.env)
 
         ptr_info = pg_types.get_ptrref_storage_info(
-            ext_ir.expr.ptrref, resolve_type=True, link_bias=False)
-        rew_stmt.target_list.append(pgast.ResTarget(
-            name=ptr_info.column_name, val=ectx.rel))
+            ext_ir.expr.ptrref, resolve_type=True, link_bias=False
+        )
+        rew_stmt.target_list.append(
+            pgast.ResTarget(name=ptr_info.column_name, val=ectx.rel)
+        )
         nptr_map[ext_ir.expr.ptrref.real_material_ptr.name] = ectx.rel
 
     # Pull in pointers that were not rewritten
     not_rewritten = {
-        (e, ptrref) for e, ptrref in elements
+        (e, ptrref)
+        for e, ptrref in elements
         if ptrref.shortname.name not in handled
     }
     for e, ptrref in not_rewritten:
         # FIXME: Duplicates some with process_insert_shape
         ptr_info = pg_types.get_ptrref_storage_info(
-            ptrref, resolve_type=True, link_bias=False)
+            ptrref, resolve_type=True, link_bias=False
+        )
         if ptr_info.table_type == 'ObjectType':
             val = pathctx.get_path_var(
                 rew_stmt,
@@ -1038,8 +1067,9 @@ def process_insert_rewrites(
                 env=ctx.env,
             )
             val = output.output_as_value(val, env=ctx.env)
-            rew_stmt.target_list.append(pgast.ResTarget(
-                name=ptr_info.column_name, val=val))
+            rew_stmt.target_list.append(
+                pgast.ResTarget(name=ptr_info.column_name, val=val)
+            )
 
     # construct the CTE
     pathctx.put_path_bond(rew_stmt, ir_stmt.subject.path_id)
@@ -1062,7 +1092,7 @@ def process_insert_shape(
     iterator: Optional[pgast.IteratorCTE],
     inner_iterator: Optional[pgast.IteratorCTE],
     ctx: context.CompilerContextLevel,
-    force_optional: bool=False,
+    force_optional: bool = False,
 ) -> list[irast.SetE[irast.Pointer]]:
     # Compile the shape
     external_inserts = []
@@ -1078,19 +1108,22 @@ def process_insert_shape(
             subctx.path_scope = ctx.path_scope.new_child()
             merge_iterator(inner_iterator, select, ctx=subctx)
             inner_iterator_id = relctx.get_path_var(
-                select, inner_iterator.path_id,
+                select,
+                inner_iterator.path_id,
                 aspect=inner_iterator.aspect,
-                ctx=ctx)
+                ctx=ctx,
+            )
 
         # Process the Insert IR and separate links that go
         # into the main table from links that are inserted into
         # a separate link table.
         for element, ptrref in elements:
-
             ptr_info = pg_types.get_ptrref_storage_info(
-                ptrref, resolve_type=True, link_bias=False)
+                ptrref, resolve_type=True, link_bias=False
+            )
             link_ptr_info = pg_types.get_ptrref_storage_info(
-                ptrref, resolve_type=False, link_bias=True)
+                ptrref, resolve_type=False, link_bias=True
+            )
 
             # First, process all local link inserts. Single link with
             # link properties are not processed here; we compile those
@@ -1106,7 +1139,8 @@ def process_insert_shape(
                 )
 
                 insvalue = pathctx.get_path_value_var(
-                    subctx.rel, element.path_id, env=ctx.env)
+                    subctx.rel, element.path_id, env=ctx.env
+                )
 
                 if irtyputils.is_tuple(element.typeref):
                     # Tuples require an explicit cast.
@@ -1118,8 +1152,9 @@ def process_insert_shape(
                     )
 
                 ptr_map[ptrref.name] = insvalue
-                select.target_list.append(pgast.ResTarget(
-                    name=ptr_info.column_name, val=insvalue))
+                select.target_list.append(
+                    pgast.ResTarget(name=ptr_info.column_name, val=insvalue)
+                )
 
             if link_ptr_info and link_ptr_info.table_type == 'link':
                 external_inserts.append(element)
@@ -1128,7 +1163,9 @@ def process_insert_shape(
 
     for aspect in (pgce.PathAspect.VALUE, pgce.PathAspect.IDENTITY):
         pathctx._put_path_output_var(
-            select, ir_stmt.subject.path_id, aspect=aspect,
+            select,
+            ir_stmt.subject.path_id,
+            aspect=aspect,
             var=pgast.ColumnRef(name=['id']),
         )
 
@@ -1143,7 +1180,6 @@ def compile_insert_shape_element(
     force_optional: bool,
     ctx: context.CompilerContextLevel,
 ) -> None:
-
     with ctx.new() as insvalctx:
         if iterator_id is not None:
             id = iterator_id
@@ -1161,7 +1197,8 @@ def compile_insert_shape_element(
             # If the element can be empty, compile it in a subquery to force it
             # to be NULL.
             value = relgen.set_as_subquery(
-                shape_el, as_value=True, ctx=insvalctx)
+                shape_el, as_value=True, ctx=insvalctx
+            )
             pathctx.put_path_value_var(insvalctx.rel, shape_el.path_id, value)
         else:
             dispatch.visit(shape_el, ctx=insvalctx)
@@ -1182,14 +1219,14 @@ def merge_overlays_globally(
             continue
         for k, v in ctx.rel_overlays.type.get(ir_stmt, immu.Map()).items():
             els = set(type_overlay.get(k, ()))
-            n_els = (
-                type_overlay.get(k, ()) + tuple(e for e in v if e not in els)
+            n_els = type_overlay.get(k, ()) + tuple(
+                e for e in v if e not in els
             )
             type_overlay = type_overlay.set(k, n_els)
         for k2, v2 in ctx.rel_overlays.ptr.get(ir_stmt, immu.Map()).items():
             els = set(ptr_overlay.get(k2, ()))
-            n_els = (
-                ptr_overlay.get(k2, ()) + tuple(e for e in v2 if e not in els)
+            n_els = ptr_overlay.get(k2, ()) + tuple(
+                e for e in v2 if e not in els
             )
             ptr_overlay = ptr_overlay.set(k2, n_els)
 
@@ -1324,7 +1361,6 @@ def compile_policy_check(
 def _conditional_string_agg(
     pairs: Sequence[tuple[Optional[str], pgast.BaseExpr]],
 ) -> Optional[pgast.BaseExpr]:
-
     selects = [
         pgast.SelectStmt(
             target_list=[
@@ -1365,10 +1401,11 @@ def _conditional_string_agg(
 
 
 def force_policy_checks(
-        policy_cte: pgast.CommonTableExpr,
-        queries: Sequence[pgast.Query],
-        *,
-        ctx: context.CompilerContextLevel) -> None:
+    policy_cte: pgast.CommonTableExpr,
+    queries: Sequence[pgast.Query],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> None:
     # The actual DML statements need to be made dependent on the
     # policy CTE, to ensure that it is evaluated before any
     # modifications are done.
@@ -1383,9 +1420,7 @@ def force_policy_checks(
         if isinstance(stmt, pgast.InsertStmt):
             stmt = stmt.select_stmt
         if isinstance(stmt, (pgast.SelectStmt, pgast.UpdateStmt)):
-            stmt.where_clause = astutils.extend_binop(
-                stmt.where_clause, scan
-            )
+            stmt.where_clause = astutils.extend_binop(stmt.where_clause, scan)
 
     # If there aren't any update/insert queries to put it into
     # (because it is just an update with a -=, probably), make it a
@@ -1412,10 +1447,10 @@ def insert_needs_conflict_cte(
     # on the type, since UNLESS CONFLICT only should avoid
     # conflicts with objects that are visible.
     type_id = ir_stmt.subject.typeref.real_material_type.id
-    if (
-        (type_id, True) in ctx.env.type_rewrites
-        or (type_id, False) in ctx.env.type_rewrites
-    ):
+    if (type_id, True) in ctx.env.type_rewrites or (
+        type_id,
+        False,
+    ) in ctx.env.type_rewrites:
         return True
 
     # We can't use ON CONFLICT if there are rewrites on the type
@@ -1427,7 +1462,8 @@ def insert_needs_conflict_cte(
     for shape_el, _ in ir_stmt.subject.shape:
         ptrref = shape_el.expr.ptrref
         ptr_info = pg_types.get_ptrref_storage_info(
-            ptrref, resolve_type=True, link_bias=False)
+            ptrref, resolve_type=True, link_bias=False
+        )
 
         # We need to generate a conflict CTE if we have a DML containing
         # pointer stored in the object itself
@@ -1447,7 +1483,8 @@ def insert_needs_conflict_cte(
         # insert.
         if ptr_info.table_type == 'ObjectType':
             link_ptr_info = pg_types.get_ptrref_storage_info(
-                ptrref, resolve_type=True, link_bias=True)
+                ptrref, resolve_type=True, link_bias=True
+            )
             if link_ptr_info:
                 return True
 
@@ -1455,15 +1492,14 @@ def insert_needs_conflict_cte(
 
 
 def compile_insert_else_body(
-        stmt: Optional[pgast.InsertStmt],
-        ir_stmt: irast.MutatingStmt,
-        on_conflict: irast.OnConflictClause,
-        enclosing_cte_iterator: Optional[pgast.IteratorCTE],
-        else_cte_rvar: Optional[
-            tuple[pgast.CommonTableExpr, pgast.PathRangeVar]],
-        *,
-        ctx: context.CompilerContextLevel) -> Optional[pgast.IteratorCTE]:
-
+    stmt: Optional[pgast.InsertStmt],
+    ir_stmt: irast.MutatingStmt,
+    on_conflict: irast.OnConflictClause,
+    enclosing_cte_iterator: Optional[pgast.IteratorCTE],
+    else_cte_rvar: Optional[tuple[pgast.CommonTableExpr, pgast.PathRangeVar]],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> Optional[pgast.IteratorCTE]:
     else_select = on_conflict.select_ir
     else_branch = on_conflict.else_ir
     else_fail = on_conflict.else_fail
@@ -1495,12 +1531,14 @@ def compile_insert_else_body(
     # When none of these cases obtain, we use ON CONFLICT because it
     # ought to be more performant.
     needs_conflict_cte = insert_needs_conflict_cte(
-        ir_stmt, on_conflict, ctx=ctx)
+        ir_stmt, on_conflict, ctx=ctx
+    )
     if not needs_conflict_cte and not else_fail:
         target = None
         if on_conflict.constraint:
             constraint_name = common.get_constraint_raw_name(
-                on_conflict.constraint.id)
+                on_conflict.constraint.id
+            )
             target = pgast.OnConflictTarget(
                 constraint_name=f'"{constraint_name}"'
             )
@@ -1550,12 +1588,18 @@ def compile_insert_else_body(
         with ctx.newrel() as ictx:
             ictx.path_scope[subject_id] = ictx.rel
 
-            relctx.include_rvar(ictx.rel, else_select_rvar,
-                                path_id=else_select.path_id, ctx=ictx)
+            relctx.include_rvar(
+                ictx.rel,
+                else_select_rvar,
+                path_id=else_select.path_id,
+                ctx=ictx,
+            )
 
             ictx.enclosing_cte_iterator = pgast.IteratorCTE(
-                path_id=else_select.path_id, cte=else_select_cte,
-                parent=enclosing_cte_iterator)
+                path_id=else_select.path_id,
+                cte=else_select_cte,
+                parent=enclosing_cte_iterator,
+            )
             dispatch.compile(else_branch, ctx=ictx)
             pathctx.put_path_id_map(ictx.rel, subject_id, else_branch.path_id)
             # Discard else_branch from the path_id_mask to prevent subject_id
@@ -1581,27 +1625,33 @@ def compile_insert_else_body(
             with ictx.subrel() as dctx:
                 dummy_q = dctx.rel
                 relctx.create_iterator_identity_for_path(
-                    dummy_pathid, dummy_q, ctx=dctx)
-            dummy_rvar = relctx.rvar_for_rel(
-                dummy_q, lateral=True, ctx=ictx)
-            relctx.include_rvar(ictx.rel, dummy_rvar,
-                                path_id=dummy_pathid, ctx=ictx)
+                    dummy_pathid, dummy_q, ctx=dctx
+                )
+            dummy_rvar = relctx.rvar_for_rel(dummy_q, lateral=True, ctx=ictx)
+            relctx.include_rvar(
+                ictx.rel, dummy_rvar, path_id=dummy_pathid, ctx=ictx
+            )
 
             with ictx.subrel() as subrelctx:
                 subrel = subrelctx.rel
-                relctx.include_rvar(subrel, else_select_rvar,
-                                    path_id=subject_id, ctx=ictx)
+                relctx.include_rvar(
+                    subrel, else_select_rvar, path_id=subject_id, ctx=ictx
+                )
 
             # Do the anti-join
             iter_path_id = (
-                enclosing_cte_iterator.path_id if
-                enclosing_cte_iterator else None)
+                enclosing_cte_iterator.path_id
+                if enclosing_cte_iterator
+                else None
+            )
             aspect = (
-                enclosing_cte_iterator.aspect if enclosing_cte_iterator
+                enclosing_cte_iterator.aspect
+                if enclosing_cte_iterator
                 else pgce.PathAspect.IDENTITY
             )
-            relctx.anti_join(ictx.rel, subrel, iter_path_id,
-                             aspect=aspect, ctx=ctx)
+            relctx.anti_join(
+                ictx.rel, subrel, iter_path_id, aspect=aspect, ctx=ctx
+            )
 
             # Package it up as a CTE
             anti_cte = pgast.CommonTableExpr(
@@ -1611,19 +1661,21 @@ def compile_insert_else_body(
             )
             ictx.toplevel_stmt.append_cte(anti_cte)
             anti_cte_iterator = pgast.IteratorCTE(
-                path_id=dummy_pathid, cte=anti_cte,
+                path_id=dummy_pathid,
+                cte=anti_cte,
                 parent=ictx.enclosing_cte_iterator,
-                iterator_bond=True
+                iterator_bond=True,
             )
 
     return anti_cte_iterator
 
 
 def compile_insert_else_body_failure_check(
-        ir_stmt: irast.MutatingStmt,
-        on_conflict: irast.OnConflictClause,
-        *,
-        ctx: context.CompilerContextLevel) -> None:
+    ir_stmt: irast.MutatingStmt,
+    on_conflict: irast.OnConflictClause,
+    *,
+    ctx: context.CompilerContextLevel,
+) -> None:
     else_fail = on_conflict.else_fail
     if not else_fail:
         return
@@ -1632,23 +1684,27 @@ def compile_insert_else_body_failure_check(
     # into the None overlays so it gets picked up.
     # Also copy our own overlays, which we care about just for
     # the pointer overlays.
-    merge_overlays_globally((ir_stmt, else_fail,), ctx=ctx)
+    merge_overlays_globally(
+        (
+            ir_stmt,
+            else_fail,
+        ),
+        ctx=ctx,
+    )
 
     # Do some work so that we aren't looking at the existing on-disk
     # data, just newly data created data.
     overlays_map = ctx.rel_overlays.type.get(None, immu.Map())
     for k, overlays in overlays_map.items():
         # Strip out filters, which we don't care about in this context
-        overlays = tuple([
-            (k, r, p)
-            for k, r, p in overlays
-            if k != context.OverlayOp.FILTER
-        ])
+        overlays = tuple(
+            [(k, r, p) for k, r, p in overlays if k != context.OverlayOp.FILTER]
+        )
         # Drop the initial set
         if overlays and overlays[0][0] == context.OverlayOp.UNION:
             overlays = (
                 (context.OverlayOp.REPLACE, *overlays[0][1:]),
-                *overlays[1:]
+                *overlays[1:],
             )
         overlays_map = overlays_map.set(k, overlays)
 
@@ -1661,7 +1717,8 @@ def compile_insert_else_body_failure_check(
         args=[
             pgast.TypeCast(
                 arg=pgast.NullConstant(),
-                type_name=pgast.TypeName(name=('text',))),
+                type_name=pgast.TypeName(name=('text',)),
+            ),
             pgast.StringConstant(val='exclusion_violation'),
             pgast.NamedFuncArg(
                 name='msg',
@@ -1673,14 +1730,11 @@ def compile_insert_else_body_failure_check(
                 ),
             ),
             pgast.NamedFuncArg(
-                name='constraint',
-                val=pgast.StringConstant(val=f"{cid}")
+                name='constraint', val=pgast.StringConstant(val=f"{cid}")
             ),
         ],
     )
-    ctx.rel.target_list.append(
-        pgast.ResTarget(name='error', val=maybe_raise)
-    )
+    ctx.rel.target_list.append(pgast.ResTarget(name='error', val=maybe_raise))
 
 
 def process_update_body(
@@ -1763,8 +1817,7 @@ def process_update_body(
     update_stmt = None
 
     single_external = [
-        ir for ir, _ in external_updates
-        if ir.expr.dir_cardinality.is_single()
+        ir for ir, _ in external_updates if ir.expr.dir_cardinality.is_single()
     ]
 
     rewrites = ir_stmt.rewrites and ir_stmt.rewrites.by_type.get(typeref)
@@ -1929,7 +1982,8 @@ def process_update_rewrites(
     single_external: list[irast.SetE[irast.Pointer]],
     rewrites: irast.RewritesOfType,
     elements: Sequence[
-        tuple[irast.SetE[irast.Pointer], irast.BasePointerRef, qlast.ShapeOp]],
+        tuple[irast.SetE[irast.Pointer], irast.BasePointerRef, qlast.ShapeOp]
+    ],
     ctx: context.CompilerContextLevel,
 ) -> tuple[
     pgast.CommonTableExpr,
@@ -1954,9 +2008,7 @@ def process_update_rewrites(
         cte=contents_cte,
         parent=iterator,
         # __old__
-        other_paths=(
-            ((old_path_id, pgce.PathAspect.IDENTITY),)
-        ),
+        other_paths=(((old_path_id, pgce.PathAspect.IDENTITY),)),
     )
 
     with ctx.newrel() as rctx:
@@ -1988,14 +2040,12 @@ def process_update_rewrites(
         )
 
         # pull in table_relation for __old__
-        table_rel.path_outputs[
-            (old_path_id, pgce.PathAspect.VALUE)
-        ] = pathctx.get_path_value_output(
-            table_rel, subject_path_id, env=ctx.env
+        table_rel.path_outputs[(old_path_id, pgce.PathAspect.VALUE)] = (
+            pathctx.get_path_value_output(
+                table_rel, subject_path_id, env=ctx.env
+            )
         )
-        relctx.include_rvar(
-            rewrites_stmt, table_relation, old_path_id, ctx=ctx
-        )
+        relctx.include_rvar(rewrites_stmt, table_relation, old_path_id, ctx=ctx)
         rewrites_stmt.where_clause = astutils.extend_binop(
             rewrites_stmt.where_clause,
             astutils.new_binop(
@@ -2018,7 +2068,11 @@ def process_update_rewrites(
             for el, ptrref in rewrites.values()
         ]
         values, _, nptr_map = process_update_shape(
-            ir_stmt, rewrites_stmt, rewrite_elements, typeref, rctx,
+            ir_stmt,
+            rewrites_stmt,
+            rewrite_elements,
+            typeref,
+            rctx,
         )
 
         # If there are any single links that were compiled externally,
@@ -2027,35 +2081,40 @@ def process_update_rewrites(
         for ext_ir in single_external:
             handled.add(ext_ir.expr.ptrref.shortname.name)
             actual_ptrref = irtyputils.find_actual_ptrref(
-                typeref, ext_ir.expr.ptrref)
+                typeref, ext_ir.expr.ptrref
+            )
             with rctx.subrel() as ectx:
                 ext_rvar = relctx.new_pointer_rvar(
-                    ext_ir, link_bias=True, src_rvar=contents_rvar,
-                    ctx=ectx)
+                    ext_ir, link_bias=True, src_rvar=contents_rvar, ctx=ectx
+                )
                 relctx.include_rvar(
-                    ectx.rel, ext_rvar, ext_ir.path_id, ctx=ectx)
+                    ectx.rel, ext_rvar, ext_ir.path_id, ctx=ectx
+                )
                 # Make the subquery output the target
                 pathctx.get_path_value_output(
-                    ectx.rel, ext_ir.path_id, env=ctx.env)
+                    ectx.rel, ext_ir.path_id, env=ctx.env
+                )
 
             ptr_info = pg_types.get_ptrref_storage_info(
-                actual_ptrref, resolve_type=True, link_bias=False)
-            updval = pgast.ResTarget(
-                name=ptr_info.column_name, val=ectx.rel)
+                actual_ptrref, resolve_type=True, link_bias=False
+            )
+            updval = pgast.ResTarget(name=ptr_info.column_name, val=ectx.rel)
             rewrites_stmt.target_list.append(updval)
             values.append((updval, ext_ir.path_id))
             nptr_map[actual_ptrref.name] = ectx.rel
 
         # Pull in pointers that were not rewritten
         not_rewritten = {
-            (e, ptrref) for e, ptrref, _ in elements
+            (e, ptrref)
+            for e, ptrref, _ in elements
             if ptrref.shortname.name not in handled
         }
         for e, ptrref in not_rewritten:
             # FIXME: Duplicates some with process_update_shape
             actual_ptrref = irtyputils.find_actual_ptrref(typeref, ptrref)
             ptr_info = pg_types.get_ptrref_storage_info(
-                actual_ptrref, resolve_type=True, link_bias=False)
+                actual_ptrref, resolve_type=True, link_bias=False
+            )
             if ptr_info.table_type == 'ObjectType':
                 val = pathctx.get_path_var(
                     rewrites_stmt,
@@ -2063,14 +2122,14 @@ def process_update_rewrites(
                     aspect=pgce.PathAspect.VALUE,
                     env=ctx.env,
                 )
-                updval = pgast.ResTarget(
-                    name=ptr_info.column_name, val=val)
+                updval = pgast.ResTarget(name=ptr_info.column_name, val=val)
                 values.append((updval, e.path_id))
                 rewrites_stmt.target_list.append(updval)
 
         fallback_rvar = pgast.DynamicRangeVar(
             dynamic_get_path=_mk_dynamic_get_path(
-                nptr_map, typeref, contents_rvar),
+                nptr_map, typeref, contents_rvar
+            ),
         )
         pathctx.put_path_source_rvar(rctx.rel, subject_path_id, fallback_rvar)
         pathctx.put_path_value_rvar(rctx.rel, subject_path_id, fallback_rvar)
@@ -2090,7 +2149,8 @@ def process_update_shape(
     ir_stmt: irast.UpdateStmt,
     rel: pgast.SelectStmt,
     elements: Sequence[
-        tuple[irast.SetE[irast.Pointer], irast.BasePointerRef, qlast.ShapeOp]],
+        tuple[irast.SetE[irast.Pointer], irast.BasePointerRef, qlast.ShapeOp]
+    ],
     typeref: irast.TypeRef,
     ctx: context.CompilerContextLevel,
 ) -> tuple[
@@ -2229,12 +2289,11 @@ def process_extra_conflicts(
         typeref = q_path.target.real_material_type
         cte, _ = dml_parts.dml_ctes[typeref]
 
-        pathctx.put_path_id_map(
-            cte.query, q_path, ir_stmt.subject.path_id)
+        pathctx.put_path_id_map(cte.query, q_path, ir_stmt.subject.path_id)
 
         conflict_iterator = pgast.IteratorCTE(
-            path_id=q_path, cte=cte,
-            parent=ctx.enclosing_cte_iterator)
+            path_id=q_path, cte=cte, parent=ctx.enclosing_cte_iterator
+        )
 
         compile_insert_else_body(
             None,
@@ -2303,8 +2362,7 @@ def check_update_type(
     type_pathid = ir_set.path_id.extend(ptrref=actual_type_ptrref)
 
     # Grab the actual value we have inserted and pull the __type__ out
-    rval = pathctx.get_rvar_path_identity_var(
-        rvar, ir_set.path_id, env=ctx.env)
+    rval = pathctx.get_rvar_path_identity_var(rvar, ir_set.path_id, env=ctx.env)
     typ = pathctx.get_rvar_path_identity_var(rvar, type_pathid, env=ctx.env)
 
     typeref_val = dispatch.compile(actual_ptrref.out_target, ctx=ctx)
@@ -2317,15 +2375,15 @@ def check_update_type(
         args=[typ, typeref_val],
     )
     maybe_null = pgast.CaseExpr(
-        args=[pgast.CaseWhen(expr=check_result, result=rval)])
+        args=[pgast.CaseWhen(expr=check_result, result=rval)]
+    )
     maybe_raise = pgast.FuncCall(
         name=astutils.edgedb_func('raise_on_null', ctx=ctx),
         args=[
             maybe_null,
             pgast.StringConstant(val='wrong_object_type'),
             pgast.NamedFuncArg(
-                name='msg',
-                val=pgast.StringConstant(val='covariance error')
+                name='msg', val=pgast.StringConstant(val='covariance error')
             ),
             pgast.NamedFuncArg(
                 name='column',
@@ -2410,16 +2468,14 @@ def process_link_update(
     assert isinstance(mptrref, irast.PointerRef)
 
     target_rvar = relctx.range_for_ptrref(
-        mptrref, for_mutation=True, only_self=True, ctx=ctx)
+        mptrref, for_mutation=True, only_self=True, ctx=ctx
+    )
     assert isinstance(target_rvar, pgast.RelRangeVar)
     assert isinstance(target_rvar.relation, pgast.Relation)
     target_alias = target_rvar.alias.aliasname
 
     dml_cte_rvar = pgast.RelRangeVar(
-        relation=dml_cte,
-        alias=pgast.Alias(
-            aliasname=ctx.env.aliases.get('m')
-        )
+        relation=dml_cte, alias=pgast.Alias(aliasname=ctx.env.aliases.get('m'))
     )
 
     # Turn the IR of the expression on the right side of :=
@@ -2443,9 +2499,7 @@ def process_link_update(
     data_select = pgast.SelectStmt(
         target_list=[
             pgast.ResTarget(
-                val=pgast.ColumnRef(
-                    name=[data_cte.name, pgast.Star()]
-                ),
+                val=pgast.ColumnRef(name=[data_cte.name, pgast.Star()]),
             ),
         ],
         from_clause=[
@@ -2454,7 +2508,6 @@ def process_link_update(
     )
 
     if not is_insert and shape_op is not qlast.ShapeOp.APPEND:
-
         source_ref = pathctx.get_rvar_path_identity_var(
             dml_cte_rvar,
             ir_stmt.subject.path_id,
@@ -2574,13 +2627,15 @@ def process_link_update(
                             lexpr=target_ref,
                             op='=',
                             rexpr=pgast.ColumnRef(
-                                name=[counts_alias, 'target']),
+                                name=[counts_alias, 'target']
+                            ),
                         ),
                     ),
                 )
 
                 candidates_rvar = relctx.rvar_for_rel(
-                    candidates_select, ctx=ctx)
+                    candidates_select, ctx=ctx
+                )
 
                 candidates_alias = candidates_rvar.alias.aliasname
 
@@ -2602,14 +2657,15 @@ def process_link_update(
                 )
 
                 shortlist_rvar = relctx.rvar_for_rel(
-                    shortlist_select, lateral=True, ctx=ctx)
+                    shortlist_select, lateral=True, ctx=ctx
+                )
                 shortlist_alias = shortlist_rvar.alias.aliasname
 
                 ctid_select = pgast.SelectStmt(
                     target_list=[
                         pgast.ResTarget(
                             name='ctid',
-                            val=pgast.ColumnRef(name=[shortlist_alias, 'ctid'])
+                            val=pgast.ColumnRef(name=[shortlist_alias, 'ctid']),
                         ),
                     ],
                     from_clause=[
@@ -2636,7 +2692,7 @@ def process_link_update(
                                 name=[target_alias, pgast.Star()],
                             ),
                         )
-                    ]
+                    ],
                 )
             else:
                 # Links are always distinct, so we can simply
@@ -2672,7 +2728,7 @@ def process_link_update(
                                 name=[target_alias, pgast.Star()],
                             ),
                         )
-                    ]
+                    ],
                 )
         else:
             # Drop all previous link records for this source.
@@ -2692,7 +2748,7 @@ def process_link_update(
                             name=[target_alias, pgast.Star()],
                         ),
                     )
-                ]
+                ],
             )
 
         delcte = pgast.CommonTableExpr(
@@ -2733,15 +2789,13 @@ def process_link_update(
         # Record the effect of this removal in the relation overlay
         # context to ensure that references to the link in the result
         # of this DML statement yield the expected results.
-        except_overlay = (lambda octx:
-            relctx.add_ptr_rel_overlay(
-                mptrref,
-                context.OverlayOp.EXCEPT,
-                delcte,
-                path_id=path_id.ptr_path(),
-                dml_stmts=ctx.dml_stmt_stack,
-                ctx=octx,
-            )
+        except_overlay = lambda octx: relctx.add_ptr_rel_overlay(
+            mptrref,
+            context.OverlayOp.EXCEPT,
+            delcte,
+            path_id=path_id.ptr_path(),
+            dml_stmts=ctx.dml_stmt_stack,
+            ctx=octx,
         )
         except_overlay(ctx)
         if policy_ctx:
@@ -2788,7 +2842,7 @@ def process_link_update(
                     context.OverlayOp.EXCEPT,
                     delcte,
                     path_id=path_id.ptr_path(),
-                    ctx=subctx
+                    ctx=subctx,
                 )
 
                 check_cte, _ = process_link_values(
@@ -2846,7 +2900,7 @@ def process_link_update(
                     expr=filter_select,
                 ),
                 op='!=',
-            )
+            ),
         )
 
         conflict_clause = pgast.OnConflictClause(
@@ -2878,9 +2932,7 @@ def process_link_update(
         if len(target_cols) == 0:
             conflict_clause = pgast.OnConflictClause(
                 action=pgast.OnConflictAction.DO_NOTHING,
-                target=pgast.OnConflictTarget(
-                    index_elems=conflict_inference
-                )
+                target=pgast.OnConflictTarget(index_elems=conflict_inference),
             )
         else:
             conflict_data = pgast.RowExpr(
@@ -2891,15 +2943,12 @@ def process_link_update(
             )
             conflict_clause = pgast.OnConflictClause(
                 action=pgast.OnConflictAction.DO_UPDATE,
-                target=pgast.OnConflictTarget(
-                    index_elems=conflict_inference
-                ),
+                target=pgast.OnConflictTarget(index_elems=conflict_inference),
                 update_list=[
                     pgast.MultiAssignRef(
-                        columns=target_cols,
-                        source=conflict_data
+                        columns=target_cols, source=conflict_data
                     )
-                ]
+                ],
             )
 
     update = pgast.CommonTableExpr(
@@ -2913,10 +2962,8 @@ def process_link_update(
             ],
             on_conflict=conflict_clause,
             returning_list=[
-                pgast.ResTarget(
-                    val=pgast.ColumnRef(name=[pgast.Star()])
-                )
-            ]
+                pgast.ResTarget(val=pgast.ColumnRef(name=[pgast.Star()]))
+            ],
         ),
         for_dml_stmt=ctx.get_current_dml_stmt(),
     )
@@ -2940,7 +2987,7 @@ def process_link_update(
                 overlay_cte,
                 dml_stmts=ctx.dml_stmt_stack,
                 path_id=path_id.ptr_path(),
-                ctx=octx
+                ctx=octx,
             )
 
         relctx.add_ptr_rel_overlay(
@@ -2949,7 +2996,7 @@ def process_link_update(
             overlay_cte,
             dml_stmts=ctx.dml_stmt_stack,
             path_id=path_id.ptr_path(),
-            ctx=octx
+            ctx=octx,
         )
 
     if policy_ctx:
@@ -3015,16 +3062,21 @@ def process_link_values(
         # dml_cte contains just one subtype.
         if isinstance(ir_stmt, irast.InsertStmt):
             subrelctx.enclosing_cte_iterator = pgast.IteratorCTE(
-                path_id=ir_stmt.subject.path_id, cte=dml_cte,
-                parent=iterator)
+                path_id=ir_stmt.subject.path_id, cte=dml_cte, parent=iterator
+            )
         else:
             subrelctx.enclosing_cte_iterator = iterator
         row_query = subrelctx.rel
 
         merge_iterator(iterator, row_query, ctx=subrelctx)
 
-        relctx.include_rvar(row_query, dml_rvar, pull_namespace=False,
-                            path_id=ir_stmt.subject.path_id, ctx=subrelctx)
+        relctx.include_rvar(
+            row_query,
+            dml_rvar,
+            pull_namespace=False,
+            path_id=ir_stmt.subject.path_id,
+            ctx=subrelctx,
+        )
         subrelctx.path_scope[ir_stmt.subject.path_id] = row_query
 
         ir_rptr = ir_expr.expr
@@ -3041,8 +3093,9 @@ def process_link_values(
             input_rel_ctx.expr_exposed = False
             input_rel_ctx.volatility_ref = (
                 lambda _stmt, _ctx: pathctx.get_path_identity_var(
-                    row_query, ir_stmt.subject.path_id,
-                    env=input_rel_ctx.env),)
+                    row_query, ir_stmt.subject.path_id, env=input_rel_ctx.env
+                ),
+            )
 
             # Check if some nested Set provides a shape that is
             # visible here.
@@ -3061,17 +3114,15 @@ def process_link_values(
     input_rvar = pgast.RangeSubselect(
         subquery=input_rel,
         lateral=True,
-        alias=pgast.Alias(
-            aliasname=ctx.env.aliases.get('val')
-        )
+        alias=pgast.Alias(aliasname=ctx.env.aliases.get('val')),
     )
 
     if len(ctx.dml_stmts) > old_dml_count:
         # If there were any nested inserts, we need to join them in.
         pathctx.put_rvar_path_bond(input_rvar, ir_stmt.subject.path_id)
-    relctx.include_rvar(row_query, input_rvar,
-                        path_id=ir_stmt.subject.path_id,
-                        ctx=ctx)
+    relctx.include_rvar(
+        row_query, input_rvar, path_id=ir_stmt.subject.path_id, ctx=ctx
+    )
 
     source_data: dict[str, tuple[irast.PathId, pgast.BaseExpr]] = {}
 
@@ -3088,27 +3139,30 @@ def process_link_values(
             if not element.path_id.is_linkprop_path():
                 continue
             val = pathctx.get_rvar_path_value_var(
-                input_rvar, element.path_id, env=ctx.env)
+                input_rvar, element.path_id, env=ctx.env
+            )
             rptr = element.path_id.rptr()
             assert isinstance(rptr, irast.PointerRef)
             actual_rptr = irtyputils.find_actual_ptrref(source_typeref, rptr)
             ptr_info = pg_types.get_ptrref_storage_info(actual_rptr)
             real_path_id = path_id.ptr_path().extend(ptrref=actual_rptr)
-            source_data.setdefault(
-                ptr_info.column_name, (real_path_id, val))
+            source_data.setdefault(ptr_info.column_name, (real_path_id, val))
 
         if not target_is_scalar and 'target' not in source_data:
             target_ref = pathctx.get_rvar_path_identity_var(
-                input_rvar, path_id, env=ctx.env)
+                input_rvar, path_id, env=ctx.env
+            )
 
     else:
         if target_is_scalar:
             target_ref = pathctx.get_rvar_path_value_var(
-                input_rvar, path_id, env=ctx.env)
+                input_rvar, path_id, env=ctx.env
+            )
             target_ref = output.output_as_value(target_ref, env=ctx.env)
         else:
             target_ref = pathctx.get_rvar_path_identity_var(
-                input_rvar, path_id, env=ctx.env)
+                input_rvar, path_id, env=ctx.env
+            )
 
     if isinstance(ir_stmt, irast.UpdateStmt) and not target_is_scalar:
         actual_ptrref = irtyputils.find_actual_ptrref(source_typeref, ptrref)
@@ -3165,7 +3219,9 @@ def process_link_values(
         # XXX: This is dodgy. Do we need to do the dynamic rvar thing?
         # XXX: And can we make defaults work?
         pathctx._put_path_output_var(
-            row_query, col_path_id, aspect=pgce.PathAspect.VALUE,
+            row_query,
+            col_path_id,
+            aspect=pgce.PathAspect.VALUE,
             var=pgast.ColumnRef(name=[col]),
         )
 
@@ -3198,34 +3254,34 @@ def process_delete_body(
 
     for ptrref in pointers:
         target_rvar = relctx.range_for_ptrref(
-            ptrref, for_mutation=True, only_self=True, ctx=ctx)
+            ptrref, for_mutation=True, only_self=True, ctx=ctx
+        )
         assert isinstance(target_rvar, pgast.RelRangeVar)
 
         range_rvar = pgast.RelRangeVar(
             relation=delete_cte,
-            alias=pgast.Alias(
-                aliasname=ctx.env.aliases.get(hint='range')
-            )
+            alias=pgast.Alias(aliasname=ctx.env.aliases.get(hint='range')),
         )
 
         where_clause = astutils.new_binop(
-            lexpr=pgast.ColumnRef(name=[
-                target_rvar.alias.aliasname, 'source'
-            ]),
+            lexpr=pgast.ColumnRef(name=[target_rvar.alias.aliasname, 'source']),
             op='=',
             rexpr=pathctx.get_rvar_path_identity_var(
-                range_rvar, ir_stmt.result.path_id, env=ctx.env)
+                range_rvar, ir_stmt.result.path_id, env=ctx.env
+            ),
         )
         del_query = pgast.DeleteStmt(
             relation=target_rvar,
             where_clause=where_clause,
             using_clause=[range_rvar],
         )
-        ctx.toplevel_stmt.append_cte(pgast.CommonTableExpr(
-            query=del_query,
-            name=ctx.env.aliases.get(hint='mlink'),
-            for_dml_stmt=ctx.get_current_dml_stmt(),
-        ))
+        ctx.toplevel_stmt.append_cte(
+            pgast.CommonTableExpr(
+                query=del_query,
+                name=ctx.env.aliases.get(hint='mlink'),
+                for_dml_stmt=ctx.get_current_dml_stmt(),
+            )
+        )
 
 
 # Trigger compilation
@@ -3263,10 +3319,12 @@ def compile_triggers(
                 new_overlays.append(compile_trigger(trigger, ctx=ictx))
 
             for overlay in new_overlays:
-                ictx.rel_overlays.type = (
-                    ictx.rel_overlays.type.update(overlay.type))
-                ictx.rel_overlays.ptr = (
-                    ictx.rel_overlays.ptr.update(overlay.ptr))
+                ictx.rel_overlays.type = ictx.rel_overlays.type.update(
+                    overlay.type
+                )
+                ictx.rel_overlays.ptr = ictx.rel_overlays.ptr.update(
+                    overlay.ptr
+                )
 
     # Install any newly created type CTEs before the CTEs created from
     # this trigger compilation but after anything compiled before.
@@ -3312,9 +3370,9 @@ def compile_trigger(
     # Produce a CTE containing all of the affected objects for this trigger
     with ctx.newrel() as ictx:
         ictx.rel_overlays = context.RelOverlays()
-        ictx.rel_overlays.type = immu.Map({
-            None: immu.Map({trigger.source_type.id: tuple(overlays)})
-        })
+        ictx.rel_overlays.type = immu.Map(
+            {None: immu.Map({trigger.source_type.id: tuple(overlays)})}
+        )
 
         # The range produced here will be driven just by the overlays
         rvar = relctx.range_for_material_objtype(
@@ -3324,9 +3382,7 @@ def compile_trigger(
             ignore_rewrites=True,
             ctx=ictx,
         )
-        relctx.include_rvar(
-            ictx.rel, rvar, path_id=new_path, ctx=ictx
-        )
+        relctx.include_rvar(ictx.rel, rvar, path_id=new_path, ctx=ictx)
 
         # If __old__ is available, we register its identity/value,
         # but *not* its source.
@@ -3358,9 +3414,7 @@ def compile_trigger(
                 # iterator cte, and so will get included whenever
                 # merged
                 other_paths=(
-                    ((old_path, pgce.PathAspect.IDENTITY),)
-                    if old_path else
-                    ()
+                    ((old_path, pgce.PathAspect.IDENTITY),) if old_path else ()
                 ),
             )
             merge_iterator(tctx.enclosing_cte_iterator, tctx.rel, ctx=ctx)
@@ -3371,14 +3425,17 @@ def compile_trigger(
             # new_path is just the contents_cte
             tctx.external_rels[new_path] = (
                 contents_cte,
-                (pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE)
+                (pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE),
             )
             if old_path:
                 # old_path is *also* the contents_cte, but without a source
                 # aspect, so we need to include the real database back in.
                 tctx.external_rels[old_path] = (
                     contents_cte,
-                    (pgce.PathAspect.VALUE, pgce.PathAspect.IDENTITY,)
+                    (
+                        pgce.PathAspect.VALUE,
+                        pgce.PathAspect.IDENTITY,
+                    ),
                 )
 
         # This is somewhat subtle: we merge *every* DML into
@@ -3391,7 +3448,8 @@ def compile_trigger(
         # from the overlays for determinism reasons; it effects the
         # order overlays appear in
         all_dml = [
-            x for x in ctx.dml_stmts if isinstance(x, irast.MutatingStmt)]
+            x for x in ctx.dml_stmts if isinstance(x, irast.MutatingStmt)
+        ]
         merge_overlays_globally(all_dml, ctx=tctx)
 
         # Strip out everything but None. This tidies things up and makes
@@ -3405,9 +3463,11 @@ def compile_trigger(
         # in order to reduce overlay sizes in common cases
         assert isinstance(trigger.new_set.expr, irast.TriggerAnchor)
         tctx.rel_overlays.type = tctx.rel_overlays.type.set(
-            trigger.new_set.expr, tctx.rel_overlays.type[None])
+            trigger.new_set.expr, tctx.rel_overlays.type[None]
+        )
         tctx.rel_overlays.ptr = tctx.rel_overlays.ptr.set(
-            trigger.new_set.expr, tctx.rel_overlays.ptr[None])
+            trigger.new_set.expr, tctx.rel_overlays.ptr[None]
+        )
 
         # N.B: Any DML in the trigger will have the "global" overlay (None)
         # as its starting point.
@@ -3415,9 +3475,11 @@ def compile_trigger(
         # Force the value to get output so that if it might error
         # it will be forced up by check_ctes
         pathctx.get_path_value_output(
-            tctx.rel, trigger.expr.path_id, env=ctx.env)
+            tctx.rel, trigger.expr.path_id, env=ctx.env
+        )
         pathctx.get_path_serialized_output(
-            tctx.rel, trigger.expr.path_id, env=ctx.env)
+            tctx.rel, trigger.expr.path_id, env=ctx.env
+        )
 
         # If the expression is *just* DML, as an optimization, skip
         # generating a CTE for the expression and forcing its evaluation

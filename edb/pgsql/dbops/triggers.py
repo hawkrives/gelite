@@ -51,9 +51,7 @@ class TriggerGranularity(s_enum.StrEnum):
 
 class TriggerExists(base.Condition):
     def __init__(
-        self,
-        trigger_name: TriggerName,
-        table_name: tables.TableName
+        self, trigger_name: TriggerName, table_name: tables.TableName
     ) -> None:
         self.trigger_name = trigger_name
         self.table_name = table_name
@@ -106,7 +104,7 @@ class Trigger(tables.InheritableTableObject):
         self.deferred = deferred
 
         if is_constraint and granularity != TriggerGranularity.Row:
-            msg = 'invalid granularity for ' 'constraint trigger: {}'.format(
+            msg = 'invalid granularity for constraint trigger: {}'.format(
                 granularity
             )
             raise ValueError(msg)
@@ -198,9 +196,7 @@ class CreateTrigger(ddl.CreateObject):
             events=' OR '.join(self.trigger.events),
             table_name=qn(*self.trigger.table_name),
             deferred=(
-                'DEFERRABLE INITIALLY DEFERRED'
-                if self.trigger.deferred
-                else ''
+                'DEFERRABLE INITIALLY DEFERRED' if self.trigger.deferred else ''
             ),
             granularity=self.trigger.granularity,
             condition=(

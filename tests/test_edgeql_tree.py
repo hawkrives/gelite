@@ -24,11 +24,11 @@ from edb.tools import test
 
 
 class TestTree(tb.QueryTestCase):
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'tree.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'tree.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'tree_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'tree_setup.edgeql'
+    )
 
     async def test_edgeql_tree_delete_01(self):
         await self.con.execute(r"""
@@ -96,15 +96,21 @@ class TestTree(tb.QueryTestCase):
                 }
                 FILTER .val = 'i0';
             """,
-            [{
-                'val': 'i0',
-                'children': [{
-                    'val': 'i1',
-                    'children': [{
-                        'val': 'i2',
-                    }],
-                }],
-            }],
+            [
+                {
+                    'val': 'i0',
+                    'children': [
+                        {
+                            'val': 'i1',
+                            'children': [
+                                {
+                                    'val': 'i2',
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
         )
 
     @test.xerror('''
@@ -151,15 +157,21 @@ class TestTree(tb.QueryTestCase):
                 }
                 FILTER .val = 'i0';
             """,
-            [{
-                'val': 'i0',
-                'children': [{
-                    'val': 'i1',
-                    'children': [{
-                        'val': 'i2',
-                    }],
-                }],
-            }],
+            [
+                {
+                    'val': 'i0',
+                    'children': [
+                        {
+                            'val': 'i1',
+                            'children': [
+                                {
+                                    'val': 'i2',
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
         )
 
     @test.xerror('''
@@ -212,15 +224,21 @@ class TestTree(tb.QueryTestCase):
                 }
                 FILTER .val = 'i0';
             """,
-            [{
-                'val': 'i0',
-                'children': [{
-                    'val': 'i1',
-                    'children': [{
-                        'val': 'i2',
-                    }],
-                }],
-            }],
+            [
+                {
+                    'val': 'i0',
+                    'children': [
+                        {
+                            'val': 'i1',
+                            'children': [
+                                {
+                                    'val': 'i2',
+                                }
+                            ],
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_tree_select_01(self):
@@ -247,16 +265,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00',
-                            'children': [{'val': '000', 'children': []}]
+                            'children': [{'val': '000', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
                 {
@@ -295,16 +310,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00',
-                            'children': [{'val': '000', 'children': []}]
+                            'children': [{'val': '000', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
                 {
@@ -422,16 +434,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00',
-                            'children': [{'val': '000', 'children': []}]
+                            'children': [{'val': '000', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -508,16 +517,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00',
-                            'children': [{'val': '000', 'children': []}]
+                            'children': [{'val': '000', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -603,16 +609,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00_c_000',
-                            'children': [{'val': '000_c', 'children': []}]
+                            'children': [{'val': '000_c', 'children': []}],
                         },
                         {
                             'val': '01_c_010',
-                            'children': [{'val': '010_c', 'children': []}]
+                            'children': [{'val': '010_c', 'children': []}],
                         },
-                        {
-                            'val': '02_c',
-                            'children': []
-                        },
+                        {'val': '02_c', 'children': []},
                     ],
                 },
                 {
@@ -668,16 +671,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '00_c_000',
-                            'children': [{'val': '000_c', 'children': []}]
+                            'children': [{'val': '000_c', 'children': []}],
                         },
                         {
                             'val': '01_c_010',
-                            'children': [{'val': '010_c', 'children': []}]
+                            'children': [{'val': '010_c', 'children': []}],
                         },
-                        {
-                            'val': '02_c',
-                            'children': []
-                        },
+                        {'val': '02_c', 'children': []},
                     ],
                 },
                 {
@@ -721,7 +721,7 @@ class TestTree(tb.QueryTestCase):
                 {'val': '12_p_1'},
                 {'val': '13_p_1'},
                 {'val': '1_p'},
-            ]
+            ],
         )
 
     async def test_edgeql_tree_update_04(self):
@@ -753,7 +753,7 @@ class TestTree(tb.QueryTestCase):
                 {'val': '12_p_1'},
                 {'val': '13_p_1'},
                 {'val': '1_p'},
-            ]
+            ],
         )
 
     async def test_edgeql_tree_update_05(self):
@@ -805,16 +805,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '000',
-                            'children': [{'val': '00', 'children': []}]
+                            'children': [{'val': '00', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -902,16 +899,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '000',
-                            'children': [{'val': '00', 'children': []}]
+                            'children': [{'val': '00', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -965,16 +959,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '000',
-                            'children': [{'val': '00', 'children': []}]
+                            'children': [{'val': '00', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -1051,16 +1042,13 @@ class TestTree(tb.QueryTestCase):
                     'children': [
                         {
                             'val': '000',
-                            'children': [{'val': '00', 'children': []}]
+                            'children': [{'val': '00', 'children': []}],
                         },
                         {
                             'val': '01',
-                            'children': [{'val': '010', 'children': []}]
+                            'children': [{'val': '010', 'children': []}],
                         },
-                        {
-                            'val': '02',
-                            'children': []
-                        },
+                        {'val': '02', 'children': []},
                     ],
                 },
             ],
@@ -1090,6 +1078,6 @@ class TestTree(tb.QueryTestCase):
             """,
             [
                 {"children": [{"val": "01"}, {"val": "02"}], "val": "0"},
-                {"children": [{"val": "000"}], "val": "00"}
-            ]
+                {"children": [{"val": "000"}], "val": "00"},
+            ],
         )

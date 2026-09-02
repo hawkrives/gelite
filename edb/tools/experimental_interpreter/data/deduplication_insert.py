@@ -14,7 +14,6 @@ from typing import Optional
 
 
 def insert_conditional_dedup(expr: e.Expr):
-
     def do_recursive_insert(sub: e.Expr) -> e.Expr:
         match sub:
             case e.ObjectProjExpr(subject=subject, label=label):

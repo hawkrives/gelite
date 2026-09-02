@@ -26,7 +26,6 @@ from typing import (
     Sequence,
     cast,
     overload,
-    TYPE_CHECKING,
 )
 
 from edb import edgeql
@@ -52,10 +51,6 @@ from . import schema as s_schema
 from . import utils
 
 
-if TYPE_CHECKING:
-    from . import objtypes as s_objtypes
-
-
 # The name used for default concrete indexes
 DEFAULT_INDEX = sn.QualName(module='__', name='idx')
 
@@ -69,7 +64,9 @@ def is_index_valid_for_type(
     index_allows_tuples = is_index_supporting_tuples(index, schema)
 
     for index_match in schema.get_referrers(
-        index, scls_type=IndexMatch, field_name='index',
+        index,
+        scls_type=IndexMatch,
+        field_name='index',
     ):
         valid_type = index_match.get_valid_type(schema)
         if index_allows_tuples:
@@ -107,7 +104,7 @@ def is_subclass_or_tuple(
     ty: s_types.Type, parent: s_types.Type, schema: s_schema.Schema
 ) -> bool:
     if isinstance(ty, s_types.Tuple):
-        for (_, st) in ty.iter_subtypes(schema):
+        for _, st in ty.iter_subtypes(schema):
             if not st.issubclass(schema, parent):
                 return False
         return True
@@ -170,7 +167,8 @@ def merge_deferred(
         deferrability = qltypes.IndexDeferrability.Prohibited
 
     local_deferred = idx.get_explicit_local_field_value(
-        schema, field_name, None)
+        schema, field_name, None
+    )
 
     idx_repr = idx.get_verbosename(schema, with_parent=True)
 
@@ -215,7 +213,8 @@ def get_index_match_fullname_from_names(
         (
             isinstance(valid_type, sn.QualName)
             and sn.UnqualName(valid_type.module) not in s_schema.STD_MODULES
-        ) or (
+        )
+        or (
             isinstance(index, sn.QualName)
             and sn.UnqualName(index.module) not in s_schema.STD_MODULES
         )
@@ -359,7 +358,8 @@ class Index(
     def __repr__(self) -> str:
         cls = self.__class__
         return '<{}.{} {!r} at 0x{:x}>'.format(
-            cls.__module__, cls.__name__, self.id, id(self))
+            cls.__module__, cls.__name__, self.id, id(self)
+        )
 
     __str__ = __repr__
 
@@ -427,11 +427,15 @@ class Index(
         schema: s_schema.Schema,
     ) -> s_expr.ExpressionDict:
         kwargs = s_expr.ExpressionDict()
-        all_kw = type(self).get_field('kwargs').merge_fn(
-            self,
-            self.get_ancestors(schema).objects(schema),
-            'kwargs',
-            schema=schema,
+        all_kw = (
+            type(self)
+            .get_field('kwargs')
+            .merge_fn(
+                self,
+                self.get_ancestors(schema).objects(schema),
+                'kwargs',
+                schema=schema,
+            )
         )
         if all_kw:
             kwargs.update(all_kw)
@@ -474,8 +478,8 @@ class Index(
         for param in root.get_params(schema).objects(schema):
             kwname = param.get_parameter_name(schema)
             if (
-                kwname not in kwargs and
-                (val := param.get_default(schema)) is not None
+                kwname not in kwargs
+                and (val := param.get_default(schema)) is not None
             ):
                 kwargs[kwname] = val
 
@@ -497,8 +501,7 @@ class Index(
     ) -> dict[str, Any]:
         kwargs = self.get_concrete_kwargs(schema)
         return {
-            k: v.assert_compiled().as_python_value()
-            for k, v in kwargs.items()
+            k: v.assert_compiled().as_python_value() for k, v in kwargs.items()
         }
 
     def is_defined_here(
@@ -519,14 +522,16 @@ IndexableSubject_T = TypeVar('IndexableSubject_T', bound='IndexableSubject')
 
 
 class IndexableSubject(so.InheritingObject):
-    indexes_refs = so.RefDict(
-        attr='indexes',
-        ref_cls=Index)
+    indexes_refs = so.RefDict(attr='indexes', ref_cls=Index)
 
     indexes = so.SchemaField(
         so.ObjectIndexByFullname[Index],
-        inheritable=False, ephemeral=True, coerce=True, compcoef=0.909,
-        default=so.DEFAULT_CONSTRUCTOR)
+        inheritable=False,
+        ephemeral=True,
+        coerce=True,
+        compcoef=0.909,
+        default=so.DEFAULT_CONSTRUCTOR,
+    )
 
     def add_index(
         self,
@@ -543,12 +548,9 @@ class IndexMatch(
     data_safe=True,
     abstract=False,
 ):
+    valid_type = so.SchemaField(s_types.Type, compcoef=0.5)
 
-    valid_type = so.SchemaField(
-        s_types.Type, compcoef=0.5)
-
-    index = so.SchemaField(
-        Index, compcoef=0.5)
+    index = so.SchemaField(Index, compcoef=0.5)
 
 
 class IndexSourceCommandContext:
@@ -561,13 +563,15 @@ class IndexSourceCommand(
     pass
 
 
-class IndexCommandContext(sd.ObjectCommandContext[Index],
-                          s_anno.AnnotationSubjectCommandContext):
+class IndexCommandContext(
+    sd.ObjectCommandContext[Index], s_anno.AnnotationSubjectCommandContext
+):
     pass
 
 
-class IndexMatchCommandContext(sd.ObjectCommandContext[IndexMatch],
-                               s_anno.AnnotationSubjectCommandContext):
+class IndexMatchCommandContext(
+    sd.ObjectCommandContext[IndexMatch], s_anno.AnnotationSubjectCommandContext
+):
     pass
 
 
@@ -577,7 +581,6 @@ class IndexCommand(
     context_class=IndexCommandContext,
     referrer_context_class=IndexSourceCommandContext,
 ):
-
     @classmethod
     def _classname_from_ast(
         cls,
@@ -602,11 +605,11 @@ class IndexCommand(
 
         referrer_ctx = cls.get_referrer_context(context)
         if referrer_ctx is not None:
-
             referrer_name = referrer_ctx.op.classname
             assert isinstance(referrer_name, sn.QualName)
             quals = cls._classname_quals_from_ast(
-                schema, astnode, shortname, referrer_name, context)
+                schema, astnode, shortname, referrer_name, context
+            )
 
             name = sn.QualName(
                 module=referrer_name.module,
@@ -639,14 +642,16 @@ class IndexCommand(
 
         # use the normalized text directly from the expression
         expr = s_expr.Expression.from_ast(
-            astnode.expr, schema, context.modaliases)
+            astnode.expr, schema, context.modaliases
+        )
         expr_text = expr.text
         assert expr_text is not None
         exprs.append(expr_text)
 
         if astnode.except_expr:
             expr = s_expr.Expression.from_ast(
-                astnode.except_expr, schema, context.modaliases)
+                astnode.except_expr, schema, context.modaliases
+            )
             exprs.append('!' + expr.text)
 
         return (cls._name_qual_from_exprs(schema, exprs),)
@@ -665,12 +670,14 @@ class IndexCommand(
     ) -> dict[str, s_expr.Expression]:
         kwargs = dict()
         # Some abstract indexes and all concrete index commands have kwargs.
-        assert isinstance(astnode, (qlast.CreateIndex,
-                                    qlast.ConcreteIndexCommand))
+        assert isinstance(
+            astnode, (qlast.CreateIndex, qlast.ConcreteIndexCommand)
+        )
 
         for key, val in astnode.kwargs.items():
             kwargs[key] = s_expr.Expression.from_ast(
-                val, schema, context.modaliases, as_fragment=True)
+                val, schema, context.modaliases, as_fragment=True
+            )
 
         return kwargs
 
@@ -683,8 +690,7 @@ class IndexCommand(
         name: Optional[sn.Name] = None,
         default: Index | so.NoDefaultT = so.NoDefault,
         span: Optional[parsing.Span] = None,
-    ) -> Index:
-        ...
+    ) -> Index: ...
 
     @overload
     def get_object(
@@ -695,8 +701,7 @@ class IndexCommand(
         name: Optional[sn.Name] = None,
         default: None = None,
         span: Optional[parsing.Span] = None,
-    ) -> Optional[Index]:
-        ...
+    ) -> Optional[Index]: ...
 
     def get_object(
         self,
@@ -709,8 +714,11 @@ class IndexCommand(
     ) -> Optional[Index]:
         try:
             return super().get_object(
-                schema, context, name=name,
-                default=default, span=span,
+                schema,
+                context,
+                name=name,
+                default=default,
+                span=span,
             )
         except errors.InvalidReferenceError:
             referrer_ctx = self.get_referrer_context_or_die(context)
@@ -757,8 +765,9 @@ class IndexCommand(
             )
         )
         if kwargs and astnode:
-            assert isinstance(astnode, (qlast.CreateIndex,
-                                        qlast.ConcreteIndexCommand))
+            assert isinstance(
+                astnode, (qlast.CreateIndex, qlast.ConcreteIndexCommand)
+            )
             astnode.kwargs = {
                 name: expr.parse() for name, expr in kwargs.items()
             }
@@ -772,10 +781,7 @@ class IndexCommand(
     ) -> Optional[str]:
         if field in ('kwargs', 'expr', 'except_expr'):
             return field
-        elif (
-            field == 'deferred'
-            and astnode is qlast.CreateConcreteIndex
-        ):
+        elif field == 'deferred' and astnode is qlast.CreateConcreteIndex:
             return field
         else:
             return super().get_ast_attr_for_field(field, astnode)
@@ -787,10 +793,9 @@ class IndexCommand(
         id_fields = super().get_ddl_identity_fields(context)
         omit_fields = set()
 
-        if (
-            self.get_attribute_value('abstract')
-            and not self.get_attribute_value('bases')
-        ):
+        if self.get_attribute_value(
+            'abstract'
+        ) and not self.get_attribute_value('bases'):
             # Base abstract indexes don't have kwargs at all.
             omit_fields.add('kwargs')
 
@@ -810,9 +815,8 @@ class IndexCommand(
         friendly_name: str = 'index'
 
         expr: Optional[s_expr.Expression] = None
-        if (
-            self.has_ddl_identity('expr') and
-            (expr := self.get_ddl_identity('expr'))
+        if self.has_ddl_identity('expr') and (
+            expr := self.get_ddl_identity('expr')
         ):
             expr_text = expr.text
             if expr_text[0] != '(' or expr_text[-1] != ')':
@@ -831,7 +835,7 @@ class IndexCommand(
         context: sd.CommandContext,
         field: so.Field[Any],
         value: s_expr.Expression,
-        track_schema_ref_exprs: bool=False,
+        track_schema_ref_exprs: bool = False,
     ) -> s_expr.CompiledExpression:
         from edb.ir import ast as irast
         from edb.ir import utils as irutils
@@ -840,7 +844,7 @@ class IndexCommand(
             # type ignore below, for the class is used as mixin
             parent_ctx = context.get_ancestor(
                 IndexSourceCommandContext,  # type: ignore
-                self
+                self,
             )
             assert parent_ctx is not None
             assert isinstance(parent_ctx.op, sd.ObjectCommand)
@@ -893,14 +897,14 @@ class IndexCommand(
             ):
                 label = (
                     'function'
-                    if isinstance(set_of_op, irast.FunctionCall) else
-                    'operator'
+                    if isinstance(set_of_op, irast.FunctionCall)
+                    else 'operator'
                 )
                 op_name = str(set_of_op.func_shortname)
                 raise errors.SchemaDefinitionError(
                     f"cannot use SET OF {label} '{op_name}' "
                     f"in an index expression",
-                    span=set_of_op.span
+                    span=set_of_op.span,
                 )
 
             # compile the expression to sql to preempt errors downstream
@@ -910,7 +914,7 @@ class IndexCommand(
         elif field.name == "kwargs":
             parent_ctx = context.get_ancestor(
                 IndexSourceCommandContext,  # type: ignore
-                self
+                self,
             )
             if parent_ctx is not None:
                 assert isinstance(parent_ctx.op, sd.ObjectCommand)
@@ -934,7 +938,8 @@ class IndexCommand(
             )
         else:
             return super().compile_expr_field(
-                schema, context, field, value, track_schema_ref_exprs)
+                schema, context, field, value, track_schema_ref_exprs
+            )
 
     def get_dummy_expr_field_value(
         self,
@@ -977,13 +982,6 @@ class IndexCommand(
         subcmd: sd.Command,
         context: sd.CommandContext,
     ) -> None:
-        if isinstance(subcmd, s_anno.AnnotationValueCommand):
-            pname = sn.shortname_from_fullname(subcmd.classname)
-            assert isinstance(pname, sn.QualName)
-            # Skip injected annotations
-            if pname.module == "ext::ai":
-                return
-
         super()._append_subcmd_ast(schema, node, subcmd, context)
 
 
@@ -1004,18 +1002,23 @@ class CreateIndex(
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
 
         assert isinstance(cmd, IndexCommand)
-        assert isinstance(astnode, (qlast.CreateConcreteIndex,
-                                    qlast.CreateIndex))
+        assert isinstance(
+            astnode, (qlast.CreateConcreteIndex, qlast.CreateIndex)
+        )
 
         if isinstance(astnode, qlast.CreateIndex):
             cmd.set_attribute_value('abstract', True)
 
             params = cls._get_param_desc_from_ast(
-                schema, context.modaliases, astnode)
+                schema, context.modaliases, astnode
+            )
             for param in params:
                 # as_create_delta requires the specific type
-                cmd.add_prerequisite(param.as_create_delta(
-                    schema, cmd.classname, context=context))
+                cmd.add_prerequisite(
+                    param.as_create_delta(
+                        schema, cmd.classname, context=context
+                    )
+                )
 
             # There are several possibilities for abstract indexes:
             # 1) base abstract index
@@ -1037,11 +1040,8 @@ class CreateIndex(
         elif isinstance(astnode, qlast.CreateConcreteIndex):
             orig_text = cls.get_orig_expr_text(schema, astnode, 'expr')
 
-            if (
-                orig_text is not None
-                and context.compat_ver_is_before(
-                    (1, 0, verutils.VersionStage.ALPHA, 6)
-                )
+            if orig_text is not None and context.compat_ver_is_before(
+                (1, 0, verutils.VersionStage.ALPHA, 6)
             ):
                 # Versions prior to a6 used a different expression
                 # normalization strategy, so we must renormalize the
@@ -1176,7 +1176,7 @@ class CreateIndex(
         if not params:
             raise errors.SchemaDefinitionError(
                 f'the {ancestor_name} does not support any parameters',
-                span=self.span
+                span=self.span,
             )
 
         # Make sure that the kwargs are valid.
@@ -1186,19 +1186,19 @@ class CreateIndex(
             if param is None:
                 raise errors.SchemaDefinitionError(
                     f'the {ancestor_name} does not have a parameter {key!r}',
-                    span=self.span
+                    span=self.span,
                 )
 
             param_type = param.get_type(schema)
             comp_expr = s_expr.Expression.compiled(
-                expr, schema=schema, context=None)
+                expr, schema=schema, context=None
+            )
             expr_type = comp_expr.irast.stype
 
             if (
-                not param_type.is_polymorphic(schema) and
-                not expr_type.is_polymorphic(schema) and
-                not expr_type.implicitly_castable_to(
-                    param_type, schema)
+                not param_type.is_polymorphic(schema)
+                and not expr_type.is_polymorphic(schema)
+                and not expr_type.implicitly_castable_to(param_type, schema)
             ):
                 raise errors.SchemaDefinitionError(
                     f'the {key!r} parameter of the '
@@ -1240,7 +1240,8 @@ class CreateIndex(
                 root = None
                 for base in bases.objects(schema):
                     lineage = [base] + list(
-                        base.get_ancestors(schema).objects(schema))
+                        base.get_ancestors(schema).objects(schema)
+                    )
 
                     if root is None:
                         root = lineage[-1]
@@ -1248,7 +1249,7 @@ class CreateIndex(
                         raise errors.SchemaDefinitionError(
                             f'cannot create {self.get_verbosename()} '
                             f'because it extends incompatible abstract indxes',
-                            span=self.span
+                            span=self.span,
                         )
 
                 # We should have found a root because we have bases.
@@ -1269,7 +1270,7 @@ class CreateIndex(
                         f'cannot create {self.get_verbosename()} '
                         f'because user-defined abstract indexes are not '
                         f'supported',
-                        span=self.span
+                        span=self.span,
                     )
 
             return
@@ -1279,9 +1280,8 @@ class CreateIndex(
         assert isinstance(subject, (s_types.Type, s_pointers.Pointer))
         assert isinstance(subject, IndexableSubject)
 
-        if (
-            is_object_scope_index(schema, self.scls)
-            and isinstance(subject, s_pointers.Pointer)
+        if is_object_scope_index(schema, self.scls) and isinstance(
+            subject, s_pointers.Pointer
         ):
             dn = self.scls.get_displayname(schema)
             raise errors.SchemaDefinitionError(
@@ -1314,13 +1314,13 @@ class CreateIndex(
             # checking the error.
             if is_exclusive_object_scope_index(schema, self.scls):
                 effective, others = get_effective_object_index(
-                    schema, subject, root.get_name(schema), span=self.span)
+                    schema, subject, root.get_name(schema), span=self.span
+                )
                 if effective == self.scls and others:
                     other = others[0]
-                    if (
-                        other.get_concrete_kwargs_as_values(schema)
-                        != self.scls.get_concrete_kwargs_as_values(schema)
-                    ):
+                    if other.get_concrete_kwargs_as_values(
+                        schema
+                    ) != self.scls.get_concrete_kwargs_as_values(schema):
                         subject_name = subject.get_verbosename(schema)
                         other_subject = other.get_subject(schema)
                         assert other_subject
@@ -1338,13 +1338,13 @@ class CreateIndex(
             params = root.get_params(schema)
             inh_kwargs = self.scls.get_all_kwargs(schema)
 
-            self._validate_kwargs(schema,
-                                  params,
-                                  kwargs,
-                                  abs_index.get_verbosename(schema))
+            self._validate_kwargs(
+                schema, params, kwargs, abs_index.get_verbosename(schema)
+            )
 
-            unused_names = {p.get_parameter_name(schema)
-                            for p in params.objects(schema)}
+            unused_names = {
+                p.get_parameter_name(schema) for p in params.objects(schema)
+            }
             if kwargs:
                 unused_names -= set(kwargs)
             if inh_kwargs:
@@ -1362,7 +1362,7 @@ class CreateIndex(
                     f'cannot create {self.get_verbosename()} '
                     f'because the following parameters are still undefined: '
                     f'{names}.',
-                    span=self.span
+                    span=self.span,
                 )
 
             # Make sure that the concrete index expression type matches the
@@ -1385,7 +1385,10 @@ class CreateIndex(
             expr_type = comp_expr.irast.stype
 
             if not is_index_valid_for_type(
-                root, expr_type, comp_expr.schema, context,
+                root,
+                expr_type,
+                comp_expr.schema,
+                context,
             ):
                 hint = None
                 if str(name) == 'std::fts::index':
@@ -1408,14 +1411,6 @@ class CreateIndex(
         context: sd.CommandContext,
     ) -> s_schema.Schema:
         schema = super()._create_begin(schema, context)
-        referrer_ctx = self.get_referrer_context(context)
-        if (
-            referrer_ctx is not None
-            and not context.canonical
-            and is_ext_ai_index(schema, self.scls)
-        ):
-            schema = self._inject_ext_ai_model_dependency(schema, context)
-
         return schema
 
     def _create_innards(
@@ -1423,14 +1418,6 @@ class CreateIndex(
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> s_schema.Schema:
-        referrer_ctx = self.get_referrer_context(context)
-        if (
-            referrer_ctx is not None
-            and not context.canonical
-            and is_ext_ai_index(schema, self.scls)
-        ):
-            self._copy_ext_ai_model_annotations(schema, context)
-
         return super()._create_innards(schema, context)
 
     def get_resolved_attributes(
@@ -1466,192 +1453,11 @@ class CreateIndex(
         else:
             return super()._classbases_from_ast(schema, astnode, context)
 
-    def _inject_ext_ai_model_dependency(
-        self,
-        schema: s_schema.Schema,
-        context: sd.CommandContext,
-    ) -> s_schema.Schema:
-        model_stype = self._get_referenced_embedding_model(schema, context)
-
-        type_args = so.ObjectList.create(
-            schema,
-            [model_stype],
-        )
-
-        self.set_attribute_value(
-            "type_args",
-            type_args.as_shell(schema),
-        )
-
-        return self.scls.update(schema, {"type_args": type_args})
-
-    def _copy_ext_ai_model_annotations(
-        self,
-        schema: s_schema.Schema,
-        context: sd.CommandContext,
-    ) -> None:
-        # Copy ext::ai:: annotations declared on the model specified
-        # by the `embedding_model` kwarg.  This is necessary to avoid
-        # expensive lookups later where the index is used.
-        model_stype = self._get_referenced_embedding_model(schema, context)
-        model_stype_vn = model_stype.get_verbosename(schema)
-        model_annos = model_stype.get_annotations(schema)
-        my_name = self.scls.get_name(schema)
-        idx_defined_here = self.scls.is_defined_here(schema)
-
-        for model_anno in model_annos.objects(schema):
-            anno_name = model_anno.get_shortname(schema)
-            if anno_name.module != "ext::ai":
-                continue
-            value = model_anno.get_value(schema)
-            if value is None or value == "<must override>":
-                raise errors.SchemaDefinitionError(
-                    f"{model_stype_vn} is missing a value for the "
-                    f"'{anno_name}' annotation"
-                )
-            anno_sname = sn.get_specialized_name(
-                anno_name,
-                str(my_name),
-            )
-            anno_fqname = sn.QualName(my_name.module, anno_sname)
-            schema1 = model_anno.update(
-                schema,
-                {
-                    "name": anno_fqname,
-                    "subject": self.scls,
-                },
-            )
-            anno_copy = schema1.get(
-                anno_fqname,
-                type=s_anno.AnnotationValue,
-            )
-
-            anno_cmd: sd.ObjectCommand[s_anno.AnnotationValue]
-            if idx_defined_here:
-                anno_cmd = anno_copy.as_create_delta(
-                    schema1, so.ComparisonContext())
-                anno_cmd.discard_attribute("bases")
-                anno_cmd.discard_attribute("ancestors")
-            else:
-                anno_cmd = sd.get_object_delta_command(
-                    objtype=s_anno.AnnotationValue,
-                    cmdtype=sd.AlterObject,
-                    schema=schema,
-                    name=anno_fqname,
-                )
-                anno_cmd.set_attribute_value("owned", True)
-
-            self.add(anno_cmd)
-
-        model_dimensions = model_stype.must_get_json_annotation(
-            schema,
-            sn.QualName("ext::ai", "embedding_model_max_output_dimensions"),
-            int,
-        )
-        supports_shortening = model_stype.must_get_json_annotation(
-            schema,
-            sn.QualName("ext::ai", "embedding_model_supports_shortening"),
-            bool,
-        )
-
-        kwargs = self.scls.get_concrete_kwargs_as_values(schema)
-        specified_dimensions = kwargs["dimensions"]
-
-        MAX_DIM = 2000  # pgvector limit
-
-        if specified_dimensions is None:
-            if model_dimensions > MAX_DIM:
-                if not supports_shortening:
-                    raise errors.SchemaDefinitionError(
-                        f"{model_stype_vn} returns embeddings with over "
-                        f"{MAX_DIM} dimensions, does not support embedding "
-                        f"shortening, and thus cannot be used with "
-                        f"this index",
-                        span=self.span,
-                    )
-                else:
-                    dimensions = MAX_DIM
-            else:
-                dimensions = model_dimensions
-        else:
-            if specified_dimensions > MAX_DIM:
-                raise errors.SchemaDefinitionError(
-                    f"cannot use more than {MAX_DIM} dimensions with "
-                    f"this index",
-                    span=self.span,
-                )
-            elif specified_dimensions > model_dimensions:
-                raise errors.SchemaDefinitionError(
-                    f"{model_stype_vn} does not support more than "
-                    f"{model_dimensions} dimensions, "
-                    f"got {specified_dimensions}",
-                    span=self.span,
-                )
-            elif (
-                specified_dimensions != model_dimensions
-                and not supports_shortening
-            ):
-                raise errors.SchemaDefinitionError(
-                    f"{model_stype_vn} returns embeddings with over "
-                    f"{model_dimensions} dimensions, and does not support "
-                    f"embedding shortening, and thus {specified_dimensions} "
-                    f"cannot be used for this index",
-                    span=self.span,
-                )
-            else:
-                dimensions = specified_dimensions
-
-        dims_anno_sname = sn.get_specialized_name(
-            sn.QualName("ext::ai", "embedding_dimensions"),
-            str(my_name),
-        )
-        alter_anno = sd.get_object_delta_command(
-            objtype=s_anno.AnnotationValue,
-            cmdtype=sd.AlterObject,
-            schema=schema,
-            name=sn.QualName(my_name.module, dims_anno_sname),
-        )
-        alter_anno.set_attribute_value("value", str(dimensions))
-        alter_anno.set_attribute_value("owned", True)
-        self.add(alter_anno)
-
-    def _get_referenced_embedding_model(
-        self,
-        schema: s_schema.Schema,
-        context: sd.CommandContext,
-    ) -> s_objtypes.ObjectType:
-        # Copy ext::ai:: annotations declared on the model specified
-        # by the `embedding_model` kwarg.  This is necessary to avoid
-        # expensive lookups later where the index is used.
-        kwargs = self.scls.get_concrete_kwargs_as_values(schema)
-        model_name = kwargs["embedding_model"]
-
-        models = get_defined_ext_ai_embedding_models(schema, model_name)
-        if len(models) == 0:
-            raise errors.SchemaDefinitionError(
-                f'undefined embedding model: no subtype of '
-                f'ext::ai::EmbeddingModel is annotated as {model_name!r}',
-                span=self.span,
-            )
-        elif len(models) > 1:
-            models_dn = [
-                model.get_displayname(schema) for model in models.values()
-            ]
-            raise errors.SchemaDefinitionError(
-                f'expecting only one embedding model to be annotated '
-                f'with ext::ai::model_name={model_name!r}: got multiple: '
-                f'{", ".join(models_dn)}',
-                span=self.span,
-            )
-
-        return next(iter(models.values()))
-
 
 class RenameIndex(
     IndexCommand,
     referencing.RenameReferencedInheritingObject[Index],
 ):
-
     @classmethod
     def _cmd_from_ast(
         cls,
@@ -1670,46 +1476,12 @@ class AlterIndexOwned(
     referencing.AlterOwned[Index],
     field='owned',
 ):
-
     def _alter_begin(
         self,
         schema: s_schema.Schema,
         context: sd.CommandContext,
     ) -> s_schema.Schema:
         schema = super()._alter_begin(schema, context)
-        referrer_ctx = self.get_referrer_context(context)
-        if (
-            referrer_ctx is not None
-            and not context.canonical
-            and is_ext_ai_index(schema, self.scls)
-        ):
-            schema = self._fixup_ext_ai_model_annotations(schema, context)
-
-        return schema
-
-    def _fixup_ext_ai_model_annotations(
-        self,
-        schema: s_schema.Schema,
-        context: sd.CommandContext,
-    ) -> s_schema.Schema:
-        # Fixup the special ext::ai annotations that got copied to an
-        # ai index. They are always owned, even if the index is not,
-        # and so we have some hackiness to keep that true when DROP OWNED
-        # is run on the index.
-        # TODO: Can this be rationalized more?
-
-        for ref in self.scls.get_annotations(schema).objects(schema):
-            anno_name = ref.get_shortname(schema)
-            if anno_name.module != "ext::ai":
-                continue
-            alter = ref.init_delta_command(schema, sd.AlterObject)
-            alter.set_attribute_value('owned', True)
-            if anno_name.name == 'embedding_dimensions':
-                alter.set_attribute_value(
-                    'value', ref.get_value(schema), inherited=False)
-            schema = alter.apply(schema, context)
-            self.add(alter)
-
         return schema
 
 
@@ -1728,13 +1500,11 @@ class AlterIndex(
         super().validate_object(schema, context)
 
         vn = self.scls.get_verbosename(schema, with_parent=True)
-        if (
-            not self.scls.get_build_concurrently(schema)
-            and not self.scls.get_active(schema)
-        ):
+        if not self.scls.get_build_concurrently(
+            schema
+        ) and not self.scls.get_active(schema):
             raise errors.SchemaDefinitionError(
-                f'{vn} is not active, so build_concurrently may '
-                f'not be cleared',
+                f'{vn} is not active, so build_concurrently may not be cleared',
                 span=self.span,
             )
 
@@ -1760,14 +1530,17 @@ class AlterIndex(
             )
             quals = sn.quals_from_fullname(self.classname)
             new_name = self._classname_from_ast_and_referrer(
-                schema, sn.QualName.from_string(quals[0]), ast, context)
+                schema, sn.QualName.from_string(quals[0]), ast, context
+            )
             if new_name == self.classname:
                 return
 
             rename = self.scls.init_delta_command(
-                schema, sd.RenameObject, new_name=new_name)
+                schema, sd.RenameObject, new_name=new_name
+            )
             rename.set_attribute_value(
-                'name', value=new_name, orig_value=self.classname)
+                'name', value=new_name, orig_value=self.classname
+            )
             self.add(rename)
 
 
@@ -1802,7 +1575,8 @@ class DeleteIndex(
             cmd.set_attribute_value(
                 'expr',
                 s_expr.Expression.from_ast(
-                    astnode.expr, schema, context.modaliases),
+                    astnode.expr, schema, context.modaliases
+                ),
             )
 
         return cmd
@@ -1832,9 +1606,7 @@ def get_effective_object_index(
         return (None, ())
 
     object_indexes = [
-        ind
-        for ind in indexes.objects(schema)
-        if ind.issubclass(schema, base)
+        ind for ind in indexes.objects(schema) if ind.issubclass(schema, base)
     ]
     if len(object_indexes) == 0:
         return (None, ())
@@ -1853,9 +1625,7 @@ def get_effective_object_index(
                 span=span,
             )
         effective = object_indexes_defined_here[0]
-        overridden = [
-            i for i in object_indexes if i != effective
-        ]
+        overridden = [i for i in object_indexes if i != effective]
 
     else:
         # there are no object-scoped indexes defined on the subject
@@ -1875,9 +1645,10 @@ def get_effective_object_index(
     return (effective, overridden)
 
 
-class IndexMatchCommand(sd.QualifiedObjectCommand[IndexMatch],
-                        context_class=IndexMatchCommandContext):
-
+class IndexMatchCommand(
+    sd.QualifiedObjectCommand[IndexMatch],
+    context_class=IndexMatchCommandContext,
+):
     @classmethod
     def _cmd_tree_from_ast(
         cls,
@@ -1888,7 +1659,7 @@ class IndexMatchCommand(sd.QualifiedObjectCommand[IndexMatch],
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
                 'user-defined index matches are not supported',
-                span=astnode.span
+                span=astnode.span,
             )
 
         return super()._cmd_tree_from_ast(schema, astnode, context)
@@ -1926,7 +1697,8 @@ class IndexMatchCommand(sd.QualifiedObjectCommand[IndexMatch],
     ) -> s_schema.Schema:
         schema = super().canonicalize_attributes(schema, context)
         schema = s_types.materialize_type_in_attribute(
-            schema, context, self, 'valid_type')
+            schema, context, self, 'valid_type'
+        )
         return schema
 
 
@@ -1947,7 +1719,8 @@ class CreateIndexMatch(IndexMatchCommand, sd.CreateObject[IndexMatch]):
             raise errors.DuplicateDefinitionError(
                 f'an index match for {valid_type.get_displayname(schema)!r} '
                 f'using {index.get_displayname(schema)!r} is already defined',
-                span=self.span)
+                span=self.span,
+            )
 
         return super()._create_begin(schema, context)
 
@@ -1998,8 +1771,9 @@ class CreateIndexMatch(IndexMatchCommand, sd.CreateObject[IndexMatch]):
         if op.property == 'valid_type':
             # In an index match we can only have pure types, so this is going
             # to be a TypeName.
-            node.valid_type = cast(qlast.TypeName,
-                                   utils.typeref_to_ast(schema, new_value))
+            node.valid_type = cast(
+                qlast.TypeName, utils.typeref_to_ast(schema, new_value)
+            )
 
         else:
             super()._apply_field_ast(schema, context, node, op)
@@ -2027,10 +1801,7 @@ def is_object_scope_index(
     schema: s_schema.Schema,
     index: Index,
 ) -> bool:
-    return (
-        is_fts_index(schema, index)
-        or is_ext_ai_index(schema, index)
-    )
+    return is_fts_index(schema, index)
 
 
 def is_exclusive_object_scope_index(
@@ -2046,72 +1817,3 @@ def is_fts_index(
 ) -> bool:
     fts_index = schema.get(sn.QualName("std::fts", "index"), type=Index)
     return index.issubclass(schema, fts_index)
-
-
-def get_ai_index_id(
-    schema: s_schema.Schema,
-    index: Index,
-) -> str:
-    # TODO: Use the model name?
-    return f'base'
-
-
-def is_ext_ai_index(
-    schema: s_schema.Schema,
-    index: Index,
-) -> bool:
-    ai_index = schema.get(
-        sn.QualName("ext::ai", "index"),
-        type=Index,
-        default=None,
-    )
-    if ai_index is None:
-        return False
-    else:
-        return index.issubclass(schema, ai_index)
-
-
-_embedding_model = sn.QualName("ext::ai", "EmbeddingModel")
-_model_name = sn.QualName("ext::ai", "model_name")
-
-
-def get_defined_ext_ai_embedding_models(
-    schema: s_schema.Schema,
-    model_name: Optional[str] = None,
-) -> dict[str, s_objtypes.ObjectType]:
-    from . import objtypes as s_objtypes
-
-    base_embedding_model = schema.get(
-        _embedding_model,
-        type=s_objtypes.ObjectType,
-    )
-
-    def _flt(
-        schema: s_schema.Schema,
-        anno: s_anno.AnnotationValue,
-    ) -> bool:
-        if anno.get_shortname(schema) != _model_name:
-            return False
-
-        subject = anno.get_subject(schema)
-        value = anno.get_value(schema)
-
-        return (
-            value is not None and value != "<must override>"
-            and (model_name is None or anno.get_value(schema) == model_name)
-            and isinstance(subject, s_objtypes.ObjectType)
-            and subject.issubclass(schema, base_embedding_model)
-        )
-
-    annos = schema.get_objects(
-        type=s_anno.AnnotationValue,
-        extra_filters=(_flt,),
-    )
-
-    result = {}
-    for anno in annos:
-        subject = anno.get_subject(schema)
-        assert isinstance(subject, s_objtypes.ObjectType)
-        result[anno.get_value(schema)] = subject
-
-    return result

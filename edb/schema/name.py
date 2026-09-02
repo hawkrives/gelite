@@ -40,44 +40,32 @@ UnqualNameT = TypeVar("UnqualNameT", bound="UnqualName")
 if TYPE_CHECKING:
 
     class Name:
-
         __match_args__ = ('name',)
 
         name: str
 
         @classmethod
-        def from_string(cls: type[NameT], name: str) -> NameT:
-            ...
+        def from_string(cls: type[NameT], name: str) -> NameT: ...
 
-        def get_local_name(self) -> UnqualName:
-            ...
+        def get_local_name(self) -> UnqualName: ...
 
-        def get_root_module_name(self) -> UnqualName:
-            ...
+        def get_root_module_name(self) -> UnqualName: ...
 
-        def __lt__(self, other: Any) -> bool:
-            ...
+        def __lt__(self, other: Any) -> bool: ...
 
-        def __le__(self, other: Any) -> bool:
-            ...
+        def __le__(self, other: Any) -> bool: ...
 
-        def __gt__(self, other: Any) -> bool:
-            ...
+        def __gt__(self, other: Any) -> bool: ...
 
-        def __ge__(self, other: Any) -> bool:
-            ...
+        def __ge__(self, other: Any) -> bool: ...
 
-        def __str__(self) -> str:
-            ...
+        def __str__(self) -> str: ...
 
-        def __repr__(self) -> str:
-            ...
+        def __repr__(self) -> str: ...
 
-        def __hash__(self) -> int:
-            ...
+        def __hash__(self) -> int: ...
 
     class QualName(Name):
-
         __match_args__ = ('module', 'name')
 
         module: str
@@ -87,20 +75,15 @@ if TYPE_CHECKING:
         def from_string(
             cls: type[QualNameT],
             name: str,
-        ) -> QualNameT:
-            ...
+        ) -> QualNameT: ...
 
-        def __init__(self, module: str, name: str) -> None:
-            ...
+        def __init__(self, module: str, name: str) -> None: ...
 
-        def get_local_name(self) -> UnqualName:
-            ...
+        def get_local_name(self) -> UnqualName: ...
 
-        def get_module_name(self) -> Name:
-            ...
+        def get_module_name(self) -> Name: ...
 
     class UnqualName(Name):
-
         __slots__ = ('name',)
 
         name: str
@@ -109,14 +92,11 @@ if TYPE_CHECKING:
         def from_string(
             cls: type[UnqualNameT],
             name: str,
-        ) -> UnqualNameT:
-            ...
+        ) -> UnqualNameT: ...
 
-        def __init__(self, name: str) -> None:
-            ...
+        def __init__(self, name: str) -> None: ...
 
-        def get_local_name(self) -> UnqualName:
-            ...
+        def get_local_name(self) -> UnqualName: ...
 
 else:
 
@@ -124,7 +104,6 @@ else:
         pass
 
     class QualName(NamedTuple):
-
         module: str
         name: str
 
@@ -133,13 +112,11 @@ else:
             cls: type[QualNameT],
             name: str,
         ) -> QualNameT:
-
             module, _, nqname = name.rpartition('::')
 
             if not module:
                 err = (
-                    f'improperly formed name {name!r}: '
-                    f'module is not specified'
+                    f'improperly formed name {name!r}: module is not specified'
                 )
                 raise errors.InvalidReferenceError(err)
 
@@ -164,7 +141,6 @@ else:
             return f'<QualName {self}>'
 
     class UnqualName(NamedTuple):
-
         name: str
 
         @classmethod
@@ -203,8 +179,7 @@ def name_from_string(name: str) -> Name:
 
 def mangle_name(name: str) -> str:
     return (
-        name
-        .replace('|', '||')
+        name.replace('|', '||')
         .replace('&', '&&')
         .replace('::', '|')
         .replace('@', '&')
@@ -244,7 +219,8 @@ def quals_from_fullname(fullname: QualName) -> list[str]:
     _, _, mangled_quals = fullname.name.partition('@')
     return (
         [unmangle_name(p) for p in mangled_quals.split('@')]
-        if mangled_quals else []
+        if mangled_quals
+        else []
     )
 
 
@@ -285,5 +261,8 @@ def compat_name_remangle(name: str) -> Name:
 @markup.serializer.serializer.register(Name)
 def _serialize_to_markup(obj: Name, *, ctx: markup.Context) -> markup.Markup:
     return markup.elements.lang.Object(
-        id=id(obj), class_module=type(obj).__module__,
-        classname=type(obj).__name__, repr=str(obj))
+        id=id(obj),
+        class_module=type(obj).__module__,
+        classname=type(obj).__name__,
+        repr=str(obj),
+    )

@@ -60,6 +60,7 @@ class Base(ast.AST):
 
     def dump_sql(self) -> None:
         from edb.common.debug import dump_sql
+
         dump_sql(self, reordered=True, pretty=True)
 
 
@@ -79,7 +80,7 @@ class Alias(ImmutableBase):
 class Keyword(ImmutableBase):
     """An SQL keyword that must be output without quoting."""
 
-    name: str                   # Keyword name
+    name: str  # Keyword name
 
 
 class Star(Base):
@@ -159,9 +160,14 @@ class EdgeQLPathInfo(Base):
 
     # Ignore the below fields in AST visitor/transformer.
     __ast_meta__ = {
-        'path_id', 'path_bonds', 'path_outputs', 'is_distinct',
-        'path_id_mask', 'path_namespace',
-        'packed_path_outputs', 'packed_path_namespace',
+        'path_id',
+        'path_bonds',
+        'path_outputs',
+        'is_distinct',
+        'path_id_mask',
+        'path_namespace',
+        'packed_path_outputs',
+        'packed_path_namespace',
     }
 
     # The path id represented by the node.
@@ -179,15 +185,17 @@ class EdgeQLPathInfo(Base):
     strip_output_namespaces: bool = False
 
     # Map of res target names corresponding to paths.
-    path_outputs: dict[
-        tuple[irast.PathId, PathAspect], OutputVar
-    ] = ast.field(factory=dict)
+    path_outputs: dict[tuple[irast.PathId, PathAspect], OutputVar] = ast.field(
+        factory=dict
+    )
 
     # Map of res target names corresponding to materialized paths.
-    packed_path_outputs: typing.Optional[dict[
-        tuple[irast.PathId, PathAspect],
-        OutputVar,
-    ]] = None
+    packed_path_outputs: typing.Optional[
+        dict[
+            tuple[irast.PathId, PathAspect],
+            OutputVar,
+        ]
+    ] = None
 
     def get_path_outputs(
         self, flavor: str
@@ -210,10 +218,12 @@ class EdgeQLPathInfo(Base):
     ] = ast.field(factory=dict)
 
     # Same, but for packed.
-    packed_path_namespace: typing.Optional[dict[
-        tuple[irast.PathId, PathAspect],
-        BaseExpr,
-    ]] = None
+    packed_path_namespace: typing.Optional[
+        dict[
+            tuple[irast.PathId, PathAspect],
+            BaseExpr,
+        ]
+    ] = None
 
 
 class BaseRangeVar(ImmutableBaseExpr):
@@ -276,7 +286,6 @@ class Relation(BaseRelation):
 
 
 class CommonTableExpr(Base):
-
     # Query name (unqualified)
     name: str
     # Whether the result can be NULL.
@@ -305,7 +314,6 @@ class CommonTableExpr(Base):
 
 
 class PathRangeVar(BaseRangeVar):
-
     #: The IR TypeRef this rvar represents (if any).
     typeref: typing.Optional[irast.TypeRef] = None
 
@@ -336,7 +344,6 @@ class RelRangeVar(PathRangeVar):
 
 
 class IntersectionRangeVar(PathRangeVar):
-
     component_rvars: list[PathRangeVar]
 
 
@@ -366,7 +373,6 @@ class DynamicRangeVarFunc(typing.Protocol):
 
 
 class DynamicRangeVar(PathRangeVar):
-
     dynamic_get_path: DynamicRangeVarFunc
 
     @property
@@ -384,9 +390,9 @@ class DynamicRangeVar(PathRangeVar):
 class TypeName(ImmutableBase):
     """Type in definitions and casts."""
 
-    name: tuple[str, ...]                # Type name
-    setof: bool = False                         # SET OF?
-    typmods: typing.Optional[list] = None       # Type modifiers
+    name: tuple[str, ...]  # Type name
+    setof: bool = False  # SET OF?
+    typmods: typing.Optional[list] = None  # Type modifiers
     array_bounds: typing.Optional[list[int]] = None
 
 
@@ -409,7 +415,6 @@ class ColumnRef(OutputVar):
 
 
 class TupleElementBase(ImmutableBase):
-
     path_id: irast.PathId
     name: typing.Optional[OutputVar | str]
 
@@ -429,7 +434,6 @@ class TupleElementBase(ImmutableBase):
 
 
 class TupleElement(TupleElementBase):
-
     val: BaseExpr
 
     def __init__(
@@ -450,7 +454,6 @@ class TupleElement(TupleElementBase):
 
 
 class TupleVarBase(OutputVar):
-
     elements: typing.Sequence[TupleElementBase]
     named: bool
     nullable: bool
@@ -476,7 +479,6 @@ class TupleVarBase(OutputVar):
 
 
 class TupleVar(TupleVarBase):
-
     elements: typing.Sequence[TupleElement]
 
     def __init__(
@@ -499,7 +501,8 @@ class ParamRef(ImmutableBaseExpr):
     """Query parameter ($0..$n)."""
 
     __ast_mutable_fields__ = (
-        ImmutableBaseExpr.__ast_mutable_fields__ | frozenset(['number']))
+        ImmutableBaseExpr.__ast_mutable_fields__ | frozenset(['number'])
+    )
 
     # Number of the parameter.
     number: int
@@ -554,7 +557,6 @@ class OnConflictAction(enum.StrEnum):
 
 
 class OnConflictClause(ImmutableBaseExpr):
-
     action: OnConflictAction
     target: typing.Optional[OnConflictTarget] = None
 
@@ -563,7 +565,6 @@ class OnConflictClause(ImmutableBaseExpr):
 
 
 class ReturningQuery(BaseRelation):
-
     target_list: list[ResTarget] = ast.field(factory=list)
 
 
@@ -591,21 +592,26 @@ class Query(ReturningQuery):
     """Generic superclass representing a query."""
 
     # Ignore the below fields in AST visitor/transformer.
-    __ast_meta__ = {'path_rvar_map', 'path_packed_rvar_map',
-                    'view_path_id_map', 'argnames', 'nullable'}
+    __ast_meta__ = {
+        'path_rvar_map',
+        'path_packed_rvar_map',
+        'view_path_id_map',
+        'argnames',
+        'nullable',
+    }
 
-    view_path_id_map: dict[
-        irast.PathId, irast.PathId
-    ] = ast.field(factory=dict)
+    view_path_id_map: dict[irast.PathId, irast.PathId] = ast.field(factory=dict)
     # Map of RangeVars corresponding to paths.
-    path_rvar_map: dict[
-        tuple[irast.PathId, PathAspect], PathRangeVar
-    ] = ast.field(factory=dict)
+    path_rvar_map: dict[tuple[irast.PathId, PathAspect], PathRangeVar] = (
+        ast.field(factory=dict)
+    )
     # Map of materialized RangeVars corresponding to paths.
-    path_packed_rvar_map: typing.Optional[dict[
-        tuple[irast.PathId, PathAspect],
-        PathRangeVar,
-    ]] = None
+    path_packed_rvar_map: typing.Optional[
+        dict[
+            tuple[irast.PathId, PathAspect],
+            PathRangeVar,
+        ]
+    ] = None
 
     argnames: typing.Optional[dict[str, Param]] = None
 
@@ -625,9 +631,7 @@ class Query(ReturningQuery):
 
     def maybe_get_rvar_map(
         self, flavor: str
-    ) -> typing.Optional[
-        dict[tuple[irast.PathId, PathAspect], PathRangeVar]
-    ]:
+    ) -> typing.Optional[dict[tuple[irast.PathId, PathAspect], PathRangeVar]]:
         if flavor == 'packed':
             return self.path_packed_rvar_map
         elif flavor == 'normal':
@@ -649,6 +653,7 @@ class Query(ReturningQuery):
 
 class DMLQuery(Query):
     """Generic superclass for INSERT/UPDATE/DELETE statements."""
+
     __abstract_node__ = True
 
     # Target relation to perform the operation on.
@@ -662,7 +667,6 @@ class DMLQuery(Query):
 
 
 class InsertStmt(DMLQuery):
-
     # (optional) list of target column names
     cols: typing.Optional[list[InsertTarget]] = None
     # source SELECT/VALUES or None
@@ -672,11 +676,8 @@ class InsertStmt(DMLQuery):
 
 
 class UpdateStmt(DMLQuery):
-
     # The UPDATE target list
-    targets: list[UpdateTarget | MultiAssignRef] = ast.field(
-        factory=list
-    )
+    targets: list[UpdateTarget | MultiAssignRef] = ast.field(factory=list)
     # WHERE clause
     where_clause: typing.Optional[BaseExpr] = None
     # optional FROM clause
@@ -691,7 +692,6 @@ class DeleteStmt(DMLQuery):
 
 
 class SelectStmt(Query):
-
     # List of DISTINCT ON expressions, empty list for DISTINCT ALL
     distinct_clause: typing.Optional[typing.Sequence[OutputVar | Star]] = None
     # The FROM clause
@@ -805,7 +805,6 @@ class CollateClause(ImmutableBaseExpr):
 
 
 class VariadicArgument(ImmutableBaseExpr):
-
     expr: BaseExpr
     nullable: bool = False
 
@@ -815,7 +814,6 @@ class TableElement(ImmutableBase):
 
 
 class ColumnDef(TableElement):
-
     # name of column
     name: str
     # type of column
@@ -830,7 +828,6 @@ class ColumnDef(TableElement):
 
 
 class FuncCall(ImmutableBaseExpr):
-
     # Function name
     name: tuple[str, ...]
     # List of arguments
@@ -872,7 +869,6 @@ class FuncCall(ImmutableBaseExpr):
 
 
 class NamedFuncArg(ImmutableBaseExpr):
-
     name: str
     val: BaseExpr
 
@@ -881,11 +877,13 @@ class NamedFuncArg(ImmutableBaseExpr):
 # so that nullability inference gets done on them.
 class Index(ImmutableBaseExpr):
     """Array subscript."""
+
     idx: BaseExpr
 
 
 class Slice(ImmutableBaseExpr):
     """Array slice bounds."""
+
     # Lower bound, if any
     lidx: typing.Optional[BaseExpr]
     # Upper bound if any
@@ -917,6 +915,7 @@ class ArrayExpr(ImmutableBaseExpr):
 
 class ArrayDimension(ImmutableBaseExpr):
     """An array dimension"""
+
     elements: list[BaseExpr]
 
 
@@ -1002,7 +1001,6 @@ class RangeSubselect(PathRangeVar):
 
 
 class RangeFunction(BaseRangeVar):
-
     lateral: bool = False
     # WITH ORDINALITY
     with_ordinality: bool = False
@@ -1117,7 +1115,6 @@ class BooleanTest(ImmutableBaseExpr):
 
 
 class CaseWhen(ImmutableBase):
-
     # Condition expression
     expr: BaseExpr
     # subsitution result
@@ -1125,7 +1122,6 @@ class CaseWhen(ImmutableBase):
 
 
 class CaseExpr(ImmutableBaseExpr):
-
     # Equality comparison argument
     arg: typing.Optional[BaseExpr] = None
     # List of WHEN clauses
@@ -1148,19 +1144,16 @@ NullsLast = qlast.NonesLast
 
 
 class AlterSystem(ImmutableBaseExpr):
-
     name: str
     value: typing.Optional[BaseExpr]
 
 
 class Set(ImmutableBaseExpr):
-
     name: str
     value: BaseExpr
 
 
 class ConfigureDatabase(ImmutableBase):
-
     database_name: str
     parameter_name: str
     value: BaseExpr
@@ -1179,15 +1172,17 @@ class IteratorCTE(ImmutableBase):
     @property
     def aspect(self) -> PathAspect:
         from .compiler import enums as pgce
+
         return (
             pgce.PathAspect.ITERATOR
-            if self.iterator_bond else
-            pgce.PathAspect.IDENTITY
+            if self.iterator_bond
+            else pgce.PathAspect.IDENTITY
         )
 
 
 class Statement(Base):
     """A statement that does not return a relation"""
+
     pass
 
 

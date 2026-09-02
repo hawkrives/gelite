@@ -55,7 +55,9 @@ class DepGraphEntryExtra(NamedTuple):
 
 DepGraphKey = tuple[str, str]
 DepGraphEntry = topological.DepGraphEntry[
-    DepGraphKey, tuple[sd.Command, ...], DepGraphEntryExtra,
+    DepGraphKey,
+    tuple[sd.Command, ...],
+    DepGraphEntryExtra,
 ]
 DepGraph = dict[DepGraphKey, DepGraphEntry]
 
@@ -109,8 +111,16 @@ def linearize_delta(
         if isinstance(op, sd.AlterObject) and not op.get_subcommands():
             continue
 
-        _trace_op(op, opbranch, depgraph, renames,
-                  renames_r, strongrefs, old_schema, new_schema)
+        _trace_op(
+            op,
+            opbranch,
+            depgraph,
+            renames,
+            renames_r,
+            strongrefs,
+            old_schema,
+            new_schema,
+        )
 
     depgraph = dict(filter(lambda i: i[1].item != (), depgraph.items()))
     everything = set(depgraph)
@@ -139,13 +149,13 @@ def reconstruct_tree(
     sortedlist: list[DepGraphEntry],
     depgraph: DepGraph,
 ) -> sd.DeltaRoot:
-
     result = sd.DeltaRoot()
     # Child to parent mapping.
     parents: dict[sd.Command, sd.Command] = {}
     # A mapping of commands to their dependencies.
-    dependencies: dict[sd.Command, set[sd.Command]] = (
-        collections.defaultdict(set))
+    dependencies: dict[sd.Command, set[sd.Command]] = collections.defaultdict(
+        set
+    )
     # Current address of command within a tree in the form of
     # a tuple of indexes where each index represents relative
     # position within the tree rank.
@@ -157,7 +167,7 @@ def reconstruct_tree(
     # commands.
     opindex: dict[
         tuple[type[sd.ObjectCommand[so.Object]], sn.Name, bool],
-        sd.ObjectCommand[so.Object]
+        sd.ObjectCommand[so.Object],
     ] = {}
 
     def ok_to_attach_to(
@@ -249,7 +259,8 @@ def reconstruct_tree(
             return False
 
         alter_cmd_cls = sd.get_object_command_class(
-            sd.AlterObject, op.get_schema_metaclass())
+            sd.AlterObject, op.get_schema_metaclass()
+        )
 
         if alter_cmd_cls is None:
             # ALTER isn't even defined for this object class, bail.
@@ -325,13 +336,10 @@ def reconstruct_tree(
                 if parent_op is None and as_implicit:
                     parent_op = opindex.get((op_type, candidate, True))
 
-                if (
-                    parent_op is not None
-                    and ok_to_attach_to(
-                        op,
-                        parent_op,
-                        only_if_confident=not as_implicit,
-                    )
+                if parent_op is not None and ok_to_attach_to(
+                    op,
+                    parent_op,
+                    only_if_confident=not as_implicit,
                 ):
                     attach(
                         opbranch,
@@ -447,32 +455,25 @@ def _break_down(
     )
 
     for sub_op in _get_sorted_subcommands(op):
-        if (
-            isinstance(sub_op, sd.AlterObjectProperty)
-            and not isinstance(op, sd.DeleteObject)
+        if isinstance(sub_op, sd.AlterObjectProperty) and not isinstance(
+            op, sd.DeleteObject
         ):
             assert isinstance(op, sd.ObjectCommand)
             mcls = op.get_schema_metaclass()
             field = mcls.get_field(sub_op.property)
             # Break a possible reference cycle
             # (i.e. Type.rptr <-> Pointer.target)
-            if (
-                field.weak_ref
-                or (
-                    isinstance(op, sd.AlterObject)
-                    and issubclass(field.type, so.Object)
-                )
+            if field.weak_ref or (
+                isinstance(op, sd.AlterObject)
+                and issubclass(field.type, so.Object)
             ):
                 _break_down(opmap, strongrefs, new_opbranch + [sub_op])
-        elif (
-            isinstance(sub_op, sd.AlterSpecialObjectField)
-            and not isinstance(
-                sub_op,
-                (
-                    referencing.AlterOwned,
-                    s_pointers.SetPointerType,
-                )
-            )
+        elif isinstance(sub_op, sd.AlterSpecialObjectField) and not isinstance(
+            sub_op,
+            (
+                referencing.AlterOwned,
+                s_pointers.SetPointerType,
+            ),
         ):
             pass
         elif (
@@ -486,9 +487,8 @@ def _break_down(
 
     # For SET TYPE and friends, we need to make sure that an alter
     # (with children) makes it into the opmap so it is processed.
-    if (
-        isinstance(op, sd.AlterSpecialObjectField)
-        and not isinstance(op, referencing.AlterOwned)
+    if isinstance(op, sd.AlterSpecialObjectField) and not isinstance(
+        op, referencing.AlterOwned
     ):
         opmap[new_opbranch[-2]] = new_opbranch[:-1]
 
@@ -577,10 +577,13 @@ def _trace_op(
             ref_name = renames_r[ref_name]
         ref_name_str = str(ref_name)
 
-        if ((isinstance(ref, referencing.ReferencedObject)
-                and ref.get_referrer(new_schema) == obj)
-                or (isinstance(obj, referencing.ReferencedObject)
-                    and obj.get_referrer(new_schema) == ref)):
+        if (
+            isinstance(ref, referencing.ReferencedObject)
+            and ref.get_referrer(new_schema) == obj
+        ) or (
+            isinstance(obj, referencing.ReferencedObject)
+            and obj.get_referrer(new_schema) == ref
+        ):
             # Mostly ignore refs generated by refdict backref, but
             # make create/alter depend on renames of the backref.
             # This makes sure that a rename is done before the innards are
@@ -671,10 +674,8 @@ def _trace_op(
         for ref in refs:
             ref_name_str = str(ref.get_name(old_schema))
             if (
-                (
-                    isinstance(obj, referencing.ReferencedObject)
-                    and obj.get_referrer(old_schema) == ref
-                )
+                isinstance(obj, referencing.ReferencedObject)
+                and obj.get_referrer(old_schema) == ref
             ):
                 # If the referrer is enclosing the object
                 # (i.e. the reference is a refdict reference),
@@ -744,7 +745,8 @@ def _trace_op(
                 if isinstance(new_obj, referencing.ReferencedInheritingObject):
                     for ancestor in new_obj.get_implicit_ancestors(new_schema):
                         rep_item = get_deps(
-                            ('create', str(ancestor.get_name(new_schema))))
+                            ('create', str(ancestor.get_name(new_schema)))
+                        )
                         rep_item.deps.add((tag, str(op.classname)))
 
             referrer = obj.get_referrer(old_schema)
@@ -770,12 +772,9 @@ def _trace_op(
                 else:
                     deps.add(('rebase', str(referrer_name)))
 
-                if (
-                    isinstance(obj, referencing.ReferencedInheritingObject)
-                    and (
-                        not isinstance(obj, s_pointers.Pointer)
-                        or not obj.get_from_alias(old_schema)
-                    )
+                if isinstance(obj, referencing.ReferencedInheritingObject) and (
+                    not isinstance(obj, s_pointers.Pointer)
+                    or not obj.get_from_alias(old_schema)
                 ):
                     for ancestor in obj.get_implicit_ancestors(old_schema):
                         ancestor_name = ancestor.get_name(old_schema)
@@ -839,10 +838,13 @@ def _trace_op(
             deps.add(('rename', this_name_str))
 
             if isinstance(obj, s_func.Function) and old_schema is not None:
-                old_funcs = old_schema._get_by_shortname(
-                    s_func.Function,
-                    sn.shortname_from_fullname(op.classname),
-                ) or ()
+                old_funcs = (
+                    old_schema._get_by_shortname(
+                        s_func.Function,
+                        sn.shortname_from_fullname(op.classname),
+                    )
+                    or ()
+                )
                 for old_func in old_funcs:
                     deps.add(('delete', str(old_func.get_name(old_schema))))
 
@@ -853,16 +855,20 @@ def _trace_op(
                 and s_indexes.is_exclusive_object_scope_index(new_schema, obj)
                 and old_schema is not None
                 and (subject := obj.get_subject(new_schema))
-                and (old_subject := old_schema.get(
-                    subject.get_name(new_schema),
-                    type=s_objtypes.ObjectType,
-                    default=None
-                ))
-                and (eff_index := s_indexes.get_effective_object_index(
-                    old_schema,
-                    old_subject,
-                    obj.get_root(new_schema).get_name(new_schema),
-                )[0])
+                and (
+                    old_subject := old_schema.get(
+                        subject.get_name(new_schema),
+                        type=s_objtypes.ObjectType,
+                        default=None,
+                    )
+                )
+                and (
+                    eff_index := s_indexes.get_effective_object_index(
+                        old_schema,
+                        old_subject,
+                        obj.get_root(new_schema).get_name(new_schema),
+                    )[0]
+                )
             ):
                 deps.add(('delete', str(eff_index.get_name(old_schema))))
 
@@ -890,9 +896,8 @@ def _trace_op(
                 # Addition and removal of constraints can cause
                 # changes to the cardinality of expressions that refer
                 # to them. Add the appropriate dependencies in.
-                if (
-                    isinstance(obj, s_constraints.Constraint)
-                    and isinstance(referrer, s_pointers.Pointer)
+                if isinstance(obj, s_constraints.Constraint) and isinstance(
+                    referrer, s_pointers.Pointer
                 ):
                     refs = _get_referrers(new_schema, referrer, strongrefs)
                     for ref in refs:
@@ -981,10 +986,12 @@ def _get_referrers(
 
         result.add(referrer)
 
-    return list(sorted(
-        result,
-        key=lambda o: (type(o).__name__, o.get_name(schema)),
-    ))
+    return list(
+        sorted(
+            result,
+            key=lambda o: (type(o).__name__, o.get_name(schema)),
+        )
+    )
 
 
 def _extract_op(stack: Sequence[sd.Command]) -> list[sd.Command]:

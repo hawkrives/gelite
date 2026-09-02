@@ -30,7 +30,6 @@ from . import shared
 
 
 class SDLSynopsisDirective(shared.CodeBlock):
-
     has_content = True
     optional_arguments = 0
     required_arguments = 0
@@ -44,7 +43,6 @@ class SDLSynopsisDirective(shared.CodeBlock):
 
 
 class SDLDomain(s_domains.Domain):
-
     name = "sdl"
     label = "Gel Schema Definition Language"
 
@@ -57,8 +55,6 @@ def setup_domain(app):
     app.add_lexer("sdl", EdgeQLLexer)
     app.add_lexer("sdl-synopsis", EdgeQLLexer)
 
-    app.add_role(
-        'sdl:synopsis',
-        shared.InlineCodeRole('sdl-synopsis'))
+    app.add_role('sdl:synopsis', shared.InlineCodeRole('sdl-synopsis'))
 
     app.add_domain(SDLDomain)

@@ -18,20 +18,16 @@
 
 
 from __future__ import annotations
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 import pickle
 
 import immutables
 
-from edb import edgeql
-from edb import graphql
-from edb.common import uuidgen
 from edb.pgsql import params as pgparams
 from edb.schema import schema as s_schema
 from edb.server import compiler
 from edb.server import config
-from edb.server import defines
 
 from . import state
 from . import worker_proc
@@ -39,8 +35,9 @@ from . import worker_proc
 
 INITED: bool = False
 DBS: state.DatabasesState = immutables.Map()
-BACKEND_RUNTIME_PARAMS: pgparams.BackendRuntimeParams = \
+BACKEND_RUNTIME_PARAMS: pgparams.BackendRuntimeParams = (
     pgparams.get_default_runtime_params()
+)
 COMPILER: compiler.Compiler
 LAST_STATE: Optional[compiler.dbstate.CompilerConnectionState] = None
 LAST_STATE_PICKLE: Optional[bytes] = None
@@ -140,7 +137,8 @@ def __sync__(
 
     except Exception as ex:
         raise state.FailedStateSync(
-            f'failed to sync worker state: {type(ex).__name__}({ex})') from ex
+            f'failed to sync worker state: {type(ex).__name__}({ex})'
+        ) from ex
 
     return db
 
@@ -173,7 +171,7 @@ def compile(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
 
     global LAST_STATE, LAST_STATE_PICKLE
@@ -205,7 +203,8 @@ def compile_in_tx(
         else:
             cstate.set_root_user_schema(DBS[dbname].user_schema)
     units, cstate = COMPILER.compile_serialized_request_in_tx(
-        cstate, *args, **kwargs)
+        cstate, *args, **kwargs
+    )
 
     LAST_STATE = cstate
 
@@ -213,9 +212,10 @@ def compile_in_tx(
     # for every new query in a transaction that doesn't actually change
     # its state in every query. I.e. it doesn't run DDL, configures
     # new session aliases, configs, or globals.
-    if (prev_last_state_key is None or
-        LAST_STATE_PICKLE is None or
-        prev_last_state_key != cstate.get_state_key()
+    if (
+        prev_last_state_key is None
+        or LAST_STATE_PICKLE is None
+        or prev_last_state_key != cstate.get_state_key()
     ):
         LAST_STATE_PICKLE = pickle.dumps(cstate, -1)
 
@@ -250,73 +250,8 @@ def compile_notebook(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
-
-
-def compile_graphql(
-    dbname: str,
-    evicted_dbs: list[str],
-    user_schema: Optional[bytes],
-    reflection_cache: Optional[bytes],
-    global_schema: Optional[bytes],
-    database_config: Optional[bytes],
-    system_config: Optional[bytes],
-    session_config: Mapping[str, Any],
-    *compile_args: Any,
-    **compile_kwargs: Any,
-) -> tuple[compiler.QueryUnitGroup, graphql.TranspiledOperation]:
-    db = __sync__(
-        dbname,
-        evicted_dbs,
-        user_schema,
-        reflection_cache,
-        global_schema,
-        database_config,
-        system_config,
-    )
-
-    gql_op = graphql.compile_graphql(
-        STD_SCHEMA,
-        db.user_schema,
-        GLOBAL_SCHEMA,
-        db.database_config,
-        INSTANCE_CONFIG,
-        *compile_args,
-        **compile_kwargs
-    )
-
-    source = edgeql.Source.from_string(
-        edgeql.generate_source(gql_op.edgeql_ast, pretty=True),
-    )
-
-    cfg_ser = COMPILER.state.compilation_config_serializer
-    request = compiler.CompilationRequest(
-        source=source,
-        protocol_version=defines.CURRENT_PROTOCOL,
-        schema_version=uuidgen.uuid4(),
-        compilation_config_serializer=cfg_ser,
-        output_format=compiler.OutputFormat.JSON,
-        input_format=compiler.InputFormat.JSON,
-        expect_one=True,
-        implicit_limit=0,
-        inline_typeids=False,
-        inline_typenames=False,
-        inline_objectids=False,
-        modaliases=None,
-        session_config=session_config,
-    )
-
-    unit_group, _ = COMPILER.compile(
-        user_schema=db.user_schema,
-        global_schema=GLOBAL_SCHEMA,
-        reflection_cache=db.reflection_cache,
-        database_config=db.database_config,
-        system_config=INSTANCE_CONFIG,
-        request=request,
-    )
-
-    return unit_group, gql_op  # type: ignore[return-value]
 
 
 def compile_sql(
@@ -347,7 +282,7 @@ def compile_sql(
         db.database_config,
         INSTANCE_CONFIG,
         *compile_args,
-        **compile_kwargs
+        **compile_kwargs,
     )
 
 
@@ -356,17 +291,13 @@ def get_handler(methname):
         meth = __init_worker__
     else:
         if not INITED:
-            raise RuntimeError(
-                "call on uninitialized compiler worker"
-            )
+            raise RuntimeError("call on uninitialized compiler worker")
         if methname == "compile":
             meth = compile
         elif methname == "compile_in_tx":
             meth = compile_in_tx
         elif methname == "compile_notebook":
             meth = compile_notebook
-        elif methname == "compile_graphql":
-            meth = compile_graphql
         elif methname == "compile_sql":
             meth = compile_sql
         else:

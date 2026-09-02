@@ -28,7 +28,9 @@ import contextlib
 
 
 __all__ = (
-    'EdgeDBError', 'EdgeDBMessage', 'ensure_span',
+    'EdgeDBError',
+    'EdgeDBMessage',
+    'ensure_span',
 )
 
 
@@ -54,7 +56,8 @@ class EdgeDBErrorMeta(type):
             # have a code.
             raise RuntimeError(
                 'direct subclassing of EdgeDBError is prohibited; '
-                'subclass one of its subclasses in edb.errors')
+                'subclass one of its subclasses in edb.errors'
+            )
 
     @classmethod
     def get_error_class_from_code(mcls, code: int) -> type[EdgeDBError]:
@@ -66,19 +69,18 @@ class EdgeDBErrorMeta(type):
 
 
 class EdgeDBMessage(Warning):
-
     _code: Optional[int] = None
 
     @classmethod
     def get_code(cls):
         if cls._code is None:
             raise RuntimeError(
-                f'EdgeDB message code is not set (type: {cls.__name__})')
+                f'EdgeDB message code is not set (type: {cls.__name__})'
+            )
         return cls._code
 
 
 class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
-
     _code: Optional[int] = None
     _attrs: dict[int, str]
     _pgext_code: Optional[str] = None
@@ -96,7 +98,8 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
     ):
         if type(self) is EdgeDBError:
             raise RuntimeError(
-                'EdgeDBError is not supposed to be instantiated directly')
+                'EdgeDBError is not supposed to be instantiated directly'
+            )
 
         self._attrs = {}
         self._pgext_code = pgext_code
@@ -118,7 +121,8 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
     def get_code(cls):
         if cls._code is None:
             raise RuntimeError(
-                f'Gel message code is not set (type: {cls.__name__})')
+                f'Gel message code is not set (type: {cls.__name__})'
+            )
         return cls._code
 
     def to_json(self):
@@ -167,7 +171,8 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
 
     def set_hint_and_details(self, hint, details=None):
         ex.replace_context(
-            self, ex.DefaultExceptionContext(hint=hint, details=details))
+            self, ex.DefaultExceptionContext(hint=hint, details=details)
+        )
 
         if hint is not None:
             self._attrs[FIELD_HINT] = hint

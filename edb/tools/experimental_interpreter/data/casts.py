@@ -20,7 +20,6 @@ def type_cast(tp: e.Tp, arg: e.Val) -> e.Val:
 
 
 def get_json_cast(source_tp: e.Tp, schema: e.DBSchema) -> e.TpCast:
-
     def cast_to_json(arg: e.Val) -> e.Val:
         return e.ScalarVal(
             tp=e.ScalarTp(e.QualifiedName(["std", "json"])),

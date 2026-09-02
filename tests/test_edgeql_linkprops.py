@@ -28,11 +28,11 @@ from edb.tools import test
 class TestEdgeQLLinkproperties(tb.QueryTestCase):
     '''The scope is to test link properties.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'cards_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql'
+    )
 
     async def test_edgeql_props_basic_01(self):
         await self.assert_query_result(
@@ -55,25 +55,25 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 5,
                             'name': 'Dragon',
                             '@count': 2,
-                            'element': 'Fire'
+                            'element': 'Fire',
                         },
                         {
                             'cost': 1,
                             'name': 'Imp',
                             '@count': 2,
-                            'element': 'Fire'
+                            'element': 'Fire',
                         },
                     ],
                 },
@@ -84,25 +84,25 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 1,
                             'name': 'Dwarf',
                             '@count': 3,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Golem',
                             '@count': 3,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                     ],
                 },
@@ -113,43 +113,43 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 1,
                             'name': 'Dwarf',
                             '@count': 4,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                         {
                             'cost': 1,
                             'name': 'Sprite',
                             '@count': 4,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                         {
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 2,
                             'name': 'Giant eagle',
                             '@count': 3,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 2,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Golem',
                             '@count': 2,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                         {
                             'cost': 4,
                             'name': 'Djinn',
                             '@count': 1,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                     ],
                 },
@@ -160,47 +160,47 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 1,
                             'name': 'Sprite',
                             '@count': 4,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                         {
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 1,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 4,
                             'name': 'Djinn',
                             '@count': 1,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                         {
                             'cost': 5,
                             'name': 'Dragon',
                             '@count': 1,
-                            'element': 'Fire'
+                            'element': 'Fire',
                         },
                         {
                             'cost': 2,
                             'name': 'Giant eagle',
                             '@count': 1,
-                            'element': 'Air'
+                            'element': 'Air',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 1,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Golem',
                             '@count': 1,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                     ],
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_props_basic_02(self):
@@ -227,7 +227,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                     ],
                 },
@@ -238,13 +238,13 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Golem',
                             '@count': 3,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                     ],
                 },
@@ -255,8 +255,8 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {
                     'name': 'Dave',
                     'deck': [],
-                }
-            ]
+                },
+            ],
         )
 
     async def test_edgeql_props_basic_03(self):
@@ -282,25 +282,25 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 5,
                             'name': 'Dragon',
                             '@count': 2,
-                            'element': 'Fire'
+                            'element': 'Fire',
                         },
                         {
                             'cost': 1,
                             'name': 'Imp',
                             '@count': 2,
-                            'element': 'Fire'
+                            'element': 'Fire',
                         },
                     ],
                 },
@@ -311,29 +311,29 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                             'cost': 2,
                             'name': 'Bog monster',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 1,
                             'name': 'Dwarf',
                             '@count': 3,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                         {
                             'cost': 3,
                             'name': 'Giant turtle',
                             '@count': 3,
-                            'element': 'Water'
+                            'element': 'Water',
                         },
                         {
                             'cost': 3,
                             'name': 'Golem',
                             '@count': 3,
-                            'element': 'Earth'
+                            'element': 'Earth',
                         },
                     ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_props_basic_04(self):
@@ -351,17 +351,9 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'cost': 3,
-                    'name': 'Giant turtle',
-                    'element': 'Water'
-                },
-                {
-                    'cost': 3,
-                    'name': 'Golem',
-                    'element': 'Earth'
-                },
-            ]
+                {'cost': 3, 'name': 'Giant turtle', 'element': 'Water'},
+                {'cost': 3, 'name': 'Golem', 'element': 'Earth'},
+            ],
         )
 
     async def test_edgeql_props_basic_05(self):
@@ -384,9 +376,9 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                         {'name': 'Bob', '@nickname': 'Swampy'},
                         {'name': 'Carol', '@nickname': 'Firefighter'},
                         {'name': 'Dave', '@nickname': 'Grumpy'},
-                    ]
+                    ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_basic_06(self):
@@ -395,8 +387,9 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 SELECT User.avatar@text;
             ''',
             {
-                'Best', 'Wow',
-            }
+                'Best',
+                'Wow',
+            },
         )
 
     async def test_edgeql_props_basic_07(self):
@@ -412,7 +405,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {'avatar': {'@text': 'Best'}},
                 {'avatar': {'@text': 'Wow'}},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -429,7 +422,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {'name': 'Giant turtle'},
                 {'name': 'Golem'},
-            ]
+            ],
         )
 
     async def test_edgeql_props_cross_02(self):
@@ -459,7 +452,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {'name': 'Golem', 'same': True},
                 {'name': 'Imp', 'same': False},
                 {'name': 'Sprite', 'same': False},
-            ]
+            ],
         )
 
     async def test_edgeql_props_cross_04(self):
@@ -485,7 +478,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {'name': 'Golem', 'same': True},
                 {'name': 'Imp', 'same': False},
                 {'name': 'Sprite', 'same': False},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -565,7 +558,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                     'count': [4, 4],
                     'element': 'Air',
                 },
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -587,7 +580,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {'name': 'Giant eagle'},
                 {'name': 'Giant turtle'},
                 {'name': 'Golem'},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -608,7 +601,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {'name': 'Giant eagle'},
                 {'name': 'Giant turtle'},
                 {'name': 'Golem'},
-            ]
+            ],
         )
 
     async def test_edgeql_props_implication_04(self):
@@ -676,7 +669,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                         },
                     ],
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_setops_01(self):
@@ -748,7 +741,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 'Golem',
                 'Golem',
                 'Sprite',
-                'Sprite'
+                'Sprite',
             ],
         )
 
@@ -770,7 +763,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 'Giant eagle',
                 'Giant turtle',
                 'Golem',
-                'Sprite'
+                'Sprite',
             ],
         )
 
@@ -786,8 +779,15 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 ORDER BY _;
             ''',
             [
-                'Alice', 'Bob', 'Bob', 'Carol', 'Dave', 'Firefighter',
-                'Foo', 'Grumpy', 'Swampy'
+                'Alice',
+                'Bob',
+                'Bob',
+                'Carol',
+                'Dave',
+                'Firefighter',
+                'Foo',
+                'Grumpy',
+                'Swampy',
             ],
         )
 
@@ -801,8 +801,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 ORDER BY _;
             ''',
             [
-                'Alice', 'Bob', 'Carol', 'Dave', 'Firefighter', 'Foo',
-                'Grumpy', 'Swampy',
+                'Alice',
+                'Bob',
+                'Carol',
+                'Dave',
+                'Firefighter',
+                'Foo',
+                'Grumpy',
+                'Swampy',
             ],
         )
 
@@ -819,7 +825,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 [2, 'Alice'],
                 [3, 'Alice'],
-            ]
+            ],
         )
 
     async def test_edgeql_props_setops_05(self):
@@ -843,12 +849,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 }
                 FILTER User.name = 'Alice';
             ''',
-            [{
-                'name': 'Alice',
-                'my_deck': {
-                    '@foo': 'Djinn'
-                }
-            }],
+            [{'name': 'Alice', 'my_deck': {'@foo': 'Djinn'}}],
         )
 
     async def test_edgeql_props_computable_02(self):
@@ -870,12 +871,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                     }
                 };
             ''',
-            [{
-                'name': 'Alice',
-                'my_deck': {
-                    '@foo': 'Djinn'
-                }
-            }],
+            [{'name': 'Alice', 'my_deck': {'@foo': 'Djinn'}}],
         )
 
     async def test_edgeql_props_abbrev(self):
@@ -889,15 +885,17 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                     } ORDER BY .name)
                 } FILTER .name = 'Alice';
             ''',
-            [{
-                'name': 'Alice',
-                'my_deck': [
-                    {"name": "Bog monster", "num_cards": 3},
-                    {"name": "Dragon", "num_cards": 2},
-                    {"name": "Giant turtle", "num_cards": 3},
-                    {"name": "Imp", "num_cards": 2},
-                ],
-            }],
+            [
+                {
+                    'name': 'Alice',
+                    'my_deck': [
+                        {"name": "Bog monster", "num_cards": 3},
+                        {"name": "Dragon", "num_cards": 2},
+                        {"name": "Giant turtle", "num_cards": 3},
+                        {"name": "Imp", "num_cards": 2},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_props_agg_01(self):
@@ -917,7 +915,10 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 ORDER BY _;
             ''',
             [
-                [10, 'Alice'], [10, 'Dave'], [12, 'Bob'], [19, 'Carol'],
+                [10, 'Alice'],
+                [10, 'Dave'],
+                [12, 'Bob'],
+                [19, 'Carol'],
             ],
         )
 
@@ -950,7 +951,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                     "name": "Dave",
                     "deck": [{"name": "Bog monster"}, {"name": "Djinn"}],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_props_link_shadow_02(self):
@@ -975,7 +976,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {"deck": [{"@count": 3}, {"@count": 3}], "name": "Bob"},
                 {"deck": [{"@count": 3}, {"@count": 1}], "name": "Carol"},
                 {"deck": [{"@count": 1}, {"@count": 1}], "name": "Dave"},
-            ]
+            ],
         )
 
     async def test_edgeql_props_link_computed_01(self):
@@ -993,7 +994,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                         {"@total_cost": 6, "name": "Bog monster"},
                         {"@total_cost": 10, "name": "Dragon"},
                         {"@total_cost": 9, "name": "Giant turtle"},
-                        {"@total_cost": 2, "name": "Imp"}
+                        {"@total_cost": 2, "name": "Imp"},
                     ],
                 }
             ],
@@ -1010,7 +1011,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             ''',
             [
                 {"name": "Alice", "avatar": {"@tag": "Dragon-Best"}},
-                {"name": "Bob", "avatar": None}
+                {"name": "Bob", "avatar": None},
             ],
         )
 
@@ -1168,8 +1169,8 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                     "name": "Dwarf",
                     "owners2": [
                         {"count": 3, "name": "Bob"},
-                        {"count": 4, "name": "Carol"}
-                    ]
+                        {"count": 4, "name": "Carol"},
+                    ],
                 }
             ],
         )
@@ -1183,12 +1184,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_back_03(self):
@@ -1200,12 +1203,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_back_04(self):
@@ -1219,12 +1224,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_back_05(self):
@@ -1238,20 +1245,21 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_back_06(self):
         # This should not work
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"has no property 'count'"):
-
+            edgedb.QueryError, r"has no property 'count'"
+        ):
             await self.con.query(
                 r'''
                     select Card { name, z := .<deck { @count }}
@@ -1263,9 +1271,8 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
     async def test_edgeql_props_back_07(self):
         # This should not work
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"has no property 'count'"):
-
+            edgedb.QueryError, r"has no property 'count'"
+        ):
             await self.con.query(
                 r'''
                     select Card { name, z := .<deck[IS Object] { @count }}
@@ -1282,11 +1289,13 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     @test.xerror('Stack overflow!')
@@ -1302,19 +1311,20 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_schema_back_00(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"has no property 'total_cost'"):
-
+            edgedb.QueryError, r"has no property 'total_cost'"
+        ):
             await self.con.query(
                 r'''
                     select (Card.name, Card.owners@total_cost)
@@ -1344,12 +1354,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
         await self.assert_query_result(
             r'''
@@ -1359,12 +1371,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "owners": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "owners": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1375,12 +1389,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Djinn",
-                    "owners": tb.bag([
-                        {"@count": 1, "name": "Carol"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "owners": tb.bag(
+                        [
+                            {"@count": 1, "name": "Carol"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_schema_back_03(self):
@@ -1392,12 +1408,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1408,12 +1426,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "owners": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "owners": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_schema_back_04(self):
@@ -1427,12 +1447,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1445,12 +1467,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "owners": tb.bag([
-                        {"@count": 2, "name": "Alice"},
-                        {"@count": 1, "name": "Dave"},
-                    ])
+                    "owners": tb.bag(
+                        [
+                            {"@count": 2, "name": "Alice"},
+                            {"@count": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_schema_back_05(self):
@@ -1464,12 +1488,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "z": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "z": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1482,12 +1508,14 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {
                     "name": "Dragon",
-                    "owners": tb.bag([
-                        {"x": 2, "name": "Alice"},
-                        {"x": 1, "name": "Dave"},
-                    ])
+                    "owners": tb.bag(
+                        [
+                            {"x": 2, "name": "Alice"},
+                            {"x": 1, "name": "Dave"},
+                        ]
+                    ),
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_intersect_01(self):
@@ -1499,22 +1527,24 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             ''',
             [
                 {
-                    "deck": tb.bag([
-                        {"@count": 2, "name": "Imp"},
-                        {"@count": 2, "name": "Dragon"},
-                        {"@count": 3, "name": "Bog monster"},
-                        {"@count": 3, "name": "Giant turtle"},
-                    ])
+                    "deck": tb.bag(
+                        [
+                            {"@count": 2, "name": "Imp"},
+                            {"@count": 2, "name": "Dragon"},
+                            {"@count": 3, "name": "Bog monster"},
+                            {"@count": 3, "name": "Giant turtle"},
+                        ]
+                    )
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_props_bogus_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"implicit reference to an object changes the "
-                r"interpretation of it elsewhere in the query"):
-
+            edgedb.QueryError,
+            r"implicit reference to an object changes the "
+            r"interpretation of it elsewhere in the query",
+        ):
             await self.con.query(
                 r'''
                     select (
@@ -1536,9 +1566,10 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                r"link 'l' of object type 'default::Src' has no property 'y'",
-                _hint="did you mean 'x'?"):
+            edgedb.InvalidReferenceError,
+            r"link 'l' of object type 'default::Src' has no property 'y'",
+            _hint="did you mean 'x'?",
+        ):
             await self.con.query(
                 r'''
                     insert Src { l := assert_single(Tgt { @y := "..." }) };
@@ -1594,7 +1625,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
         # This should not work
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            r"@target may only be used in index and constraint definitions"
+            r"@target may only be used in index and constraint definitions",
         ):
             await self.con.query(
                 r'''
@@ -1674,7 +1705,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
                 {"n": 4, "l": {"n": 9, "@x": 9}},
                 {"n": 5, "l": {"n": 8, "@x": -1}},
                 {"n": 6, "l": {"n": 7, "@x": -1}},
-            ]
+            ],
         )
 
     async def test_edgeql_props_dunder_default_02(self):
@@ -1720,7 +1751,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {"n": 1, "l": {"n": None, "@x": -1}},
                 {"n": 2, "l": {"n": None, "@x": -2}},
-            ]
+            ],
         )
 
     async def test_edgeql_props_dunder_default_03(self):
@@ -1755,7 +1786,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             r'SELECT Src { n, l: { n, @x } };',
             [
                 {"n": 0, "l": {"n": 1, "@x": -1}},
-            ]
+            ],
         )
 
         # Update with insert stmt, shape on insert
@@ -1771,7 +1802,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             r'SELECT Src { n, l: { n, @x } };',
             [
                 {"n": 0, "l": {"n": 2, "@x": -1}},
-            ]
+            ],
         )
 
         # Update with insert stmt, shape applied after insert
@@ -1787,7 +1818,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             r'SELECT Src { n, l: { n, @x } };',
             [
                 {"n": 0, "l": {"n": 3, "@x": -1}},
-            ]
+            ],
         )
 
     async def test_edgeql_props_dunder_default_04(self):
@@ -1831,7 +1862,7 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {"n": 1, "l": {"@x": -1}},
                 {"n": 2, "l": {"@x": -1}},
-            ]
+            ],
         )
 
         await self.con.query(
@@ -1842,5 +1873,5 @@ class TestEdgeQLLinkproperties(tb.QueryTestCase):
             [
                 {"n": 1, "l": {"@x": -1}},
                 {"n": 2, "l": {"@x": -2}},
-            ]
+            ],
         )

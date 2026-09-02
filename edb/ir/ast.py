@@ -104,9 +104,7 @@ class Base(ast.AST):
     span: typing.Optional[Span] = None
 
     def __repr__(self) -> str:
-        return (
-            f'<ir.{self.__class__.__name__} at 0x{id(self):x}>'
-        )
+        return f'<ir.{self.__class__.__name__} at 0x{id(self):x}>'
 
 
 class ImmutableBase(ast.ImmutableASTMixin, Base):
@@ -114,7 +112,6 @@ class ImmutableBase(ast.ImmutableASTMixin, Base):
 
 
 class ViewShapeMetadata(Base):
-
     has_implicit_id: bool = False
 
 
@@ -222,8 +219,7 @@ class BasePointerRef(ImmutableBase):
     # cardinality fields need to be mutable for lazy cardinality inference.
     # and children because we update pointers with newly derived children
     __ast_mutable_fields__ = frozenset(
-        ('in_cardinality', 'out_cardinality', 'children',
-         'is_computable')
+        ('in_cardinality', 'out_cardinality', 'children', 'is_computable')
     )
 
     # The defaults set here are mostly to try to reduce debug spew output.
@@ -313,8 +309,7 @@ class TupleIndirectionLink(s_pointers.PseudoPointer):
     ) -> None:
         self._source = source
         self._target = target
-        self._name = sn.QualName(
-            module='__tuple__', name=str(element_name))
+        self._name = sn.QualName(module='__tuple__', name=str(element_name))
 
     def __hash__(self) -> int:
         return hash((self.__class__, self._source, self._name))
@@ -336,8 +331,7 @@ class TupleIndirectionLink(s_pointers.PseudoPointer):
     def singular(
         self,
         schema: s_schema.Schema,
-        direction: s_pointers.PointerDirection =
-            s_pointers.PointerDirection.Outbound
+        direction: s_pointers.PointerDirection = s_pointers.PointerDirection.Outbound,
     ) -> bool:
         return True
 
@@ -363,6 +357,7 @@ class TupleIndirectionPointerRef(BasePointerRef):
 
 class SpecialPointerRef(BasePointerRef):
     """Pointer ref used for internal columns, such as __fts_document__"""
+
     pass
 
 
@@ -425,12 +420,10 @@ class TypeIntersectionLink(s_pointers.PseudoPointer):
     def singular(
         self,
         schema: s_schema.Schema,
-        direction: s_pointers.PointerDirection =
-            s_pointers.PointerDirection.Outbound
+        direction: s_pointers.PointerDirection = s_pointers.PointerDirection.Outbound,
     ) -> bool:
         if direction is s_pointers.PointerDirection.Outbound:
-            return (self.get_cardinality(schema) is
-                    qltypes.SchemaCardinality.One)
+            return self.get_cardinality(schema) is qltypes.SchemaCardinality.One
         else:
             return True
 
@@ -439,7 +432,6 @@ class TypeIntersectionLink(s_pointers.PseudoPointer):
 
 
 class TypeIntersectionPointerRef(BasePointerRef):
-
     optional: bool
     is_empty: bool
     is_subtype: bool
@@ -450,18 +442,17 @@ class Expr(Base):
     __abstract_node__ = True
 
     if typing.TYPE_CHECKING:
+
         @property
         @abc.abstractmethod
         def typeref(self) -> TypeRef:
             raise NotImplementedError
 
     # Sets to materialize at this point, keyed by the type/ptr id.
-    materialized_sets: typing.Optional[
-        dict[uuid.UUID, MaterializedSet]] = None
+    materialized_sets: typing.Optional[dict[uuid.UUID, MaterializedSet]] = None
 
 
 class Pointer(Expr):
-
     source: Set
     ptrref: BasePointerRef
     direction: s_pointers.PointerDirection
@@ -503,14 +494,12 @@ class Pointer(Expr):
 
 
 class TypeIntersectionPointer(Pointer):
-
     optional: bool
     ptrref: TypeIntersectionPointerRef
     is_definition: bool = False
 
 
 class TupleIndirectionPointer(Pointer):
-
     ptrref: TupleIndirectionPointerRef
     is_definition: bool = False
 
@@ -540,6 +529,7 @@ class TypeRoot(Expr):
 
 class RefExpr(Expr):
     '''Different expressions sorts that refer to some kind of binding.'''
+
     __abstract_node__ = True
     typeref: TypeRef
 
@@ -616,6 +606,7 @@ class SetE(Base, typing.Generic[T_expr_co]):  # noqa: UP046
     def __repr__(self) -> str:
         return f'<ir.Set \'{self.path_id}\' at 0x{id(self):x}>'
 
+
 # We set its name to Set because that's what we want visitors to use.
 
 
@@ -660,8 +651,8 @@ class Param:
 
     @property
     def is_sub_param(self) -> bool:
-        return (
-            self.name.startswith('__edb_decoded_') and self.name.endswith('__')
+        return self.name.startswith('__edb_decoded_') and self.name.endswith(
+            '__'
         )
 
 
@@ -673,6 +664,7 @@ class SubParams:
     in order to implement tuples, this collects those parameters and
     the decoder expression.
     """
+
     trans_type: ParamTransType
     decoder_edgeql: qlast.Expr
     params: tuple[Param, ...]
@@ -694,6 +686,7 @@ class ParamTransType:
     (For example, if we have an param type `tuple<str, str>`, this gets
     decomposed into two `str` params, with indexes 0 and 1.
     """
+
     typeref: TypeRef
     idx: int
 
@@ -719,9 +712,8 @@ class ParamTuple(ParamTransType):
     typs: tuple[tuple[typing.Optional[str], ParamTransType], ...]
 
     def flatten(self) -> tuple[typing.Any, ...]:
-        return (
-            (int(qltypes.TypeTag.TUPLE), self.idx)
-            + tuple(x.flatten() for _, x in self.typs)
+        return (int(qltypes.TypeTag.TUPLE), self.idx) + tuple(
+            x.flatten() for _, x in self.typs
         )
 
 
@@ -790,7 +782,6 @@ MaterializeReason = MaterializeVolatile | MaterializeVisible
 
 
 class ComputableInfo(typing.NamedTuple):
-
     qlexpr: qlast.Expr
     irexpr: typing.Optional[Set | Expr]
     context: compiler.ContextLevel
@@ -814,7 +805,6 @@ class ServerParamConversion:
 
 
 class Statement(Command):
-
     expr: Set
     views: dict[sn.Name, s_types.Type]
     params: list[Param]
@@ -830,8 +820,7 @@ class Statement(Command):
     view_shapes_metadata: dict[s_types.Type, ViewShapeMetadata]
     schema: s_schema.Schema
     schema_refs: frozenset[so.Object]
-    schema_ref_exprs: typing.Optional[
-        dict[so.Object, set[qlast.Base]]]
+    schema_ref_exprs: typing.Optional[dict[so.Object, set[qlast.Base]]]
     scope_tree: ScopeTreeNode
     dml_exprs: list[qlast.Base]
     type_rewrites: dict[tuple[uuid.UUID, bool], Set]
@@ -842,7 +831,6 @@ class Statement(Command):
 
 
 class TypeIntrospection(ImmutableExpr):
-
     # The type value to return
     output_typeref: TypeRef
     # The type value *of the output*
@@ -908,12 +896,10 @@ class BooleanConstant(BaseStrConstant):
 
 
 class BytesConstant(BaseConstant):
-
     value: bytes
 
 
 class ConstantSet(ConstExpr, ImmutableExpr):
-
     elements: tuple[BaseConstant | BaseParameter, ...]
 
 
@@ -941,27 +927,23 @@ class FunctionParameter(BaseParameter):
 
 
 class TupleElement(ImmutableBase):
-
     name: str
     val: Set
     path_id: typing.Optional[PathId] = None
 
 
 class Tuple(ImmutableExpr):
-
     named: bool = False
     elements: list[TupleElement]
     typeref: TypeRef
 
 
 class Array(ImmutableExpr):
-
     elements: typing.Sequence[Set]
     typeref: TypeRef
 
 
 class TypeCheckOp(ImmutableExpr):
-
     left: Set
     right: TypeRef
     op: str
@@ -970,7 +952,6 @@ class TypeCheckOp(ImmutableExpr):
 
 
 class SortExpr(Base):
-
     expr: Set
     direction: typing.Optional[qlast.SortOrder]
     nones_order: typing.Optional[qlast.NonesOrder]
@@ -994,6 +975,7 @@ class CallArg(ImmutableBase):
 
 class Call(ImmutableExpr):
     """Operator or a function call."""
+
     __abstract_node__ = True
 
     # Bound callable has polymorphic parameters and
@@ -1048,10 +1030,7 @@ class Call(ImmutableExpr):
 
 
 class FunctionCall(Call):
-
-    __ast_mutable_fields__ = frozenset((
-        'extras', 'body'
-    ))
+    __ast_mutable_fields__ = frozenset(('extras', 'body'))
 
     # If the bound callable is a "USING SQL" callable, this
     # attribute will be set to the name of the SQL function.
@@ -1097,7 +1076,6 @@ class FunctionCall(Call):
 
 
 class OperatorCall(Call):
-
     # The kind of the bound operator (INFIX, PREFIX, etc.).
     operator_kind: qltypes.OperatorKind
 
@@ -1118,14 +1096,12 @@ class OperatorCall(Call):
 
 
 class IndexIndirection(ImmutableExpr):
-
     expr: Base
     index: Base
     typeref: TypeRef
 
 
 class SliceIndirection(ImmutableExpr):
-
     expr: Set
     start: typing.Optional[Base]
     stop: typing.Optional[Base]
@@ -1207,7 +1183,6 @@ class FilteredStmt(Stmt):
 
 
 class SelectStmt(FilteredStmt):
-
     orderby: typing.Optional[list[SortExpr]] = None
     offset: typing.Optional[Set] = None
     limit: typing.Optional[Set] = None
@@ -1222,17 +1197,16 @@ class SelectStmt(FilteredStmt):
 
 class GroupStmt(FilteredStmt):
     subject: Set = DUMMY_SET
-    using: dict[str, tuple[Set, qltypes.Cardinality]] = (
-        ast.field(factory=dict))
+    using: dict[str, tuple[Set, qltypes.Cardinality]] = ast.field(factory=dict)
     by: list[qlast.GroupingElement]
     result: Set = DUMMY_SET
     group_binding: Set = DUMMY_SET
     grouping_binding: typing.Optional[Set] = None
     orderby: typing.Optional[list[SortExpr]] = None
     # Optimization information
-    group_aggregate_sets: dict[
-        typing.Optional[Set], frozenset[PathId]
-    ] = ast.field(factory=dict)
+    group_aggregate_sets: dict[typing.Optional[Set], frozenset[PathId]] = (
+        ast.field(factory=dict)
+    )
 
 
 class MutatingLikeStmt(Expr):
@@ -1243,17 +1217,18 @@ class MutatingLikeStmt(Expr):
     something should (or should not) see certain mutation overlays in
     the backend without being an actual mutation.
     """
+
     __abstract_node__ = True
 
 
 class TriggerAnchor(MutatingLikeStmt):
-
     """A placeholder to be put in trigger __old__ nodes.
 
     The idea here is that in the backend, it will be treated as if it
     was a MutatingStmt for the purposes of determining whether to use
     overlays.
     """
+
     typeref: TypeRef
 
 
@@ -1267,13 +1242,9 @@ class MutatingStmt(Stmt, MutatingLikeStmt):
     # for.
     conflict_checks: typing.Optional[list[OnConflictClause]] = None
     # Access policy checks that we should raise errors on
-    write_policies: dict[uuid.UUID, WritePolicies] = ast.field(
-        factory=dict
-    )
+    write_policies: dict[uuid.UUID, WritePolicies] = ast.field(factory=dict)
     # Access policy checks that we should filter on
-    read_policies: dict[uuid.UUID, ReadPolicyExpr] = ast.field(
-        factory=dict
-    )
+    read_policies: dict[uuid.UUID, ReadPolicyExpr] = ast.field(factory=dict)
 
     # Rewrites of the subject shape
     rewrites: typing.Optional[Rewrites] = None
@@ -1367,10 +1338,9 @@ class UpdateStmt(MutatingStmt, FilteredStmt):
 class DeleteStmt(MutatingStmt, FilteredStmt):
     _material_type: TypeRef | None = None
 
-    links_to_delete: dict[
-        uuid.UUID,
-        tuple[PointerRef, ...]
-    ] = ast.field(factory=dict)
+    links_to_delete: dict[uuid.UUID, tuple[PointerRef, ...]] = ast.field(
+        factory=dict
+    )
 
     @property
     def material_type(self) -> TypeRef:
@@ -1379,7 +1349,6 @@ class DeleteStmt(MutatingStmt, FilteredStmt):
 
 
 class SessionStateCmd(Command):
-
     modaliases: dict[typing.Optional[str], s_mod.Module]
     testmode: bool
 
@@ -1401,7 +1370,6 @@ class ConfigCommand(Command, Expr):
 
 
 class ConfigSet(ConfigCommand):
-
     expr: Set
     required: bool
     backend_expr: typing.Optional[Set] = None
@@ -1412,7 +1380,6 @@ class ConfigSet(ConfigCommand):
 
 
 class ConfigReset(ConfigCommand):
-
     selector: typing.Optional[Set] = None
 
     @property
@@ -1424,7 +1391,6 @@ class ConfigReset(ConfigCommand):
 
 
 class ConfigInsert(ConfigCommand):
-
     expr: Set
 
     @property
@@ -1453,7 +1419,6 @@ class FTSDocument(ImmutableExpr):
 # StaticIntrospection is only used in static evaluation (staeval.py),
 # but unfortunately the IR AST node can only be defined here.
 class StaticIntrospection(Tuple):
-
     ir: TypeIntrospection
     schema: s_schema.Schema
 

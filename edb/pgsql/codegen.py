@@ -115,8 +115,7 @@ def generate_ctes_source(
 
 class SourceMap:
     @abc.abstractmethod
-    def translate(self, pos: int) -> int:
-        ...
+    def translate(self, pos: int) -> int: ...
 
 
 @dataclasses.dataclass(kw_only=True)
@@ -124,8 +123,7 @@ class BaseSourceMap(SourceMap):
     source_start: int
     output_start: int
     output_end: int | None = None
-    children: list[BaseSourceMap] = (
-        dataclasses.field(default_factory=list))
+    children: list[BaseSourceMap] = dataclasses.field(default_factory=list)
 
     def translate(self, pos: int) -> int:
         bu = None
@@ -140,8 +138,7 @@ class BaseSourceMap(SourceMap):
 
 @dataclasses.dataclass
 class ChainedSourceMap(SourceMap):
-    parts: list[SourceMap] = (
-        dataclasses.field(default_factory=list))
+    parts: list[SourceMap] = dataclasses.field(default_factory=list)
 
     def translate(self, pos: int) -> int:
         for part in self.parts:
@@ -176,7 +173,8 @@ class SQLSourceGenerator(codegen.SourceGenerator):
 
         # state
         self.param_index: collections.defaultdict[int, list[int]] = (
-            collections.defaultdict(list))
+            collections.defaultdict(list)
+        )
         self.write_index: int = 0
         self.source_map: Optional[BaseSourceMap] = None
 
@@ -222,7 +220,7 @@ class SQLSourceGenerator(codegen.SourceGenerator):
 
             if cte.aliascolnames:
                 self.write('(')
-                for (index, col_name) in enumerate(cte.aliascolnames):
+                for index, col_name in enumerate(cte.aliascolnames):
                     self.write(common.qname(col_name, column=True))
                     if index + 1 < len(cte.aliascolnames):
                         self.write(',')
@@ -750,8 +748,7 @@ class SQLSourceGenerator(codegen.SourceGenerator):
             else:
                 self.write(join_type + ' JOIN ')
             nested_join = (
-                isinstance(join.rarg, pgast.JoinExpr)
-                and join.rarg.joins
+                isinstance(join.rarg, pgast.JoinExpr) and join.rarg.joins
             )
             if nested_join:
                 self.write('(')
@@ -1223,7 +1220,8 @@ class SQLSourceGenerator(codegen.SourceGenerator):
             if node.colnames:
                 self.write(' (')
                 self.write(
-                    ', '.join(common.quote_ident(n) for n in node.colnames))
+                    ', '.join(common.quote_ident(n) for n in node.colnames)
+                )
                 self.write(')')
 
         if node.is_from:
@@ -1321,12 +1319,14 @@ class GeneratorContext(markup.MarkupExceptionContext):
             )
             body.append(
                 me.doc.Section(
-                    title='SQL generated so far', body=[code]  # type: ignore
+                    title='SQL generated so far',
+                    body=[code],  # type: ignore
                 )
             )
 
         return me.lang.ExceptionContext(
-            title=self.title, body=body  # type: ignore
+            title=self.title,
+            body=body,  # type: ignore
         )
 
 

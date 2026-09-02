@@ -88,16 +88,18 @@ class VersionedFunction(dbops.Function):
             strict: bool = False,
             parallel_safe: bool = False,
             set_returning: bool = False,
-
             wrapper_volatility: Optional[str] = None,
         ):
             pass
 
     else:
+
         def __init__(self, *args, wrapper_volatility=None, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = (
-                common.maybe_versioned_schema(self.name[0]), *self.name[1:])
+                common.maybe_versioned_schema(self.name[0]),
+                *self.name[1:],
+            )
             self.text = fixup_query(self.text)
 
             self.wrapper_volatility = wrapper_volatility
@@ -107,7 +109,9 @@ class VersionedFunction(dbops.Function):
                 for arg in self.args:
                     if isinstance(arg, tuple) and isinstance(arg[1], tuple):
                         new_name = (
-                            arg[1][0].replace('_VER', V('')), *arg[1][1:])
+                            arg[1][0].replace('_VER', V('')),
+                            *arg[1][1:],
+                        )
                         arg = (arg[0], new_name, *arg[2:])
                     nargs.append(arg)
                 self.args = nargs
@@ -115,10 +119,13 @@ class VersionedFunction(dbops.Function):
 
 class VersionedView(dbops.View):
     if not TYPE_CHECKING:
+
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
             self.name = (
-                common.maybe_versioned_schema(self.name[0]), *self.name[1:])
+                common.maybe_versioned_schema(self.name[0]),
+                *self.name[1:],
+            )
             self.query = fixup_query(self.query)
 
 
@@ -173,10 +180,10 @@ def make_trampoline(func: dbops.Function) -> TrampolineFunction:
     schema, name = func.name
     namespace = V('')
     assert schema.endswith(namespace), schema
-    new_func.name = (schema[:-len(namespace)], name)
+    new_func.name = (schema[: -len(namespace)], name)
 
     args = []
-    for arg in (func.args or ()):
+    for arg in func.args or ():
         if isinstance(arg, str):
             args.append(arg)
         else:
@@ -198,7 +205,7 @@ def make_table_trampoline(fullname: tuple[str, str]) -> TrampolineView:
     schema, name = fullname
     namespace = V('')
     assert schema.endswith(namespace), schema
-    new_name = (schema[:-len(namespace)], name)
+    new_name = (schema[: -len(namespace)], name)
 
     return TrampolineView(new_name, fullname)
 

@@ -84,7 +84,6 @@ def main() -> None:
 
     # generate enums
     for name, typ in chain(qlast.__dict__.items(), qltypes.__dict__.items()):
-
         if not isinstance(typ, type) or not issubclass(typ, s_enum.StrEnum):
             continue
 
@@ -97,7 +96,6 @@ def codegen_struct(cls: ASTClass) -> str:
     doc_comment = ''
 
     for f in typing.cast(list[ast._Field], cls.typ._direct_fields):
-
         if f.hidden:
             continue
 
@@ -113,7 +111,6 @@ def codegen_struct(cls: ASTClass) -> str:
         fields += f'    pub {f_name}: {typ},\n'
 
     if len(cls.children) > 0:
-
         # find an unused name for the py_child field
         for i in itertools.count(0, 1):
             kind_name = 'kind' if i == 0 else f'kind{i}'
@@ -209,7 +206,6 @@ def translate_type(
     ]
 
     if typing_inspect.is_union_type(typ):
-
         if hasattr(typ, '_name') and typ._name == 'Optional':
             return f'Option<{params[0]}>'
 
@@ -223,7 +219,6 @@ def translate_type(
         return union_name
 
     if typing_inspect.is_generic_type(typ) and hasattr(typ, '_name'):
-
         if typ._name in ('List', 'Sequence'):
             return f'Vec<{params[0]}>'
 

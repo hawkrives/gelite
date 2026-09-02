@@ -338,7 +338,8 @@ async def _create_connection_to(
 ) -> tuple[asyncio.Transport, PGConnectionProtocol]:
     if address_family == "unix":
         t, protocol = await asyncio.get_running_loop().create_unix_connection(
-            lambda: protocol_factory(None, hostname, port), path=host  # type: ignore
+            lambda: protocol_factory(None, hostname, port),
+            path=host,  # type: ignore
         )
         return (t, protocol)
     else:

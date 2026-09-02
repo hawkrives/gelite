@@ -140,8 +140,8 @@ class ScalarType:
 
 @functools.total_ordering
 class Duration(ScalarType):
-
-    _pg_simple_parser = re.compile(r'''
+    _pg_simple_parser = re.compile(
+        r'''
         ^
         \s*
         (
@@ -164,9 +164,12 @@ class Duration(ScalarType):
         )?
         \s*
         $
-    ''', re.X)
+    ''',
+        re.X,
+    )
 
-    _pg_parser = re.compile(r'''
+    _pg_parser = re.compile(
+        r'''
         (
             (
                 \s*
@@ -214,9 +217,12 @@ class Duration(ScalarType):
             \s*
             (?P<error>.+)
         )
-    ''', re.X | re.I)
+    ''',
+        re.X | re.I,
+    )
 
-    _iso_parser = re.compile(r'''
+    _iso_parser = re.compile(
+        r'''
         ^
         PT
         (
@@ -236,7 +242,9 @@ class Duration(ScalarType):
             ) S
         )?
         $
-    ''', re.X)
+    ''',
+        re.X,
+    )
 
     _codec = struct.Struct('!QLL')
 
@@ -268,21 +276,24 @@ class Duration(ScalarType):
                     value += hours * 3600_000_000
                 else:
                     raise errors.NumericOutOfRangeError(
-                        'interval field value out of range')
+                        'interval field value out of range'
+                    )
             if parsed['minutes']:
                 mins = int(parsed['minutes'])
                 if 0 <= mins <= 59:
                     value += mins * 60_000_000
                 else:
                     raise errors.NumericOutOfRangeError(
-                        'interval field value out of range')
+                        'interval field value out of range'
+                    )
             if parsed['seconds']:
                 secs = int(parsed['seconds'])
                 if 0 <= secs <= 59:
                     value += secs * 1_000_000
                 else:
                     raise errors.NumericOutOfRangeError(
-                        'interval field value out of range')
+                        'interval field value out of range'
+                    )
             if parsed['milliseconds']:
                 value += int(parsed['milliseconds'].ljust(3, '0')) * 1_000
             if parsed['microseconds']:
@@ -300,24 +311,24 @@ class Duration(ScalarType):
         value = 0
         seen: set[str] = set()
         for m in self._pg_parser.finditer(input):
-            filtered = {
-                k: v for k, v in m.groupdict().items()
-                if v is not None
-            }
+            filtered = {k: v for k, v in m.groupdict().items() if v is not None}
             if len(filtered) != 1:
                 raise errors.InvalidValueError(
-                    'invalid input syntax for type std::duration')
+                    'invalid input syntax for type std::duration'
+                )
 
             kind, val = next(iter(filtered.items()))
             if kind == 'error':
                 raise errors.InvalidValueError(
                     f'invalid input syntax for type std::duration: '
-                    f'unable to parse {val!r}')
+                    f'unable to parse {val!r}'
+                )
             if kind in seen:
                 raise errors.InvalidValueError(
                     f'invalid input syntax for type std::duration: '
                     f'the {kind!r} component has been specified '
-                    f'more than once')
+                    f'more than once'
+                )
             seen.add(kind)
 
             intval = int(val)
@@ -362,7 +373,8 @@ class Duration(ScalarType):
         if val is None:
             raise errors.InvalidValueError(
                 f'invalid input syntax for type std::duration: '
-                f'cannot parse {input!r} as ISO 8601')
+                f'cannot parse {input!r} as ISO 8601'
+            )
         return cls(microseconds=val)
 
     @classmethod
@@ -435,19 +447,21 @@ class Duration(ScalarType):
 
 @functools.total_ordering
 class ConfigMemory(ScalarType):
-
     PiB = 1024 * 1024 * 1024 * 1024 * 1024
     TiB = 1024 * 1024 * 1024 * 1024
     GiB = 1024 * 1024 * 1024
     MiB = 1024 * 1024
     KiB = 1024
 
-    _parser = re.compile(r'''
+    _parser = re.compile(
+        r'''
         ^
         (?P<num>\d+)
         (?P<unit>B|KiB|MiB|GiB|TiB|PiB)
         $
-    ''', re.X)
+    ''',
+        re.X,
+    )
 
     _value: int
 
@@ -467,7 +481,8 @@ class ConfigMemory(ScalarType):
             m = self._parser.match(text)
             if m is None:
                 raise errors.InvalidValueError(
-                    f'unable to parse memory size: {text!r}')
+                    f'unable to parse memory size: {text!r}'
+                )
 
             num = int(m.group('num'))
             unit = m.group('unit')
@@ -488,7 +503,8 @@ class ConfigMemory(ScalarType):
                 raise AssertionError('unexpected unit')
         else:
             raise ValueError(
-                f"invalid ConfigMemory value: {type(val)}, expected int | str")
+                f"invalid ConfigMemory value: {type(val)}, expected int | str"
+            )
 
     def __lt__(self, other: ConfigMemory) -> bool:
         return self._value < other._value
@@ -597,7 +613,8 @@ class EnumScalarType[E: enum.StrEnum](
         if edgeql_type is not None:
             if edgeql_type in typemap:
                 raise TypeError(
-                    f"{edgeql_type} is already a registered EnumScalarType")
+                    f"{edgeql_type} is already a registered EnumScalarType"
+                )
             typemap[edgeql_type] = cls
             cls._eql_type = s_name.QualName.from_string(edgeql_type)
 
@@ -645,15 +662,18 @@ class EnumScalarType[E: enum.StrEnum](
         else:
             return NotImplemented
 
-    def __reduce__(self) -> tuple[
+    def __reduce__(
+        self,
+    ) -> tuple[
         Callable[..., EnumScalarType[Any]],
         tuple[
             Optional[tuple[type, ...] | type],
             E,
         ],
     ]:
-        assert type(self).is_fully_resolved(), \
+        assert type(self).is_fully_resolved(), (
             f'{type(self)} parameters are not resolved'
+        )
 
         cls: type[EnumScalarType[E]] = self.__class__
         types: Optional[tuple[type, ...]] = self.orig_args
@@ -754,6 +774,7 @@ class TransactionAccessMode(
 
     def to_qltypes(self) -> qltypes.TransactionAccessMode:
         from edb.edgeql import qltypes
+
         match self._val:
             case TransactionAccessModeEnum.ReadOnly:
                 return qltypes.TransactionAccessMode.READ_ONLY
@@ -798,6 +819,7 @@ class TransactionIsolation(
 
     def to_qltypes(self) -> qltypes.TransactionIsolationLevel:
         from edb.edgeql import qltypes
+
         match self._val:
             case TransactionIsolationEnum.Serializable:
                 return qltypes.TransactionIsolationLevel.SERIALIZABLE

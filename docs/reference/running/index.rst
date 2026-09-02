@@ -12,7 +12,6 @@ Running Gel
     deployment/index
     configuration
     http
-    backend_ha
     admin/index
 
 This section provides comprehensive guidance for deploying and managing Gel database instances.

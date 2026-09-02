@@ -24,7 +24,8 @@ import enum
 import re
 
 
-VERSION_PATTERN = re.compile(r"""
+VERSION_PATTERN = re.compile(
+    r"""
     ^
     (?P<release>[0-9]+(?:\.[0-9]+)*)
     (?P<pre>
@@ -35,7 +36,9 @@ VERSION_PATTERN = re.compile(r"""
     )?
     (?:\+(?P<local>[a-z0-9]+(?:[\.][a-z0-9]+)*))?
     $
-""", re.X)
+""",
+    re.X,
+)
 
 
 class VersionStage(enum.IntEnum):

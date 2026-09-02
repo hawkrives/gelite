@@ -44,122 +44,217 @@ class value(typing.NamedTuple):
 
 
 VALUES = {
-    '<bool>True':
-        value(typename='bool',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=False, signed=False, anynumeric=False),
-
-    '<uuid>"d4288330-eea3-11e8-bc5f-7faf132b1d84"':
-        value(typename='uuid',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=False, signed=False, anynumeric=False),
-
-    '<bytes>b"Hello"':
-        value(typename='bytes',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=False, signed=False, anynumeric=False),
-
-    '<str>"Hello"':
-        value(typename='str',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=False, signed=False, anynumeric=False),
-
-    '<json>"Hello"':
-        value(typename='json',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=False, signed=False, anynumeric=False),
-
-    '<datetime>"2018-05-07T20:01:22.306916+00:00"':
-        value(typename='datetime',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=False, anynumeric=False),
-
-    '<cal::local_datetime>"2018-05-07T00:00:00"':
-        value(typename='std::cal::local_datetime',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=False, anynumeric=False),
-
-    '<cal::local_date>"2018-05-07"':
-        value(typename='std::cal::local_date',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=False, anynumeric=False),
-
-    '<cal::local_time>"20:01:22.306916"':
-        value(typename='std::cal::local_time',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=False, anynumeric=False),
-
-    '<duration>"20:01:22.306916"':
-        value(typename='duration',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=True, anynumeric=False),
-
-    '<int16>1':
-        value(typename='int16',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=False),
-
-    '<int32>1':
-        value(typename='int32',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=False),
-
-    '<int64>1':
-        value(typename='int64',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=False),
-
+    '<bool>True': value(
+        typename='bool',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<uuid>"d4288330-eea3-11e8-bc5f-7faf132b1d84"': value(
+        typename='uuid',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<bytes>b"Hello"': value(
+        typename='bytes',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<str>"Hello"': value(
+        typename='str',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<json>"Hello"': value(
+        typename='json',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<datetime>"2018-05-07T20:01:22.306916+00:00"': value(
+        typename='datetime',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<cal::local_datetime>"2018-05-07T00:00:00"': value(
+        typename='std::cal::local_datetime',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<cal::local_date>"2018-05-07"': value(
+        typename='std::cal::local_date',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<cal::local_time>"20:01:22.306916"': value(
+        typename='std::cal::local_time',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=False,
+        anynumeric=False,
+    ),
+    '<duration>"20:01:22.306916"': value(
+        typename='duration',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<int16>1': value(
+        typename='int16',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<int32>1': value(
+        typename='int32',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<int64>1': value(
+        typename='int64',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
     '1':  # same as <int64>1
-        value(typename='int64',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=False),
-
-    '<float32>1':
-        value(typename='float32',
-              anyreal=True, anyint=False, anyfloat=True,
-              datetime=False, signed=True, anynumeric=False),
-
-    '<float64>1':
-        value(typename='float64',
-              anyreal=True, anyint=False, anyfloat=True,
-              datetime=False, signed=True, anynumeric=False),
-
+    value(
+        typename='int64',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<float32>1': value(
+        typename='float32',
+        anyreal=True,
+        anyint=False,
+        anyfloat=True,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<float64>1': value(
+        typename='float64',
+        anyreal=True,
+        anyint=False,
+        anyfloat=True,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
     '1.0':  # same as <float64>1
-        value(typename='float64',
-              anyreal=True, anyint=False, anyfloat=True,
-              datetime=False, signed=True, anynumeric=False),
-
-    '<bigint>1':
-        value(typename='bigint',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=True),
-
-    '1n':
-        value(typename='bigint',
-              anyreal=True, anyint=True, anyfloat=False,
-              datetime=False, signed=True, anynumeric=True),
-
-    '<decimal>1.0':
-        value(typename='decimal',
-              anyreal=True, anyint=False, anyfloat=False,
-              datetime=False, signed=True, anynumeric=True),
-
-    '1.0n':
-        value(typename='decimal',
-              anyreal=True, anyint=False, anyfloat=False,
-              datetime=False, signed=True, anynumeric=True),
-
-    '<cal::relative_duration>"P1Y2M3D"':
-        value(typename='std::cal::relative_duration',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=True, anynumeric=False),
-
+    value(
+        typename='float64',
+        anyreal=True,
+        anyint=False,
+        anyfloat=True,
+        datetime=False,
+        signed=True,
+        anynumeric=False,
+    ),
+    '<bigint>1': value(
+        typename='bigint',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=True,
+    ),
+    '1n': value(
+        typename='bigint',
+        anyreal=True,
+        anyint=True,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=True,
+    ),
+    '<decimal>1.0': value(
+        typename='decimal',
+        anyreal=True,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=True,
+    ),
+    '1.0n': value(
+        typename='decimal',
+        anyreal=True,
+        anyint=False,
+        anyfloat=False,
+        datetime=False,
+        signed=True,
+        anynumeric=True,
+    ),
+    '<cal::relative_duration>"P1Y2M3D"': value(
+        typename='std::cal::relative_duration',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=True,
+        anynumeric=False,
+    ),
     # Much like integer and float values are all setup to be 1 and equal to
     # each other, so are relative_duration and date_duration equal.
-    '<cal::date_duration>"P1Y2M3D"':
-        value(typename='std::cal::date_duration',
-              anyreal=False, anyint=False, anyfloat=False,
-              datetime=True, signed=True, anynumeric=False),
+    '<cal::date_duration>"P1Y2M3D"': value(
+        typename='std::cal::date_duration',
+        anyreal=False,
+        anyint=False,
+        anyfloat=False,
+        datetime=True,
+        signed=True,
+        anynumeric=False,
+    ),
 }
 
 
@@ -167,8 +262,10 @@ VALUES = {
 def get_test_values(**flags):
     res = []
     for val, desc in VALUES.items():
-        if all(bool(getattr(desc, fname)) == bool(fval)
-               for fname, fval in flags.items()):
+        if all(
+            bool(getattr(desc, fname)) == bool(fval)
+            for fname, fval in flags.items()
+        ):
             res.append(val)
     return tuple(res)
 
@@ -177,16 +274,16 @@ def get_test_values(**flags):
 def get_test_items(**flags):
     res = []
     for val, desc in VALUES.items():
-        if all(bool(getattr(desc, fname)) == bool(fval)
-               for fname, fval in flags.items()):
+        if all(
+            bool(getattr(desc, fname)) == bool(fval)
+            for fname, fval in flags.items()
+        ):
             res.append((val, desc))
     return tuple(res)
 
 
 class TestExpressions(tb.QueryTestCase):
-
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
     async def test_edgeql_expr_emptyset_01(self):
         await self.assert_query_result(
@@ -210,9 +307,8 @@ class TestExpressions(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'expression returns value of indeterminate type'):
-
+            edgedb.QueryError, r'expression returns value of indeterminate type'
+        ):
             await self.con.execute("""
                 SELECT {};
             """)
@@ -368,41 +464,47 @@ class TestExpressions(tb.QueryTestCase):
         )
 
     async def test_edgeql_expr_literals_02(self):
-        with self.assertRaisesRegex(edgedb.NumericOutOfRangeError,
-                                    'std::int16 out of range'):
+        with self.assertRaisesRegex(
+            edgedb.NumericOutOfRangeError, 'std::int16 out of range'
+        ):
             async with self.con.transaction():
                 await self.con.query_single(
                     r'''SELECT <int16>36893488147419''',
                 )
 
-        with self.assertRaisesRegex(edgedb.NumericOutOfRangeError,
-                                    'std::int32 out of range'):
+        with self.assertRaisesRegex(
+            edgedb.NumericOutOfRangeError, 'std::int32 out of range'
+        ):
             async with self.con.transaction():
                 await self.con.query_single(
                     r'''SELECT <int32>36893488147419''',
                 )
 
-        with self.assertRaisesRegex(edgedb.NumericOutOfRangeError,
-                                    'is out of range for type std::int64'):
+        with self.assertRaisesRegex(
+            edgedb.NumericOutOfRangeError, 'is out of range for type std::int64'
+        ):
             async with self.con.transaction():
                 await self.con.query_single(
                     r'''SELECT <int64>'3689348814741900000000000' ''',
                 )
 
-        with self.assertRaisesRegex(edgedb.EdgeQLSyntaxError,
-                                    'expected digit after dot'):
+        with self.assertRaisesRegex(
+            edgedb.EdgeQLSyntaxError, 'expected digit after dot'
+        ):
             async with self.con.transaction():
                 await self.con.query_single('SELECT 0. ')
 
-        with self.assertRaisesRegex(edgedb.EdgeQLSyntaxError,
-                                    'number is out of range for std::float64'):
+        with self.assertRaisesRegex(
+            edgedb.EdgeQLSyntaxError, 'number is out of range for std::float64'
+        ):
             async with self.con.transaction():
                 await self.con.query_single(
                     r'''SELECT 1e999''',
                 )
 
-        with self.assertRaisesRegex(edgedb.NumericOutOfRangeError,
-                                    'interval field value out of range'):
+        with self.assertRaisesRegex(
+            edgedb.NumericOutOfRangeError, 'interval field value out of range'
+        ):
             async with self.con.transaction():
                 await self.con.query_single(
                     r'''SELECT <duration>'13074457345618258602us' ''',
@@ -421,7 +523,7 @@ class TestExpressions(tb.QueryTestCase):
 
         await self.assert_query_result(
             r'''SELECT 2 ^ 3 ^ 2;''',
-            [2 ** 3 ** 2],
+            [2**3**2],
         )
 
     async def test_edgeql_expr_op_03(self):
@@ -563,41 +665,28 @@ class TestExpressions(tb.QueryTestCase):
         )
 
     async def test_edgeql_expr_op_06(self):
-        await self.assert_query_result(
-            r"""SELECT <int64>{} = <int64>{};""",
-            []
-        )
+        await self.assert_query_result(r"""SELECT <int64>{} = <int64>{};""", [])
 
-        await self.assert_query_result(
-            r"""SELECT <int64>{} = 42;""",
-            []
-        )
+        await self.assert_query_result(r"""SELECT <int64>{} = 42;""", [])
 
     async def test_edgeql_expr_op_07(self):
         # Test boolean interaction with {}
-        await self.assert_query_result(
-            r"""SELECT TRUE OR <bool>{};""",
-            [])
+        await self.assert_query_result(r"""SELECT TRUE OR <bool>{};""", [])
 
-        await self.assert_query_result(
-            r"""SELECT FALSE AND <bool>{};""",
-            []
-        )
+        await self.assert_query_result(r"""SELECT FALSE AND <bool>{};""", [])
 
     async def test_edgeql_expr_op_08(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '-' cannot .* 'std::str'"):
-
+            edgedb.QueryError, r"operator '-' cannot .* 'std::str'"
+        ):
             await self.con.query("""
                 SELECT -'aaa';
             """)
 
     async def test_edgeql_expr_op_09(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator 'NOT' cannot .* 'std::str'"):
-
+            edgedb.QueryError, r"operator 'NOT' cannot .* 'std::str'"
+        ):
             await self.con.query_json("""
                 SELECT NOT 'aaa';
             """)
@@ -952,11 +1041,12 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_mod_04(self):
         # Fuzztest of integer %
-        for maxval, tname in [(2 ** 15 - 1, 'int16'),
-                              (2 ** 31 - 1, 'int32'),
-                              (2 ** 63 - 1, 'int64'),
-                              (10 ** 25, 'bigint')]:
-
+        for maxval, tname in [
+            (2**15 - 1, 'int16'),
+            (2**31 - 1, 'int32'),
+            (2**63 - 1, 'int64'),
+            (10**25, 'bigint'),
+        ]:
             vals = []
             for i in range(1000):
                 a = random.randrange(-maxval, maxval)
@@ -984,20 +1074,19 @@ class TestExpressions(tb.QueryTestCase):
             for res in json.loads(results):
                 i, a, b, c = res
                 _, va, vb, vc = vals[i]
-                msg = (
-                    f'original: {va} // {vb} = {vc}, '
-                    f'edgeql: {a} // {b} = {c}'
-                )
+                msg = f'original: {va} // {vb} = {vc}, edgeql: {a} // {b} = {c}'
                 assert_data_shape.assert_data_shape(
-                    res, vals[i], self.fail, message=msg)
+                    res, vals[i], self.fail, message=msg
+                )
 
     async def test_edgeql_expr_mod_05(self):
         # Fuzztest of integer %
-        for maxval, tname in [(2 ** 15 - 1, 'int16'),
-                              (2 ** 31 - 1, 'int32'),
-                              (2 ** 63 - 1, 'int64'),
-                              (10 ** 25, 'bigint')]:
-
+        for maxval, tname in [
+            (2**15 - 1, 'int16'),
+            (2**31 - 1, 'int32'),
+            (2**63 - 1, 'int64'),
+            (10**25, 'bigint'),
+        ]:
             vals = []
             for i in range(1000):
                 a = random.randrange(-maxval, maxval)
@@ -1025,12 +1114,10 @@ class TestExpressions(tb.QueryTestCase):
             for res in json.loads(results):
                 i, a, b, c = res
                 _, va, vb, vc = vals[i]
-                msg = (
-                    f'original: {va} % {vb} = {vc}, '
-                    f'edgeql: {a} % {b} = {c}'
-                )
+                msg = f'original: {va} % {vb} = {vc}, edgeql: {a} % {b} = {c}'
                 assert_data_shape.assert_data_shape(
-                    res, vals[i], self.fail, message=msg)
+                    res, vals[i], self.fail, message=msg
+                )
 
     async def test_edgeql_expr_variables_01(self):
         await self.assert_query_result(
@@ -1057,8 +1144,8 @@ class TestExpressions(tb.QueryTestCase):
         self.con._clear_codecs_cache()
 
         with self.assertRaisesRegex(
-                edgedb.InvalidArgumentError,
-                r"argument \$x is required"):
+            edgedb.InvalidArgumentError, r"argument \$x is required"
+        ):
             await self.assert_query_result(
                 r'''SELECT <int64>$x;''',
                 None,  # unused
@@ -1066,8 +1153,8 @@ class TestExpressions(tb.QueryTestCase):
             )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidArgumentError,
-                r"argument \$0 is required"):
+            edgedb.InvalidArgumentError, r"argument \$0 is required"
+        ):
             await self.assert_query_result(
                 r'''SELECT <int64>$0;''',
                 None,  # unused
@@ -1075,8 +1162,8 @@ class TestExpressions(tb.QueryTestCase):
             )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidArgumentError,
-                r"argument \$x is required"):
+            edgedb.InvalidArgumentError, r"argument \$x is required"
+        ):
             await self.assert_query_result(
                 r'''SELECT <REQUIRED int64>$x;''',
                 None,  # unused
@@ -1084,8 +1171,8 @@ class TestExpressions(tb.QueryTestCase):
             )
 
         with self.assertRaisesRegex(
-                edgedb.InvalidArgumentError,
-                r"argument \$0 is required"):
+            edgedb.InvalidArgumentError, r"argument \$0 is required"
+        ):
             await self.assert_query_result(
                 r'''SELECT <REQUIRED int64>$0;''',
                 None,  # unused
@@ -1126,8 +1213,8 @@ class TestExpressions(tb.QueryTestCase):
         # Enforce parameter is passed even if we don't actually care
         # about the value
         with self.assertRaisesRegex(
-                edgedb.InvalidArgumentError,
-                r"argument \$x is required"):
+            edgedb.InvalidArgumentError, r"argument \$x is required"
+        ):
             await self.assert_query_result(
                 r'''SELECT (INTROSPECT TYPEOF <int64>$x).name;''',
                 None,  # unused
@@ -1173,16 +1260,19 @@ class TestExpressions(tb.QueryTestCase):
             # this operation should be valid and produce opposite
             # results for op and not_op
             await self.assert_query_result(
-                f"""SELECT {left} {op} {right};""", {result})
+                f"""SELECT {left} {op} {right};""", {result}
+            )
 
             await self.assert_query_result(
-                f"""SELECT {left} {not_op} {right};""", {not result})
+                f"""SELECT {left} {not_op} {right};""", {not result}
+            )
         else:
             # operation is expected to be invalid
             for binop in [op, not_op]:
                 query = f"""SELECT {left} {binop} {right};"""
-                with self.assertRaisesRegex(edgedb.QueryError, result,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, result, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.query(query)
 
@@ -1194,8 +1284,7 @@ class TestExpressions(tb.QueryTestCase):
             for right in get_test_values(anyreal=False):
                 for op, not_op in ops:
                     await self._test_boolop(
-                        left, right, op, not_op,
-                        'cannot be applied to operands'
+                        left, right, op, not_op, 'cannot be applied to operands'
                     )
 
     async def test_edgeql_expr_valid_eq_02(self):
@@ -1204,17 +1293,19 @@ class TestExpressions(tb.QueryTestCase):
 
         for left, ldesc in get_test_items(anyreal=True):
             for right, rdesc in get_test_items(anyreal=True):
-                if (ldesc.anynumeric and rdesc.anyfloat
-                        or rdesc.anynumeric and ldesc.anyfloat):
+                if (
+                    ldesc.anynumeric
+                    and rdesc.anyfloat
+                    or rdesc.anynumeric
+                    and ldesc.anyfloat
+                ):
                     # decimals are not implicitly comparable to floats
                     expected = 'cannot be applied to operands'
                 else:
                     expected = True
 
                 for op, not_op in ops:
-                    await self._test_boolop(
-                        left, right, op, not_op, expected
-                    )
+                    await self._test_boolop(left, right, op, not_op, expected)
 
     async def test_edgeql_expr_valid_eq_03(self):
         expected_error_msg = 'cannot be applied to operands'
@@ -1225,20 +1316,22 @@ class TestExpressions(tb.QueryTestCase):
             for right, rdesc in get_test_items():
                 for op, not_op in ops:
                     await self._test_boolop(
-                        left, right, op, not_op,
-                        True if (
+                        left,
+                        right,
+                        op,
+                        not_op,
+                        True
+                        if (
                             (left == right)
                             or
                             # relative_duration and date_duration are
                             # compatible for comparison due to implicit
                             # casting
                             (
-                                {
-                                    ldesc.typename,
-                                    rdesc.typename
-                                } == {
+                                {ldesc.typename, rdesc.typename}
+                                == {
                                     'std::cal::relative_duration',
-                                    'std::cal::date_duration'
+                                    'std::cal::date_duration',
                                 }
                             )
                             or
@@ -1246,15 +1339,14 @@ class TestExpressions(tb.QueryTestCase):
                             # compatible for comparison due to implicit
                             # casting
                             (
-                                {
-                                    ldesc.typename,
-                                    rdesc.typename
-                                } == {
+                                {ldesc.typename, rdesc.typename}
+                                == {
                                     'std::cal::local_date',
-                                    'std::cal::local_datetime'
+                                    'std::cal::local_datetime',
                                 }
                             )
-                        ) else expected_error_msg
+                        )
+                        else expected_error_msg,
                     )
 
     async def test_edgeql_expr_valid_comp_02(self):
@@ -1265,20 +1357,22 @@ class TestExpressions(tb.QueryTestCase):
             for right, rdesc in get_test_items():
                 for op, not_op in [('>=', '<'), ('<=', '>')]:
                     await self._test_boolop(
-                        left, right, op, not_op,
-                        True if (
+                        left,
+                        right,
+                        op,
+                        not_op,
+                        True
+                        if (
                             (left == right)
                             or
                             # relative_duration and date_duration are
                             # compatible for comparison due to implicit
                             # casting
                             (
-                                {
-                                    ldesc.typename,
-                                    rdesc.typename
-                                } == {
+                                {ldesc.typename, rdesc.typename}
+                                == {
                                     'std::cal::relative_duration',
-                                    'std::cal::date_duration'
+                                    'std::cal::date_duration',
                                 }
                             )
                             or
@@ -1286,33 +1380,34 @@ class TestExpressions(tb.QueryTestCase):
                             # compatible for comparison due to implicit
                             # casting
                             (
-                                {
-                                    ldesc.typename,
-                                    rdesc.typename
-                                } == {
+                                {ldesc.typename, rdesc.typename}
+                                == {
                                     'std::cal::local_date',
-                                    'std::cal::local_datetime'
+                                    'std::cal::local_datetime',
                                 }
                             )
-                        ) else expected_error_msg
+                        )
+                        else expected_error_msg,
                     )
 
     async def test_edgeql_expr_valid_comp_03(self):
         # compare numerics to all scalars via ordering comparators
         for left, ldesc in get_test_items(anyreal=True):
             for right, rdesc in get_test_items():
-                if (ldesc.anynumeric and rdesc.anyfloat
-                        or rdesc.anynumeric and ldesc.anyfloat
-                        or not rdesc.anyreal):
+                if (
+                    ldesc.anynumeric
+                    and rdesc.anyfloat
+                    or rdesc.anynumeric
+                    and ldesc.anyfloat
+                    or not rdesc.anyreal
+                ):
                     # decimals are not implicitly comparable to floats
                     expected = 'cannot be applied to operands'
                 else:
                     expected = True
 
                 for op, not_op in [('>=', '<'), ('<=', '>')]:
-                    await self._test_boolop(
-                        left, right, op, not_op, expected
-                    )
+                    await self._test_boolop(left, right, op, not_op, expected)
 
     async def test_edgeql_expr_valid_comp_04(self):
         # bytes and uuids are orderable in the same way as a "similar"
@@ -1343,15 +1438,13 @@ class TestExpressions(tb.QueryTestCase):
                         SELECT (b'{left}' {op} b'{right}') =
                             ('{left}' {op} '{right}');
                     '''
-                    await self.assert_query_result(
-                        query, {True}, msg=query)
+                    await self.assert_query_result(query, {True}, msg=query)
 
                     query = f'''
                         SELECT (<uuid>'{left}' {op} <uuid>'{right}') =
                             ('{left}' {op} '{right}');
                     '''
-                    await self.assert_query_result(
-                        query, {True}, msg=query)
+                    await self.assert_query_result(query, {True}, msg=query)
 
     async def test_edgeql_expr_valid_comp_05(self):
         # just some ascii strings that can be simple byte literals
@@ -1375,8 +1468,7 @@ class TestExpressions(tb.QueryTestCase):
                         SELECT (b'{left}' {op} b'{right}') =
                             ('{left}' {op} '{right}');
                     '''
-                    await self.assert_query_result(
-                        query, {True}, msg=query)
+                    await self.assert_query_result(query, {True}, msg=query)
 
     async def test_edgeql_expr_valid_order_01(self):
         # JSON ordering is a bit difficult to conceptualize across
@@ -1414,8 +1506,12 @@ class TestExpressions(tb.QueryTestCase):
             ['b', 1, 2, ['a', 1, 'b', 2], {'a': 1, 'b': 2}, {'a': 1, 'b': 2}],
             # Binary
             [
-                '"b"', '1', '2', '["a", 1, "b", 2]',
-                '{"a": 1, "b": 2}', '{"a": 1, "b": 2}'
+                '"b"',
+                '1',
+                '2',
+                '["a", 1, "b", 2]',
+                '{"a": 1, "b": 2}',
+                '{"a": 1, "b": 2}',
             ],
         )
 
@@ -1575,7 +1671,7 @@ class TestExpressions(tb.QueryTestCase):
             [
                 "PT19H1M22.306916S",
                 "PT20H1M22.306916S",
-            ]
+            ],
         )
 
     async def test_edgeql_expr_valid_order_07(self):
@@ -1591,9 +1687,8 @@ class TestExpressions(tb.QueryTestCase):
                 SELECT X ORDER BY X DESC;
             '''
             await self.assert_query_result(
-                query,
-                sorted(numbers, reverse=True),
-                msg=query)
+                query, sorted(numbers, reverse=True), msg=query
+            )
 
     async def test_edgeql_expr_valid_arithmetic_01(self):
         # unary minus should work for numeric scalars and duration
@@ -1606,9 +1701,9 @@ class TestExpressions(tb.QueryTestCase):
         # unary minus should not work for other scalars
         for right in get_test_values(signed=False):
             query = f"""SELECT -{right};"""
-            with self.assertRaisesRegex(edgedb.QueryError,
-                                        expected_error_msg,
-                                        msg=query):
+            with self.assertRaisesRegex(
+                edgedb.QueryError, expected_error_msg, msg=query
+            ):
                 async with self.con.transaction():
                     await self.con.query_single(query)
 
@@ -1650,9 +1745,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['+', '-', '*', '/', '//', '%', '^']:
                     query = f"""SELECT {left} {op} {right};"""
                     # every other combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1671,9 +1766,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['+', '-', '*', '/', '//', '%', '^']:
                     query = f"""SELECT {left} {op} {right};"""
                     # every other combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1689,7 +1784,7 @@ class TestExpressions(tb.QueryTestCase):
 
                 if argtypes == {
                     'std::cal::local_date',
-                    'std::cal::date_duration'
+                    'std::cal::date_duration',
                 }:
                     # whole day arithmetic
                     restype = 'std::cal::local_date'
@@ -1698,18 +1793,20 @@ class TestExpressions(tb.QueryTestCase):
                 }:
                     # whole day arithmetic
                     restype = 'std::cal::date_duration'
-                elif argtypes.intersection({
-                    'duration',
-                    'std::cal::relative_duration',
-                    'std::cal::date_duration'
-                }):
+                elif argtypes.intersection(
+                    {
+                        'duration',
+                        'std::cal::relative_duration',
+                        'std::cal::date_duration',
+                    }
+                ):
                     # Whole day arithemtic is accounted for, so what's left is
                     # fractional date arithemtic. The result is always some
                     # kind of fractional datetime scalar.
                     otherarg = argtypes - {
                         'duration',
                         'std::cal::relative_duration',
-                        'std::cal::date_duration'
+                        'std::cal::date_duration',
                     }
                     if ldesc.typename == rdesc.typename:
                         # duration flavour is preserved
@@ -1733,12 +1830,13 @@ class TestExpressions(tb.QueryTestCase):
                     await self.assert_query_result(
                         f"""SELECT ({left} + {right}) IS {restype};""",
                         [True],
-                        msg=f'({left} + {right}) IS {restype}')
+                        msg=f'({left} + {right}) IS {restype}',
+                    )
                 else:
                     # every other combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1758,11 +1856,15 @@ class TestExpressions(tb.QueryTestCase):
                     else:
                         # mixing duration types makes relative_duration
                         restype = 'std::cal::relative_duration'
-                elif (ldesc.typename == 'std::cal::local_date' and
-                        rdesc.typename == 'std::cal::local_date'):
+                elif (
+                    ldesc.typename == 'std::cal::local_date'
+                    and rdesc.typename == 'std::cal::local_date'
+                ):
                     restype = 'std::cal::date_duration'
-                elif (ldesc.typename == 'std::cal::local_date' and
-                        rdesc.typename == 'std::cal::date_duration'):
+                elif (
+                    ldesc.typename == 'std::cal::local_date'
+                    and rdesc.typename == 'std::cal::date_duration'
+                ):
                     restype = 'std::cal::local_date'
                 elif rdesc.signed:
                     # Subtracting some flavour of duration.
@@ -1794,12 +1896,13 @@ class TestExpressions(tb.QueryTestCase):
                     await self.assert_query_result(
                         f"""SELECT ({left} - {right}) IS {restype};""",
                         [True],
-                        msg=f'({left} - {right}) IS {restype}')
+                        msg=f'({left} - {right}) IS {restype}',
+                    )
                 else:
                     # every other combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1814,9 +1917,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['*', '/', '//', '%', '^']:
                     query = f"""SELECT count({left} {op} {right});"""
                     # every combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1828,9 +1931,9 @@ class TestExpressions(tb.QueryTestCase):
             for right in get_test_values(anyint=False, anynumeric=False):
                 for op in ['+', '-', '*', '/', '//', '%', '^']:
                     query = f"""SELECT {left} {op} {right};"""
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -1922,8 +2025,7 @@ class TestExpressions(tb.QueryTestCase):
                             rtype = 'float64'
 
                     query = f"""SELECT ({left} {op} {right}) IS {rtype};"""
-                    await self.assert_query_result(
-                        query, [True], msg=query)
+                    await self.assert_query_result(query, [True], msg=query)
 
     async def test_edgeql_expr_valid_arithmetic_10(self):
         # Test (5) '/', '^' for non-decimals.
@@ -1945,19 +2047,21 @@ class TestExpressions(tb.QueryTestCase):
                         rtype = 'float64'
 
                     query = f"""SELECT ({left} {op} {right}) IS {rtype};"""
-                    await self.assert_query_result(
-                        query, [True], msg=query)
+                    await self.assert_query_result(query, [True], msg=query)
 
     async def test_edgeql_expr_valid_arithmetic_11(self):
         # Test that we're suggesting to use the "++" operator instead
         # of "+" for strings/bytes/arrays.
 
-        for query in {'SELECT "a" + "b"', 'SELECT b"a" + b"b"',
-                      'SELECT ["a"] + ["b"]'}:
+        for query in {
+            'SELECT "a" + "b"',
+            'SELECT b"a" + b"b"',
+            'SELECT ["a"] + ["b"]',
+        }:
             with self.assertRaisesRegex(
                 edgedb.QueryError,
                 r"operator '\+' cannot be applied .*",
-                _hint='Consider using the "++" operator for concatenation'
+                _hint='Consider using the "++" operator for concatenation',
             ):
                 async with self.con.transaction():
                     await self.con.query_single(query)
@@ -1986,9 +2090,9 @@ class TestExpressions(tb.QueryTestCase):
             for right in get_test_values(anyreal=False):
                 query = f"""SELECT {left} UNION {right};"""
                 # every combination must produce an error
-                with self.assertRaisesRegex(edgedb.QueryError,
-                                            expected_error_msg,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, expected_error_msg, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.execute(query)
 
@@ -2022,8 +2126,7 @@ class TestExpressions(tb.QueryTestCase):
                     SELECT (INTROSPECT TYPEOF ({left} UNION {right})).name;
                 """
                 # this operation should always be valid
-                await self.assert_query_result(
-                    query, {f'std::{rtype}'})
+                await self.assert_query_result(query, {f'std::{rtype}'})
 
     async def test_edgeql_expr_valid_setop_04(self):
         expected_error_msg = "operator 'UNION' cannot be applied"
@@ -2040,9 +2143,10 @@ class TestExpressions(tb.QueryTestCase):
                     # compatible for union due to implicit
                     # casting
                     (
-                        argtypes == {
+                        argtypes
+                        == {
                             'std::cal::relative_duration',
-                            'std::cal::date_duration'
+                            'std::cal::date_duration',
                         }
                     )
                     or
@@ -2050,10 +2154,8 @@ class TestExpressions(tb.QueryTestCase):
                     # compatible for union due to implicit
                     # casting
                     (
-                        argtypes == {
-                            'std::cal::local_date',
-                            'std::cal::local_datetime'
-                        }
+                        argtypes
+                        == {'std::cal::local_date', 'std::cal::local_datetime'}
                     )
                 ):
                     # these scalars can only be UNIONed with
@@ -2078,14 +2180,13 @@ class TestExpressions(tb.QueryTestCase):
                         desc_typename = rdesc.typename
                     else:
                         desc_typename = 'std::' + rdesc.typename
-                    await self.assert_query_result(
-                        query, {desc_typename})
+                    await self.assert_query_result(query, {desc_typename})
 
                 else:
                     # every other combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -2098,9 +2199,9 @@ class TestExpressions(tb.QueryTestCase):
             for right in get_test_values(anyreal=False):
                 query = f"""SELECT {left} UNION {right};"""
                 # every combination must produce an error
-                with self.assertRaisesRegex(edgedb.QueryError,
-                                            expected_error_msg,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, expected_error_msg, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.execute(query)
 
@@ -2121,16 +2222,17 @@ class TestExpressions(tb.QueryTestCase):
                 """
                 # this operation should always be valid
                 await self.assert_query_result(
-                    query, {f'std::{left_t.typename}'})
+                    query, {f'std::{left_t.typename}'}
+                )
 
         for left in get_test_values(anynumeric=True):
             for right in get_test_values(anyfloat=True):
                 query = f"""SELECT count({left} UNION {right});"""
 
                 # decimal UNION float is illegal
-                with self.assertRaisesRegex(edgedb.QueryError,
-                                            expected_error_msg,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, expected_error_msg, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.execute(query)
 
@@ -2143,9 +2245,9 @@ class TestExpressions(tb.QueryTestCase):
                 await self.assert_query_result(query, [1])
             else:
                 # every other combination must produce an error
-                with self.assertRaisesRegex(edgedb.QueryError,
-                                            expected_error_msg,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, expected_error_msg, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.execute(query)
 
@@ -2163,9 +2265,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['??', 'IF random() > 0.5 ELSE']:
                     query = f"""SELECT {left} {op} {right};"""
                     # every combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -2200,8 +2302,7 @@ class TestExpressions(tb.QueryTestCase):
                         SELECT (INTROSPECT TYPEOF ({left} {op} {right})).name;
                     """
                     # this operation should always be valid
-                    await self.assert_query_result(
-                        query, {f'std::{rtype}'})
+                    await self.assert_query_result(query, {f'std::{rtype}'})
 
     async def test_edgeql_expr_valid_setop_10(self):
         expected_error_msg = "cannot be applied to operands"
@@ -2219,9 +2320,10 @@ class TestExpressions(tb.QueryTestCase):
                         # compatible for union due to implicit
                         # casting
                         (
-                            argtypes == {
+                            argtypes
+                            == {
                                 'std::cal::relative_duration',
-                                'std::cal::date_duration'
+                                'std::cal::date_duration',
                             }
                         )
                         or
@@ -2229,9 +2331,10 @@ class TestExpressions(tb.QueryTestCase):
                         # compatible for union due to implicit
                         # casting
                         (
-                            argtypes == {
+                            argtypes
+                            == {
                                 'std::cal::local_date',
-                                'std::cal::local_datetime'
+                                'std::cal::local_datetime',
                             }
                         )
                     ):
@@ -2263,9 +2366,9 @@ class TestExpressions(tb.QueryTestCase):
 
                     else:
                         # every other combination must produce an error
-                        with self.assertRaisesRegex(edgedb.QueryError,
-                                                    expected_error_msg,
-                                                    msg=query):
+                        with self.assertRaisesRegex(
+                            edgedb.QueryError, expected_error_msg, msg=query
+                        ):
                             async with self.con.transaction():
                                 await self.con.execute(query)
 
@@ -2279,9 +2382,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['??', 'IF random() > 0.5 ELSE']:
                     query = f"""SELECT {left} {op} {right};"""
                     # every combination must produce an error
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -2295,9 +2398,9 @@ class TestExpressions(tb.QueryTestCase):
                 for op in ['??', 'IF random() > 0.5 ELSE']:
                     query = f"""SELECT {left} {op} {right};"""
                     # decimal combined with float is illegal
-                    with self.assertRaisesRegex(edgedb.QueryError,
-                                                expected_error_msg,
-                                                msg=query):
+                    with self.assertRaisesRegex(
+                        edgedb.QueryError, expected_error_msg, msg=query
+                    ):
                         async with self.con.transaction():
                             await self.con.execute(query)
 
@@ -2325,18 +2428,20 @@ class TestExpressions(tb.QueryTestCase):
     async def test_edgeql_expr_valid_setop_14(self):
         # testing IF ELSE with mismatched operand types
         expected_error_msg = 'cannot be applied to operands'
-        hint = ("The IF and ELSE result clauses must be of compatible "
-                "types, while the condition clause must be "
-                "'std::bool'. "
-                "Consider using an explicit type cast or a conversion "
-                "function.")
+        hint = (
+            "The IF and ELSE result clauses must be of compatible "
+            "types, while the condition clause must be "
+            "'std::bool'. "
+            "Consider using an explicit type cast or a conversion "
+            "function."
+        )
         # IF ELSE with every non-numeric scalar combined with an int64
         for val in get_test_values(anyreal=False):
             query = f"""SELECT 1 IF True ELSE {val};"""
             # every other combination must produce an error
-            with self.assertRaisesRegex(edgedb.QueryError,
-                                        expected_error_msg,
-                                        msg=query, _hint=hint):
+            with self.assertRaisesRegex(
+                edgedb.QueryError, expected_error_msg, msg=query, _hint=hint
+            ):
                 async with self.con.transaction():
                     await self.con.execute(query)
 
@@ -2352,9 +2457,9 @@ class TestExpressions(tb.QueryTestCase):
                         await self.assert_query_result(query, {True})
                     else:
                         # every combination except for bool OP bool is invalid
-                        with self.assertRaisesRegex(edgedb.QueryError,
-                                                    expected_error_msg,
-                                                    msg=query):
+                        with self.assertRaisesRegex(
+                            edgedb.QueryError, expected_error_msg, msg=query
+                        ):
                             async with self.con.transaction():
                                 await self.con.execute(query)
 
@@ -2368,9 +2473,9 @@ class TestExpressions(tb.QueryTestCase):
                 await self.assert_query_result(query, {False})
             else:
                 # every other scalar must produce an error
-                with self.assertRaisesRegex(edgedb.QueryError,
-                                            expected_error_msg,
-                                            msg=query):
+                with self.assertRaisesRegex(
+                    edgedb.QueryError, expected_error_msg, msg=query
+                ):
                     async with self.con.transaction():
                         await self.con.execute(query)
 
@@ -2383,8 +2488,7 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_valid_collection_01(self):
         await self.assert_query_result(
-            r'''SELECT [1] = [<decimal>1];''',
-            [True]
+            r'''SELECT [1] = [<decimal>1];''', [True]
         )
 
     async def test_edgeql_expr_valid_collection_02(self):
@@ -2392,7 +2496,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT [<int16>1] = [<decimal>1];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_03(self):
@@ -2400,7 +2504,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT (1,) = (<decimal>1,);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_04(self):
@@ -2410,7 +2514,7 @@ class TestExpressions(tb.QueryTestCase):
                     [([(1,          )],)] =
                     [([(<decimal>1, )],)];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_05(self):
@@ -2422,7 +2526,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         (<decimal>3, <decimal>4), <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_06(self):
@@ -2434,7 +2538,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         [<decimal>3, <decimal>4], <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_07(self):
@@ -2442,7 +2546,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT [1] ?= [<decimal>1];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_08(self):
@@ -2450,7 +2554,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT (1,) ?= (<decimal>1,);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_09(self):
@@ -2460,7 +2564,7 @@ class TestExpressions(tb.QueryTestCase):
                     [([(1,          )],)] ?=
                     [([(<decimal>1, )],)];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_10(self):
@@ -2472,7 +2576,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         (<decimal>3, <decimal>4), <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_11(self):
@@ -2484,7 +2588,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         [<decimal>3, <decimal>4], <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_12(self):
@@ -2492,7 +2596,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT [1] IN [<decimal>1];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_13(self):
@@ -2500,7 +2604,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT (1,) IN (<decimal>1,);
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_14(self):
@@ -2510,7 +2614,7 @@ class TestExpressions(tb.QueryTestCase):
                     [([(1,          )],)] IN
                     [([(<decimal>1, )],)];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_15(self):
@@ -2521,7 +2625,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         (<decimal>3, <decimal>4), <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_collection_16(self):
@@ -2533,7 +2637,7 @@ class TestExpressions(tb.QueryTestCase):
                     (<decimal>1, <decimal>2, (
                         [<decimal>3, <decimal>4], <decimal>5));
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_expr_valid_minmax_01(self):
@@ -2561,7 +2665,7 @@ class TestExpressions(tb.QueryTestCase):
             r'''
                 SELECT len(b'123' ++ b'54');
             ''',
-            [5]
+            [5],
         )
 
     async def test_edgeql_expr_bytes_op_02(self):
@@ -2591,14 +2695,17 @@ class TestExpressions(tb.QueryTestCase):
         ]
 
         for case in cases:
-            await self.con.execute('''
+            await self.con.execute(
+                '''
                 SELECT
                     Issue {
                         number
                     }
                 FILTER
                     %s = 'Elvis';
-            ''' % (case,))
+            '''
+                % (case,)
+            )
 
     async def test_edgeql_expr_paths_02(self):
         await self.assert_query_result(
@@ -2614,9 +2721,7 @@ class TestExpressions(tb.QueryTestCase):
         # syntactically legal (see test_edgeql_syntax_constants_09),
         # but will fail to resolve to anything.
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            r'could not resolve partial path',
-            _hint=None
+            edgedb.QueryError, r'could not resolve partial path', _hint=None
         ):
             await self.con.execute(r"""
                 SELECT .1;
@@ -2627,8 +2732,9 @@ class TestExpressions(tb.QueryTestCase):
         # prefix `Issue` with `Issue.owner` which is defined in an
         # outer scope.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'Issue.number' changes the interpretation of 'Issue'"):
+            edgedb.QueryError,
+            r"'Issue.number' changes the interpretation of 'Issue'",
+        ):
             await self.con.execute(r"""
                 SELECT Issue.owner
                 FILTER Issue.number > '2';
@@ -2646,8 +2752,9 @@ class TestExpressions(tb.QueryTestCase):
         # prefix `Issue` with `Issue.owner` which is defined in an
         # outer scope.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'Issue.number' changes the interpretation of 'Issue'"):
+            edgedb.QueryError,
+            r"'Issue.number' changes the interpretation of 'Issue'",
+        ):
             await self.con.execute(r"""
                 SELECT Issue.owner {
                     foo := Issue.number
@@ -2659,8 +2766,9 @@ class TestExpressions(tb.QueryTestCase):
         # prefix `Issue` with `Issue.owner` which is defined in an
         # outer scope.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'Issue.number' changes the interpretation of 'Issue'"):
+            edgedb.QueryError,
+            r"'Issue.number' changes the interpretation of 'Issue'",
+        ):
             await self.con.execute(r"""
                 UPDATE Issue.owner
                 FILTER Issue.number > '2'
@@ -2673,8 +2781,8 @@ class TestExpressions(tb.QueryTestCase):
         # `Issue` in SET is illegal because it shares a prefix `Issue`
         # with `Issue.related_to` which is defined in an outer scope.
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"'Issue' changes the interpretation of 'Issue'"):
+            edgedb.QueryError, r"'Issue' changes the interpretation of 'Issue'"
+        ):
             await self.con.execute(r"""
                 UPDATE Issue.related_to
                 SET {
@@ -2735,9 +2843,9 @@ class TestExpressions(tb.QueryTestCase):
         # testing precedence of casting vs. multiplication
         #
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '\*' cannot .* 'std::str' and 'std::int64'"):
-
+            edgedb.QueryError,
+            r"operator '\*' cannot .* 'std::str' and 'std::int64'",
+        ):
             await self.con.query_single("""
                 SELECT <std::str>123 * 2;
             """)
@@ -2767,8 +2875,9 @@ class TestExpressions(tb.QueryTestCase):
         )
 
     async def test_edgeql_expr_cast_08(self):
-        with self.assertRaisesRegex(edgedb.QueryError,
-                                    r'cannot cast.*tuple.*to.*array.*'):
+        with self.assertRaisesRegex(
+            edgedb.QueryError, r'cannot cast.*tuple.*to.*array.*'
+        ):
             await self.con.query_json(r"""
                 SELECT <array<int64>>(123, 11);
             """)
@@ -2933,9 +3042,8 @@ class TestExpressions(tb.QueryTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator.*IF.*cannot.*'std::int64'.*'std::str'"):
-
+            edgedb.QueryError, r"operator.*IF.*cannot.*'std::int64'.*'std::str'"
+        ):
             await self.con.query("""
                 SELECT 3 / (2 IF FALSE ELSE '1');
             """)
@@ -3025,7 +3133,8 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_implicit_cast_08(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, "operator 'UNION' cannot be applied"):
+            edgedb.QueryError, "operator 'UNION' cannot be applied"
+        ):
             await self.con.execute(r'''
                 SELECT 1.0 UNION <decimal>2.0;
             ''')
@@ -3065,8 +3174,8 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_introspect_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'cannot introspect collection types'):
+            edgedb.QueryError, r'cannot introspect collection types'
+        ):
             await self.assert_query_result(
                 r"""
                     SELECT (INTROSPECT (tuple<int64>)).name;
@@ -3076,8 +3185,8 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_introspect_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"type 'A' does not exist"):
+            edgedb.QueryError, r"type 'A' does not exist"
+        ):
             await self.assert_query_result(
                 r"""
                     WITH A := (SELECT schema::Type { foo := 'bar' })
@@ -3248,7 +3357,7 @@ class TestExpressions(tb.QueryTestCase):
                 select {<optional int64>$0, <optional int64>$0};
             """,
             [],
-            variables=(None,)
+            variables=(None,),
         )
 
     async def test_edgeql_expr_array_01(self):
@@ -3325,35 +3434,34 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_array_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'could not determine array type'):
-
+            edgedb.QueryError, r'could not determine array type'
+        ):
             await self.con.query("""
                 SELECT [1, '1'];
             """)
 
     async def test_edgeql_expr_array_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot index array by.*str'):
-
+            edgedb.QueryError, r'cannot index array by.*str'
+        ):
             await self.con.query_single("""
                 SELECT [1, 2]['1'];
             """)
 
     async def test_edgeql_expr_array_04(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'expression returns value of indeterminate type'):
-
+            edgedb.QueryError, r'expression returns value of indeterminate type'
+        ):
             await self.con.query_json("""
                 SELECT [];
             """)
 
     async def test_edgeql_expr_array_05(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"index indirection cannot be applied to "
-                r"scalar type 'std::int64'"):
-
+            edgedb.QueryError,
+            r"index indirection cannot be applied to "
+            r"scalar type 'std::int64'",
+        ):
             await self.con.query_json("""
                 SELECT [0, 1, 2][[1][0] [2][0]];
             """)
@@ -3363,16 +3471,13 @@ class TestExpressions(tb.QueryTestCase):
             '''
                 SELECT [1, 2] ++ [3, 4];
             ''',
-            [
-                [1, 2, 3, 4]
-            ]
+            [[1, 2, 3, 4]],
         )
 
     async def test_edgeql_expr_array_concat_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '\+\+' cannot.*int64.*str"):
-
+            edgedb.QueryError, r"operator '\+\+' cannot.*int64.*str"
+        ):
             await self.con.execute('''
                 SELECT [1, 2] ++ ['a'];
             ''')
@@ -3382,9 +3487,7 @@ class TestExpressions(tb.QueryTestCase):
             R'''
                 SELECT [(1, 'a')] ++ [(2.0, $$\$$), (3.0, r'\n')];
             ''',
-            [
-                [[1, 'a'], [2, '\\'], [3, R'\n']]
-            ]
+            [[[1, 'a'], [2, '\\'], [3, R'\n']]],
         )
 
     async def test_edgeql_expr_array_06(self):
@@ -3526,10 +3629,12 @@ class TestExpressions(tb.QueryTestCase):
                     [[[2, 1, 1], [2, 1, 2]], [[2, 2, 1]]],
                 )
                 ''',
-                [(
-                    [[1, 1], [1, 2]],
-                    [[[2, 1, 1], [2, 1, 2]], [[2, 2, 1]]],
-                )],
+                [
+                    (
+                        [[1, 1], [1, 2]],
+                        [[[2, 1, 1], [2, 1, 2]], [[2, 2, 1]]],
+                    )
+                ],
             )
 
             await self.assert_query_result(
@@ -3573,11 +3678,13 @@ class TestExpressions(tb.QueryTestCase):
                     [(3, 'E'), (3, 'F'), (3, 'G')],
                 ]
                 ''',
-                [[
-                    [(1, 'A'), (1, 'B')],
-                    [(2, 'C'), (2, 'D')],
-                    [(3, 'E'), (3, 'F'), (3, 'G')],
-                ]],
+                [
+                    [
+                        [(1, 'A'), (1, 'B')],
+                        [(2, 'C'), (2, 'D')],
+                        [(3, 'E'), (3, 'F'), (3, 'G')],
+                    ]
+                ],
             )
 
             await self.assert_query_result(
@@ -3629,28 +3736,30 @@ class TestExpressions(tb.QueryTestCase):
                     ],
                 ]
                 ''',
-                [[
+                [
                     [
-                        (
-                            [[1, 1, 1, 1], [1, 1, 1, 2]],
-                            [['A', 'A', 'B', 'A'], ['A', 'A', 'B', 'B']],
-                        ),
-                        (
-                            [[1, 2, 1, 1], [1, 2, 1, 2]],
-                            [['A', 'B', 'B', 'A'], ['A', 'B', 'B', 'B']],
-                        ),
-                    ],
-                    [
-                        (
-                            [[2, 1, 1, 1], [2, 1, 1, 2]],
-                            [['B', 'A', 'B', 'A'], ['B', 'A', 'B', 'B']],
-                        ),
-                        (
-                            [[2, 2, 1, 1], [2, 2, 1, 2]],
-                            [['B', 'B', 'B', 'A'], ['B', 'B', 'B', 'B']],
-                        ),
-                    ],
-                ]],
+                        [
+                            (
+                                [[1, 1, 1, 1], [1, 1, 1, 2]],
+                                [['A', 'A', 'B', 'A'], ['A', 'A', 'B', 'B']],
+                            ),
+                            (
+                                [[1, 2, 1, 1], [1, 2, 1, 2]],
+                                [['A', 'B', 'B', 'A'], ['A', 'B', 'B', 'B']],
+                            ),
+                        ],
+                        [
+                            (
+                                [[2, 1, 1, 1], [2, 1, 1, 2]],
+                                [['B', 'A', 'B', 'A'], ['B', 'A', 'B', 'B']],
+                            ),
+                            (
+                                [[2, 2, 1, 1], [2, 2, 1, 2]],
+                                [['B', 'B', 'B', 'A'], ['B', 'B', 'B', 'B']],
+                            ),
+                        ],
+                    ]
+                ],
             )
 
         await _check()
@@ -3672,56 +3781,55 @@ class TestExpressions(tb.QueryTestCase):
             '''
                 SELECT [([([1],)],)];
             ''',
-            [   # result set
+            [  # result set
                 [[[[[1]]]]]
             ],
         )
 
     async def test_edgeql_expr_array_15(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'array index 10 is out of bounds'):
+            edgedb.InvalidValueError, r'array index 10 is out of bounds'
+        ):
             await self.con.execute("""
                 SELECT [1, 2, 3][10];
             """)
 
     async def test_edgeql_expr_array_16(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'array index -10 is out of bounds'):
+            edgedb.InvalidValueError, r'array index -10 is out of bounds'
+        ):
             await self.con.execute("""
                 SELECT [1, 2, 3][-10];
             """)
 
     async def test_edgeql_expr_array_17(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot index array by.*float'):
-
+            edgedb.QueryError, r'cannot index array by.*float'
+        ):
             await self.con.execute("""
                 SELECT [1, 2][1.0];
             """)
 
     async def test_edgeql_expr_array_18(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot slice array by.*float'):
-
+            edgedb.QueryError, r'cannot slice array by.*float'
+        ):
             await self.con.execute("""
                 SELECT [1, 2][1.0:3];
             """)
 
     async def test_edgeql_expr_array_19(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot slice array by.*str'):
-
+            edgedb.QueryError, r'cannot slice array by.*str'
+        ):
             await self.con.execute("""
                 SELECT [1, 2][1:'3'];
             """)
 
     async def test_edgeql_expr_array_20(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'cannot index array by std::float64'):
-
+            edgedb.QueryError, r'cannot index array by std::float64'
+        ):
             await self.con.execute("""
                 SELECT [1, 2][2^40];
             """)
@@ -3921,48 +4029,48 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_string_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot index string by.*str'):
-
+            edgedb.QueryError, r'cannot index string by.*str'
+        ):
             await self.con.query_single("""
                 SELECT '123'['1'];
             """)
 
     async def test_edgeql_expr_string_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'string index 10 is out of bounds'):
+            edgedb.InvalidValueError, r'string index 10 is out of bounds'
+        ):
             await self.con.query_json("""
                 SELECT '123'[10];
             """)
 
     async def test_edgeql_expr_string_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r'string index -10 is out of bounds'):
+            edgedb.InvalidValueError, r'string index -10 is out of bounds'
+        ):
             await self.con.query("""
                 SELECT '123'[-10];
             """)
 
     async def test_edgeql_expr_string_05(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot index string by.*float'):
-
+            edgedb.QueryError, r'cannot index string by.*float'
+        ):
             await self.con.query("""
                 SELECT '123'[-1.0];
             """)
 
     async def test_edgeql_expr_string_06(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot slice string by.*float'):
-
+            edgedb.QueryError, r'cannot slice string by.*float'
+        ):
             await self.con.query_json("""
                 SELECT '123'[1.0:];
             """)
 
     async def test_edgeql_expr_string_07(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r'cannot slice string by.*str'):
-
+            edgedb.QueryError, r'cannot slice string by.*str'
+        ):
             await self.con.execute("""
                 SELECT '123'[:'1'];
             """)
@@ -3975,7 +4083,7 @@ class TestExpressions(tb.QueryTestCase):
 
         await self.assert_query_result(
             r'''SELECT '\'"\\\'\""\\x\\u';''',
-            ['\'"\\\'\""\\x\\u'],
+            ['\'"\\\'""\\x\\u'],
         )
 
         await self.assert_query_result(
@@ -4016,9 +4124,10 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_string_10(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"invalid string literal: invalid escape sequence '\\ '",
-                _hint="consider removing trailing whitespace"):
+            edgedb.QueryError,
+            r"invalid string literal: invalid escape sequence '\\ '",
+            _hint="consider removing trailing whitespace",
+        ):
             await self.con.execute(
                 r"SELECT 'bb\   "
                 "\naa';"
@@ -4026,11 +4135,10 @@ class TestExpressions(tb.QueryTestCase):
 
     async def test_edgeql_expr_string_11(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"invalid string literal: invalid escape sequence '\\ '"):
-            await self.con.execute(
-                r"SELECT 'bb\   aa';"
-            )
+            edgedb.QueryError,
+            r"invalid string literal: invalid escape sequence '\\ '",
+        ):
+            await self.con.execute(r"SELECT 'bb\   aa';")
 
     async def test_edgeql_expr_string_12(self):
         # Issue #1269
@@ -4106,9 +4214,7 @@ aa \
         )
 
     async def test_edgeql_expr_tuple_03(self):
-        with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '=' cannot"):
+        with self.assertRaisesRegex(edgedb.QueryError, r"operator '=' cannot"):
             await self.con.query(r"""
                 SELECT (1, 'foo') = ('1', 'foo');
             """)
@@ -4131,44 +4237,35 @@ aa \
 
     async def test_edgeql_expr_tuple_06(self):
         await self.assert_query_result(
-            r'''SELECT (1, 'foo') = (a := 1, b := 'foo');''',
-            [True]
+            r'''SELECT (1, 'foo') = (a := 1, b := 'foo');''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 'foo') = (a := 1, b := 'foo');''',
-            [True]
+            r'''SELECT (a := 1, b := 'foo') = (a := 1, b := 'foo');''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 'foo') = (c := 1, d := 'foo');''',
-            [True]
+            r'''SELECT (a := 1, b := 'foo') = (c := 1, d := 'foo');''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 'foo') = (b := 1, a := 'foo');''',
-            [True]
+            r'''SELECT (a := 1, b := 'foo') = (b := 1, a := 'foo');''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 9001) != (b := 9001, a := 1);''',
-            [True]
+            r'''SELECT (a := 1, b := 9001) != (b := 9001, a := 1);''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 9001).a = (b := 9001, a := 1).a;''',
-            [True]
+            r'''SELECT (a := 1, b := 9001).a = (b := 9001, a := 1).a;''', [True]
         )
 
         await self.assert_query_result(
-            r'''SELECT (a := 1, b := 9001).b = (b := 9001, a := 1).b;''',
-            [True]
+            r'''SELECT (a := 1, b := 9001).b = (b := 9001, a := 1).b;''', [True]
         )
 
     async def test_edgeql_expr_tuple_07(self):
-        with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '!=' cannot"):
+        with self.assertRaisesRegex(edgedb.QueryError, r"operator '!=' cannot"):
             await self.con.query_single(r"""
                 SELECT (a := 1, b := 'foo') != (b := 'foo', a := 1);
             """)
@@ -4183,9 +4280,9 @@ aa \
 
     async def test_edgeql_expr_tuple_09(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '\+'.*cannot.*tuple<.*>' and 'std::int64'"):
-
+            edgedb.QueryError,
+            r"operator '\+'.*cannot.*tuple<.*>' and 'std::int64'",
+        ):
             await self.con.execute(r'''
                 SELECT (spam := 1, ham := 2) + 1;
             ''')
@@ -4200,8 +4297,8 @@ aa \
                 {'ham': 3, 'spam': 1},
                 {'ham': 4, 'spam': 1},
                 {'ham': 3, 'spam': 2},
-                {'ham': 4, 'spam': 2}
-            ]
+                {'ham': 4, 'spam': 2},
+            ],
         )
 
     async def test_edgeql_expr_tuple_11(self):
@@ -4430,7 +4527,7 @@ aa \
                 [1, [66, 77], 2],
                 [1, [55, 88], 2],
                 [1, [55, 77], 2],
-            ]
+            ],
         )
 
     async def test_edgeql_expr_tuple_indirection_09(self):
@@ -4444,7 +4541,7 @@ aa \
                 [1, [66, 77], 2],
                 [1, [55, 88], 2],
                 [1, [66, 88], 2],
-            ]
+            ],
         )
 
     async def test_edgeql_expr_tuple_indirection_10(self):
@@ -4452,7 +4549,7 @@ aa \
             r"""
                 SELECT [(0, 1)][0].1;
             """,
-            [1]
+            [1],
         )
 
     async def test_edgeql_expr_tuple_indirection_11(self):
@@ -4460,7 +4557,7 @@ aa \
             r"""
                 SELECT [(a := 1, b := 2)][0].b;
             """,
-            [2]
+            [2],
         )
 
     async def test_edgeql_expr_tuple_indirection_12(self):
@@ -4625,8 +4722,14 @@ aa \
     async def test_edgeql_expr_range_empty_03(self):
         # Test handling of empty multiranges
         for st in [
-            'int32', 'int64', 'float32', 'float64', 'decimal',
-            'datetime', 'cal::local_datetime', 'cal::local_date',
+            'int32',
+            'int64',
+            'float32',
+            'float64',
+            'decimal',
+            'datetime',
+            'cal::local_datetime',
+            'cal::local_date',
         ]:
             await self.assert_query_result(
                 f'''
@@ -4661,37 +4764,43 @@ aa \
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_lower := true)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_upper := false)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_lower := true,
                                   inc_upper := false)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>{{}}, <{st}>2)''',
                         f'''range(<{st}>{{}}, <{st}>2)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
 
                     await self._test_range_op(
                         f'''range(<{st}>1, <{st}>{{}})''',
                         f'''range(<{st}>1, <{st}>{{}})''',
-                        op, answer,
+                        op,
+                        answer,
                     )
 
                 # not equals
@@ -4700,26 +4809,30 @@ aa \
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>1, <{st}>3)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_lower := false)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_upper := true)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
                     await self._test_range_op(
                         f'''range(<{st}>-1, <{st}>2)''',
                         f'''range(<{st}>-1, <{st}>2,
                                   inc_lower := false,
                                   inc_upper := true)''',
-                        op, answer,
+                        op,
+                        answer,
                     )
 
     async def test_edgeql_expr_range_02(self):
@@ -4730,27 +4843,32 @@ aa \
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>2)''',
                     f'''range(<{st}>-1, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>2)''',
                     f'''range(<{st}>-1, <{st}>20)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>3)''',
                     f'''range(<{st}>1, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>{{}})''',
                     f'''range(<{st}>1, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>3)''',
                     f'''range(<{st}>{{}}, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
             for op in ['<', '>=']:
@@ -4758,27 +4876,32 @@ aa \
                 await self._test_range_op(
                     f'''range(<{st}>-2, <{st}>2)''',
                     f'''range(<{st}>1, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>-2, <{st}>20)''',
                     f'''range(<{st}>1, <{st}>2)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>2)''',
                     f'''range(<{st}>1, <{st}>3)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>1, <{st}>2)''',
                     f'''range(<{st}>1, <{st}>{{}})''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<{st}>{{}}, <{st}>2)''',
                     f'''range(<{st}>1, <{st}>3)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
     async def test_edgeql_expr_range_03(self):
@@ -4793,12 +4916,14 @@ aa \
                     # The upper bound for integers is never included
                     [6 if is_int else 5],
                 ),
-                (f'range(<{st}>1)', [])
+                (f'range(<{st}>1)', []),
             ]:
                 await self.assert_query_result(
-                    f'select range_get_upper({r});', res)
+                    f'select range_get_upper({r});', res
+                )
                 await self.assert_query_result(
-                    f'select range_get_upper(multirange([{r}]));', res)
+                    f'select range_get_upper(multirange([{r}]));', res
+                )
 
             for r, res in [
                 (f'range(<{st}>1, <{st}>5)', [1]),
@@ -4810,9 +4935,11 @@ aa \
                 (f'range(<{st}>{{}}, <{st}>5)', []),
             ]:
                 await self.assert_query_result(
-                    f'select range_get_lower({r});', res)
+                    f'select range_get_lower({r});', res
+                )
                 await self.assert_query_result(
-                    f'select range_get_lower(multirange([{r}]));', res)
+                    f'select range_get_lower(multirange([{r}]));', res
+                )
 
     async def test_edgeql_expr_range_04(self):
         # Test bound for numeric ranges and multiranges.
@@ -4826,10 +4953,11 @@ aa \
                     # The upper bound for integers is never included
                     [not is_int],
                 ),
-                (f'range(<{st}>{{}})', [False])
+                (f'range(<{st}>{{}})', [False]),
             ]:
                 await self.assert_query_result(
-                    f'select range_is_inclusive_upper({r});', res)
+                    f'select range_is_inclusive_upper({r});', res
+                )
                 await self.assert_query_result(
                     f'select range_is_inclusive_upper(multirange([{r}]));',
                     res,
@@ -4842,10 +4970,11 @@ aa \
                     # The lower bound for integers is always included
                     [is_int],
                 ),
-                (f'range(<{st}>{{}})', [False])
+                (f'range(<{st}>{{}})', [False]),
             ]:
                 await self.assert_query_result(
-                    f'select range_is_inclusive_lower({r});', res)
+                    f'select range_is_inclusive_lower({r});', res
+                )
                 await self.assert_query_result(
                     f'select range_is_inclusive_lower(multirange([{r}]));',
                     res,
@@ -4952,7 +5081,8 @@ aa \
                               <datetime>'2022-06-16T00:00:00Z')''',
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
                               <datetime>'2022-06-16T00:00:00Z')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
                 await self._test_range_op(
@@ -4961,7 +5091,8 @@ aa \
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_lower := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
@@ -4969,7 +5100,8 @@ aa \
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
@@ -4978,14 +5110,16 @@ aa \
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_lower := true,
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>{{}},
                               <datetime>'2022-06-16T00:00:00Z')''',
                     f'''range(<datetime>{{}},
                               <datetime>'2022-06-16T00:00:00Z')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
                 await self._test_range_op(
@@ -4993,7 +5127,8 @@ aa \
                               <datetime>{{}})''',
                     f'''range(<datetime>'2022-06-06T00:00:00Z',
                               <datetime>{{}})''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
             # not equals
@@ -5004,7 +5139,8 @@ aa \
                               <datetime>'2022-06-16T00:00:00Z')''',
                     f'''range(<datetime>'2022-06-06T00:00:00Z',
                               <datetime>'2022-06-26T00:00:00Z')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
@@ -5012,7 +5148,8 @@ aa \
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_lower := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
@@ -5020,7 +5157,8 @@ aa \
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<datetime>'2022-06-01T00:00:00Z',
@@ -5029,7 +5167,8 @@ aa \
                               <datetime>'2022-06-16T00:00:00Z',
                               inc_lower := false,
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
     async def test_edgeql_expr_range_09(self):
@@ -5041,35 +5180,40 @@ aa \
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-02T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-02T00:00:00Z',
                           <datetime>'2022-06-30T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-13T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>{{}})''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-13T00:00:00Z')''',
                 f'''range(<datetime>{{}},
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
 
         for op in ['<', '>=']:
@@ -5079,35 +5223,40 @@ aa \
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-01T00:00:00Z',
                           <datetime>'2022-06-30T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-13T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>{{}})''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<datetime>{{}},
                           <datetime>'2022-06-10T00:00:00Z')''',
                 f'''range(<datetime>'2022-06-06T00:00:00Z',
                           <datetime>'2022-06-13T00:00:00Z')''',
-                op, answer,
+                op,
+                answer,
             )
 
     async def test_edgeql_expr_range_10(self):
@@ -5406,7 +5555,8 @@ aa \
                               <cal::local_datetime>'2022-06-16T00:00:00')''',
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                               <cal::local_datetime>'2022-06-16T00:00:00')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5414,7 +5564,8 @@ aa \
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_lower := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5422,7 +5573,8 @@ aa \
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5431,14 +5583,16 @@ aa \
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_lower := true,
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>{{}},
                               <cal::local_datetime>'2022-06-16T00:00:00')''',
                     f'''range(<cal::local_datetime>{{}},
                               <cal::local_datetime>'2022-06-16T00:00:00')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
                 await self._test_range_op(
@@ -5446,7 +5600,8 @@ aa \
                               <cal::local_datetime>{{}})''',
                     f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                               <cal::local_datetime>{{}})''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
             # not equals
@@ -5457,7 +5612,8 @@ aa \
                               <cal::local_datetime>'2022-06-16T00:00:00')''',
                     f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                               <cal::local_datetime>'2022-06-26T00:00:00')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5465,7 +5621,8 @@ aa \
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_lower := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5473,7 +5630,8 @@ aa \
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
@@ -5482,7 +5640,8 @@ aa \
                               <cal::local_datetime>'2022-06-16T00:00:00',
                               inc_lower := false,
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
     async def test_edgeql_expr_range_16(self):
@@ -5494,35 +5653,40 @@ aa \
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-02T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-02T00:00:00',
                           <cal::local_datetime>'2022-06-30T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-13T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>{{}})''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-13T00:00:00')''',
                 f'''range(<cal::local_datetime>{{}},
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
 
         for op in ['<', '>=']:
@@ -5532,35 +5696,40 @@ aa \
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-01T00:00:00',
                           <cal::local_datetime>'2022-06-30T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-13T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>{{}})''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_datetime>{{}},
                           <cal::local_datetime>'2022-06-10T00:00:00')''',
                 f'''range(<cal::local_datetime>'2022-06-06T00:00:00',
                           <cal::local_datetime>'2022-06-13T00:00:00')''',
-                op, answer,
+                op,
+                answer,
             )
 
     async def test_edgeql_expr_range_17(self):
@@ -5910,7 +6079,8 @@ aa \
                               <cal::local_date>'2022-06-16')''',
                     f'''range(<cal::local_date>'2022-06-01',
                               <cal::local_date>'2022-06-16')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5918,7 +6088,8 @@ aa \
                     f'''range(<cal::local_date>'2022-06-01',
                               <cal::local_date>'2022-06-16',
                               inc_lower := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5926,7 +6097,8 @@ aa \
                     f'''range(<cal::local_date>'2022-06-01',
                               <cal::local_date>'2022-06-16',
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5935,14 +6107,16 @@ aa \
                               <cal::local_date>'2022-06-16',
                               inc_lower := true,
                               inc_upper := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>{{}},
                               <cal::local_date>'2022-06-16')''',
                     f'''range(<cal::local_date>{{}},
                               <cal::local_date>'2022-06-16')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
                 await self._test_range_op(
@@ -5950,7 +6124,8 @@ aa \
                               <cal::local_date>{{}})''',
                     f'''range(<cal::local_date>'2022-06-06',
                               <cal::local_date>{{}})''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
             # not equals
@@ -5961,7 +6136,8 @@ aa \
                               <cal::local_date>'2022-06-16')''',
                     f'''range(<cal::local_date>'2022-06-06',
                               <cal::local_date>'2022-06-26')''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5969,7 +6145,8 @@ aa \
                     f'''range(<cal::local_date>'2022-06-01',
                               <cal::local_date>'2022-06-16',
                               inc_lower := false)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5977,7 +6154,8 @@ aa \
                     f'''range(<cal::local_date>'2022-06-01',
                               <cal::local_date>'2022-06-16',
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
                 await self._test_range_op(
                     f'''range(<cal::local_date>'2022-06-01',
@@ -5986,7 +6164,8 @@ aa \
                               <cal::local_date>'2022-06-16',
                               inc_lower := false,
                               inc_upper := true)''',
-                    op, answer,
+                    op,
+                    answer,
                 )
 
     async def test_edgeql_expr_range_23(self):
@@ -5998,35 +6177,40 @@ aa \
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-02',
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-02',
                           <cal::local_date>'2022-06-30')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-13')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>{{}})''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-13')''',
                 f'''range(<cal::local_date>{{}},
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
 
         for op in ['<', '>=']:
@@ -6036,35 +6220,40 @@ aa \
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-01',
                           <cal::local_date>'2022-06-30')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-13')''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>{{}})''',
-                op, answer,
+                op,
+                answer,
             )
             await self._test_range_op(
                 f'''range(<cal::local_date>{{}},
                           <cal::local_date>'2022-06-10')''',
                 f'''range(<cal::local_date>'2022-06-06',
                           <cal::local_date>'2022-06-13')''',
-                op, answer,
+                op,
+                answer,
             )
 
     async def test_edgeql_expr_range_24(self):
@@ -6436,9 +6625,7 @@ aa \
                 '''
 
                 if {t0, t1}.issubset(valid_types):
-                    await self.assert_query_result(
-                        query, [1], msg=query
-                    )
+                    await self.assert_query_result(query, [1], msg=query)
 
                     # Test casting of empty ranges.
                     query = f'''
@@ -6490,13 +6677,12 @@ aa \
                     );
                 '''
 
-                if (
-                    t0 == t1 or
-                    (t0, t1) not in {
-                        ('float32', 'decimal'), ('decimal', 'float32'),
-                        ('float64', 'decimal'), ('decimal', 'float64'),
-                    }
-                ):
+                if t0 == t1 or (t0, t1) not in {
+                    ('float32', 'decimal'),
+                    ('decimal', 'float32'),
+                    ('float64', 'decimal'),
+                    ('decimal', 'float64'),
+                }:
                     await self.assert_query_result(
                         query, [[True, True]], msg=query
                     )
@@ -6563,10 +6749,7 @@ aa \
             [[True, True]],
         )
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single(r'''
                 select <range<datetime>>range(
                     <cal::local_datetime>'2022-06-10T00:00:00',
@@ -6574,10 +6757,7 @@ aa \
                 )
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single(r'''
                 select <range<datetime>>range(
                     <cal::local_date>'2022-06-10',
@@ -6585,10 +6765,7 @@ aa \
                 )
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single(r'''
                 select <range<cal::local_datetime>>range(
                     <datetime>'2022-06-10T00:00:00Z',
@@ -6596,10 +6773,7 @@ aa \
                 )
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single(r'''
                 select <range<cal::local_date>>range(
                     <datetime>'2022-06-10T00:00:00Z',
@@ -6607,10 +6781,7 @@ aa \
                 )
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single('''
                 select <multirange<datetime>>multirange([range(
                     <cal::local_datetime>'2022-06-10T00:00:00',
@@ -6618,10 +6789,7 @@ aa \
                 )])
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single('''
                 select <multirange<datetime>>multirange([range(
                     <cal::local_date>'2022-06-10',
@@ -6629,10 +6797,7 @@ aa \
                 )])
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single('''
                 select <multirange<cal::local_datetime>>multirange([range(
                     <datetime>'2022-06-10T00:00:00Z',
@@ -6640,10 +6805,7 @@ aa \
                 )])
             ''')
 
-        async with self.assertRaisesRegexTx(
-            edgedb.QueryError,
-            r'cannot cast'
-        ):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.query_single('''
                 select <multirange<cal::local_date>>multirange([range(
                     <datetime>'2022-06-10T00:00:00Z',
@@ -6658,12 +6820,14 @@ aa \
             f'''
                 select <json>range(<int32>2, <int32>10);
             ''',
-            [{
-                "lower": 2,
-                "inc_lower": True,
-                "upper": 10,
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": 2,
+                    "inc_lower": True,
+                    "upper": 10,
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6671,12 +6835,14 @@ aa \
             f'''
                 select <json>range(<int64>2, <int64>10);
             ''',
-            [{
-                "lower": 2,
-                "inc_lower": True,
-                "upper": 10,
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": 2,
+                    "inc_lower": True,
+                    "upper": 10,
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6684,12 +6850,14 @@ aa \
             f'''
                 select <json>range(<float32>2.5, <float32>10.5);
             ''',
-            [{
-                "lower": 2.5,
-                "inc_lower": True,
-                "upper": 10.5,
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": 2.5,
+                    "inc_lower": True,
+                    "upper": 10.5,
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6697,12 +6865,14 @@ aa \
             f'''
                 select <json>range(<float64>2.5, <float64>10.5);
             ''',
-            [{
-                "lower": 2.5,
-                "inc_lower": True,
-                "upper": 10.5,
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": 2.5,
+                    "inc_lower": True,
+                    "upper": 10.5,
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6710,12 +6880,14 @@ aa \
             f'''
                 select <json>range(2.5n, 10.5n);
             ''',
-            [{
-                "lower": 2.5,
-                "inc_lower": True,
-                "upper": 10.5,
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": 2.5,
+                    "inc_lower": True,
+                    "upper": 10.5,
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6726,12 +6898,14 @@ aa \
                     <datetime>'2022-06-17T12:00:00Z'
                 );
             ''',
-            [{
-                "lower": "2022-06-10T13:00:00+00:00",
-                "inc_lower": True,
-                "upper": "2022-06-17T12:00:00+00:00",
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": "2022-06-10T13:00:00+00:00",
+                    "inc_lower": True,
+                    "upper": "2022-06-17T12:00:00+00:00",
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6742,12 +6916,14 @@ aa \
                     <cal::local_datetime>'2022-06-17T12:00:00'
                 );
             ''',
-            [{
-                "lower": "2022-06-10T13:00:00",
-                "inc_lower": True,
-                "upper": "2022-06-17T12:00:00",
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": "2022-06-10T13:00:00",
+                    "inc_lower": True,
+                    "upper": "2022-06-17T12:00:00",
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6758,12 +6934,14 @@ aa \
                     <cal::local_date>'2022-06-17'
                 );
             ''',
-            [{
-                "lower": "2022-06-10",
-                "inc_lower": True,
-                "upper": "2022-06-17",
-                "inc_upper": False,
-            }],
+            [
+                {
+                    "lower": "2022-06-10",
+                    "inc_lower": True,
+                    "upper": "2022-06-17",
+                    "inc_upper": False,
+                }
+            ],
             json_only=True,
         )
 
@@ -6944,7 +7122,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.NumericOutOfRangeError,
-            r'"2147483648" is out of range for type std::int32'
+            r'"2147483648" is out of range for type std::int32',
         ):
             await self.con.execute(r"""
                 select <range<int32>>to_json('{
@@ -6958,7 +7136,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.NumericOutOfRangeError,
             r'"9223372036854775808" is out of range for '
-            r'type std::int64'
+            r'type std::int64',
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{
@@ -6971,7 +7149,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.NumericOutOfRangeError,
-            r'.+ is out of range for type std::float32'
+            r'.+ is out of range for type std::float32',
         ):
             await self.con.execute(r"""
                 select <range<float32>>to_json('{
@@ -6984,7 +7162,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.NumericOutOfRangeError,
-            r'.+ is out of range for type std::float64'
+            r'.+ is out of range for type std::float64',
         ):
             await self.con.execute(r"""
                 select <range<float64>>to_json('{
@@ -6997,7 +7175,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r'expected JSON number or null; got JSON string'
+            r'expected JSON number or null; got JSON string',
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{
@@ -7010,7 +7188,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r'invalid input syntax for type std::int64: "2.5"'
+            r'invalid input syntax for type std::int64: "2.5"',
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{
@@ -7024,7 +7202,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r"JSON object representing a range must include an 'inc_upper'"
-            r" boolean property"
+            r" boolean property",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{
@@ -7038,7 +7216,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r"JSON object representing a range must include an 'inc_lower'"
-            r" boolean property"
+            r" boolean property",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{
@@ -7050,7 +7228,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r"expected JSON object or null; got JSON array"
+            r"expected JSON object or null; got JSON array",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('["bad", null]');
@@ -7059,7 +7237,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r"JSON object representing a range must include an 'inc_lower'"
-            r" boolean property"
+            r" boolean property",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('{"bad": null}');
@@ -7067,7 +7245,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r"expected JSON object or null; got JSON string"
+            r"expected JSON object or null; got JSON string",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('"bad"');
@@ -7075,7 +7253,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r"expected JSON object or null; got JSON number"
+            r"expected JSON object or null; got JSON number",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('1312');
@@ -7083,7 +7261,7 @@ aa \
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
-            r"expected JSON object or null; got JSON boolean"
+            r"expected JSON object or null; got JSON boolean",
         ):
             await self.con.execute(r"""
                 select <range<int64>>to_json('true');
@@ -7092,7 +7270,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r"invalid input syntax for type std::cal::local_date: "
-            r"'2022.06.10'"
+            r"'2022.06.10'",
         ):
             await self.con.execute(r"""
                 select <range<cal::local_date>>to_json('{
@@ -7106,7 +7284,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             r"invalid input syntax for type std::cal::local_date: "
-            r"'12022-06-17'"
+            r"'12022-06-17'",
         ):
             await self.con.execute(r"""
                 select <range<cal::local_date>>to_json('{
@@ -7139,23 +7317,25 @@ aa \
                     }
                 };
             ''',
-            [{
-                "int": 42,
-                "range0": {
-                    "lower": 2,
-                    "inc_lower": True,
-                    "upper": 10,
-                    "inc_upper": False,
-                },
-                "nested": {
-                    "range1": {
-                        "lower": 5,
+            [
+                {
+                    "int": 42,
+                    "range0": {
+                        "lower": 2,
                         "inc_lower": True,
-                        "upper": None,
+                        "upper": 10,
                         "inc_upper": False,
                     },
-                },
-            }],
+                    "nested": {
+                        "range1": {
+                            "lower": 5,
+                            "inc_lower": True,
+                            "upper": None,
+                            "inc_upper": False,
+                        },
+                    },
+                }
+            ],
             json_only=True,
         )
 
@@ -7238,8 +7418,14 @@ aa \
         # subtypes here.
         for typedval, desc in get_test_items():
             if desc.typename not in {
-                'int32', 'int64', 'float32', 'float64', 'decimal',
-                'datetime', 'cal::local_datetime', 'cal::local_date',
+                'int32',
+                'int64',
+                'float32',
+                'float64',
+                'decimal',
+                'datetime',
+                'cal::local_datetime',
+                'cal::local_date',
             }:
                 continue
 
@@ -7253,11 +7439,13 @@ aa \
             if desc.datetime:
                 val = val.strip('"')
                 if desc.typename == 'std::cal::local_date':
-                    ranges.append(edgedb.Range(
-                        datetime.date.fromisoformat(val)))
+                    ranges.append(
+                        edgedb.Range(datetime.date.fromisoformat(val))
+                    )
                 else:
-                    ranges.append(edgedb.Range(
-                        datetime.datetime.fromisoformat(val)))
+                    ranges.append(
+                        edgedb.Range(datetime.datetime.fromisoformat(val))
+                    )
             else:
                 val = 1
                 ranges.append(edgedb.Range(val))
@@ -7278,7 +7466,7 @@ aa \
                     ]
                 ],
                 variables=(ranges,),
-                msg=query
+                msg=query,
             )
 
     async def test_edgeql_expr_range_39(self):
@@ -7286,8 +7474,14 @@ aa \
         # range subtypes here.
         for typedval, desc in get_test_items():
             if desc.typename not in {
-                'int32', 'int64', 'float32', 'float64', 'decimal',
-                'datetime', 'cal::local_datetime', 'cal::local_date',
+                'int32',
+                'int64',
+                'float32',
+                'float64',
+                'decimal',
+                'datetime',
+                'cal::local_datetime',
+                'cal::local_date',
             }:
                 continue
 
@@ -7300,9 +7494,7 @@ aa \
             if desc.datetime:
                 val = val.strip('"')
                 if desc.typename == 'std::cal::local_date':
-                    ranges = [
-                        edgedb.Range(datetime.date.fromisoformat(val))
-                    ]
+                    ranges = [edgedb.Range(datetime.date.fromisoformat(val))]
                 else:
                     ranges = [
                         edgedb.Range(datetime.datetime.fromisoformat(val))
@@ -7326,7 +7518,7 @@ aa \
                     ]
                 ],
                 variables=([edgedb.MultiRange(ranges)],),
-                msg=query
+                msg=query,
             )
 
     async def test_edgeql_expr_range_40(self):
@@ -7336,13 +7528,15 @@ aa \
             with x := range(1, 2)
             select <range<int64>>x
             ''',
-            [{
-                "lower": 1,
-                "inc_lower": True,
-                "upper": 2,
-                "inc_upper": False,
-            }],
-            json_only=True
+            [
+                {
+                    "lower": 1,
+                    "inc_lower": True,
+                    "upper": 2,
+                    "inc_upper": False,
+                }
+            ],
+            json_only=True,
         )
 
     async def test_edgeql_expr_range_41(self):
@@ -7682,39 +7876,41 @@ aa \
                     }
                 };
             ''',
-            [{
-                "int": 42,
-                "multirange0": [
-                    {
-                        "lower": 2,
-                        "inc_lower": True,
-                        "upper": 10,
-                        "inc_upper": False,
-                    },
-                    {
-                        "lower": 12,
-                        "inc_lower": True,
-                        "upper": 20,
-                        "inc_upper": False,
-                    },
-                ],
-                "nested": {
-                    "multirange1": [
+            [
+                {
+                    "int": 42,
+                    "multirange0": [
                         {
-                            "lower": 0,
+                            "lower": 2,
                             "inc_lower": True,
-                            "upper": 1,
+                            "upper": 10,
                             "inc_upper": False,
                         },
                         {
-                            "lower": 5,
+                            "lower": 12,
                             "inc_lower": True,
-                            "upper": None,
+                            "upper": 20,
                             "inc_upper": False,
                         },
                     ],
-                },
-            }],
+                    "nested": {
+                        "multirange1": [
+                            {
+                                "lower": 0,
+                                "inc_lower": True,
+                                "upper": 1,
+                                "inc_upper": False,
+                            },
+                            {
+                                "lower": 5,
+                                "inc_lower": True,
+                                "upper": None,
+                                "inc_upper": False,
+                            },
+                        ],
+                    },
+                }
+            ],
             json_only=True,
         )
 
@@ -8074,7 +8270,7 @@ aa \
                         "inc_upper": False,
                     },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_range_51(self):
@@ -8110,7 +8306,7 @@ aa \
                         "inc_upper": False,
                     },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_range_52(self):
@@ -8133,22 +8329,22 @@ aa \
                         "lower": "2022-06-06",
                         "inc_lower": True,
                         "upper": "2022-06-10",
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": None,
                         "inc_lower": False,
                         "upper": "2022-06-08T00:00:00",
-                        "inc_upper": True
+                        "inc_upper": True,
                     },
                     {
                         "lower": "2022-06-10T00:00:00+00:00",
                         "inc_lower": False,
                         "upper": None,
-                        "inc_upper": False
-                    }
+                        "inc_upper": False,
+                    },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_range_53(self):
@@ -8165,22 +8361,22 @@ aa \
                         "lower": None,
                         "inc_lower": False,
                         "upper": 0,
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": 2,
                         "inc_lower": True,
                         "upper": 5,
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": 10,
                         "inc_lower": True,
                         "upper": None,
-                        "inc_upper": False
-                    }
+                        "inc_upper": False,
+                    },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_range_54(self):
@@ -8197,22 +8393,22 @@ aa \
                         "lower": None,
                         "inc_lower": False,
                         "upper": 0,
-                        "inc_upper": True
+                        "inc_upper": True,
                     },
                     {
                         "lower": 2.1,
                         "inc_lower": True,
                         "upper": 5,
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": 10.5,
                         "inc_lower": False,
                         "upper": None,
-                        "inc_upper": False
-                    }
+                        "inc_upper": False,
+                    },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_range_55(self):
@@ -8231,28 +8427,28 @@ aa \
                         "lower": None,
                         "inc_lower": False,
                         "upper": "2022-06-01",
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": "2022-06-02",
                         "inc_lower": True,
                         "upper": "2022-06-05",
-                        "inc_upper": False
+                        "inc_upper": False,
                     },
                     {
                         "lower": "2022-06-10",
                         "inc_lower": True,
                         "upper": None,
-                        "inc_upper": False
-                    }
+                        "inc_upper": False,
+                    },
                 ]
-            ]
+            ],
         )
 
     async def test_edgeql_expr_cannot_assign_id_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError, r"cannot assign to property 'id'",
-                _hint=None):
+            edgedb.QueryError, r"cannot assign to property 'id'", _hint=None
+        ):
             await self.con.execute(r"""
                 SELECT Text {
                     id := <uuid>'77841036-8e35-49ce-b509-2cafa0c25c4f'
@@ -8345,25 +8541,25 @@ aa \
         await self.assert_query_result(
             r'''SELECT 1 IF {1, 2, 3} < {2, 3, 4} ELSE 100;''',
             sorted([1, 1, 1, 100, 1, 1, 100, 100, 1]),
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
             r'''SELECT {1, 10} IF {1, 2, 3} < {2, 3, 4} ELSE 100;''',
             sorted([1, 10, 1, 10, 1, 10, 100, 1, 10, 1, 10, 100, 100, 1, 10]),
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
             r'''SELECT sum(1 IF {1, 2, 3} < {2, 3, 4} ELSE 100);''',
             [306],
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
             r'''SELECT sum({1, 10} IF {1, 2, 3} < {2, 3, 4} ELSE 100);''',
             [366],
-            sort=True
+            sort=True,
         )
 
     @tb.needs_factoring
@@ -8378,7 +8574,7 @@ aa \
                     0;
             ''',
             [],
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -8391,7 +8587,7 @@ aa \
                     0;
             ''',
             sorted([100, 1, 0]),
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -8404,7 +8600,7 @@ aa \
                     0;
             ''',
             sorted([10, 1, 0]),
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -8417,7 +8613,7 @@ aa \
                     0;
             ''',
             sorted([10, 1, 0]),
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -8434,37 +8630,38 @@ aa \
                 );
             ''',
             sorted([0, 101, 11]),
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_expr_if_else_05(self):
-        res = sorted([
-            100,    # ccc
-            0,      # cca
-            0,      # cct
-            100,    # cac
-            0,      # caa
-            0,      # cat
-            100,    # ctc
-            0,      # cta
-            0,      # ctt
-            1,      # a--
-            #       The other clauses don't get evaluated,
-            #       when 'a' is in the first test.  More
-            #       accurately, they get evaluated and
-            #       their results are not included in the
-            #       return value.
-
-            100,    # tcc
-            0,      # tca
-            0,      # tct
-            100,    # tac
-            0,      # taa
-            0,      # tat
-            100,    # ttc
-            0,      # tta
-            0,      # ttt
-        ])
+        res = sorted(
+            [
+                100,  # ccc
+                0,  # cca
+                0,  # cct
+                100,  # cac
+                0,  # caa
+                0,  # cat
+                100,  # ctc
+                0,  # cta
+                0,  # ctt
+                1,  # a--
+                #       The other clauses don't get evaluated,
+                #       when 'a' is in the first test.  More
+                #       accurately, they get evaluated and
+                #       their results are not included in the
+                #       return value.
+                100,  # tcc
+                0,  # tca
+                0,  # tct
+                100,  # tac
+                0,  # taa
+                0,  # tat
+                100,  # ttc
+                0,  # tta
+                0,  # ttt
+            ]
+        )
 
         await self.assert_query_result(
             r"""
@@ -8476,7 +8673,7 @@ aa \
                     0;
             """,
             res,
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -8489,7 +8686,7 @@ aa \
                     0;
             """,
             res,
-            sort=True
+            sort=True,
         )
 
         # Try nesting on in the THEN branch
@@ -8506,7 +8703,7 @@ aa \
                     ELSE 1;
             """,
             res,
-            sort=True
+            sort=True,
         )
 
     @tb.needs_factoring
@@ -8749,7 +8946,7 @@ aa \
                 SELECT ObjectType UNION Annotation;
             ''',
             union,
-            sort=lambda x: x['id']
+            sort=lambda x: x['id'],
         )
 
     async def test_edgeql_expr_setop_09(self):
@@ -8798,8 +8995,10 @@ aa \
         # test the results of DISTINCT directly, rather than relying
         # on an aggregate function
         self.assertGreater(
-            len(everything), len(distinct),
-            'DISTINCT len(ObjectType.name) failed to filter out dupplicates')
+            len(everything),
+            len(distinct),
+            'DISTINCT len(ObjectType.name) failed to filter out dupplicates',
+        )
 
     async def test_edgeql_expr_setop_12(self):
         await self.assert_query_result(
@@ -8830,158 +9029,164 @@ aa \
 
     async def test_edgeql_expr_setop_14(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"set constructor has arguments of incompatible "
-                r"types 'std::float64' and 'std::decimal'"):
+            edgedb.InvalidTypeError,
+            r"set constructor has arguments of incompatible "
+            r"types 'std::float64' and 'std::decimal'",
+        ):
             await self.con.execute(r'''
                 SELECT {1.0, <decimal>2.0};
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"set constructor has arguments of incompatible "
-                r"types 'std::float64' and 'std::decimal'"):
+            edgedb.InvalidTypeError,
+            r"set constructor has arguments of incompatible "
+            r"types 'std::float64' and 'std::decimal'",
+        ):
             await self.con.execute(r'''
                 SELECT {{1.0, 2.0}, {1.0, <decimal>2.0}};
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"set constructor has arguments of incompatible "
-                r"types 'std::float64' and 'std::decimal'"):
+            edgedb.InvalidTypeError,
+            r"set constructor has arguments of incompatible "
+            r"types 'std::float64' and 'std::decimal'",
+        ):
             await self.con.execute(r'''
                 SELECT {{1.0, <decimal>2.0}, {1.0, 2.0}};
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"set constructor has arguments of incompatible "
-                r"types 'std::decimal' and 'std::float64'"):
+            edgedb.InvalidTypeError,
+            r"set constructor has arguments of incompatible "
+            r"types 'std::decimal' and 'std::float64'",
+        ):
             await self.con.execute(r'''
                 SELECT {1.0, 2.0, 5.0, <decimal>2.0, 3.0, 4.0};
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"operator 'UNION' cannot be applied to operands of type "
-                r"'std::int64' and 'std::str'"):
+            edgedb.InvalidTypeError,
+            r"operator 'UNION' cannot be applied to operands of type "
+            r"'std::int64' and 'std::str'",
+        ):
             await self.con.execute(r'''
                 SELECT {1, 2, 3, 4 UNION 'a', 5, 6, 7};
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidTypeError,
-                r"operator 'UNION' cannot be applied to operands of type "
-                r"'std::int64' and 'std::str'"):
+            edgedb.InvalidTypeError,
+            r"operator 'UNION' cannot be applied to operands of type "
+            r"'std::int64' and 'std::str'",
+        ):
             await self.con.execute(r'''
                 SELECT {1, 2, 3, {{1, 4} UNION 'a'}, 5, 6, 7};
             ''')
 
     async def test_edgeql_expr_cardinality_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=38):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=38,
+        ):
             await self.con.execute('''\
                 SELECT Issue ORDER BY Issue.watchers.name;
             ''')
 
     async def test_edgeql_expr_cardinality_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=35):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=35,
+        ):
             await self.con.execute('''\
                 SELECT Issue LIMIT LogEntry.spent_time;
             ''')
 
     async def test_edgeql_expr_cardinality_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=36):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=36,
+        ):
             await self.con.execute('''\
                 SELECT Issue OFFSET LogEntry.spent_time;
             ''')
 
     async def test_edgeql_expr_cardinality_04(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=45):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=45,
+        ):
             await self.con.execute('''\
                 SELECT EXISTS Issue ORDER BY Issue.name;
             ''')
 
     async def test_edgeql_expr_cardinality_05(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=52):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=52,
+        ):
             await self.con.execute('''\
                 SELECT 'foo' IN Issue.name ORDER BY Issue.name;
             ''')
 
     async def test_edgeql_expr_cardinality_06(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=49):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=49,
+        ):
             await self.con.execute('''\
                 SELECT Issue UNION Text ORDER BY Issue.name;
             ''')
 
     async def test_edgeql_expr_cardinality_07(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'possibly more than one element returned by an expression '
-                r'where only singletons are allowed',
-                _position=47):
-
+            edgedb.QueryError,
+            r'possibly more than one element returned by an expression '
+            r'where only singletons are allowed',
+            _position=47,
+        ):
             await self.con.execute('''\
                 SELECT DISTINCT Issue ORDER BY Issue.name;
             ''')
 
     async def test_edgeql_expr_type_intersection_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                f"cannot apply type intersection operator to scalar type "
-                f"'std::int64': it is not an object type",
-                _position=25):
-
+            edgedb.QueryError,
+            f"cannot apply type intersection operator to scalar type "
+            f"'std::int64': it is not an object type",
+            _position=25,
+        ):
             await self.con.execute('''\
                 SELECT 10[IS std::Object];
             ''')
 
     async def test_edgeql_expr_type_intersection_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'cannot create an intersection of std::Object, std::str',
-                _position=33):
-
+            edgedb.QueryError,
+            r'cannot create an intersection of std::Object, std::str',
+            _position=33,
+        ):
             await self.con.execute('''\
                 SELECT Object[IS str];
             ''')
 
     async def test_edgeql_expr_type_intersection_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                f"cannot apply type intersection operator to scalar type "
-                f"'std::uuid': it is not an object type",
-                _position=32):
-
+            edgedb.QueryError,
+            f"cannot apply type intersection operator to scalar type "
+            f"'std::uuid': it is not an object type",
+            _position=32,
+        ):
             await self.con.execute('''\
                 SELECT Object.id[IS uuid];
             ''')
@@ -8994,24 +9199,26 @@ aa \
 
     async def test_edgeql_expr_comparison_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '=' cannot.*tuple.*and.*array<std::int64>"):
+            edgedb.QueryError,
+            r"operator '=' cannot.*tuple.*and.*array<std::int64>",
+        ):
             await self.con.execute(r'''
                 SELECT (1, 2) = [1, 2];
             ''')
 
     async def test_edgeql_expr_comparison_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '=' cannot.* 'std::int64' and.*array<std::int64>"):
+            edgedb.QueryError,
+            r"operator '=' cannot.* 'std::int64' and.*array<std::int64>",
+        ):
             await self.con.execute(r'''
                 SELECT {1, 2} = [1, 2];
             ''')
 
     async def test_edgeql_expr_comparison_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '=' cannot.*'std::int64' and.*tuple.*"):
+            edgedb.QueryError, r"operator '=' cannot.*'std::int64' and.*tuple.*"
+        ):
             await self.con.execute(r'''
                 SELECT {1, 2} = (1, 2);
             ''')
@@ -9210,56 +9417,50 @@ aa \
 
     async def test_edgeql_expr_slice_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"scalar type 'std::int64' cannot be sliced"):
-
+            edgedb.QueryError, r"scalar type 'std::int64' cannot be sliced"
+        ):
             await self.con.execute("""
                 SELECT 1[1:3];
             """)
 
     async def test_edgeql_expr_slice_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"scalar type 'std::int64' cannot be sliced"):
-
+            edgedb.QueryError, r"scalar type 'std::int64' cannot be sliced"
+        ):
             await self.con.execute("""
                 SELECT 1[:3];
             """)
 
     async def test_edgeql_expr_slice_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"scalar type 'std::int64' cannot be sliced"):
-
+            edgedb.QueryError, r"scalar type 'std::int64' cannot be sliced"
+        ):
             await self.con.execute("""
                 SELECT 1[1:];
             """)
 
     async def test_edgeql_expr_index_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"index indirection cannot be applied to scalar type "
-                r"'std::int64'"):
-
+            edgedb.QueryError,
+            r"index indirection cannot be applied to scalar type "
+            r"'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT 1[1];
             """)
 
     async def test_edgeql_expr_error_after_extraction_01(self):
-        with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "Unexpected ''1''"):
-
+        with self.assertRaisesRegex(edgedb.QueryError, "Unexpected ''1''"):
             await self.con.query("""
                 SELECT '''1''';
             """)
 
     async def test_edgeql_expr_invalid_object_scalar_op_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"operator '\?\?' cannot be applied to operands of type"
-                r" 'std::Object' and 'std::str'"):
-
+            edgedb.QueryError,
+            r"operator '\?\?' cannot be applied to operands of type"
+            r" 'std::Object' and 'std::str'",
+        ):
             await self.con.query("""
                 SELECT Object ?? '';
             """)
@@ -9293,8 +9494,8 @@ aa \
 
     async def test_edgeql_normalization_mismatch_01(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError, "Unexpected type expression"):
-
+            edgedb.EdgeQLSyntaxError, "Unexpected type expression"
+        ):
             await self.con.query('SELECT <tuple<"">>1;')
 
     async def test_edgeql_typeop_01(self):
@@ -9305,62 +9506,62 @@ aa \
 
     async def test_edgeql_typeop_02(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
             await self.con.query('select 1 is (int64 | float64);')
 
     async def test_edgeql_typeop_03(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
             await self.con.query('select 1 is (Object | float64);')
 
     async def test_edgeql_typeop_04(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
             await self.con.query(
-                'select [1] is (array<int64> | array<float64>);')
+                'select [1] is (array<int64> | array<float64>);'
+            )
 
     async def test_edgeql_typeop_05(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
             await self.con.query(
-                'select (1,) is (tuple<int64> | tuple<float64>);')
+                'select (1,) is (tuple<int64> | tuple<float64>);'
+            )
 
     async def test_edgeql_typeop_06(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
-            await self.con.query(
-                'select [1] is (typeof [2] | typeof [2.2]);')
+            await self.con.query('select [1] is (typeof [2] | typeof [2.2]);')
 
     async def test_edgeql_typeop_07(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                "cannot use type operator '|' with non-object type",
+            edgedb.UnsupportedFeatureError,
+            "cannot use type operator '|' with non-object type",
         ):
             await self.con.query(
-                'select (1,) is (typeof (2,) | typeof (2.2,));')
+                'select (1,) is (typeof (2,) | typeof (2.2,));'
+            )
 
     async def test_edgeql_typeop_08(self):
         await self.assert_query_result(
-            'select {x := 1} is (typeof Issue.references | Object);',
-            {False}
+            'select {x := 1} is (typeof Issue.references | Object);', {False}
         )
         await self.assert_query_result(
             'select {x := 1} is (typeof Issue.references | BaseObject);',
-            {False}
+            {False},
         )
         await self.assert_query_result(
-            'select {x := 1} is (typeof Issue.references | FreeObject);',
-            {True}
+            'select {x := 1} is (typeof Issue.references | FreeObject);', {True}
         )
 
     async def test_edgeql_typeop_09(self):
@@ -9377,13 +9578,18 @@ aa \
             }
         """)
 
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             SELECT assert_single((
                 SELECT User { name } FILTER .name ILIKE "He Who%"
             ))
-        """, [{
-            "name": "He Who Remains",
-        }])
+        """,
+            [
+                {
+                    "name": "He Who Remains",
+                }
+            ],
+        )
 
         await self.con.query_single("""
             SELECT assert_single((
@@ -9398,14 +9604,22 @@ aa \
             );
         """)
 
-        await self.con.query("""
+        await self.con.query(
+            """
             select {
                 xy := assert_single({<optional str>$0, <optional str>$1}) };
-        """, None, None)
-        await self.con.query("""
+        """,
+            None,
+            None,
+        )
+        await self.con.query(
+            """
             select {
                 xy := assert_single({<optional str>$0, <optional str>$1}) };
-        """, None, 'test')
+        """,
+            None,
+            'test',
+        )
 
     async def test_edgeql_assert_single_02(self):
         await self.con.execute("""
@@ -9502,11 +9716,14 @@ aa \
                     SELECT User { name } FILTER .name IN {"User 1", "User 2"}
                 )) ORDER BY .name
             """,
-            [{
-                "name": "User 1",
-            }, {
-                "name": "User 2",
-            }],
+            [
+                {
+                    "name": "User 1",
+                },
+                {
+                    "name": "User 2",
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -9517,9 +9734,11 @@ aa \
                     )
                 }
             """,
-            [{
-                "user": "User 1",
-            }],
+            [
+                {
+                    "user": "User 1",
+                }
+            ],
         )
 
         # Same but with explicit lower cardinality
@@ -9531,9 +9750,11 @@ aa \
                     )
                 }
             """,
-            [{
-                "user": "User 1",
-            }],
+            [
+                {
+                    "user": "User 1",
+                }
+            ],
         )
 
         await self.con.query_single(
@@ -9687,11 +9908,14 @@ aa \
                 }
                 ORDER BY .number
             """,
-            [{
-                "number": "1",
-            }, {
-                "number": "2",
-            }],
+            [
+                {
+                    "number": "1",
+                },
+                {
+                    "number": "2",
+                },
+            ],
         )
 
         await self.assert_query_result(
@@ -9793,33 +10017,47 @@ aa \
             edgedb.InvalidValueError,
             "custom message",
         ):
-            await self.con.query("""
+            await self.con.query(
+                """
                 SELECT assert(<bool>$0, message := "custom message")
-            """, False)
+            """,
+                False,
+            )
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             "assertion failed",
         ):
-            await self.con.query("""
+            await self.con.query(
+                """
                 SELECT assert(<bool>$0)
-            """, False)
+            """,
+                False,
+            )
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             "assertion failed",
         ):
-            await self.con.query("""
+            await self.con.query(
+                """
                 SELECT assert(<bool>$0, message := <optional str>$1)
-            """, False, None)
+            """,
+                False,
+                None,
+            )
 
         async with self.assertRaisesRegexTx(
             edgedb.InvalidValueError,
             "test",
         ):
-            await self.con.query("""
+            await self.con.query(
+                """
                 SELECT assert(<bool>$0, message := <optional str>$1)
-            """, False, "test")
+            """,
+                False,
+                "test",
+            )
 
         await self.assert_query_result(
             r'''
@@ -9956,28 +10194,38 @@ aa \
             """
                 SELECT (INTROSPECT TYPEOF BaseObject)
             """,
-            [
-                {"id": str}
-            ]
+            [{"id": str}],
         )
-        res = await self.con._fetchall("""
+        res = await self.con._fetchall(
+            """
             SELECT (INTROSPECT TYPEOF BaseObject)
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
         self.assertEqual(len(res), 1)
         self.assertEqual(res[0].__tname__, "schema::ObjectType")
 
     async def test_edgeql_object_injections(self):
-        await self.con._fetchall("""
+        await self.con._fetchall(
+            """
             SELECT <Object>{}
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
 
-        await self.con._fetchall("""
+        await self.con._fetchall(
+            """
             WITH Z := (Object,), SELECT Z;
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
 
-        await self.con._fetchall("""
+        await self.con._fetchall(
+            """
             FOR Z IN {(Object,)} UNION Z;
-        """, __typenames__=True)
+        """,
+            __typenames__=True,
+        )
 
     async def test_edgeql_str_concat(self):
         await self.assert_query_result(
@@ -10009,7 +10257,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.errors.InvalidReferenceError,
             "does not exist",
-            _hint="did you mean to call 'to_str'?"
+            _hint="did you mean to call 'to_str'?",
         ):
             await self.con.execute(f"""
                 select <to_str>1;
@@ -10018,7 +10266,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.errors.InvalidReferenceError,
             "does not exist",
-            _hint="did you mean to call 'round'?"
+            _hint="did you mean to call 'round'?",
         ):
             await self.con.execute(f"""
                 select <round>1;
@@ -10027,7 +10275,7 @@ aa \
         async with self.assertRaisesRegexTx(
             edgedb.errors.InvalidReferenceError,
             "does not exist",
-            _hint="did you mean to call 'std::cal::to_local_date'?"
+            _hint="did you mean to call 'std::cal::to_local_date'?",
         ):
             await self.con.execute(f"""
                 select <cal::to_local_date>1;

@@ -24,7 +24,6 @@ import textwrap
 
 
 class RenderBuffer:
-
     ilevel: int
     buf: list[str]
 

@@ -11,8 +11,6 @@ Reference
     datamodel/index
     edgeql/index
     stdlib/index
-    ai/index
-    auth/index
     reference/index
 
 Learn three components, and you know |Gel|: how to work with
@@ -142,7 +140,6 @@ Querying
 * :ref:`Insert <ref_cheatsheet_insert>`
 * :ref:`Update <ref_cheatsheet_update>`
 * :ref:`Delete <ref_cheatsheet_delete>`
-* :ref:`via GraphQL <ref_cheatsheet_graphql>`
 
 Schema
 ^^^^^^

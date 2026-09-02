@@ -43,9 +43,9 @@ class ContextDesc(to_json.ToJson):
 
     def is_subcontext_of(self, other: ContextDesc) -> bool:
         return (
-            self.buffer_idx == other.buffer_idx and
-            self.start >= other.start and
-            self.end <= other.end
+            self.buffer_idx == other.buffer_idx
+            and self.start >= other.start
+            and self.end <= other.end
         )
 
 
@@ -96,7 +96,7 @@ class VisitShapes(ast.NodeVisitor):
         parent_shape = self.current_shape
         parent_shape.main_alias = alias
         parent_shape.aliases.discard(alias)
-        for (item, _oper) in node.shape:
+        for item, _oper in node.shape:
             if not (rptr_name := item.path_id.rptr_name()):
                 continue
             name = str(rptr_name.name)
@@ -140,7 +140,7 @@ def analyze_queries(
         if (idx := contexts.get(key)) is None:
             idx = len(contexts)
             contexts[key] = idx
-        text = span.buffer[span.start:span.end]
+        text = span.buffer[span.start : span.end]
 
         return ContextDesc(
             start=span.start,

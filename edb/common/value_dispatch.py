@@ -30,14 +30,12 @@ class _ValueDispatchCallable[_T](Protocol):
     def register(
         self,
         val: Any,
-    ) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
-        ...
+    ) -> Callable[[Callable[..., _T]], Callable[..., _T]]: ...
 
     def register_for_all(
         self,
         val: Iterable[Any],
-    ) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
-        ...
+    ) -> Callable[[Callable[..., _T]], Callable[..., _T]]: ...
 
     def __call__(__self, *args: Any, **kwargs: Any) -> _T: ...
 
@@ -86,7 +84,8 @@ def value_dispatch[_T](func: Callable[..., _T]) -> _ValueDispatchCallable[_T]:
     ) -> Callable[[Callable[..., _T]], Callable[..., _T]]:
         if inspect.isfunction(value):
             raise TypeError(
-                "value_dispatch.register() decorator requires a value")
+                "value_dispatch.register() decorator requires a value"
+            )
 
         def wrap(func: Callable[..., _T]) -> Callable[..., _T]:
             if value in registry:
@@ -96,6 +95,7 @@ def value_dispatch[_T](func: Callable[..., _T]) -> _ValueDispatchCallable[_T]:
                 )
             registry[value] = func
             return func
+
         return wrap
 
     def register_for_all(
@@ -110,6 +110,7 @@ def value_dispatch[_T](func: Callable[..., _T]) -> _ValueDispatchCallable[_T]:
                     )
                 registry[value] = func
             return func
+
         return wrap
 
     wrapper.register = register  # type: ignore [attr-defined]

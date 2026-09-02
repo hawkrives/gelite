@@ -1,0 +1,18 @@
+# Revisions that changed formatting but no behaviour. `git blame` skips
+# these so a line's blame points at whoever last changed its meaning
+# rather than at the reformat.
+#
+# GitHub honours this file automatically in its blame view. Locally it
+# has to be opted into, once per clone:
+#
+#     git config blame.ignoreRevsFile .git-blame-ignore-revs
+#
+# Add a revision here only if it is a pure reformat. A commit that also
+# changes behaviour must not be listed, or that behaviour becomes
+# invisible to blame.
+
+# Adopt ruff format - 405 files reformatted, no behaviour change.
+# Verified at the time: every non-docstring string literal byte-identical
+# across all 405 files, the compiled grammar unchanged, and all 521
+# docstring-encoded test assertions still intact.
+5dc62670e10d44a3e2e2492ad39431c70f4266b3

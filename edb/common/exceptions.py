@@ -41,8 +41,10 @@ def add_context(ex, context):
     cls = context.__class__
     if cls in contexts:
         raise ValueError(
-            'context {}.{} is already present in '
-            'exception'.format(cls.__module__, cls.__name__))
+            'context {}.{} is already present in exception'.format(
+                cls.__module__, cls.__name__
+            )
+        )
 
     contexts[cls] = context
 
@@ -58,8 +60,8 @@ def get_context(ex, context_class):
         return contexts[context_class]
     except KeyError as ex:
         raise LookupError(
-            '{} context class is not '
-            'found'.format(context_class)) from ex
+            '{} context class is not found'.format(context_class)
+        ) from ex
 
 
 def iter_contexts(ex, ctx_class=None):
@@ -69,8 +71,10 @@ def iter_contexts(ex, ctx_class=None):
     else:
         assert issubclass(ctx_class, ExceptionContext)
         return (
-            context for context in contexts.values()
-            if isinstance(context, ctx_class))
+            context
+            for context in contexts.values()
+            if isinstance(context, ctx_class)
+        )
 
 
 class ExceptionContext:
@@ -101,6 +105,7 @@ def _is_internal_error(exc):
 def excepthook(exctype, exc, tb):
     try:
         from edb.common import markup
+
         markup.dump(exc, file=sys.stderr)
 
         if _is_internal_error(exc):
@@ -121,9 +126,13 @@ def excepthook(exctype, exc, tb):
         visited = set()
         parent = ex
         while parent.__cause__ or (
-                not parent.__suppress_context__ and parent.__context__):
-            if (parent in visited or parent.__context__ is exc or
-                    parent.__cause__ is exc):
+            not parent.__suppress_context__ and parent.__context__
+        ):
+            if (
+                parent in visited
+                or parent.__context__ is exc
+                or parent.__cause__ is exc
+            ):
                 break
             visited.add(parent)
             parent = parent.__cause__ or parent.__context__

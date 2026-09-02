@@ -113,12 +113,10 @@ def get_property_type_view(result_tp: e.ResultTp) -> PropertyTypeView:
         case e.UnionTp(left=l, right=r):
             l_view = get_property_type_view(e.ResultTp(l, result_tp.mode))
             r_view = get_property_type_view(e.ResultTp(r, result_tp.mode))
-            assert (
-                l_view.link_props == r_view.link_props
-            ), "Link props mismatch"
-            assert (
-                l_view.is_primitive == r_view.is_primitive
-            ), "Primitive mismatch"
+            assert l_view.link_props == r_view.link_props, "Link props mismatch"
+            assert l_view.is_primitive == r_view.is_primitive, (
+                "Primitive mismatch"
+            )
             return PropertyTypeView(
                 is_primitive=l_view.is_primitive,
                 is_optional=is_optional,
@@ -163,7 +161,7 @@ def get_schema_property_view(schema: e.DBSchema) -> dict[str, TableTypeView]:
 
 
 def get_table_view_from_property_view(
-    schema_property_view: dict[str, TableTypeView]
+    schema_property_view: dict[str, TableTypeView],
 ) -> dict[str, TableSpec]:
     result_table = {}
     for tname, tview in schema_property_view.items():
@@ -269,7 +267,6 @@ def convert_val_to_sqlite_val(val: e.ResultMultiSetVal) -> Any:
 
 
 class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
-
     def __init__(self, conn: sqlite3.Connection, schema: e.DBSchema) -> None:
         super().__init__()
         self.conn = conn
@@ -293,9 +290,9 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
             print("[DONE]", query, *args)
 
     def get_tp_name(self, tp: e.QualifiedName) -> str:
-        assert (
-            len(tp.names) == 2 and tp.names[0] == "default"
-        ), "Only default module is supported"
+        assert len(tp.names) == 2 and tp.names[0] == "default", (
+            "Only default module is supported"
+        )
         return tp.names[1]
 
     def to_tp_name(self, name: str) -> e.QualifiedName:
@@ -317,9 +314,9 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
         link_props: dict[str, Any],
         link_props_view: dict[str, PropertyTypeView],
     ) -> ObjectVal:
-        assert (
-            link_props.keys() == link_props_view.keys()
-        ), "Link props mismatch"
+        assert link_props.keys() == link_props_view.keys(), (
+            "Link props mismatch"
+        )
         return ObjectVal(
             {
                 e.LinkPropLabel(lpname): (
@@ -352,15 +349,12 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
             raise ValueError("Unexpected sqlite value None (Internal Error)")
 
         if len(link_props) > 0:
-
             if len(result_tp.target_type_name) == 1:
                 tp_name = result_tp.target_type_name[0]
             else:
                 tp_name = self.get_type_for_an_id(result_data)
-            converted_link_props = (
-                self.convert_sqlite_link_props_to_object_val(
-                    link_props, result_tp.link_props
-                )
+            converted_link_props = self.convert_sqlite_link_props_to_object_val(
+                link_props, result_tp.link_props
             )
             return e.RefVal(
                 refid=result_data, tpname=tp_name, val=converted_link_props
@@ -369,9 +363,7 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
             if result_tp.is_primitive:
                 assert len(result_tp.target_type_name) == 1
                 tp_name = result_tp.target_type_name[0]
-                return e.ScalarVal(
-                    tp=e.ScalarTp(name=tp_name), val=result_data
-                )
+                return e.ScalarVal(tp=e.ScalarTp(name=tp_name), val=result_data)
             else:
                 if len(result_tp.target_type_name) == 1:
                     tp_name = result_tp.target_type_name[0]
@@ -382,7 +374,6 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
                 )
 
     def create_or_populate_schema_table(self) -> None:
-
         for tname, tspec in self.table_view.items():
             column_spec = ', '.join(
                 [
@@ -427,7 +418,6 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
     def query_ids_for_a_type(
         self, tp: e.QualifiedName, filters: e.EdgeDatabaseSelectFilter
     ) -> list[EdgeID]:
-
         query_args = []
 
         def convert_select_filter_to_condition_text(
@@ -520,7 +510,6 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
         }
 
     def restore_state(self, dumped_state) -> None:
-
         # Drop all tables
         self.do_execute_query(
             "SELECT name FROM sqlite_master WHERE type='table'"
@@ -570,9 +559,7 @@ class SQLiteEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
                 for i, lp_prop_name in enumerate(lp_property_names):
                     lp_vals[lp_prop_name] = row[i + 1]
                 result.append(
-                    self.convert_sqlite_result_to_val(
-                        target_id, pview, lp_vals
-                    )
+                    self.convert_sqlite_result_to_val(target_id, pview, lp_vals)
                 )
             return e.ResultMultiSetVal(result)
         else:
@@ -832,7 +819,6 @@ def schema_and_db_from_sqlite(
 
     dbschema = default_dbschema()
     if db_sdl is None:
-
         if sdl_file_content is None:
             content = ""  # empty schema
         else:
@@ -845,7 +831,6 @@ def schema_and_db_from_sqlite(
         # Commit the changes
         conn.commit()
     else:
-
         sdl_content = sdl_file_content
         if sdl_content is None:
             sdl_content = ""

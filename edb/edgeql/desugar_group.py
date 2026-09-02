@@ -50,8 +50,7 @@ def make_free_object(els: dict[str, qlast.Expr]) -> qlast.Shape:
         expr=None,
         elements=[
             qlast.ShapeElement(
-                expr=qlast.Path(steps=[qlast.Ptr(name=name)]),
-                compexpr=expr
+                expr=qlast.Path(steps=[qlast.Ptr(name=name)]), compexpr=expr
             )
             for name, expr in els.items()
         ],
@@ -129,15 +128,18 @@ def desugar_group(
     def rewrite(el: qlast.GroupingElement) -> qlast.GroupingElement:
         if isinstance(el, qlast.GroupingSimple):
             return qlast.GroupingSimple(
-                span=el.span, element=rewrite_atom(el.element))
+                span=el.span, element=rewrite_atom(el.element)
+            )
         elif isinstance(el, qlast.GroupingSets):
             return qlast.GroupingSets(
-                span=el.span, sets=[rewrite(s) for s in el.sets])
+                span=el.span, sets=[rewrite(s) for s in el.sets]
+            )
         elif isinstance(el, qlast.GroupingOperation):
             return qlast.GroupingOperation(
                 span=el.span,
                 oper=el.oper,
-                elements=[rewrite_atom(a) for a in el.elements])
+                elements=[rewrite_atom(a) for a in el.elements],
+            )
         raise AssertionError
 
     # The rewrite calls on the grouping elements populate alias_map
@@ -148,7 +150,7 @@ def desugar_group(
         k: v for k, v in by_alias_map.items()
     }
 
-    for using_clause in (node.using or ()):
+    for using_clause in node.using or ():
         if using_clause.alias in alias_map:
             # TODO: This would be a great place to allow multiple spans!
             raise errors.QueryError(
@@ -168,11 +170,13 @@ def desugar_group(
     g_alias = aliases.get('g')
     grouping_alias = aliases.get('grouping')
     output_dict = {
-        'key': make_free_object({
-            name: name_path(alias)
-            for name, (alias, _) in alias_map.items()
-            if alias in actual_keys
-        }),
+        'key': make_free_object(
+            {
+                name: name_path(alias)
+                for name, (alias, _) in alias_map.items()
+                if alias in actual_keys
+            }
+        ),
         'grouping': qlast.FunctionCall(
             func='array_unpack',
             args=[name_path(grouping_alias)],
@@ -248,7 +252,7 @@ def try_group_rewrite(
         case qlast.SelectQuery(
             aliases=[
                 *_,
-                qlast.AliasedExpr(alias=alias, expr=qlast.GroupQuery() as grp)
+                qlast.AliasedExpr(alias=alias, expr=qlast.GroupQuery() as grp),
             ] as qaliases,
             result=qlast.Shape(
                 expr=astutils.alias_view((alias2, [])),
@@ -263,7 +267,7 @@ def try_group_rewrite(
         case qlast.ForQuery(
             aliases=[
                 *_,
-                qlast.AliasedExpr(alias=alias, expr=qlast.GroupQuery() as grp)
+                qlast.AliasedExpr(alias=alias, expr=qlast.GroupQuery() as grp),
             ] as qaliases,
             iterator=astutils.alias_view((alias2, [])),
             result=result,
@@ -280,8 +284,11 @@ def try_group_rewrite(
         and isinstance(node.result.expr, qlast.GroupQuery)
     ):
         igroup = desugar_group(node.result.expr, aliases)
-        igroup = igroup.replace(result=qlast.Shape(
-            expr=igroup.result, elements=node.result.elements))
+        igroup = igroup.replace(
+            result=qlast.Shape(
+                expr=igroup.result, elements=node.result.elements
+            )
+        )
 
         # FILTER gets sunk into the body of the FOR GROUP
         if node.where or node.orderby:
@@ -294,12 +301,12 @@ def try_group_rewrite(
             )
 
         return node.replace(
-            result=igroup, result_alias=None, where=None, orderby=None)
+            result=igroup, result_alias=None, where=None, orderby=None
+        )
 
     # Eliminate FORs over GROUPs
-    if (
-        isinstance(node, qlast.ForQuery)
-        and isinstance(node.iterator, qlast.GroupQuery)
+    if isinstance(node, qlast.ForQuery) and isinstance(
+        node.iterator, qlast.GroupQuery
     ):
         igroup = desugar_group(node.iterator, aliases)
         new_result = qlast.ForQuery(

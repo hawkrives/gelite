@@ -26,13 +26,27 @@ from __future__ import annotations
 
 from math import sqrt as _sqrt
 from colorsys import (
-    rgb_to_yiq, yiq_to_rgb, rgb_to_hls, hls_to_rgb, rgb_to_hsv, hsv_to_rgb
+    rgb_to_yiq,
+    yiq_to_rgb,
+    rgb_to_hls,
+    hls_to_rgb,
+    rgb_to_hsv,
+    hsv_to_rgb,
 )
 
 
-__all__ = 'rgb_to_yiq', 'yiq_to_rgb', 'rgb_to_hls', 'hls_to_rgb', \
-          'rgb_to_hsv', 'hsv_to_rgb', 'rgb_to_xyz', 'xyz_to_lab', \
-          'rgb_distance', 'Color'
+__all__ = (
+    'rgb_to_yiq',
+    'yiq_to_rgb',
+    'rgb_to_hls',
+    'hls_to_rgb',
+    'rgb_to_hsv',
+    'hsv_to_rgb',
+    'rgb_to_xyz',
+    'xyz_to_lab',
+    'rgb_distance',
+    'Color',
+)
 
 
 class Color:
@@ -176,7 +190,7 @@ class Color:
         'white': '#ffffff',
         'whitesmoke': '#f5f5f5',
         'yellow': '#ffff00',
-        'yellowgreen': '#9acd32'
+        'yellowgreen': '#9acd32',
     }
 
     def __init__(self, r, g, b, a=1.0):
@@ -209,7 +223,7 @@ class Color:
             if len(value) == 3:
                 r, g, b = [int(x * 2, 16) for x in value]
             elif len(value) == 6:
-                r, g, b = [int(value[i:i + 2], 16) for i in range(0, 6, 2)]
+                r, g, b = [int(value[i : i + 2], 16) for i in range(0, 6, 2)]
             else:
                 raise ValueError
         except ValueError:
@@ -340,10 +354,13 @@ def rgb_distance(r1, g1, b1, r2, g2, b2):
     dA = A1 - A2
     dB = B1 - B2
 
-    dEab = _sqrt(dL ** 2 + dA ** 2 + dB ** 2)
+    dEab = _sqrt(dL**2 + dA**2 + dB**2)
 
-    dHab = _sqrt(max(dEab ** 2 - dL ** 2 - dCab ** 2, 0.0))
+    dHab = _sqrt(max(dEab**2 - dL**2 - dCab**2, 0.0))
 
-    dE = _sqrt((dL ** 2) + ((dCab / (1 + 0.045 * C1)) ** 2) + (
-        dHab / (1 + 0.015 * C1)) ** 2)
+    dE = _sqrt(
+        (dL**2)
+        + ((dCab / (1 + 0.045 * C1)) ** 2)
+        + (dHab / (1 + 0.015 * C1)) ** 2
+    )
     return dE

@@ -47,7 +47,8 @@ def compile_describe_config(
     scope: qltypes.ConfigScope, ctx: context.ContextLevel
 ) -> irast.Set:
     config_edgeql = _describe_config(
-        ctx.env.schema, scope, ctx.env.options.testmode)
+        ctx.env.schema, scope, ctx.env.options.testmode
+    )
     config_ast = qlparser.parse_fragment(config_edgeql)
 
     with ctx.new() as subctx:
@@ -73,16 +74,18 @@ def _describe_config(
 
     cfg = schema.get(config_object_name, type=s_objtypes.ObjectType)
     items = []
-    items.extend(_describe_config_inner(
-        schema, scope, config_object_name, cfg, testmode
-    ))
+    items.extend(
+        _describe_config_inner(schema, scope, config_object_name, cfg, testmode)
+    )
     ext = schema.get('cfg::ExtensionConfig', type=s_objtypes.ObjectType)
     for ext_cfg in sorted(
         ext.descendants(schema), key=lambda x: x.get_name(schema)
     ):
-        items.extend(_describe_config_inner(
-            schema, scope, config_object_name, ext_cfg, testmode
-        ))
+        items.extend(
+            _describe_config_inner(
+                schema, scope, config_object_name, ext_cfg, testmode
+            )
+        )
 
     testmode_check = (
         "<bool>json_get(cfg::get_config_json(),'__internal_testmode','value')"
@@ -92,9 +95,14 @@ def _describe_config(
         "assert_exists(assert_single(("
         + f"FOR conf IN {{cfg::get_config_json(sources := [{ql(source)}])}} "
         + "UNION (\n"
-        + (f"FOR testmode IN {{{testmode_check}}} UNION (\n"
-           if testmode else "")
-        + "SELECT array_join([" + ', '.join(items) + "], '')"
+        + (
+            f"FOR testmode IN {{{testmode_check}}} UNION (\n"
+            if testmode
+            else ""
+        )
+        + "SELECT array_join(["
+        + ', '.join(items)
+        + "], '')"
         + (")" if testmode else "")
         + ")"
         + ")))"
@@ -113,7 +121,8 @@ def _describe_config_inner(
 
     actual_name = str(cfg.get_name(schema))
     cast = (
-        f'.extensions[is {actual_name}]' if actual_name != config_object_name
+        f'.extensions[is {actual_name}]'
+        if actual_name != config_object_name
         else ''
     )
 
@@ -123,18 +132,12 @@ def _describe_config_inner(
         key=lambda x: x[0],
     ):
         pn = str(ptr_name)
-        if (
-            pn == 'id'
-            or p.get_computable(schema)
-            or p.get_protected(schema)
-        ):
+        if pn == 'id' or p.get_computable(schema) or p.get_protected(schema):
             continue
 
         is_internal = (
-            p.get_annotation(
-                schema,
-                s_name.QualName('cfg', 'internal')
-            ) == 'true'
+            p.get_annotation(schema, s_name.QualName('cfg', 'internal'))
+            == 'true'
         )
         if is_internal and not testmode:
             continue
@@ -164,12 +167,15 @@ def _describe_config_inner(
             )
         else:
             fn = (
-                pn if actual_name == config_object_name
+                pn
+                if actual_name == config_object_name
                 else f'{actual_name}::{pn}'
             )
             renderer = (
-                _render_config_redacted if p.get_secret(schema)
-                else _render_config_set if mult
+                _render_config_redacted
+                if p.get_secret(schema)
+                else _render_config_set
+                if mult
                 else _render_config_scalar
             )
             item = textwrap.indent(
@@ -193,9 +199,8 @@ def _describe_config_inner(
         # This is because we currently implement the defaults by
         # setting them with CONFIGURE INSTANCE, so we can't detect
         # defaults by seeing what is unset.
-        if (
-            scope == qltypes.ConfigScope.INSTANCE
-            and (default := p.get_default(schema))
+        if scope == qltypes.ConfigScope.INSTANCE and (
+            default := p.get_default(schema)
         ):
             condition = f'({condition}) AND {psource} ?!= ({default.text})'
 
@@ -277,7 +282,8 @@ def _render_config_set(
 ) -> str:
     assert isinstance(valtype, s_scalars.ScalarType)
     v = _render_config_value(
-        schema=schema, valtype=valtype, value_expr=value_expr)
+        schema=schema, valtype=valtype, value_expr=value_expr
+    )
     if level == 1:
         return (
             f"'CONFIGURE {scope.to_edgeql()} "
@@ -305,7 +311,8 @@ def _render_config_scalar(
 ) -> str:
     assert isinstance(valtype, s_scalars.ScalarType)
     v = _render_config_value(
-        schema=schema, valtype=valtype, value_expr=value_expr)
+        schema=schema, valtype=valtype, value_expr=value_expr
+    )
     if level == 1:
         return (
             f"'CONFIGURE {scope.to_edgeql()} "
@@ -329,7 +336,8 @@ def _render_config_object(
     # shape for a given configuration object type or
     # `INSERT ConfigObject` for a nested configuration type.
     sub_layouts = _describe_config_object(
-        schema=schema, valtype=valtype, level=level + 1, scope=scope)
+        schema=schema, valtype=valtype, level=level + 1, scope=scope
+    )
     sub_layouts_items = []
     if level == 1:
         decor = [f'CONFIGURE {scope.to_edgeql()} INSERT ', ';\\n']
@@ -346,9 +354,7 @@ def _render_config_object(
                 + f" ++ '{indent}}}{decor[1]}'"
             )
         else:
-            sub_layout_item = (
-                f"'{indent}{decor[0]}{type_name}{decor[1]}'"
-            )
+            sub_layout_item = f"'{indent}{decor[0]}{type_name}{decor[1]}'"
 
         if len(sub_layouts) > 1:
             if type_layout:
@@ -370,14 +376,16 @@ def _render_config_object(
     else:
         sli_render = sub_layouts_items[0]
 
-    return '\n'.join((
-        f"array_join(array_agg((SELECT _ := (",
-        f"  FOR item IN {{ {value_expr} }}",
-        f"  UNION (",
-        f"{textwrap.indent(sli_render, ' ' * 4)}",
-        f"  )",
-        f") ORDER BY _)), {ql(join_term)})",
-    ))
+    return '\n'.join(
+        (
+            f"array_join(array_agg((SELECT _ := (",
+            f"  FOR item IN {{ {value_expr} }}",
+            f"  UNION (",
+            f"{textwrap.indent(sli_render, ' ' * 4)}",
+            f"  )",
+            f") ORDER BY _)), {ql(join_term)})",
+        )
+    )
 
 
 def _describe_config_object(
@@ -403,7 +411,8 @@ def _describe_config_object(
                 or p.get_annotation(
                     schema,
                     s_name.QualName('cfg', 'internal'),
-                ) == 'true'
+                )
+                == 'true'
             ):
                 continue
 
@@ -436,8 +445,10 @@ def _describe_config_object(
                 condition = None
             else:
                 render = (
-                    _render_config_redacted if p.get_secret(schema)
-                    else _render_config_set if mult
+                    _render_config_redacted
+                    if p.get_secret(schema)
+                    else _render_config_set
+                    if mult
                     else _render_config_scalar
                 )
                 item = render(

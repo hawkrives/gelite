@@ -28,17 +28,12 @@ def get_constraint_references(tree: irast.Base) -> Optional[list[irast.Base]]:
 
 
 def is_constraint_expr(tree: irast.Base) -> Optional[list[irast.Base]]:
-    return (
-        is_distinct_expr(tree) or
-        is_set_expr(tree) or
-        is_binop(tree)
-    )
+    return is_distinct_expr(tree) or is_set_expr(tree) or is_binop(tree)
 
 
 def is_distinct_expr(tree: irast.Base) -> Optional[list[irast.Base]]:
-    return (
-        is_pure_distinct_expr(tree) or
-        is_possibly_wrapped_distinct_expr(tree)
+    return is_pure_distinct_expr(tree) or is_possibly_wrapped_distinct_expr(
+        tree
     )
 
 
@@ -58,7 +53,7 @@ def is_pure_distinct_expr(tree: irast.Base) -> Optional[list[irast.Base]]:
 
 
 def is_possibly_wrapped_distinct_expr(
-    tree: irast.Base
+    tree: irast.Base,
 ) -> Optional[list[irast.Base]]:
     if not isinstance(tree, irast.SelectStmt):
         return None
@@ -70,10 +65,7 @@ def is_set_expr(tree: irast.Base) -> Optional[list[irast.Base]]:
     if not isinstance(tree, irast.Set):
         return None
 
-    return (
-        is_distinct_expr(tree.expr) or
-        is_binop(tree.expr)
-    )
+    return is_distinct_expr(tree.expr) or is_binop(tree.expr)
 
 
 def is_binop(tree: irast.Base) -> Optional[list[irast.Base]]:

@@ -89,10 +89,7 @@ def get_args(t, evaluate: bool = True) -> Any:
         raise ValueError("evaluate can only be True in Python >= 3.7")
     if _is_genericalias(t) or isinstance(t, UnionType):
         res = t.__args__
-        if (
-            get_origin(t) is collections.abc.Callable
-            and res[0] is not Ellipsis
-        ):
+        if get_origin(t) is collections.abc.Callable and res[0] is not Ellipsis:
             res = (list(res[:-1]), res[-1])
         return res
     return ()

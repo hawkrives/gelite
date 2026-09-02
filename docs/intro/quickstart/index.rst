@@ -12,4 +12,3 @@ Quickstart
   connecting/index
   working/index
   inheritance/index
-  ai/index

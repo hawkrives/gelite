@@ -60,7 +60,7 @@ class Table(composites.CompositeDBObject):
         *,
         columns: Optional[Iterable[Column]] = None,
         bases: Optional[ordered.OrderedSet[Table]] = None,
-        constraints: Optional[ordered.OrderedSet[SingleTableConstraint]] = None
+        constraints: Optional[ordered.OrderedSet[SingleTableConstraint]] = None,
     ) -> None:
         self.bases = ordered.OrderedSet(bases or [])
         self.constraints = ordered.OrderedSet(constraints or [])
@@ -125,7 +125,9 @@ class Table(composites.CompositeDBObject):
     def record(self) -> composites.Record:
         return composites.Record(
             self.__class__.__name__ + '_record',
-            list(self.all_columns), default=base.Default)
+            list(self.all_columns),
+            default=base.Default,
+        )
 
     @property
     def system_catalog(self) -> str:
@@ -193,8 +195,11 @@ class Column(base.DBObject):
 
     def __repr__(self) -> str:
         return '<%s.%s "%s" %s>' % (
-            self.__class__.__module__, self.__class__.__name__, self.name,
-            self.type)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+            self.type,
+        )
 
 
 class TableColumn(base.DBObject):
@@ -206,9 +211,7 @@ class TableColumn(base.DBObject):
         return 'COLUMN'
 
     def get_id(self) -> str:
-        return qn(
-            self.table_name[0], self.table_name[1], self.column.name
-        )
+        return qn(self.table_name[0], self.table_name[1], self.column.name)
 
 
 class ColumnConstraint:
@@ -243,7 +246,6 @@ class TableConstraint(constraints.Constraint):
 
 
 class SingleTableConstraint(TableConstraint):
-
     def constraint_code(self, block: base.PLBlock) -> str:
         raise NotImplementedError()
 
@@ -412,9 +414,7 @@ class CreateTable(ddl.SchemaObjectOperation):
         self.temporary = temporary
 
     def code_with_block(self, block: base.PLBlock) -> str:
-        elems = [
-            c.code() for c in self.table.iter_columns(only_self=True)
-        ]
+        elems = [c.code() for c in self.table.iter_columns(only_self=True)]
         for c in self.table.constraints:
             elems.append(c.constraint_code(block))
 
@@ -447,23 +447,25 @@ class CreateTable(ddl.SchemaObjectOperation):
 
 
 class AlterTableBaseMixin:
-
     name: TableName
     contained: bool
 
-    def __init__(
-        self, name: TableName, contained: bool = False
-    ) -> None:
+    def __init__(self, name: TableName, contained: bool = False) -> None:
         self.name = name
         self.contained = contained
 
     def prefix_code(self) -> str:
         return 'ALTER TABLE %s%s' % (
-            'ONLY ' if self.contained else '', qn(*self.name))
+            'ONLY ' if self.contained else '',
+            qn(*self.name),
+        )
 
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
-            self.__class__.__module__, self.__class__.__name__, self.name)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+        )
 
 
 class AlterTableBase(AlterTableBaseMixin, ddl.DDLOperation):
@@ -476,7 +478,8 @@ class AlterTableBase(AlterTableBaseMixin, ddl.DDLOperation):
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ) -> None:
         ddl.DDLOperation.__init__(
-            self, conditions=conditions, neg_conditions=neg_conditions)
+            self, conditions=conditions, neg_conditions=neg_conditions
+        )
         AlterTableBaseMixin.__init__(self, name=name, contained=contained)
 
     def get_attribute_term(self) -> str:
@@ -505,7 +508,8 @@ class AlterTable(
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ):
         base.CompositeCommandGroup.__init__(
-            self, conditions=conditions, neg_conditions=neg_conditions)
+            self, conditions=conditions, neg_conditions=neg_conditions
+        )
         AlterTableBaseMixin.__init__(self, name=name, contained=contained)
         self.ops = self.commands
 
@@ -522,8 +526,10 @@ class AlterTableAddParent(AlterTableFragment):
 
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
-            self.__class__.__module__, self.__class__.__name__,
-            self.parent_name)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.parent_name,
+        )
 
 
 class AlterTableDropParent(AlterTableFragment):
@@ -535,22 +541,27 @@ class AlterTableDropParent(AlterTableFragment):
 
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
-            self.__class__.__module__, self.__class__.__name__,
-            self.parent_name)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.parent_name,
+        )
 
 
 class AlterTableAddColumn(  # type: ignore
-        composites.AlterCompositeAddAttribute, AlterTableFragment):
+    composites.AlterCompositeAddAttribute, AlterTableFragment
+):
     pass
 
 
 class AlterTableDropColumn(
-        composites.AlterCompositeDropAttribute, AlterTableFragment):
+    composites.AlterCompositeDropAttribute, AlterTableFragment
+):
     pass
 
 
 class AlterTableAlterColumnType(
-        composites.AlterCompositeAlterAttributeType, AlterTableFragment):
+    composites.AlterCompositeAlterAttributeType, AlterTableFragment
+):
     pass
 
 
@@ -565,8 +576,11 @@ class AlterTableAlterColumnNull(AlterTableFragment):
 
     def __repr__(self) -> str:
         return '<{}.{} "{}" {} NOT NULL>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self.column_name, 'DROP' if self.null else 'SET')
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.column_name,
+            'DROP' if self.null else 'SET',
+        )
 
 
 class AlterTableAlterColumnDefault(AlterTableFragment):
@@ -578,14 +592,19 @@ class AlterTableAlterColumnDefault(AlterTableFragment):
         if self.default is None:
             return f'ALTER COLUMN {qi(self.column_name)} DROP DEFAULT'
         else:
-            return (f'ALTER COLUMN {qi(self.column_name)} '
-                    f'SET DEFAULT {self.default}')
+            return (
+                f'ALTER COLUMN {qi(self.column_name)} '
+                f'SET DEFAULT {self.default}'
+            )
 
     def __repr__(self) -> str:
         return '<{}.{} "{}" {} DEFAULT{}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self.column_name, 'DROP' if self.default is None else 'SET', ''
-            if self.default is None else ' {!r}'.format(self.default))
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.column_name,
+            'DROP' if self.default is None else 'SET',
+            '' if self.default is None else ' {!r}'.format(self.default),
+        )
 
 
 class TableConstraintCommand:
@@ -647,8 +666,10 @@ class AlterTableAddConstraint[TableConstraint_T: "TableConstraint"](
 
     def __repr__(self) -> str:
         return '<%s.%s %r>' % (
-            self.__class__.__module__, self.__class__.__name__,
-            self.constraint)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.constraint,
+        )
 
 
 class AlterTableDropConstraint(AlterTableFragment, TableConstraintCommand):
@@ -660,8 +681,10 @@ class AlterTableDropConstraint(AlterTableFragment, TableConstraintCommand):
 
     def __repr__(self) -> str:
         return '<%s.%s %r>' % (
-            self.__class__.__module__, self.__class__.__name__,
-            self.constraint)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.constraint,
+        )
 
 
 class DropTable(ddl.SchemaObjectOperation):

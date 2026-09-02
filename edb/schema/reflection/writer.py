@@ -58,14 +58,17 @@ def generate_metadata_write_edgeql(
     internal_schema_mode: bool,
     stdmode: bool,
 ) -> None:
-
     _hoist_if_unused_deletes(cmd)
 
     return write_meta(
         cmd,
-        classlayout=classlayout, schema=schema, context=context,
-        blocks=blocks, internal_schema_mode=internal_schema_mode,
-        stdmode=stdmode)
+        classlayout=classlayout,
+        schema=schema,
+        context=context,
+        blocks=blocks,
+        internal_schema_mode=internal_schema_mode,
+        stdmode=stdmode,
+    )
 
 
 def _hoist_if_unused_deletes(
@@ -106,11 +109,7 @@ def _hoist_if_unused_deletes(
         new_target = cmd
 
     for sub in cmd.get_subcommands():
-        if (
-            isinstance(sub, sd.DeleteObject)
-            and target
-            and sub.if_unused
-        ):
+        if isinstance(sub, sd.DeleteObject) and target and sub.if_unused:
             cmd.discard(sub)
             target.add_caused(sub)
         else:
@@ -163,7 +162,6 @@ def _descend(
     prerequisites: bool = False,
     cmd_filter: Optional[Callable[[sd.Command], bool]] = None,
 ) -> None:
-
     if prerequisites:
         commands = cmd.get_prerequisites()
     else:
@@ -182,14 +180,13 @@ def _descend(
                     context=context,
                     blocks=blocks,
                     internal_schema_mode=internal_schema_mode,
-                    stdmode=stdmode
+                    stdmode=stdmode,
                 )
 
     ctxcls = cmd.get_context_class()
     if ctxcls is not None:
-        if (
-            issubclass(ctxcls, sd.ObjectCommandContext)
-            and isinstance(cmd, sd.ObjectCommand)
+        if issubclass(ctxcls, sd.ObjectCommandContext) and isinstance(
+            cmd, sd.ObjectCommand
         ):
             objctxcls = cast(
                 type[sd.ObjectCommandContext[so.Object]],
@@ -242,7 +239,6 @@ def _build_object_mutation_shape(
     schema: s_schema.Schema,
     context: sd.CommandContext,
 ) -> tuple[str, dict[str, Any]]:
-
     props = cmd.get_resolved_attributes(schema, context)
     mcls = cmd.get_schema_metaclass()
     layout = classlayout[mcls]
@@ -265,7 +261,8 @@ def _build_object_mutation_shape(
     variables: dict[str, str] = {}
     if isinstance(cmd, sd.CreateObject):
         empties = {
-            v.fieldname: None for f, v in layout.items()
+            v.fieldname: None
+            for f, v in layout.items()
             if (
                 f != 'backend_id'
                 and v.storage is not None
@@ -341,7 +338,7 @@ def _build_object_mutation_shape(
                         else:
                             pkind = param.get_kind(schema)
                             if pkind is qltypes.ParameterKind.VariadicParam:
-                                rest = [arg.text for arg in args[i - 1:]]
+                                rest = [arg.text for arg in args[i - 1 :]]
                                 arg_expr = f'[{",".join(rest)}]'
                             else:
                                 arg_expr = arg.text
@@ -413,9 +410,7 @@ def _build_object_mutation_shape(
             else:
                 target_value = None
 
-            shadow_target_expr = (
-                f'sys::_expr_from_json(<json>${var_n}_expr)'
-            )
+            shadow_target_expr = f'sys::_expr_from_json(<json>${var_n}_expr)'
 
             assignments.append(f'{ns}__internal := {shadow_target_expr}')
             if v is not None:
@@ -435,9 +430,8 @@ def _build_object_mutation_shape(
                     {
                         'text': ex.text,
                         'refs': (
-                            [str(i) for i in ex.refs.ids()]
-                            if ex.refs else []
-                        )
+                            [str(i) for i in ex.refs.ids()] if ex.refs else []
+                        ),
                     }
                     for ex in v
                 ]
@@ -479,9 +473,10 @@ def _build_object_mutation_shape(
                             'text': ex.text,
                             'refs': (
                                 [str(i) for i in ex.refs.ids()]
-                                if ex.refs else []
-                            )
-                        }
+                                if ex.refs
+                                else []
+                            ),
+                        },
                     }
                     for key, ex in v.items()
                 ]
@@ -591,7 +586,6 @@ def _reflect_object_dict_value(
     target: s_types.Type,
     reflection_proxy: Optional[tuple[str, str]],
 ) -> tuple[str, Any]:
-
     if reflection_proxy is not None:
         # Non-unique ObjectDict, reflecting via a proxy object
         proxy_type, proxy_link = reflection_proxy
@@ -751,13 +745,14 @@ def write_meta_create_object(
                         .name__internal = <str>$__{target_link}
                 '''
 
-                variables[f'__{target_link}'] = (
-                    json.dumps(str(target.get_name(schema)))
+                variables[f'__{target_link}'] = json.dumps(
+                    str(target.get_name(schema))
                 )
 
                 shadow_clslayout = classlayout[refcls]
-                shadow_link_layout = (
-                    shadow_clslayout[f'{refdict.attr}__internal'])
+                shadow_link_layout = shadow_clslayout[
+                    f'{refdict.attr}__internal'
+                ]
                 shadow_shape, shadow_variables = _build_object_mutation_shape(
                     cmd,
                     classlayout=classlayout,
@@ -964,28 +959,34 @@ def _update_lprops(
 
         assignments = []
 
-        assignments.append(textwrap.dedent(
-            f'''\
+        assignments.append(
+            textwrap.dedent(
+                f'''\
             {refdict.attr} -= (
                 SELECT DETACHED (schema::{target_clsname})
                 FILTER .id = <uuid>$__{target_link}
             )'''
-        ))
+            )
+        )
 
         if reflect_as_link:
-            parent_variables[f'__{target_link}_shadow'] = (
-                json.dumps(str(cmd.classname)))
+            parent_variables[f'__{target_link}_shadow'] = json.dumps(
+                str(cmd.classname)
+            )
 
-            assignments.append(textwrap.dedent(
-                f'''\
+            assignments.append(
+                textwrap.dedent(
+                    f'''\
                 {refdict.attr}__internal -= (
                     SELECT DETACHED (schema::{mcls.__name__})
                     FILTER .name__internal = <str>$__{target_link}_shadow
                 )'''
-            ))
+                )
+            )
 
         update_shape = textwrap.indent(
-            '\n' + ',\n'.join(assignments), '    ' * 4)
+            '\n' + ',\n'.join(assignments), '    ' * 4
+        )
 
         parent_update_query = textwrap.dedent(f'''\
             UPDATE schema::{refcls.__name__}
@@ -1000,13 +1001,15 @@ def _update_lprops(
 
         shape = textwrap.indent(f'\n{shape}', '    ' * 5)
 
-        assignments.append(textwrap.dedent(
-            f'''\
+        assignments.append(
+            textwrap.dedent(
+                f'''\
             {refdict.attr} += (
                 SELECT DETACHED schema::{target_clsname} {{{shape}
                 }} FILTER .id = <uuid>$__{target_link}
             )'''
-        ))
+            )
+        )
 
         if reflect_as_link:
             shadow_clslayout = classlayout[refcls]
@@ -1025,18 +1028,21 @@ def _update_lprops(
 
             shadow_shape = textwrap.indent(f'\n{shadow_shape}', '    ' * 6)
 
-            assignments.append(textwrap.dedent(
-                f'''\
+            assignments.append(
+                textwrap.dedent(
+                    f'''\
                 {refdict.attr}__internal += (
                     SELECT DETACHED schema::{mcls.__name__} {{{shadow_shape}
                     }} FILTER .name__internal = <str>$__{target_link}_shadow
                 )'''
-            ))
+                )
+            )
 
             parent_variables.update(shadow_variables)
 
         update_shape = textwrap.indent(
-            '\n' + ',\n'.join(assignments), '    ' * 4)
+            '\n' + ',\n'.join(assignments), '    ' * 4
+        )
 
         parent_update_query = textwrap.dedent(f'''
             UPDATE schema::{refcls.__name__}
@@ -1119,8 +1125,8 @@ def write_meta_delete_object(
             # the fields in these cases, but the straightforward approaches
             # seemed like they'd hit more cases than we wanted.
             if isinstance(target, so.ObjectShell):
-                parent_variables[f'__{target_link}'] = (
-                    json.dumps(str(target.get_name(schema)))
+                parent_variables[f'__{target_link}'] = json.dumps(
+                    str(target.get_name(schema))
                 )
 
                 parent_update_query = f'''
@@ -1135,8 +1141,8 @@ def write_meta_delete_object(
                     }}
                 '''
             else:
-                parent_variables[f'__{target_link}'] = (
-                    json.dumps(str(target.id))
+                parent_variables[f'__{target_link}'] = json.dumps(
+                    str(target.id)
                 )
 
                 parent_update_query = f'''
@@ -1152,16 +1158,15 @@ def write_meta_delete_object(
                 '''
 
             ref_name = context.get_referrer_name(refctx)
-            parent_variables['__parent_classname'] = (
-                json.dumps(str(ref_name))
-            )
+            parent_variables['__parent_classname'] = json.dumps(str(ref_name))
 
             blocks.append((parent_update_query, parent_variables))
 
         # We need to delete any links created via reflection_proxy
         layout = classlayout[mcls]
         proxy_links = [
-            link for link, layout_entry in layout.items()
+            link
+            for link, layout_entry in layout.items()
             if layout_entry.reflection_proxy
         ]
 

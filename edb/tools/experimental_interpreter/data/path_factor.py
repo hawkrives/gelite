@@ -277,7 +277,6 @@ def sub_select_hoist(top_e: Expr, dbschema: e.TcCtx) -> Expr:
 
 
 def select_hoist(expr: Expr, dbschema: e.TcCtx) -> Expr:
-
     top_paths = toppath_for_factoring(expr, dbschema)
     fresh_names: list[str] = [next_name() for p in top_paths]
     fresh_vars: list[Expr] = [FreeVarExpr(n) for n in fresh_names]
@@ -290,9 +289,9 @@ def select_hoist(expr: Expr, dbschema: e.TcCtx) -> Expr:
     post_process_transform: Callable[[Expr], Expr]
     match expr:
         # only perform special factoring if there is an order
-        case FilterOrderExpr(
-            subject=subject, filter=filter, order=order
-        ) if order:
+        case FilterOrderExpr(subject=subject, filter=filter, order=order) if (
+            order
+        ):
             bindname = next_name()
             inner_e = OptionalForExpr(
                 FilterOrderExpr(
@@ -364,9 +363,7 @@ def select_hoist(expr: Expr, dbschema: e.TcCtx) -> Expr:
 
             post_process_transform = post_processing
         case _:
-            after_e = iterative_subst_expr_for_expr(
-                fresh_vars, top_paths, expr
-            )
+            after_e = iterative_subst_expr_for_expr(fresh_vars, top_paths, expr)
             inner_e = sub_select_hoist(after_e, dbschema)
 
             def id_transform(x):

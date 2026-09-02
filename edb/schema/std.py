@@ -51,7 +51,6 @@ CACHE_SRC_DIRS = (
 
 
 def get_std_module_text(modname: sn.Name) -> str:
-
     module_eql = ''
 
     module_path = LIB_ROOT / str(modname)
@@ -80,7 +79,6 @@ def load_std_module(
     schema: s_schema.Schema,
     modname: sn.Name,
 ) -> s_schema.Schema:
-
     return s_ddl.apply_ddl_script(
         get_std_module_text(modname),
         schema=schema,

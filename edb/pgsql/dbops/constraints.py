@@ -51,8 +51,10 @@ class Constraint(base.DBObject):
 
     def get_id(self):
         return '{} ON {} {}'.format(
-            self.constraint_name(), self.get_subject_type(),
-            self.get_subject_name())
+            self.constraint_name(),
+            self.get_subject_type(),
+            self.get_subject_name(),
+        )
 
     def constraint_name(self, quote=True) -> str:
         if quote and self._constraint_name:

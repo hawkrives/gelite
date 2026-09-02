@@ -35,7 +35,6 @@ def find_edgedb_root():
 
 
 class TestCodeQuality(unittest.TestCase):
-
     def test_cqa_empty_init(self):
         edgepath = find_edgedb_root()
         for sn in EMPTY_INIT_FILES:
@@ -49,4 +48,5 @@ class TestCodeQuality(unittest.TestCase):
                         continue
 
                     self.fail(
-                        f'{fn} must be an empty file (except Python comments)')
+                        f'{fn} must be an empty file (except Python comments)'
+                    )

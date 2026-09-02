@@ -54,23 +54,22 @@ class AnnotationValue(
     reflection_link='annotation',
     data_safe=True,
 ):
-
     subject = so.SchemaField(
-        so.Object, compcoef=1.0, default=None, inheritable=False)
+        so.Object, compcoef=1.0, default=None, inheritable=False
+    )
 
     # N.B: This is really an Annotation, and we even patch it up below
     # to be one, but we can't reference it here because it hasn't been
     # declared. (And the tricks used for this sort of thing elsewhere
     # don't work for reflection AS_LINK)
-    annotation = so.SchemaField(
-        so.Object, compcoef=0.429, ddl_identity=True)
+    annotation = so.SchemaField(so.Object, compcoef=0.429, ddl_identity=True)
 
-    value = so.SchemaField(
-        str, compcoef=0.909)
+    value = so.SchemaField(str, compcoef=0.909)
 
     def get_annotation(self, schema: s_schema.Schema) -> Annotation:
         return self.get_field_value(  # type: ignore[no-any-return]
-            schema, 'annotation')
+            schema, 'annotation'
+        )
 
     def should_propagate(self, schema: s_schema.Schema) -> bool:
         return self.get_annotation(schema).get_inheritable(schema)
@@ -101,15 +100,16 @@ T = TypeVar("T")
 
 
 class AnnotationSubject(so.Object):
-
-    annotations_refs = so.RefDict(
-        attr='annotations',
-        ref_cls=AnnotationValue)
+    annotations_refs = so.RefDict(attr='annotations', ref_cls=AnnotationValue)
 
     annotations = so.SchemaField(
         so.ObjectIndexByShortname[AnnotationValue],
-        inheritable=False, ephemeral=True, coerce=True, compcoef=0.909,
-        default=so.DEFAULT_CONSTRUCTOR)
+        inheritable=False,
+        ephemeral=True,
+        coerce=True,
+        compcoef=0.909,
+        default=so.DEFAULT_CONSTRUCTOR,
+    )
 
     def get_annotation(
         self,
@@ -128,7 +128,8 @@ class AnnotationSubject(so.Object):
         if annotation_text is None:
             vn = self.get_verbosename(schema, with_parent=True)
             raise errors.SchemaDefinitionError(
-                f"annotation {name} on {vn} is not set")
+                f"annotation {name} on {vn} is not set"
+            )
 
         return annotation_text
 
@@ -148,7 +149,8 @@ class AnnotationSubject(so.Object):
                 vn = self.get_verbosename(schema, with_parent=True)
                 raise errors.SchemaDefinitionError(
                     f"annotation {name} on {vn} is not set to "
-                    f"a valid JSON value")
+                    f"a valid JSON value"
+                )
 
             try:
                 return t(value)
@@ -182,9 +184,7 @@ class Annotation(
     qlkind=qltypes.SchemaObjectClass.ANNOTATION,
     data_safe=True,
 ):
-
-    inheritable = so.SchemaField(
-        bool, default=False, compcoef=0.2)
+    inheritable = so.SchemaField(bool, default=False, compcoef=0.2)
 
     def get_verbosename(
         self, schema: s_schema.Schema, *, with_parent: bool = False
@@ -205,15 +205,17 @@ class AnnotationSubjectCommand(sd.ObjectCommand[so.Object_T]):
     pass
 
 
-class AnnotationCommandContext(sd.ObjectCommandContext[Annotation],
-                               AnnotationSubjectCommandContext):
+class AnnotationCommandContext(
+    sd.ObjectCommandContext[Annotation], AnnotationSubjectCommandContext
+):
     pass
 
 
-class AnnotationCommand(sd.QualifiedObjectCommand[Annotation],
-                        AnnotationSubjectCommand[Annotation],
-                        context_class=AnnotationCommandContext):
-
+class AnnotationCommand(
+    sd.QualifiedObjectCommand[Annotation],
+    AnnotationSubjectCommand[Annotation],
+    context_class=AnnotationCommandContext,
+):
     def get_ast_attr_for_field(
         self,
         field: str,
@@ -247,7 +249,6 @@ class CreateAnnotation(AnnotationCommand, sd.CreateObject[Annotation]):
 
 
 class RenameAnnotation(AnnotationCommand, sd.RenameObject[Annotation]):
-
     def _canonicalize(
         self,
         schema: s_schema.Schema,
@@ -261,7 +262,9 @@ class RenameAnnotation(AnnotationCommand, sd.RenameObject[Annotation]):
         annot_vals = cast(
             AbstractSet[AnnotationValue],
             schema.get_referrers(
-                scls, scls_type=AnnotationValue, field_name='annotation'))
+                scls, scls_type=AnnotationValue, field_name='annotation'
+            ),
+        )
 
         for ref in annot_vals:
             if ref.get_implicit_bases(schema):
@@ -275,12 +278,14 @@ class RenameAnnotation(AnnotationCommand, sd.RenameObject[Annotation]):
                 module=ref_name.module,
             )
 
-            self.add(self.init_rename_branch(
-                ref,
-                new_ref_name,
-                schema=schema,
-                context=context,
-            ))
+            self.add(
+                self.init_rename_branch(
+                    ref,
+                    new_ref_name,
+                    schema=schema,
+                    context=context,
+                )
+            )
 
 
 class AlterAnnotation(AnnotationCommand, sd.AlterObject[Annotation]):
@@ -300,7 +305,6 @@ class AnnotationValueCommand(
     context_class=AnnotationValueCommandContext,
     referrer_context_class=AnnotationSubjectCommandContext,
 ):
-
     def _deparse_name(
         self,
         schema: s_schema.Schema,
@@ -331,7 +335,8 @@ class AnnotationValueCommand(
 
         base_name = base_ref.name
         quals = cls._classname_quals_from_ast(
-            schema, astnode, base_name, referrer_name, context)
+            schema, astnode, base_name, referrer_name, context
+        )
         pnn = sn.get_specialized_name(base_name, str(referrer_name), *quals)
         return sn.QualName(name=pnn, module=referrer_name.module)
 
@@ -362,7 +367,7 @@ class CreateAnnotationValue(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.DDLOperation,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> CreateAnnotationValue:
         assert isinstance(astnode, qlast.CreateAnnotationValue)
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)
@@ -370,7 +375,8 @@ class CreateAnnotationValue(
         annoname = sn.shortname_from_fullname(cmd.classname)
 
         value, ir = qlcompiler.evaluate_ast_to_python_val_and_ir(
-            astnode.value, schema=schema)
+            astnode.value, schema=schema
+        )
 
         if ir.stype.get_name(schema) != sn.QualName('std', 'str'):
             vn = ir.stype.get_verbosename(schema)
@@ -411,8 +417,9 @@ class CreateAnnotationValue(
     ) -> None:
         if op.property == 'value':
             assert isinstance(op.new_value, str)
-            assert isinstance(node, (
-                qlast.CreateAnnotationValue, qlast.AlterAnnotationValue))
+            assert isinstance(
+                node, (qlast.CreateAnnotationValue, qlast.AlterAnnotationValue)
+            )
             node.value = qlast.Constant.string(op.new_value)
         else:
             super()._apply_field_ast(schema, context, node, op)
@@ -431,7 +438,6 @@ class AlterAnnotationValue(
     AnnotationValueCommand,
     referencing.AlterReferencedInheritingObject[AnnotationValue],
 ):
-
     astnode = qlast.AlterAnnotationValue
     referenced_astnode = qlast.AlterAnnotationValue
 
@@ -440,7 +446,7 @@ class AlterAnnotationValue(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.DDLOperation,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> AlterAnnotationValue:
         assert isinstance(
             astnode,
@@ -451,7 +457,8 @@ class AlterAnnotationValue(
 
         if astnode.value is not None:
             value, ir = qlcompiler.evaluate_ast_to_python_val_and_ir(
-                astnode.value, schema=schema)
+                astnode.value, schema=schema
+            )
 
             if ir.stype.get_name(schema) != sn.QualName('std', 'str'):
                 vn = ir.stype.get_verbosename(schema)
@@ -483,22 +490,22 @@ class AlterAnnotationValue(
         *,
         parent_node: Optional[qlast.DDLOperation] = None,
     ) -> Optional[qlast.DDLOperation]:
-        if (
-            not self.has_attribute_value('value')
-            and not self.has_attribute_value('owned')
-        ):
+        if not self.has_attribute_value(
+            'value'
+        ) and not self.has_attribute_value('owned'):
             return None
         # Skip AlterObject's _get_ast, because we *don't* want to
         # filter out things without subcommands!
         return sd.ObjectCommand._get_ast(
-            self, schema, context, parent_node=parent_node)
+            self, schema, context, parent_node=parent_node
+        )
 
     def _apply_field_ast(
         self,
         schema: s_schema.Schema,
         context: sd.CommandContext,
         node: qlast.DDLOperation,
-        op: sd.AlterObjectProperty
+        op: sd.AlterObjectProperty,
     ) -> None:
         assert isinstance(node, qlast.AlterAnnotationValue)
 
@@ -527,7 +534,6 @@ class DeleteAnnotationValue(
     AnnotationValueCommand,
     referencing.DeleteReferencedInheritingObject[AnnotationValue],
 ):
-
     astnode = qlast.DropAnnotationValue
 
     @classmethod
@@ -535,7 +541,7 @@ class DeleteAnnotationValue(
         cls,
         schema: s_schema.Schema,
         astnode: qlast.DDLOperation,
-        context: sd.CommandContext
+        context: sd.CommandContext,
     ) -> DeleteAnnotationValue:
         assert isinstance(astnode, qlast.DropAnnotationValue)
         cmd = super()._cmd_tree_from_ast(schema, astnode, context)

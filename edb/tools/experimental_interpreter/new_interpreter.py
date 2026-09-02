@@ -4,6 +4,7 @@ from __future__ import annotations
 import sys
 import traceback
 import os
+
 try:
     import readline
 except ImportError:
@@ -156,7 +157,6 @@ def run_statement(
     logs: Optional[list[Any]],
     variables: VariablesTp = None,
 ) -> tuple[MultiSetVal, e.ResultTp]:
-
     deduped, tp = prepare_statement(stmt, dbschema, should_print)
     result = run_prepared_statement(
         db, deduped, tp, dbschema, should_print, logs, variables
@@ -209,7 +209,6 @@ def run_str(
     print_asts: bool = False,
     logs: Optional[list[str]] = None,
 ) -> Sequence[MultiSetVal]:
-
     q = parse_ql(s)
     res = run_stmts(db, q, dbschema, print_asts, logs)
     return res
@@ -370,7 +369,6 @@ def dbschema_and_db_with_initial_schema_and_queries(
 
 
 class EdgeQLInterpreter:
-
     def __init__(
         self,
         initial_schema_defs: Optional[str] = None,
@@ -427,9 +425,7 @@ class EdgeQLInterpreter:
 
     def query_str(self, s: str) -> Sequence[MultiSetVal]:
         q = parse_ql(s)
-        res = run_stmts(
-            self.db, q, self.dbschema, debug_print=False, logs=None
-        )
+        res = run_stmts(self.db, q, self.dbschema, debug_print=False, logs=None)
         return res
 
 

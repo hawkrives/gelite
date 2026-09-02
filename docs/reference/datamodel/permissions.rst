@@ -87,25 +87,6 @@ Built-in permissions
     Required for setting ``allow_user_specified_id``.
 
 
-:eql:synopsis:`std::net::perm::http_write`
-    Required for issuing HTTP requests.
-
-:eql:synopsis:`std::net::perm::http_read`
-    Required for reading status of issued HTTP requests and responses.
-
-
-Permissions for :ref:`auth <ref_guide_auth>` extension:
-
-:eql:synopsis:`ext::auth::perm::auth_read`
-
-:eql:synopsis:`ext::auth::perm::auth_write`
-
-:eql:synopsis:`ext::auth::perm::auth_read_user`
-
-
-Permissions for ``ai`` extension are described
-in :ref:`AI extension reference <ref_ai_extai_reference_permissions>`.
-
 
 Custom permissions
 ==================

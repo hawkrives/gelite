@@ -29,8 +29,7 @@ from edb.schema import pointers as s_pointers
 class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
     """Unit tests for path id logic."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
     def extend(self, pid, step, ns=frozenset(), dir='>'):
         nschema, typ = irtyputils.ir_typeref_to_type(self.schema, pid.target)
@@ -38,7 +37,8 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
         ptr = None
         if rptr := pid.rptr():
             nschema, ptr = irtyputils.ptrcls_from_ptrref(
-                rptr, schema=self.schema)
+                rptr, schema=self.schema
+            )
             assert nschema == self.schema
 
         dir = s_pointers.PointerDirection(dir)
@@ -87,9 +87,7 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
         deck_ptr = User.getptr(self.schema, s_name.UnqualName('deck'))
 
         pid_1 = self.mk_path('User')
-        self.assertEqual(
-            str(pid_1),
-            '(default::User)')
+        self.assertEqual(str(pid_1), '(default::User)')
 
         self.assertTrue(pid_1.is_objtype_path())
         self.assertFalse(pid_1.is_scalar_path())
@@ -101,20 +99,17 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
 
         pid_2 = self.extend(pid_1, 'deck')
 
-        self.assertEqual(
-            str(pid_2),
-            '(default::User).>deck[IS default::Card]')
+        self.assertEqual(str(pid_2), '(default::User).>deck[IS default::Card]')
 
         self.assertEqual(pid_2.rptr().name, deck_ptr.get_name(self.schema))
-        self.assertEqual(pid_2.rptr_dir(),
-                         s_pointers.PointerDirection.Outbound)
+        self.assertEqual(pid_2.rptr_dir(), s_pointers.PointerDirection.Outbound)
         self.assertEqual(pid_2.rptr_name().name, 'deck')
         self.assertEqual(pid_2.src_path(), pid_1)
 
         ptr_pid = pid_2.ptr_path()
         self.assertEqual(
-            str(ptr_pid),
-            '(default::User).>deck[IS default::Card]@')
+            str(ptr_pid), '(default::User).>deck[IS default::Card]@'
+        )
 
         self.assertTrue(ptr_pid.is_ptr_path())
         self.assertFalse(ptr_pid.is_objtype_path())
@@ -125,7 +120,8 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
         prop_pid = self.extend(pid_2, '@count')
         self.assertEqual(
             str(prop_pid),
-            '(default::User).>deck[IS default::Card]@count[IS std::int64]')
+            '(default::User).>deck[IS default::Card]@count[IS std::int64]',
+        )
 
         self.assertFalse(prop_pid.is_ptr_path())
         self.assertFalse(prop_pid.is_objtype_path())
@@ -194,7 +190,7 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
                 'foo@@(default::Card).>owners[IS default::User]',
                 'bar@foo@@(default::Card).>owners[IS default::User]'
                 '.>deck[IS default::Card]',
-            ]
+            ],
         )
 
     def test_edgeql_ir_pathid_replace_01(self):
@@ -228,12 +224,14 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
         ptr_2 = self.extend(base_2, '@count')
 
         ptr_1b = irtyputils.replace_pathid_prefix(
-            ptr_1, base_1, base_2, permissive_ptr_path=True)
+            ptr_1, base_1, base_2, permissive_ptr_path=True
+        )
 
         self.assertEqual(repr(ptr_2), repr(ptr_1b))
 
         ptr_1b = irtyputils.replace_pathid_prefix(
-            ptr_1, base_1.ptr_path(), base_2.ptr_path())
+            ptr_1, base_1.ptr_path(), base_2.ptr_path()
+        )
 
         self.assertEqual(repr(ptr_2), repr(ptr_1b))
 
@@ -245,6 +243,7 @@ class TestEdgeQLIRPathID(tb.BaseEdgeQLCompilerTest):
         ptr_2 = self.extend(base_2, '@count')
 
         ptr_1b = irtyputils.replace_pathid_prefix(
-            ptr_1, base_1, base_2, permissive_ptr_path=True)
+            ptr_1, base_1, base_2, permissive_ptr_path=True
+        )
 
         self.assertEqual(repr(ptr_2), repr(ptr_1b))

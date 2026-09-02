@@ -25,11 +25,13 @@ from edb.testbase import server as tb
 class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
     '''The scope is to test unusual scalar links.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'inventory.esdl')
+    SCHEMA = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'inventory.esdl'
+    )
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'inventory_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'inventory_setup.edgeql'
+    )
 
     async def test_edgeql_links_basic_02(self):
         await self.assert_query_result(
@@ -47,43 +49,50 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'tag_set1': {'plastic', 'round'},
                     'tag_set2': {'plastic', 'round'},
                     'tag_array': None,
-                }, {
+                },
+                {
                     'name': 'chair',
                     'tag_set1': {'wood', 'rectangle'},
                     'tag_set2': [],
                     'tag_array': ['wood', 'rectangle'],
-                }, {
+                },
+                {
                     'name': 'ectoplasm',
                     'tag_set1': [],
                     'tag_set2': [],
                     'tag_array': None,
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'tag_set1': {'metal', 'plastic'},
                     'tag_set2': {'metal', 'plastic'},
                     'tag_array': ['metal', 'plastic'],
-                }, {
+                },
+                {
                     'name': 'mystery toy',
                     'tag_set1': [],
                     'tag_set2': [],
                     'tag_array': None,
-                }, {
+                },
+                {
                     'name': 'table',
                     'tag_set1': {'wood', 'rectangle'},
                     'tag_set2': {'wood', 'rectangle'},
                     'tag_array': ['wood', 'rectangle'],
-                }, {
+                },
+                {
                     'name': 'teapot',
                     'tag_set1': [],
                     'tag_set2': [],
                     'tag_array': ['ceramic', 'round'],
-                }, {
+                },
+                {
                     'name': 'tv',
                     'tag_set1': [],
                     'tag_set2': {'plastic', 'rectangle'},
                     'tag_array': ['plastic', 'rectangle'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_links_map_scalars_01(self):
@@ -100,36 +109,43 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'name': 'ball',
                     'tag_set1': ['round', 'plastic'],
                     'tag_set2': ['plastic', 'round'],
-                }, {
+                },
+                {
                     'name': 'chair',
                     'tag_set1': ['wood', 'rectangle'],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'ectoplasm',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'tag_set1': ['plastic', 'metal'],
                     'tag_set2': ['metal', 'plastic'],
-                }, {
+                },
+                {
                     'name': 'mystery toy',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'table',
                     'tag_set1': ['wood', 'rectangle'],
                     'tag_set2': ['rectangle', 'wood'],
-                }, {
+                },
+                {
                     'name': 'teapot',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'tv',
                     'tag_set1': [],
                     'tag_set2': ['plastic', 'rectangle'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_links_map_scalars_02(self):
@@ -146,36 +162,43 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'name': 'ball',
                     'tag_set1': ['round'],
                     'tag_set2': ['round'],
-                }, {
+                },
+                {
                     'name': 'chair',
                     'tag_set1': ['wood'],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'ectoplasm',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'tag_set1': ['plastic'],
                     'tag_set2': ['plastic'],
-                }, {
+                },
+                {
                     'name': 'mystery toy',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'table',
                     'tag_set1': ['wood'],
                     'tag_set2': ['wood'],
-                }, {
+                },
+                {
                     'name': 'teapot',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'tv',
                     'tag_set1': [],
                     'tag_set2': ['rectangle'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_links_map_scalars_03(self):
@@ -192,36 +215,43 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'name': 'ball',
                     'tag_set1': {'plastic', 'round'},
                     'tag_set2': {'plastic', 'round'},
-                }, {
+                },
+                {
                     'name': 'chair',
                     'tag_set1': {'wood', 'rectangle'},
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'ectoplasm',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'tag_set1': {'plastic'},
                     'tag_set2': {'metal', 'plastic'},
-                }, {
+                },
+                {
                     'name': 'mystery toy',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'table',
                     'tag_set1': {'wood', 'rectangle'},
                     'tag_set2': {'rectangle'},
-                }, {
+                },
+                {
                     'name': 'teapot',
                     'tag_set1': [],
                     'tag_set2': [],
-                }, {
+                },
+                {
                     'name': 'tv',
                     'tag_set1': [],
                     'tag_set2': {'plastic', 'rectangle'},
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_links_set_01(self):
@@ -234,7 +264,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'ball'},
                 {'name': 'floor lamp'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -247,7 +277,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {'name': 'ball'},
                 {'name': 'floor lamp'},
                 {'name': 'tv'},
-            ]
+            ],
         )
 
     async def test_edgeql_links_set_02(self):
@@ -260,7 +290,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'ball'},
                 {'name': 'floor lamp'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -273,7 +303,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {'name': 'ball'},
                 {'name': 'floor lamp'},
                 {'name': 'tv'},
-            ]
+            ],
         )
 
     async def test_edgeql_links_set_03(self):
@@ -288,7 +318,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair'},
                 {'name': 'table'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -301,7 +331,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             ''',
             [
                 {'name': 'table'},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -315,7 +345,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair'},
                 {'name': 'table'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -327,7 +357,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'table'},
                 {'name': 'tv'},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -343,7 +373,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair'},
                 {'name': 'table'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -355,7 +385,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'table'},
                 {'name': 'tv'},
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -382,31 +412,38 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'name': 'ball',
                     'foo': [],
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'chair',
                     'foo': {'wood', 'rectangle'},
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'ectoplasm',
                     'foo': [],
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'foo': [],
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'mystery toy',
                     'foo': [],
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'table',
                     'foo': {'wood', 'rectangle'},
                     'bar': {'wood', 'rectangle'},
-                }, {
+                },
+                {
                     'name': 'teapot',
                     'foo': [],
                     'bar': [],
-                }, {
+                },
+                {
                     'name': 'tv',
                     'foo': [],
                     'bar': {'rectangle'},
@@ -429,7 +466,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair'},
                 {'name': 'table'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -464,7 +501,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair'},
                 {'name': 'table'},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -503,7 +540,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
             [
                 {'name': 'chair', 'tag_set1': {'rectangle', 'wood'}},
                 {'name': 'table', 'tag_set1': {'rectangle', 'wood'}},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -561,31 +598,14 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'ball',
-                    'unique': ['round']
-                }, {
-                    'name': 'chair',
-                    'unique': []
-                }, {
-                    'name': 'ectoplasm',
-                    'unique': []
-                }, {
-                    'name': 'floor lamp',
-                    'unique': ['metal']
-                }, {
-                    'name': 'mystery toy',
-                    'unique': []
-                }, {
-                    'name': 'table',
-                    'unique': []
-                }, {
-                    'name': 'teapot',
-                    'unique': []
-                }, {
-                    'name': 'tv',
-                    'unique': []
-                },
+                {'name': 'ball', 'unique': ['round']},
+                {'name': 'chair', 'unique': []},
+                {'name': 'ectoplasm', 'unique': []},
+                {'name': 'floor lamp', 'unique': ['metal']},
+                {'name': 'mystery toy', 'unique': []},
+                {'name': 'table', 'unique': []},
+                {'name': 'teapot', 'unique': []},
+                {'name': 'tv', 'unique': []},
             ],
         )
 
@@ -611,7 +631,8 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'ball',
                     'unique': 1,
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'unique': 1,
                 },
@@ -641,7 +662,8 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'ball',
                     'unique': ['round'],
-                }, {
+                },
+                {
                     'name': 'floor lamp',
                     'unique': ['metal'],
                 },
@@ -679,31 +701,14 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'ball',
-                    'unpack': []
-                }, {
-                    'name': 'chair',
-                    'unpack': {'rectangle', 'wood'}
-                }, {
-                    'name': 'ectoplasm',
-                    'unpack': []
-                }, {
-                    'name': 'floor lamp',
-                    'unpack': {'metal', 'plastic'}
-                }, {
-                    'name': 'mystery toy',
-                    'unpack': []
-                }, {
-                    'name': 'table',
-                    'unpack': {'rectangle', 'wood'}
-                }, {
-                    'name': 'teapot',
-                    'unpack': {'ceramic', 'round'}
-                }, {
-                    'name': 'tv',
-                    'unpack': {'plastic', 'rectangle'}
-                },
+                {'name': 'ball', 'unpack': []},
+                {'name': 'chair', 'unpack': {'rectangle', 'wood'}},
+                {'name': 'ectoplasm', 'unpack': []},
+                {'name': 'floor lamp', 'unpack': {'metal', 'plastic'}},
+                {'name': 'mystery toy', 'unpack': []},
+                {'name': 'table', 'unpack': {'rectangle', 'wood'}},
+                {'name': 'teapot', 'unpack': {'ceramic', 'round'}},
+                {'name': 'tv', 'unpack': {'plastic', 'rectangle'}},
             ],
         )
 
@@ -718,31 +723,14 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'ball',
-                    'unpack': []
-                }, {
-                    'name': 'chair',
-                    'unpack': {'rectangle', 'wood'}
-                }, {
-                    'name': 'ectoplasm',
-                    'unpack': []
-                }, {
-                    'name': 'floor lamp',
-                    'unpack': {'metal', 'plastic'}
-                }, {
-                    'name': 'mystery toy',
-                    'unpack': []
-                }, {
-                    'name': 'table',
-                    'unpack': {'rectangle', 'wood'}
-                }, {
-                    'name': 'teapot',
-                    'unpack': {'ceramic', 'round'}
-                }, {
-                    'name': 'tv',
-                    'unpack': {'plastic', 'rectangle'}
-                },
+                {'name': 'ball', 'unpack': []},
+                {'name': 'chair', 'unpack': {'rectangle', 'wood'}},
+                {'name': 'ectoplasm', 'unpack': []},
+                {'name': 'floor lamp', 'unpack': {'metal', 'plastic'}},
+                {'name': 'mystery toy', 'unpack': []},
+                {'name': 'table', 'unpack': {'rectangle', 'wood'}},
+                {'name': 'teapot', 'unpack': {'ceramic', 'round'}},
+                {'name': 'tv', 'unpack': {'plastic', 'rectangle'}},
             ],
         )
 
@@ -753,9 +741,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 FILTER 'metal' IN array_unpack(.tag_array)
                 ORDER BY .name;
             ''',
-            [
-                {'name': 'floor lamp'}
-            ],
+            [{'name': 'floor lamp'}],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -766,9 +752,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 FILTER 'metal' = array_unpack(.tag_array)
                 ORDER BY .name;
             ''',
-            [
-                {'name': 'floor lamp'}
-            ],
+            [{'name': 'floor lamp'}],
         )
 
     async def test_edgeql_links_array_05(self):
@@ -779,9 +763,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 FILTER array_get(.tag_array, 0) = 'metal'
                 ORDER BY .name;
             ''',
-            [
-                {'name': 'floor lamp'}
-            ],
+            [{'name': 'floor lamp'}],
         )
 
     async def test_edgeql_links_array_06(self):
@@ -791,9 +773,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 FILTER .tag_array = ['metal', 'plastic']
                 ORDER BY .name;
             ''',
-            [
-                {'name': 'floor lamp'}
-            ],
+            [{'name': 'floor lamp'}],
         )
 
     async def test_edgeql_links_array_07(self):
@@ -850,31 +830,14 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'ball',
-                    'unique': []
-                }, {
-                    'name': 'chair',
-                    'unique': []
-                }, {
-                    'name': 'ectoplasm',
-                    'unique': []
-                }, {
-                    'name': 'floor lamp',
-                    'unique': {'metal'}
-                }, {
-                    'name': 'mystery toy',
-                    'unique': []
-                }, {
-                    'name': 'table',
-                    'unique': []
-                }, {
-                    'name': 'teapot',
-                    'unique': {'ceramic', 'round'}
-                }, {
-                    'name': 'tv',
-                    'unique': []
-                },
+                {'name': 'ball', 'unique': []},
+                {'name': 'chair', 'unique': []},
+                {'name': 'ectoplasm', 'unique': []},
+                {'name': 'floor lamp', 'unique': {'metal'}},
+                {'name': 'mystery toy', 'unique': []},
+                {'name': 'table', 'unique': []},
+                {'name': 'teapot', 'unique': {'ceramic', 'round'}},
+                {'name': 'tv', 'unique': []},
             ],
         )
 
@@ -899,13 +862,8 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'floor lamp',
-                    'unique': {'metal'}
-                }, {
-                    'name': 'teapot',
-                    'unique': {'ceramic', 'round'}
-                },
+                {'name': 'floor lamp', 'unique': {'metal'}},
+                {'name': 'teapot', 'unique': {'ceramic', 'round'}},
             ],
         )
 
@@ -938,10 +896,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 ORDER BY .name;
             ''',
             [
-                {
-                    'name': 'teapot',
-                    'tag_array': {'ceramic', 'round'}
-                },
+                {'name': 'teapot', 'tag_array': {'ceramic', 'round'}},
             ],
         )
 
@@ -972,8 +927,12 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'n1': ['table'],
                     'n2': 'table',
                     't1': [['rectangle'], ['wood']],
-                    't2': [['rectangle', 'rectangle'], ['rectangle', 'wood'],
-                           ['wood', 'rectangle'], ['wood', 'wood']],
+                    't2': [
+                        ['rectangle', 'rectangle'],
+                        ['rectangle', 'wood'],
+                        ['wood', 'rectangle'],
+                        ['wood', 'wood'],
+                    ],
                     't3': ['rectangle', 'wood'],
                     't4': ['rectangle', 'rectangle', 'wood', 'wood'],
                 },
@@ -984,7 +943,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 't2': lambda x: (x[0], x[1]),
                 't3': lambda x: x,
                 't4': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_tuple_02(self):
@@ -1036,8 +995,12 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'n1': ['table'],
                     'n2': 'table',
                     't1': [['rectangle'], ['wood']],
-                    't2': [['rectangle', 'rectangle'], ['rectangle', 'wood'],
-                           ['wood', 'rectangle'], ['wood', 'wood']],
+                    't2': [
+                        ['rectangle', 'rectangle'],
+                        ['rectangle', 'wood'],
+                        ['wood', 'rectangle'],
+                        ['wood', 'wood'],
+                    ],
                     't3': ['rectangle', 'wood'],
                     't4': ['rectangle', 'rectangle', 'wood', 'wood'],
                     'a1': ['wood', 'rectangle'],
@@ -1050,7 +1013,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 't2': lambda x: (x[0], x[1]),
                 't3': lambda x: x,
                 't4': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_02(self):
@@ -1084,8 +1047,12 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'n1': ['table'],
                     'n2': 'table',
                     't1': [['rectangle'], ['wood']],
-                    't2': [['rectangle', 'rectangle'], ['rectangle', 'wood'],
-                           ['wood', 'rectangle'], ['wood', 'wood']],
+                    't2': [
+                        ['rectangle', 'rectangle'],
+                        ['rectangle', 'wood'],
+                        ['wood', 'rectangle'],
+                        ['wood', 'wood'],
+                    ],
                     't3': ['rectangle', 'wood'],
                     't4': ['rectangle', 'rectangle', 'wood', 'wood'],
                     'a1': ['wood', 'rectangle'],
@@ -1098,7 +1065,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 't2': lambda x: (x[0], x[1]),
                 't3': lambda x: x,
                 't4': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_03(self):
@@ -1121,15 +1088,23 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'table',
                     'a_a1': ['rectangle', 'wood'],
-                    'a_t2': ['rectangle', 'rectangle', 'rectangle',
-                             'rectangle', 'wood', 'wood', 'wood', 'wood'],
+                    'a_t2': [
+                        'rectangle',
+                        'rectangle',
+                        'rectangle',
+                        'rectangle',
+                        'wood',
+                        'wood',
+                        'wood',
+                        'wood',
+                    ],
                 },
             ],
             sort={
                 # sort the data
                 'a_a1': lambda x: x,
                 'a_t2': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_04(self):
@@ -1152,15 +1127,23 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'table',
                     'a_a1': ['rectangle', 'wood'],
-                    'a_t2': ['rectangle', 'rectangle', 'rectangle',
-                             'rectangle', 'wood', 'wood', 'wood', 'wood'],
+                    'a_t2': [
+                        'rectangle',
+                        'rectangle',
+                        'rectangle',
+                        'rectangle',
+                        'wood',
+                        'wood',
+                        'wood',
+                        'wood',
+                    ],
                 },
             ],
             sort={
                 # sort the data
                 'a_a1': lambda x: x,
                 'a_t2': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_05(self):
@@ -1195,7 +1178,7 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 # sort the data
                 'a_a1': lambda x: x,
                 'a_t2': lambda x: x,
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_06(self):
@@ -1224,13 +1207,13 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                     'name': 'table',
                     'a_a1': ['rectangle'],
                     'a_t2': [['rectangle'], ['rectangle'], ['wood'], ['wood']],
-                }
+                },
             ],
             sort={
                 # sort the data
                 'a_a1': lambda x: x,
                 'a_t2': lambda x: x[0],
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_07(self):
@@ -1248,8 +1231,16 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'ball',
                     'a_a1': [],  # empty set of arrays
-                    'a_t2': [[], [], [], [],
-                             ['plastic'], ['plastic'], ['round'], ['round']],
+                    'a_t2': [
+                        [],
+                        [],
+                        [],
+                        [],
+                        ['plastic'],
+                        ['plastic'],
+                        ['round'],
+                        ['round'],
+                    ],
                 },
                 {
                     'name': 'chair',
@@ -1259,15 +1250,23 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'table',
                     'a_a1': [[], ['rectangle']],
-                    'a_t2': [[], [], [], [],
-                             ['rectangle'], ['rectangle'], ['wood'], ['wood']],
-                }
+                    'a_t2': [
+                        [],
+                        [],
+                        [],
+                        [],
+                        ['rectangle'],
+                        ['rectangle'],
+                        ['wood'],
+                        ['wood'],
+                    ],
+                },
             ],
             sort={
                 # sort the data
                 'a_a1': lambda x: x[0] if x else '',
                 'a_t2': lambda x: x[0] if x else '',
-            }
+            },
         )
 
     async def test_edgeql_links_derived_array_08(self):
@@ -1288,10 +1287,10 @@ class TestEdgeQLLinkToScalarTypes(tb.QueryTestCase):
                 {
                     'name': 'table',
                     're': [['rectangle'], ['wood']],
-                }
+                },
             ],
             sort={
                 # sort the data
                 're': lambda x: x[0],
-            }
+            },
         )

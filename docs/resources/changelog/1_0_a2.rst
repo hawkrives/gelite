@@ -238,7 +238,7 @@ Enhanced Filtering
 It is now possible to filter by traversing arbitrarily deep links,
 not just immediate properties:
 
-.. code-block:: graphql
+.. code-block:: text
 
     query {
       UserGroup(
@@ -255,7 +255,7 @@ not just immediate properties:
 Mutations
 ---------
 
-Insert, update, and delete :ref:`mutations <ref_graphql_mutations>`
+Insert, update, and delete mutations
 are now supported.
 
 Mutations support all the same parameters as a query like ``filter``,
@@ -264,8 +264,7 @@ Mutations support all the same parameters as a query like ``filter``,
 Insert and update mutations accept a ``data`` parameter that allows to
 specify what data to insert or how to update the existing data:
 
-.. using "graphql-schema" because the graphql syntax below is invalid
-.. code-block:: graphql-schema
+.. code-block:: text
 
     mutation update_Foo(
       filter: ...,

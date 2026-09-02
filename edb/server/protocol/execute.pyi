@@ -35,12 +35,11 @@ async def describe(
     *,
     query_cache_enabled: Optional[bool] = None,
     allow_capabilities: compiler.Capability = (
-        compiler.Capability.MODIFICATIONS),
+        compiler.Capability.MODIFICATIONS
+    ),
     query_tag: str | None = None,
     role_name: str,
-) -> sertypes.TypeDesc:
-    ...
-
+) -> sertypes.TypeDesc: ...
 async def parse_execute_json(
     db: dbview.Database,
     query: str,
@@ -54,15 +53,12 @@ async def parse_execute_json(
     tx_isolation: edbdef.TxIsolationLevel | None = None,
     query_tag: str | None = None,
     role_name: str | None = None,
-) -> bytes:
-    ...
-
+) -> bytes: ...
 async def interpret_error(
     exc: Exception,
     db: dbview.Database,
     *,
-    global_schema_pickle: object=None,
-    user_schema_pickle: object=None,
-    from_graphql: bool=False,
-) -> errors.EdgeDBError:
-    ...
+    global_schema_pickle: object = None,
+    user_schema_pickle: object = None,
+    from_graphql: bool = False,
+) -> errors.EdgeDBError: ...

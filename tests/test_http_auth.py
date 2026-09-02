@@ -185,62 +185,58 @@ class TestHttpAuth(BaseTestHttpAuth):
 
             req = urllib.request.Request(url, method='OPTIONS')
             req.add_header('Origin', 'https://example.edgedb.com')
-            response = urllib.request.urlopen(
-                req, context=self.tls_context
-            )
+            response = urllib.request.urlopen(req, context=self.tls_context)
             self.assertNotIn('Access-Control-Allow-Origin', response.headers)
 
             con = await sd.connect()
             try:
                 await con.execute(
                     'configure instance '
-                    'set cors_allow_origins := {"https://example.edgedb.com"}')
+                    'set cors_allow_origins := {"https://example.edgedb.com"}'
+                )
             finally:
                 await con.aclose()
             await self._wait_for_db_config(
-                'cors_allow_origins', instance_config=True, server=sd)
+                'cors_allow_origins', instance_config=True, server=sd
+            )
 
             req = urllib.request.Request(url, method='OPTIONS')
             req.add_header('Origin', 'https://example.edgedb.com')
-            response = urllib.request.urlopen(
-                req, context=self.tls_context
-            )
+            response = urllib.request.urlopen(req, context=self.tls_context)
             headers = response.headers
 
             self.assertIn('Access-Control-Allow-Origin', headers)
             self.assertEqual(
                 headers['Access-Control-Allow-Origin'],
-                'https://example.edgedb.com'
+                'https://example.edgedb.com',
             )
             self.assertIn('GET', headers['Access-Control-Allow-Methods'])
             self.assertIn(
-                'Authorization',
-                headers['Access-Control-Allow-Headers']
+                'Authorization', headers['Access-Control-Allow-Headers']
             )
             self.assertIn(
-                'WWW-Authenticate',
-                headers['Access-Control-Expose-Headers']
+                'WWW-Authenticate', headers['Access-Control-Expose-Headers']
             )
             self.assertIn(
-                'Authentication-Info',
-                headers['Access-Control-Expose-Headers']
+                'Authentication-Info', headers['Access-Control-Expose-Headers']
             )
 
             with self.http_con(sd) as con:
                 _, headers, status = self.http_con_request(
-                    con, {}, path="token",
-                    headers={'Origin': 'https://example.edgedb.com'}
+                    con,
+                    {},
+                    path="token",
+                    headers={'Origin': 'https://example.edgedb.com'},
                 )
                 self.assertEqual(status, 401)
                 self.assertIn('access-control-allow-origin', headers)
                 self.assertIn('access-control-expose-headers', headers)
                 self.assertIn(
-                    'WWW-Authenticate',
-                    headers['access-control-expose-headers']
+                    'WWW-Authenticate', headers['access-control-expose-headers']
                 )
                 self.assertIn(
                     'Authentication-Info',
-                    headers['access-control-expose-headers']
+                    headers['access-control-expose-headers'],
                 )
 
     def test_http_binary_proto_too_old(self):
@@ -273,18 +269,19 @@ class TestHttpAuth(BaseTestHttpAuth):
                     state_typedesc_id=b"\0" * 16,
                     arguments=b"",
                     state_data=b"",
-                ).dump() + protocol.Sync().dump(),
+                ).dump()
+                + protocol.Sync().dump(),
                 headers={
                     "Content-Type": mime_type,
                     "X-Gel-User": args["user"],
-                    "Authorization": f"Bearer {token.decode("ascii")}"
+                    "Authorization": f"Bearer {token.decode("ascii")}",
                 },
             )
 
         self.assertEqual(status, 400)
         self.assertEqual(
             content,
-            b"requested protocol version is too old and no longer supported"
+            b"requested protocol version is too old and no longer supported",
         )
 
     def test_http_binary_proto_old_supported(self):
@@ -317,11 +314,12 @@ class TestHttpAuth(BaseTestHttpAuth):
                     state_typedesc_id=b"\0" * 16,
                     arguments=b"",
                     state_data=b"",
-                ).dump() + protocol.Sync().dump(),
+                ).dump()
+                + protocol.Sync().dump(),
                 headers={
                     "Content-Type": mime_type,
                     "X-EdgeDB-User": args["user"],
-                    "Authorization": f"Bearer {token.decode("ascii")}"
+                    "Authorization": f"Bearer {token.decode("ascii")}",
                 },
             )
 
@@ -350,9 +348,11 @@ class TestHttpAuth(BaseTestHttpAuth):
                 database=args["database"],
             )
         self.assertEqual(status, 200)
-        self.assertEqual(headers, headers | {
-            "content-type": f"application/x.edgedb.{proto_ver_str}.binary"
-        })
+        self.assertEqual(
+            headers,
+            headers
+            | {"content-type": f"application/x.edgedb.{proto_ver_str}.binary"},
+        )
         self.assertIsInstance(msgs[0], protocol.CommandDataDescription)
         self.assertIsInstance(msgs[1], protocol.Data)
         self.assertEqual(bytes(msgs[1].data[0].data), b"42")
@@ -366,7 +366,6 @@ class TestHttpAuth(BaseTestHttpAuth):
 
 
 class TestHttpAuthSystem(BaseTestHttpAuth):
-
     PARALLELISM_GRANULARITY = "system"
     TRANSACTION_ISOLATION = False
 

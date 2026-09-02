@@ -25,27 +25,19 @@ from edb import edgeql
 from edb.server import defines, config
 from edb.server.compiler import sertypes, enums
 
-from edb import graphql
 from edb.pgsql import parser as pgparser
 
 class SQLParamsSource:
     types_in_out: list[tuple[list[str], list[tuple[str, str]]]]
 
-    def cache_key(self) -> bytes:
-        ...
-
-    def serialize(self) -> bytes:
-        ...
-
+    def cache_key(self) -> bytes: ...
+    def serialize(self) -> bytes: ...
     @staticmethod
-    def deserialize(data: bytes) -> SQLParamsSource:
-        ...
-
-    def text(self) -> str:
-        ...
+    def deserialize(data: bytes) -> SQLParamsSource: ...
+    def text(self) -> str: ...
 
 class CompilationRequest:
-    source: edgeql.Source | graphql.Source | pgparser.Source | SQLParamsSource
+    source: edgeql.Source | pgparser.Source | SQLParamsSource
     protocol_version: defines.ProtocolVersion
     input_language: enums.InputLanguage
     output_format: enums.OutputFormat
@@ -65,7 +57,7 @@ class CompilationRequest:
     def __init__(
         self,
         *,
-        source: edgeql.Source | graphql.Source | pgparser.Source,
+        source: edgeql.Source | pgparser.Source,
         protocol_version: defines.ProtocolVersion,
         schema_version: uuid.UUID,
         compilation_config_serializer: sertypes.CompilationConfigSerializer,
@@ -84,43 +76,26 @@ class CompilationRequest:
         role_name: str = defines.GELITE_SUPERUSER,
         branch_name: str = defines.GELITE_SUPERUSER_DB,
         key_params: typing.Mapping[str, object] | None = None,
-    ):
-        ...
-
+    ): ...
     def set_modaliases(
         self, value: typing.Mapping[str | None, str] | None
-    ) -> CompilationRequest:
-        ...
-
+    ) -> CompilationRequest: ...
     def set_session_config(
         self, value: typing.Mapping[str, config.SettingValue] | None
-    ) -> CompilationRequest:
-        ...
-
+    ) -> CompilationRequest: ...
     def set_database_config(
-            self, value: typing.Mapping[str, config.SettingValue] | None
-    ) -> CompilationRequest:
-        ...
-
+        self, value: typing.Mapping[str, config.SettingValue] | None
+    ) -> CompilationRequest: ...
     def set_system_config(
         self, value: typing.Mapping[str, config.SettingValue] | None
-    ) -> CompilationRequest:
-        ...
-
-    def set_schema_version(self, version: uuid.UUID) -> CompilationRequest:
-        ...
-
-    def serialize(self) -> bytes:
-        ...
-
+    ) -> CompilationRequest: ...
+    def set_schema_version(self, version: uuid.UUID) -> CompilationRequest: ...
+    def serialize(self) -> bytes: ...
     @classmethod
     def deserialize(
         cls,
         data: bytes,
         query_text: str,
         compilation_config_serializer: sertypes.CompilationConfigSerializer,
-    ) -> CompilationRequest:
-        ...
-
-    def get_cache_key(self) -> uuid.UUID:
-        ...
+    ) -> CompilationRequest: ...
+    def get_cache_key(self) -> uuid.UUID: ...

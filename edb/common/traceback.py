@@ -16,8 +16,7 @@ import typing
 from contextlib import suppress
 
 StackSummaryLike = (
-    traceback.StackSummary
-    | list[tuple[str, typing.Any, str, typing.Any]]
+    traceback.StackSummary | list[tuple[str, typing.Any, str, typing.Any]]
 )
 
 
@@ -25,9 +24,7 @@ def format_exception(e: BaseException) -> str:
     exctype = type(e)
     value = e
     tb = e.__traceback__
-    tb_e = traceback.TracebackException(
-        exctype, value, tb, compact=True
-    )
+    tb_e = traceback.TracebackException(exctype, value, tb, compact=True)
     tb_e.stack = StandardStackSummary(tb_e.stack)
     return '\n'.join(tb_e.format())
 

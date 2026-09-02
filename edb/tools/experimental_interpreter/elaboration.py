@@ -187,9 +187,7 @@ def path_contains_splat(p: qlast.Path) -> bool:
 def elab_label(p: qlast.Path) -> Label:
     """Elaborates a single name e.g. in the left hand side of a shape"""
     steps = [*p.steps]
-    while steps[0] is not None and isinstance(
-        steps[0], qlast.TypeIntersection
-    ):
+    while steps[0] is not None and isinstance(steps[0], qlast.TypeIntersection):
         steps = steps[1:]
     match steps[0]:
         case qlast.Ptr(
@@ -214,9 +212,7 @@ def elab_ShapeElement(s: qlast.ShapeElement) -> tuple[Label, BindingExpr]:
         def process(e: BindingExpr) -> BindingExpr:
             return abstract_over_expr(
                 FilterOrderExpr(
-                    subject=instantiate_expr(
-                        FreeVarExpr(DEFAULT_HEAD_NAME), e
-                    ),
+                    subject=instantiate_expr(FreeVarExpr(DEFAULT_HEAD_NAME), e),
                     filter=elab_where(s.where),
                     order=elab_orderby(s.orderby),
                 ),
@@ -305,9 +301,9 @@ def elab_InsertQuery(expr: qlast.InsertQuery) -> InsertExpr:
     for k, v in object_shape.shape.items():
         if not isinstance(k, StrLabel):
             raise ValueError("Expecting Plain Labels")
-        assert eops.binding_is_unnamed(
-            v
-        ), "Not expecting leading dot notaiton in Shapes"
+        assert eops.binding_is_unnamed(v), (
+            "Not expecting leading dot notaiton in Shapes"
+        )
         unshaped[k.label] = v.body
 
     return cast(
@@ -357,7 +353,6 @@ def elab_orderby(
         return {}
     result: dict[str, Expr] = {}
     for idx, sort_expr in enumerate(qle):
-
         empty_label = (
             e.OrderEmptyFirst
             if sort_expr.nones_order == qlast.NonesOrder.First
@@ -390,8 +385,7 @@ def elab_orderby(
         result = {**result, key: elabed_expr}
 
     return {
-        l: abstract_over_expr(v, DEFAULT_HEAD_NAME)
-        for (l, v) in result.items()
+        l: abstract_over_expr(v, DEFAULT_HEAD_NAME) for (l, v) in result.items()
     }
 
 
@@ -577,7 +571,9 @@ def elab_TypeName(qle: qlast.TypeName) -> Tp:
                 ]
                 labels = [tp_name.name for tp_name in qle.subtypes]
                 return elab_CompositeTp(
-                    basetp, sub_tps, labels  # type: ignore
+                    basetp,
+                    sub_tps,
+                    labels,  # type: ignore
                 )
             else:
                 sub_tps = [

@@ -18,7 +18,6 @@
 
 """Common utilities used in inferers."""
 
-
 from __future__ import annotations
 from typing import Optional
 
@@ -33,7 +32,6 @@ def get_set_scope(
     scope_tree: irast.ScopeTreeNode,
     ctx: inf_ctx.InfCtx,
 ) -> irast.ScopeTreeNode:
-
     if ir_set.path_scope_id:
         new_scope = ctx.env.scope_tree_nodes.get(ir_set.path_scope_id)
         if new_scope is None:

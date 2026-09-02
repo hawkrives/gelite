@@ -25,7 +25,6 @@ import itertools
 
 
 class Supervisor:
-
     def __init__(self, *, _name, _loop, _private):
         if _name is None:
             self._name = f'sup#{_name_counter()}'
@@ -61,7 +60,8 @@ class Supervisor:
     def create_task(self, coro):
         if self._cancelled:
             raise RuntimeError(
-                f'supervisor {self!r} has already been cancelled')
+                f'supervisor {self!r} has already been cancelled'
+            )
 
         task = self._loop.create_task(coro)
         task.add_done_callback(self._on_task_done)

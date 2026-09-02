@@ -51,8 +51,9 @@ class CreateView(ddl.SchemaObjectOperation):
         neg_conditions=None,
         or_replace=False,
     ):
-        super().__init__(view.name, conditions=conditions,
-                         neg_conditions=neg_conditions)
+        super().__init__(
+            view.name, conditions=conditions, neg_conditions=neg_conditions
+        )
         self.view = view
         self.or_replace = or_replace
 
@@ -65,7 +66,6 @@ class CreateView(ddl.SchemaObjectOperation):
 
 
 class DropView(ddl.SchemaObjectOperation):
-
     def __init__(
         self,
         name,
@@ -92,7 +92,6 @@ class DropView(ddl.SchemaObjectOperation):
 
 
 class ViewExists(base.Condition):
-
     def __init__(self, name, materialized=False):
         self.name = name
         self.materialized = materialized

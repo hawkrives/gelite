@@ -3,7 +3,6 @@
 
 """Declarations of information schema and pg_catalog"""
 
-
 ColumnName = str
 ColumnType = str | None
 
@@ -797,7 +796,7 @@ INFORMATION_SCHEMA: dict[str, list[tuple[ColumnName, ColumnType, int]]] = {
         ("is_trigger_updatable", "yes_or_no", 13),
         ("is_trigger_deletable", "yes_or_no", 13),
         ("is_trigger_insertable_into", "yes_or_no", 13),
-    ]
+    ],
 }
 PG_CATALOG: dict[str, list[tuple[ColumnName, ColumnType, int]]] = {
     "pg_aggregate": [
@@ -2460,5 +2459,5 @@ PG_CATALOG: dict[str, list[tuple[ColumnName, ColumnType, int]]] = {
         ("type", "text", 17),
         ("name", "text", 17),
         ("description", "text", 17),
-    ]
+    ],
 }

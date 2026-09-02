@@ -47,7 +47,9 @@ log = logging.getLogger(__name__)
 # "affects_compilation" config vals that we don't actually want to report out.
 # This turns out to be a majority of them
 OMITTED_CONFIG_VALS = {
-    "allow_dml_in_functions", "allow_bare_ddl", "force_database_error",
+    "allow_dml_in_functions",
+    "allow_bare_ddl",
+    "force_database_error",
 }
 
 
@@ -85,7 +87,7 @@ def analyze_explain_output(
         schema = s_schema.ChainedSchema(
             top_schema=schema._top_schema,
             global_schema=schema._global_schema,
-            base_schema=std_schema
+            base_schema=std_schema,
         )
 
     assert len(data) == 1 and len(data[0]) == 1
@@ -116,9 +118,7 @@ def analyze_explain_output(
     config_vals = {
         k: v for k, v in config_vals.items() if k not in OMITTED_CONFIG_VALS
     }
-    globals_used = sorted([
-        str(k) for k in ir.globals if not k.is_permission
-    ])
+    globals_used = sorted([str(k) for k in ir.globals if not k.is_permission])
 
     if info:
         buffers = info.buffers

@@ -54,7 +54,7 @@ else:
         token.Punctuation: code_el.Punctuation,
         token.String: code_el.String,
         token.Number: code_el.Number,
-        token.Error: code_el.Error
+        token.Error: code_el.Error,
     }
 
     @functools.lru_cache(100)

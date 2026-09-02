@@ -401,7 +401,10 @@ def calc_callers(
         total = ttotal
 
     funcs[ROOT_ID] = Function(
-        id=ROOT_ID, calls=roots, calledby=[], stat=(1, 1, 0, total),
+        id=ROOT_ID,
+        calls=roots,
+        calledby=[],
+        stat=(1, 1, 0, total),
     )
     return funcs, calls
 
@@ -432,7 +435,7 @@ class Block:
         result = self.func[0]
         edgedb = str(GELITE_DIR) + os.sep
         if result.startswith(edgedb):
-            return result[len(edgedb):]
+            return result[len(edgedb) :]
 
         parts = []
         maybe_stdlib = False
@@ -468,11 +471,10 @@ class MemoryFrame:
 
     Leaves are were memory allocations actually happened.
     """
+
     blocks: int
     size: int  # in bytes
-    callers: dict[LineID, MemoryFrame] = dataclasses.field(
-        default_factory=dict
-    )
+    callers: dict[LineID, MemoryFrame] = dataclasses.field(default_factory=dict)
 
 
 class ScopeRecorder(ast.NodeVisitor):
@@ -655,9 +657,7 @@ def filter_singledispatch_in_place(
                     cumtime / count,
                 )
                 callers[sdfid] = cur_stats
-                new_stats = tuple(
-                    old_stats[i] + cur_stats[i] for i in range(4)
-                )
+                new_stats = tuple(old_stats[i] + cur_stats[i] for i in range(4))
                 singledispatch_functions[sdfid] = new_stats  # type: ignore
 
             continue
@@ -863,7 +863,11 @@ def build_svg_blocks_by_memory(
             x=x,
         )
         yield from build_svg_blocks_by_memory(
-            caller, maxw=maxw, level=level + 1, x=x, scope_cache=scope_cache,
+            caller,
+            maxw=maxw,
+            level=level + 1,
+            x=x,
+            scope_cache=scope_cache,
         )
         x += caller.size
 

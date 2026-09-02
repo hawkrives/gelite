@@ -18,9 +18,7 @@
 
 
 from __future__ import annotations
-from typing import (
-    Any, Callable, Optional, cast
-)
+from typing import Any, Callable, Optional, cast
 
 import json
 import logging
@@ -57,7 +55,8 @@ class Token(parsing.Token):
             if not cls.__name__.startswith('T_'):
                 raise Exception(
                     'Token class names must either start with T_ or have '
-                    'a token parameter')
+                    'a token parameter'
+                )
             token = cls.__name__[2:]
 
         if lextoken is None:
@@ -95,6 +94,7 @@ def inline(argument_index: int):
     def decorator(func: Any):
         func.inline_index = argument_index
         return func
+
     return decorator
 
 
@@ -124,9 +124,9 @@ class Nonterm(parsing.Nonterm):
             cls.__doc__ = '%nonterm'
 
         for name, attr in cls.__dict__.items():
-            if (name.startswith('reduce_') and
-                    isinstance(attr, types.FunctionType)):
-
+            if name.startswith('reduce_') and isinstance(
+                attr, types.FunctionType
+            ):
                 if attr.__doc__ is None:
                     tokens = name.split('_')
                     if name == 'reduce_empty':
@@ -191,23 +191,31 @@ class ListNonterm(Nonterm, is_internal=True):
 
                 inner_cls_name = cls.__name__ + 'Inner'
                 inner_cls_kwds = dict(element=element, separator=separator)
-                inner_cls = types.new_class(inner_cls_name, (ListNonterm,),
-                                            inner_cls_kwds, inner_cls_exec)
+                inner_cls = types.new_class(
+                    inner_cls_name,
+                    (ListNonterm,),
+                    inner_cls_kwds,
+                    inner_cls_exec,
+                )
                 setattr(mod, inner_cls_name, inner_cls)
 
                 # create reduce_inner function
                 separator_name = ListNonterm.component_name(separator)
 
-                setattr(cls,
+                setattr(
+                    cls,
                     'reduce_{}'.format(inner_cls_name),
                     lambda self, inner: (
                         ListNonterm._reduce_inner(self, inner)
-                    ))
-                setattr(cls,
+                    ),
+                )
+                setattr(
+                    cls,
                     'reduce_{}_{}'.format(inner_cls_name, separator_name),
                     lambda self, inner, sep: (
                         ListNonterm._reduce_inner(self, inner)
-                    ))
+                    ),
+                )
 
         # reduce functions must be present before calling superclass
         super().__init_subclass__(is_internal=is_internal, **kwargs)
@@ -228,17 +236,20 @@ class ListNonterm(Nonterm, is_internal=True):
                 ListNonterm._reduce_list(self, lst, el)
             )
             tail_prod_name = 'reduce_{}_{}_{}'.format(
-                cls.__name__, separator_name, element_name)
+                cls.__name__, separator_name, element_name
+            )
         else:
             tail_prod = lambda self, lst, el: (
                 ListNonterm._reduce_list(self, lst, el)
             )
-            tail_prod_name = 'reduce_{}_{}'.format(
-                cls.__name__, element_name)
+            tail_prod_name = 'reduce_{}_{}'.format(cls.__name__, element_name)
         setattr(cls, tail_prod_name, tail_prod)
 
-        setattr(cls, 'reduce_' + element_name,
-            lambda self, el: ListNonterm._reduce_el(self, el))
+        setattr(
+            cls,
+            'reduce_' + element_name,
+            lambda self, el: ListNonterm._reduce_el(self, el),
+        )
 
     @staticmethod
     def component_name(component: type) -> Optional[str]:
@@ -249,8 +260,7 @@ class ListNonterm(Nonterm, is_internal=True):
         elif issubclass(component, Nonterm):
             return component.__name__
         else:
-            raise Exception(
-                'List component must be a Token or Nonterm')
+            raise Exception('List component must be a Token or Nonterm')
 
     @staticmethod
     def _reduce_list(self, lst, el):
@@ -277,6 +287,7 @@ class ListNonterm(Nonterm, is_internal=True):
 
 def precedence(precedence):
     """Decorator to set production precedence."""
+
     def decorator(func):
         func.__parsing_precedence__ = precedence.__name__
         return func
@@ -322,7 +333,9 @@ class Precedence(parsing.Precedence):
                 else:
                     raise Exception(
                         'token {} has already been set precedence {}'.format(
-                            token, existing))
+                            token, existing
+                        )
+                    )
 
         Precedence.last[prec_group] = cls
 
@@ -343,7 +356,8 @@ def load_parser_spec(mod: types.ModuleType) -> parsing.Spec:
 def _localpath(mod, type):
     return os.path.join(
         os.path.dirname(mod.__file__),
-        mod.__name__.rpartition('.')[2] + '.' + type)
+        mod.__name__.rpartition('.')[2] + '.' + type,
+    )
 
 
 def load_spec_productions(
@@ -389,9 +403,7 @@ def spec_to_json(spec: parsing.Spec) -> str:
 
             str_tok = token_map.get(str(tok), str(tok))
             if 'ShiftAction' in str(type(act)):
-                action_obj: Any = {
-                    'Shift': int(act.nextState)
-                }
+                action_obj: Any = {'Shift': int(act.nextState)}
             else:
                 prod = act.production
                 action_obj = {

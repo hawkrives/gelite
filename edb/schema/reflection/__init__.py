@@ -28,5 +28,5 @@ __all__ = (
     'parse_schema',
     'SchemaTypeLayout',
     'SchemaClassLayout',
-    'SchemaReflectionParts'
+    'SchemaReflectionParts',
 )

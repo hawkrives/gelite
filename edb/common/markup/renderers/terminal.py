@@ -63,18 +63,18 @@ class Buffer:
 
     def new_line(self, lines=1):
         for _ in range(lines):
-            self.data.append((NEW_LINE, ))
+            self.data.append((NEW_LINE,))
 
     @contextlib.contextmanager
     def indent(self, auto_new_line=True):
         if auto_new_line:
-            self.data.append((INDENT, ))
+            self.data.append((INDENT,))
             yield
-            self.data.append((DEDENT, ))
+            self.data.append((DEDENT,))
         else:
-            self.data.append((INDENT_NO_NL, ))
+            self.data.append((INDENT_NO_NL,))
             yield
-            self.data.append((DEDENT_NO_NL, ))
+            self.data.append((DEDENT_NO_NL,))
 
     def non_folded_space(self, space=' '):
         self.data.append((NON_FOLDED_SPACE, space))
@@ -84,18 +84,18 @@ class Buffer:
 
     @contextlib.contextmanager
     def foldable_lines(self):
-        self.data.append((FOLDABLE_LINES_START, ))
+        self.data.append((FOLDABLE_LINES_START,))
         yield
-        self.data.append((FOLDABLE_LINES_END, ))
+        self.data.append((FOLDABLE_LINES_END,))
 
     @contextlib.contextmanager
     def non_foldable_lines(self):
-        self.data.append((FOLDABLE_LINES_END, ))
+        self.data.append((FOLDABLE_LINES_END,))
         yield
-        self.data.append((FOLDABLE_LINES_START, ))
+        self.data.append((FOLDABLE_LINES_START,))
 
     def mark_line_break(self):
-        self.data.append((LINE_BREAK, ))
+        self.data.append((LINE_BREAK,))
 
     def write(self, s, style=None):
         st = None
@@ -175,10 +175,14 @@ class Buffer:
                     result.append('\n' + indent_with * indentation)
                     offset = indent_with_len * indentation
             elif el == FOLDABLE_LINES_START:
-                if (not folded_mode) and (max_width is not None) and (
-                        max_width - offset > 20):
+                if (
+                    (not folded_mode)
+                    and (max_width is not None)
+                    and (max_width - offset > 20)
+                ):
                     folded_mode = check_folded_fit(
-                        pos, data, max_width - offset)
+                        pos, data, max_width - offset
+                    )
             elif el == FOLDABLE_LINES_END:
                 if folded_mode:
                     folded_mode -= 1
@@ -207,7 +211,8 @@ class Buffer:
                     if self.max_width:
                         width = self.max_width - offset
                         text = '{{str:{strlevel}^{width:d}s}}'.format(
-                            strlevel=strlevel, width=width).format(str=text)
+                            strlevel=strlevel, width=width
+                        ).format(str=text)
                     else:
                         text = strlevel * 4 + text + strlevel * 4
 
@@ -239,7 +244,8 @@ class BaseRenderer:
     def __init__(self, *, indent_with=' ' * 4, max_width=None, styles=None):
         self.renderers_cache = {}
         self.buffer = Buffer(
-            max_width=max_width, styled=styles, indent_with=indent_with)
+            max_width=max_width, styled=styles, indent_with=indent_with
+        )
         self.max_width = max_width
         self.styles = styles or styles_module.StylesTable()
 
@@ -263,7 +269,8 @@ class BaseRenderer:
                         try:
                             renderer = getattr(
                                 self,
-                                '_render_{}'.format(base._markup_name_safe))
+                                '_render_{}'.format(base._markup_name_safe),
+                            )
                         except AttributeError:
                             pass
                         else:
@@ -282,11 +289,13 @@ class BaseRenderer:
 
     def _render_unknown(self, element):
         self.buffer.write(
-            xrepr(element, max_len=120), style=self.styles.unknown_markup)
+            xrepr(element, max_len=120), style=self.styles.unknown_markup
+        )
 
     def _render_Markup(self, element):
         self.buffer.write(
-            xrepr(element, max_len=120), style=self.styles.unknown_markup)
+            xrepr(element, max_len=120), style=self.styles.unknown_markup
+        )
 
     def _render_OverflowBarier(self, element):
         self.buffer.write('<...>', style=self.styles.overflow)
@@ -294,8 +303,10 @@ class BaseRenderer:
     def _render_SerializationError(self, element):
         self.buffer.write(
             'Exception during serialization to markup: <{}: {}>'.format(
-                element.cls, element.text),
-            style=self.styles.serialization_error)
+                element.cls, element.text
+            ),
+            style=self.styles.serialization_error,
+        )
 
     @classmethod
     def renders(cls, markup, styles=None, max_width=None):
@@ -334,7 +345,8 @@ class DocRenderer(BaseRenderer):
         self.buffer.write(element.after, style=self.styles.diff_after)
         if element.comment:
             self.buffer.write(
-                f' # {element.comment}', style=self.styles.code_comment)
+                f' # {element.comment}', style=self.styles.code_comment
+            )
 
     def _render_doc_Diff(self, element):
         total_lines = len(element.lines)
@@ -364,7 +376,8 @@ class LangRenderer(BaseRenderer):
             self.buffer.non_folded_space()
             if element.id:
                 self.buffer.write(
-                    '<0x{:x}>'.format(int(element.id)), style=self.styles.id)
+                    '<0x{:x}>'.format(int(element.id)), style=self.styles.id
+                )
                 self.buffer.non_folded_space()
             self.buffer.write('(', style=self.styles.id)
 
@@ -378,9 +391,11 @@ class LangRenderer(BaseRenderer):
                     for idx, child in enumerate(element.children):
                         if child.label:
                             self.buffer.write(
-                                child.label, style=self.styles.attribute)
+                                child.label, style=self.styles.attribute
+                            )
                             self.buffer.non_folded_space(
-                                ' ' * (max(0, padding - len(child.label)) + 1))
+                                ' ' * (max(0, padding - len(child.label)) + 1)
+                            )
                             self.buffer.write('=')
                             self.buffer.non_folded_space()
 
@@ -394,8 +409,8 @@ class LangRenderer(BaseRenderer):
 
     def _render_lang_Ref(self, element):
         self.buffer.write(
-            '<Ref {}>'.format(element.refname),
-            style=self.styles.ref)
+            '<Ref {}>'.format(element.refname), style=self.styles.ref
+        )
 
     def _render_lang_List(self, element):
         with self.buffer.foldable_lines():
@@ -445,8 +460,10 @@ class LangRenderer(BaseRenderer):
         if element.attributes or element.repr is None:
             self.buffer.write(
                 '<{}.{} at 0x{:x}'.format(
-                    element.class_module, element.classname, element.id),
-                style=self.styles.unknown_object)
+                    element.class_module, element.classname, element.id
+                ),
+                style=self.styles.unknown_object,
+            )
 
             if element.attributes:
                 self.buffer.write(' ')
@@ -459,19 +476,17 @@ class LangRenderer(BaseRenderer):
 
     def _render_lang_String(self, element):
         self.buffer.write(
-            xrepr(element.str, max_len=120), style=self.styles.literal)
+            xrepr(element.str, max_len=120), style=self.styles.literal
+        )
 
     def _render_lang_MultilineString(self, element):
         with self.buffer.non_foldable_lines():
             for line in element.str.splitlines():
                 self.buffer.new_line()
-                self.buffer.write(
-                    line,
-                    style=self.styles.literal
-                )
-            self.buffer.data.append((DEDENT_NO_NL, ))
+                self.buffer.write(line, style=self.styles.literal)
+            self.buffer.data.append((DEDENT_NO_NL,))
             self.buffer.new_line()
-            self.buffer.data.append((INDENT_NO_NL, ))
+            self.buffer.data.append((INDENT_NO_NL,))
 
     def _render_lang_Number(self, element):
         self.buffer.write(element.num, style=self.styles.literal)
@@ -504,36 +519,41 @@ class LangRenderer(BaseRenderer):
 
                 if element.lines and element.line_numbers:
                     for lineno, line in zip(
-                            element.line_numbers, element.lines):
+                        element.line_numbers, element.lines
+                    ):
                         if lineno == element.lineno:
                             if element.context:
                                 stripped_spaces = 0
                                 stripped_line = line
                             else:
-                                stripped_spaces = len(line) - len(
-                                    line.lstrip())
+                                stripped_spaces = len(line) - len(line.lstrip())
                                 stripped_line = line.strip()
 
                             self.buffer.write(
-                                '> ', style=self.styles.tb_current_line)
+                                '> ', style=self.styles.tb_current_line
+                            )
                             self.buffer.write(
                                 stripped_line or '???',
-                                style=self.styles.tb_code)
+                                style=self.styles.tb_code,
+                            )
 
                             if element.colno:
                                 # Render column caret
                                 _caret_indent = ' ' * (
-                                    element.colno - stripped_spaces)
+                                    element.colno - stripped_spaces
+                                )
                                 self.buffer.new_line()
                                 self.buffer.write(' ', style=self.styles.code)
                                 self.buffer.write(
                                     _caret_indent + '^',
-                                    style=self.styles.tb_pos_caret)
+                                    style=self.styles.tb_pos_caret,
+                                )
                                 if element.end_colno is not None:
                                     cnt = element.end_colno - element.colno - 1
                                     self.buffer.write(
                                         '^' * cnt,
-                                        style=self.styles.tb_pos_caret)
+                                        style=self.styles.tb_pos_caret,
+                                    )
 
                                 self.buffer.new_line()
                             if not element.context:
@@ -541,7 +561,8 @@ class LangRenderer(BaseRenderer):
                         elif element.context:
                             self.buffer.write('| ', style=self.styles.code)
                             self.buffer.write(
-                                line.rstrip(), style=self.styles.code)
+                                line.rstrip(), style=self.styles.code
+                            )
                             self.buffer.new_line()
                     else:
                         if not element.context:
@@ -580,12 +601,16 @@ class LangRenderer(BaseRenderer):
             if (element.cause or element.context) is not None:
                 if element.cause is None:
                     self._render(element.context)
-                    msg = ('During handling of the above exception, '
-                           'another exception occurred')
+                    msg = (
+                        'During handling of the above exception, '
+                        'another exception occurred'
+                    )
                 else:
                     self._render(element.cause)
-                    msg = ('The above exception was the direct cause '
-                           'of the following exception')
+                    msg = (
+                        'The above exception was the direct cause '
+                        'of the following exception'
+                    )
 
                 self.buffer.new_line(2)
                 self._render_header(msg, style=self.styles.header1)
@@ -595,11 +620,13 @@ class LangRenderer(BaseRenderer):
                 excclass = element.classname
             else:
                 excclass = '{}.{}'.format(
-                    element.class_module, element.classname)
+                    element.class_module, element.classname
+                )
             base_excline = '{}: {}'.format(excclass, element.msg)
             self.buffer.write(
                 '{}. {}'.format(self.ex_depth, base_excline),
-                style=self.styles.exc_title)
+                style=self.styles.exc_title,
+            )
 
             if element.contexts:
                 for context in element.contexts:
@@ -696,8 +723,7 @@ def render(markup, *, ensure_newline=True, file=None, renderer=Renderer):
         elif max_colors > 6:
             style_table = styles_module.Dark16
 
-    rendered = renderer.renders(
-        markup, styles=style_table, max_width=max_width)
+    rendered = renderer.renders(markup, styles=style_table, max_width=max_width)
     if ensure_newline and not rendered.endswith('\n'):
         rendered += '\n'
 

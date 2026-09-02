@@ -61,7 +61,6 @@ def resolve(
     schema: s_schema.Schema,
     options: context.Options,
 ) -> ResolvedSQL:
-
     if debug.flags.sql_input:
         debug.header('SQL Input')
 
@@ -151,10 +150,12 @@ def resolve(
                         val=expr.construct_row_expr(columns, ctx=ctx)
                     )
                 ],
-                from_clause=[pgast.RangeSubselect(
-                    subquery=e,
-                    alias=pgast.Alias(aliasname='r'),
-                )],
+                from_clause=[
+                    pgast.RangeSubselect(
+                        subquery=e,
+                        alias=pgast.Alias(aliasname='r'),
+                    )
+                ],
                 ctes=e.ctes,
             )
             e.ctes = []

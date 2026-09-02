@@ -19,7 +19,6 @@
 
 """EdgeQL compiler functions to process shared clauses."""
 
-
 from __future__ import annotations
 
 from typing import Optional, Sequence
@@ -44,7 +43,6 @@ from . import pathctx
 def compile_where_clause(
     where: Optional[qlast.Base], *, ctx: context.ContextLevel
 ) -> Optional[irast.Set]:
-
     if where is None:
         return None
 
@@ -89,9 +87,12 @@ def adjust_nones_order(
         and expr.dir_cardinality
         and not expr.dir_cardinality.can_be_zero()
         and isinstance(expr.ptrref, irast.PointerRef)
-        and (ptr := typegen.ptrcls_from_ptrref(
-            expr.ptrref, ctx=ctx,
-        ))
+        and (
+            ptr := typegen.ptrcls_from_ptrref(
+                expr.ptrref,
+                ctx=ctx,
+            )
+        )
         and bool(ptr.get_exclusive_constraints(ctx.env.schema))
     ):
         if sort.direction == qlast.SortOrder.Desc:
@@ -105,7 +106,6 @@ def adjust_nones_order(
 def compile_orderby_clause(
     sortexprs: Optional[Sequence[qlast.SortExpr]], *, ctx: context.ContextLevel
 ) -> Optional[list[irast.SortExpr]]:
-
     if not sortexprs:
         return None
 
@@ -122,7 +122,8 @@ def compile_orderby_clause(
                 exprctx.path_scope.unnest_fence = True
                 ir_sortexpr = dispatch.compile(sortexpr.path, ctx=exprctx)
                 ir_sortexpr = setgen.scoped_set(
-                    ir_sortexpr, force_reassign=True, ctx=exprctx)
+                    ir_sortexpr, force_reassign=True, ctx=exprctx
+                )
                 ir_sortexpr.span = sortexpr.span
 
                 # Check that the sortexpr type is actually orderable
@@ -139,7 +140,7 @@ def compile_orderby_clause(
                 opers = s_oper.lookup_operators(
                     op_name,
                     module_aliases=exprctx.modaliases,
-                    schema=env.schema
+                    schema=env.schema,
                 )
 
                 # Verify that a comparison operator is defined for 2
@@ -148,23 +149,27 @@ def compile_orderby_clause(
                     opers,
                     args=[(sort_type, ir_sortexpr), (sort_type, ir_sortexpr)],
                     kwargs={},
-                    ctx=exprctx)
+                    ctx=exprctx,
+                )
                 if len(matched) != 1:
                     sort_type_name = schemactx.get_material_type(
-                        sort_type, ctx=ctx).get_displayname(env.schema)
+                        sort_type, ctx=ctx
+                    ).get_displayname(env.schema)
                     if len(matched) == 0:
                         raise errors.QueryError(
                             f'type {sort_type_name!r} cannot be used in '
                             f'ORDER BY clause because ordering is not '
                             f'defined for it',
-                            span=sortexpr.span)
+                            span=sortexpr.span,
+                        )
 
                     elif len(matched) > 1:
                         raise errors.QueryError(
                             f'type {sort_type_name!r} cannot be used in '
                             f'ORDER BY clause because ordering is '
                             f'ambiguous for it',
-                            span=sortexpr.span)
+                            span=sortexpr.span,
+                        )
 
             result.append(
                 irast.SortExpr(
@@ -175,7 +180,8 @@ def compile_orderby_clause(
                         sortexpr,
                         ctx=ctx,
                     ),
-                ))
+                )
+            )
 
     return result
 
@@ -194,9 +200,11 @@ def compile_limit_offset_clause(
 
             ir_expr = dispatch.compile(expr, ctx=subctx)
             int_t = ctx.env.get_schema_type_and_track(
-                sn.QualName('std', 'int64'))
+                sn.QualName('std', 'int64')
+            )
             ir_set = setgen.scoped_set(
-                ir_expr, force_reassign=True, typehint=int_t, ctx=subctx)
+                ir_expr, force_reassign=True, typehint=int_t, ctx=subctx
+            )
             ir_set.span = expr.span
 
     return ir_set

@@ -52,30 +52,27 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
     # FIXME: a special schema should be used here since we need to
     # cover all known scalars and even some arrays and tuples.
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'casts.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'casts.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'casts_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'casts_setup.edgeql'
+    )
 
     # NOTE: nothing can be cast into bytes
     async def test_edgeql_casts_bytes_01(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>True;
             """)
 
     async def test_edgeql_casts_bytes_02(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>uuid_generate_v1mc();
             """)
 
     async def test_edgeql_casts_bytes_03(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>'Hello';
             """)
@@ -95,98 +92,88 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError, r'invalid symbol'):
+            edgedb.InvalidValueError, r'invalid symbol'
+        ):
             await self.con.query_single("""
                 SELECT <bytes>to_json('"not base64!"');
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError, r'invalid base64 end sequence'):
+            edgedb.InvalidValueError, r'invalid base64 end sequence'
+        ):
             await self.con.query_single("""
                 SELECT <bytes>to_json('"a"');
             """)
 
     async def test_edgeql_casts_bytes_05(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>datetime_current();
             """)
 
     async def test_edgeql_casts_bytes_06(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT
                   <bytes>cal::to_local_datetime('2018-05-07T20:01:22.306916');
             """)
 
     async def test_edgeql_casts_bytes_07(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>cal::to_local_date('2018-05-07');
             """)
 
     async def test_edgeql_casts_bytes_08(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>cal::to_local_time('20:01:22.306916');
             """)
 
     async def test_edgeql_casts_bytes_09(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_duration(hours:=20);
             """)
 
     async def test_edgeql_casts_bytes_10(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_int16('2');
             """)
 
     async def test_edgeql_casts_bytes_11(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_int32('2');
             """)
 
     async def test_edgeql_casts_bytes_12(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_int64('2');
             """)
 
     async def test_edgeql_casts_bytes_13(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_float32('2');
             """)
 
     async def test_edgeql_casts_bytes_14(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_float64('2');
             """)
 
     async def test_edgeql_casts_bytes_15(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_decimal('2');
             """)
 
     async def test_edgeql_casts_bytes_16(self):
-        async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast'):
+        async with self.assertRaisesRegexTx(edgedb.QueryError, r'cannot cast'):
             await self.con.execute("""
                 SELECT <bytes>to_bigint('2');
             """)
@@ -565,17 +552,30 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             [True, True, True, True, True],
         )
 
-        for variant in {'😈', 'yes', '1', 'no', 'on', 'OFF',
-                        't', 'f', 'tr', 'fa'}:
+        for variant in {
+            '😈',
+            'yes',
+            '1',
+            'no',
+            'on',
+            'OFF',
+            't',
+            'f',
+            'tr',
+            'fa',
+        }:
             async with self.assertRaisesRegexTx(
-                    edgedb.InvalidValueError,
-                    fr"invalid input syntax for type std::bool: '{variant}'"):
+                edgedb.InvalidValueError,
+                rf"invalid input syntax for type std::bool: '{variant}'",
+            ):
                 await self.con.query_single(f'SELECT <bool>"{variant}"')
 
         self.assertTrue(
-            await self.con.query_single('SELECT <bool>"    TruE   "'))
+            await self.con.query_single('SELECT <bool>"    TruE   "')
+        )
         self.assertFalse(
-            await self.con.query_single('SELECT <bool>"    FalsE   "'))
+            await self.con.query_single('SELECT <bool>"    FalsE   "')
+        )
 
     async def test_edgeql_casts_str_03(self):
         # str to json is always lossless
@@ -656,34 +656,39 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime>"2018-05-07;20:01:22.306916+00:00"')
+                'SELECT <datetime>"2018-05-07;20:01:22.306916+00:00"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime>"2018-05-07T20:01:22.306916"')
+                'SELECT <datetime>"2018-05-07T20:01:22.306916"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime>"2018-05-07T20:01:22.306916 1000"')
+                'SELECT <datetime>"2018-05-07T20:01:22.306916 1000"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime>"2018-05-07T20:01:22.306916 US/Central"')
+                'SELECT <datetime>"2018-05-07T20:01:22.306916 US/Central"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime>"2018-05-07T20:01:22.306916 +GMT1"')
+                'SELECT <datetime>"2018-05-07T20:01:22.306916 +GMT1"'
+            )
 
     async def test_edgeql_casts_str_06(self):
         # Canonical date and time str representations must follow ISO
@@ -714,42 +719,47 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_datetime>"2018-05-07;20:01:22.306916"')
+                'SELECT <cal::local_datetime>"2018-05-07;20:01:22.306916"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''
                     SELECT
                         <cal::local_datetime>"2018-05-07T20:01:22.306916+01:00"
-                ''')
+                '''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_datetime>"2018-05-07T20:01:22.306916 GMT"')
+                'SELECT <cal::local_datetime>"2018-05-07T20:01:22.306916 GMT"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''
                     SELECT
                       <cal::local_datetime>"2018-05-07T20:01:22.306916 GMT0"
-                ''')
+                '''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT <cal::local_datetime>
                     "2018-05-07T20:01:22.306916 US/Central"
-                ''')
+                '''
+            )
 
     async def test_edgeql_casts_str_07(self):
         # Canonical date and time str representations must follow ISO
@@ -775,28 +785,28 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date>"2018-05-07T20:01:22.306916"')
+                'SELECT <cal::local_date>"2018-05-07T20:01:22.306916"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
-            await self.con.query_single(
-                'SELECT <cal::local_date>"2018/05/07"')
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
+            await self.con.query_single('SELECT <cal::local_date>"2018/05/07"')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
-            await self.con.query_single(
-                'SELECT <cal::local_date>"2018.05.07"')
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
+            await self.con.query_single('SELECT <cal::local_date>"2018.05.07"')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date>"2018-05-07+01:00"')
+                'SELECT <cal::local_date>"2018-05-07+01:00"'
+            )
 
     async def test_edgeql_casts_str_08(self):
         # Canonical date and time str representations must follow ISO
@@ -824,16 +834,19 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                'invalid input syntax for type std::cal::local_time'):
+            edgedb.InvalidValueError,
+            'invalid input syntax for type std::cal::local_time',
+        ):
             await self.con.query_single(
-                "SELECT <cal::local_time>'2018-05-07 20:01:22'")
+                "SELECT <cal::local_time>'2018-05-07 20:01:22'"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_time>"20:01:22.306916+01:00"')
+                'SELECT <cal::local_time>"20:01:22.306916+01:00"'
+            )
 
     async def test_edgeql_casts_str_09(self):
         # Canonical duration
@@ -1192,8 +1205,19 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                     }}
                     SELECT <int64><{numtype}>x = x;
                 ''',
-                [True, True, True, True, True, True,
-                 True, True, True, True, True],
+                [
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                    True,
+                ],
             )
 
     async def test_edgeql_casts_numeric_02(self):
@@ -1292,28 +1316,32 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.NumericOutOfRangeError, r"std::int32 out of range"):
+            edgedb.NumericOutOfRangeError, r"std::int32 out of range"
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     SELECT <int32><float32><int32>2147483647;
                 """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.NumericOutOfRangeError, r"std::int32 out of range"):
+            edgedb.NumericOutOfRangeError, r"std::int32 out of range"
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     SELECT <int32><float32><int32>2147483646;
                 """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.NumericOutOfRangeError, r"std::int32 out of range"):
+            edgedb.NumericOutOfRangeError, r"std::int32 out of range"
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     SELECT <int32><float32><int32>2147483645;
                 """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.NumericOutOfRangeError, r"std::int32 out of range"):
+            edgedb.NumericOutOfRangeError, r"std::int32 out of range"
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     SELECT <int32><float32><int32>2147483638;
@@ -1356,8 +1384,15 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
     async def test_edgeql_casts_numeric_07(self):
-        numerics = ['int16', 'int32', 'int64', 'float32', 'float64', 'bigint',
-                    'decimal']
+        numerics = [
+            'int16',
+            'int32',
+            'int64',
+            'float32',
+            'float64',
+            'bigint',
+            'decimal',
+        ]
 
         for t1, t2 in itertools.product(numerics, numerics):
             await self.assert_query_result(
@@ -1369,22 +1404,22 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
     async def test_edgeql_casts_numeric_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type std::bigint'):
-            await self.con.query_single(
-                'SELECT <bigint>"100000n"')
+            edgedb.InvalidValueError,
+            r'invalid input syntax for type std::bigint',
+        ):
+            await self.con.query_single('SELECT <bigint>"100000n"')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type std::decimal'):
-            await self.con.query_single(
-                'SELECT <decimal>"12313.132n"')
+            edgedb.InvalidValueError,
+            r'invalid input syntax for type std::decimal',
+        ):
+            await self.con.query_single('SELECT <decimal>"12313.132n"')
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"invalid input syntax for type std::bigint: 'bigint'"):
-            await self.con.query_single(
-                'SELECT <bigint>"bigint"')
+            edgedb.InvalidValueError,
+            r"invalid input syntax for type std::bigint: 'bigint'",
+        ):
+            await self.con.query_single('SELECT <bigint>"bigint"')
 
     async def test_edgeql_casts_collections_01(self):
         await self.assert_query_result(
@@ -1458,8 +1493,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_01(self):
         # scalar to array
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'std::int64' to 'array<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'std::int64' to 'array<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>1;
             """)
@@ -1467,8 +1503,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_02(self):
         # tuple to array
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'tuple<std::int64>' to 'array<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'tuple<std::int64>' to 'array<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>(1,);
             """)
@@ -1476,8 +1513,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_03(self):
         # object to array
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'std::FreeObject' to 'array<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'std::FreeObject' to 'array<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>{a := 1};
             """)
@@ -1485,11 +1523,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_04(self):
         # array to array, mismatched element types
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'array<tuple<std::int64>>' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"cannot cast 'tuple<std::int64>' to 'std::int64'"):
+            edgedb.QueryError,
+            r"while casting 'array<tuple<std::int64>>' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"cannot cast 'tuple<std::int64>' to 'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>[(1,)];
             """)
@@ -1497,8 +1536,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_05(self):
         # scalar to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'std::int64' to 'tuple<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'std::int64' to 'tuple<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64>>1;
             """)
@@ -1506,8 +1546,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_06(self):
         # array to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'array<std::int64>' to 'tuple<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'array<std::int64>' to 'tuple<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64>>[1];
             """)
@@ -1515,8 +1556,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_07(self):
         # object to array
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast 'std::FreeObject' to 'tuple<std::int64>'"):
+            edgedb.QueryError,
+            r"cannot cast 'std::FreeObject' to 'tuple<std::int64>'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64>>{a := 1};
             """)
@@ -1524,11 +1566,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_08(self):
         # tuple to tuple, mismatched element types
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'tuple<array<std::int64>>' "
-                r"to 'tuple<std::int64>', "
-                r"at tuple element '0', "
-                r"cannot cast 'array<std::int64>' to 'std::int64'"):
+            edgedb.QueryError,
+            r"while casting 'tuple<array<std::int64>>' "
+            r"to 'tuple<std::int64>', "
+            r"at tuple element '0', "
+            r"cannot cast 'array<std::int64>' to 'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64>>([1],);
             """)
@@ -1536,11 +1579,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_09(self):
         # named tuple to named tuple, use new element name
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'tuple<b: array<std::int64>>' "
-                r"to 'tuple<a: std::int64>', "
-                r"at tuple element 'a', "
-                r"cannot cast 'array<std::int64>' to 'std::int64'"):
+            edgedb.QueryError,
+            r"while casting 'tuple<b: array<std::int64>>' "
+            r"to 'tuple<a: std::int64>', "
+            r"at tuple element 'a', "
+            r"cannot cast 'array<std::int64>' to 'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: int64>>(b := [1]);
             """)
@@ -1548,12 +1592,13 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_10(self):
         # nested tuple to nested tuple
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'tuple<tuple<array<std::int64>>>' "
-                r"to 'tuple<a: tuple<b: std::int64>>', "
-                r"at tuple element 'a', "
-                r"at tuple element 'b', "
-                r"cannot cast 'array<std::int64>' to 'std::int64'"):
+            edgedb.QueryError,
+            r"while casting 'tuple<tuple<array<std::int64>>>' "
+            r"to 'tuple<a: tuple<b: std::int64>>', "
+            r"at tuple element 'a', "
+            r"at tuple element 'b', "
+            r"cannot cast 'array<std::int64>' to 'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: tuple<b: int64>>>(([1],),);
             """)
@@ -1562,13 +1607,14 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         # nested array to nested array
         # note: arrays can't be directly nested
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'array<tuple<array<tuple<std::int64>>>>' "
-                r"to 'array<tuple<array<std::int64>>>', "
-                r"in array elements, "
-                r"at tuple element '0', "
-                r"in array elements, "
-                r"cannot cast 'tuple<std::int64>' to 'std::int64'"):
+            edgedb.QueryError,
+            r"while casting 'array<tuple<array<tuple<std::int64>>>>' "
+            r"to 'array<tuple<array<std::int64>>>', "
+            r"in array elements, "
+            r"at tuple element '0', "
+            r"in array elements, "
+            r"cannot cast 'tuple<std::int64>' to 'std::int64'",
+        ):
             await self.con.execute("""
                 SELECT <array<tuple<array<int64>>>>[([(1,)],)];
             """)
@@ -1576,11 +1622,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_collection_errors_12(self):
         # tuple with multiple elements, error in later element
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"while casting 'tuple<std::int64, std::int64, std::int64>' "
-                r"to 'tuple<std::int64, std::int64, array<std::int64>>', "
-                r"at tuple element '2', "
-                r"cannot cast 'std::int64' to 'array<std::int64>"):
+            edgedb.QueryError,
+            r"while casting 'tuple<std::int64, std::int64, std::int64>' "
+            r"to 'tuple<std::int64, std::int64, array<std::int64>>', "
+            r"at tuple element '2', "
+            r"cannot cast 'std::int64' to 'array<std::int64>",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64, int64, array<int64>>>(1, 2, 3);
             """)
@@ -1588,92 +1635,105 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     # casting into an abstract scalar should be illegal
     async def test_edgeql_casts_illegal_01(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*'anytype'"):
+            edgedb.QueryError, r"cannot cast into generic.*'anytype'"
+        ):
             await self.con.execute("""
                 SELECT <anytype>123;
             """)
 
     async def test_edgeql_casts_illegal_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anyscalar'"):
+            edgedb.QueryError, r"cannot cast into generic.*anyscalar'"
+        ):
             await self.con.execute("""
                 SELECT <anyscalar>123;
             """)
 
     async def test_edgeql_casts_illegal_03(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anyreal'"):
+            edgedb.QueryError, r"cannot cast into generic.*anyreal'"
+        ):
             await self.con.execute("""
                 SELECT <anyreal>123;
             """)
 
     async def test_edgeql_casts_illegal_04(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anyint'"):
+            edgedb.QueryError, r"cannot cast into generic.*anyint'"
+        ):
             await self.con.execute("""
                 SELECT <anyint>123;
             """)
 
     async def test_edgeql_casts_illegal_05(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'cannot cast.*'):
+            edgedb.QueryError, r'cannot cast.*'
+        ):
             await self.con.execute("""
                 SELECT <anyfloat>123;
             """)
 
     async def test_edgeql_casts_illegal_06(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*sequence'"):
+            edgedb.QueryError, r"cannot cast into generic.*sequence'"
+        ):
             await self.con.execute("""
                 SELECT <sequence>123;
             """)
 
     async def test_edgeql_casts_illegal_07(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anytype"):
+            edgedb.QueryError, r"cannot cast into generic.*anytype"
+        ):
             await self.con.execute("""
                 SELECT <array<anytype>>[123];
             """)
 
     async def test_edgeql_casts_illegal_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anytype"):
+            edgedb.QueryError, r"cannot cast into generic.*anytype"
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64, anytype>>(123, 123);
             """)
 
     async def test_edgeql_casts_illegal_09(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"cannot cast.*std::Object.*use.*IS schema::Object.*"):
+            edgedb.QueryError,
+            r"cannot cast.*std::Object.*use.*IS schema::Object.*",
+        ):
             await self.con.execute("""
                 SELECT <schema::Object>std::Object;
             """)
 
     async def test_edgeql_casts_illegal_10(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anyenum"):
+            edgedb.QueryError, r"cannot cast into generic.*anyenum"
+        ):
             await self.con.execute("""
                 SELECT <array<anyenum>>{};
             """)
 
     async def test_edgeql_casts_illegal_11(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anyenum"):
+            edgedb.QueryError, r"cannot cast into generic.*anyenum"
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64, anyenum>>{};
             """)
 
     async def test_edgeql_casts_illegal_12(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anypoint"):
+            edgedb.QueryError, r"cannot cast into generic.*anypoint"
+        ):
             await self.con.execute("""
                 SELECT <range<anypoint>>{};
             """)
 
     async def test_edgeql_casts_illegal_13(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r"cannot cast into generic.*anypoint"):
+            edgedb.QueryError, r"cannot cast into generic.*anypoint"
+        ):
             await self.con.execute("""
                 SELECT <multirange<anypoint>>{};
             """)
@@ -1681,99 +1741,135 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     # abstract scalar params should be illegal
     async def test_edgeql_casts_illegal_param_01(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*'anytype'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*'anytype'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <anytype>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_02(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyscalar'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyscalar'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <anyscalar>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_03(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyreal'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyreal'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <anyreal>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_04(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyint'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyint'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <anyint>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_05(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyfloat'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyfloat'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <anyfloat>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_06(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*sequence'"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*sequence'"
+        ):
+            await self.con.execute(
+                """
                 SELECT <sequence>$0;
-            """, 123)
+            """,
+                123,
+            )
 
     async def test_edgeql_casts_illegal_param_07(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anytype"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anytype"
+        ):
+            await self.con.execute(
+                """
                 SELECT <array<anytype>>$0;
-            """, [123])
+            """,
+                [123],
+            )
 
     async def test_edgeql_casts_illegal_param_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anytype"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anytype"
+        ):
+            await self.con.execute(
+                """
                 SELECT <tuple<int64, anytype>>$0;
-            """, (123, 123))
+            """,
+                (123, 123),
+            )
 
     async def test_edgeql_casts_illegal_param_10(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyenum"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyenum"
+        ):
+            await self.con.execute(
+                """
                 SELECT <array<anyenum>>$0;
-            """, [])
+            """,
+                [],
+            )
 
     async def test_edgeql_casts_illegal_param_11(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anyenum"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anyenum"
+        ):
+            await self.con.execute(
+                """
                 SELECT <optional tuple<int64, anyenum>>$0;
-            """, None)
+            """,
+                None,
+            )
 
     async def test_edgeql_casts_illegal_param_12(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anypoint"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anypoint"
+        ):
+            await self.con.execute(
+                """
                 SELECT <optional range<anypoint>>$0;
-            """, None)
+            """,
+                None,
+            )
 
     async def test_edgeql_casts_illegal_param_13(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                r"parameter cannot be a generic type.*anypoint"):
-            await self.con.execute("""
+            edgedb.QueryError, r"parameter cannot be a generic type.*anypoint"
+        ):
+            await self.con.execute(
+                """
                 SELECT <optional multirange<anypoint>>$0;
-            """, None)
+            """,
+                None,
+            )
 
     # NOTE: json is a special type as it has its own type system. A
     # json value can be JSON array, object, boolean, number, string or
@@ -2168,45 +2264,47 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                     select schema::Type{name} filter .name = 'std::bool'
                 )
             '''),
-            edgedb.Set(('{"name": "std::bool"}',))
+            edgedb.Set(('{"name": "std::bool"}',)),
         )
 
     async def test_edgeql_casts_json_05(self):
         self.assertEqual(
-            await self.con.query(
-                'select <json>{(1, 2), (3, 4)}'),
-            ['[1, 2]', '[3, 4]'])
+            await self.con.query('select <json>{(1, 2), (3, 4)}'),
+            ['[1, 2]', '[3, 4]'],
+        )
 
         self.assertEqual(
             await self.con.query(
-                'select <json>{(a := 1, b := 2), (a := 3, b := 4)}'),
-            ['{"a": 1, "b": 2}', '{"a": 3, "b": 4}'])
+                'select <json>{(a := 1, b := 2), (a := 3, b := 4)}'
+            ),
+            ['{"a": 1, "b": 2}', '{"a": 3, "b": 4}'],
+        )
 
         self.assertEqual(
-            await self.con.query(
-                'select <json>{[1, 2], [3, 4]}'),
-            ['[1, 2]', '[3, 4]'])
+            await self.con.query('select <json>{[1, 2], [3, 4]}'),
+            ['[1, 2]', '[3, 4]'],
+        )
 
         self.assertEqual(
-            await self.con.query(
-                'select <json>{[(1, 2)], [(3, 4)]}'),
-            ['[[1, 2]]', '[[3, 4]]'])
+            await self.con.query('select <json>{[(1, 2)], [(3, 4)]}'),
+            ['[[1, 2]]', '[[3, 4]]'],
+        )
 
     async def test_edgeql_casts_json_06(self):
         self.assertEqual(
-            await self.con.query_json(
-                'select <json>{(1, 2), (3, 4)}'),
-            '[[1, 2], [3, 4]]')
+            await self.con.query_json('select <json>{(1, 2), (3, 4)}'),
+            '[[1, 2], [3, 4]]',
+        )
 
         self.assertEqual(
-            await self.con.query_json(
-                'select <json>{[1, 2], [3, 4]}'),
-            '[[1, 2], [3, 4]]')
+            await self.con.query_json('select <json>{[1, 2], [3, 4]}'),
+            '[[1, 2], [3, 4]]',
+        )
 
         self.assertEqual(
-            await self.con.query_json(
-                'select <json>{[(1, 2)], [(3, 4)]}'),
-            '[[[1, 2]], [[3, 4]]]')
+            await self.con.query_json('select <json>{[(1, 2)], [(3, 4)]}'),
+            '[[[1, 2]], [[3, 4]]]',
+        )
 
     async def test_edgeql_casts_json_07(self):
         # This is the same suite of tests as for str. The point is
@@ -2247,36 +2345,41 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime><json>"2018-05-07;20:01:22.306916+00:00"')
+                'SELECT <datetime><json>"2018-05-07;20:01:22.306916+00:00"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime><json>"2018-05-07T20:01:22.306916"')
+                'SELECT <datetime><json>"2018-05-07T20:01:22.306916"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime><json>"2018-05-07T20:01:22.306916 1000"')
+                'SELECT <datetime><json>"2018-05-07T20:01:22.306916 1000"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
                 '''SELECT <datetime><json>
                     "2018-05-07T20:01:22.306916 US/Central"
-                ''')
+                '''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax'):
+            edgedb.InvalidValueError, r'invalid input syntax'
+        ):
             await self.con.query_single(
-                'SELECT <datetime><json>"2018-05-07T20:01:22.306916 +GMT1"')
+                'SELECT <datetime><json>"2018-05-07T20:01:22.306916 +GMT1"'
+            )
 
     async def test_edgeql_casts_json_08(self):
         # This is the same suite of tests as for str. The point is
@@ -2312,42 +2415,47 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT
                     <cal::local_datetime><json>"2018-05-07;20:01:22.306916"
-                ''')
+                '''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT <cal::local_datetime><json>
                     "2018-05-07T20:01:22.306916+01:00"
-                ''')
+                '''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT <cal::local_datetime><json>
-                    "2018-05-07T20:01:22.306916 GMT"''')
+                    "2018-05-07T20:01:22.306916 GMT"'''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT <cal::local_datetime><json>
-                    "2018-05-07T20:01:22.306916 GMT0"''')
+                    "2018-05-07T20:01:22.306916 GMT0"'''
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
                 '''SELECT <cal::local_datetime><json>
                     "2018-05-07T20:01:22.306916 US/Central"
-                ''')
+                '''
+            )
 
     async def test_edgeql_casts_json_09(self):
         # This is the same suite of tests as for str. The point is
@@ -2377,28 +2485,32 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date><json>"2018-05-07T20:01:22.306916"')
+                'SELECT <cal::local_date><json>"2018-05-07T20:01:22.306916"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date><json>"2018/05/07"')
+                'SELECT <cal::local_date><json>"2018/05/07"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date><json>"2018.05.07"')
+                'SELECT <cal::local_date><json>"2018.05.07"'
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_date><json>"2018-05-07+01:00"')
+                'SELECT <cal::local_date><json>"2018-05-07+01:00"'
+            )
 
     async def test_edgeql_casts_json_10(self):
         # This is the same suite of tests as for str. The point is
@@ -2431,133 +2543,149 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                'invalid input syntax for type std::cal::local_time'):
+            edgedb.InvalidValueError,
+            'invalid input syntax for type std::cal::local_time',
+        ):
             await self.con.query_single(
-                "SELECT <cal::local_time><json>'2018-05-07 20:01:22'")
+                "SELECT <cal::local_time><json>'2018-05-07 20:01:22'"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'invalid input syntax for type'):
+            edgedb.InvalidValueError, r'invalid input syntax for type'
+        ):
             await self.con.query_single(
-                'SELECT <cal::local_time><json>"20:01:22.306916+01:00"')
+                'SELECT <cal::local_time><json>"20:01:22.306916+01:00"'
+            )
 
     async def test_edgeql_casts_json_11(self):
         await self.assert_query_result(
-            r"SELECT <array<int64>><json>[1, 1, 2, 3, 5]",
-            [[1, 1, 2, 3, 5]]
+            r"SELECT <array<int64>><json>[1, 1, 2, 3, 5]", [[1, 1, 2, 3, 5]]
         )
 
         # string to array
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'expected JSON array; got JSON string'):
-            await self.con.query_single(
-                r"SELECT <array<int64>><json>'asdf'")
+            edgedb.InvalidValueError, r'expected JSON array; got JSON string'
+        ):
+            await self.con.query_single(r"SELECT <array<int64>><json>'asdf'")
 
         # array of string to array of int
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"expected JSON number or null; got JSON string"):
-            await self.con.query_single(
-                r"SELECT <array<int64>><json>['asdf']")
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"expected JSON number or null; got JSON string",
+        ):
+            await self.con.query_single(r"SELECT <array<int64>><json>['asdf']")
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"expected JSON number or null; got JSON string"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"expected JSON number or null; got JSON string",
+        ):
             await self.con.query_single(
-                r"SELECT <array<int64>>to_json('[1, 2, \"asdf\"]')")
+                r"SELECT <array<int64>>to_json('[1, 2, \"asdf\"]')"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"expected JSON number or null; got JSON string"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"expected JSON number or null; got JSON string",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>to_json('["a"]');
             """)
 
         # array with null to array
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'array<std::json>' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'array<std::json>' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"invalid null value in cast",
+        ):
             await self.con.query_single(
-                r"SELECT <array<int64>>[to_json('1'), to_json('null')]")
+                r"SELECT <array<int64>>[to_json('1'), to_json('null')]"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"array<std::int64>', "
-                r"in array elements, "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"array<std::int64>', "
+            r"in array elements, "
+            r"invalid null value in cast",
+        ):
             await self.con.query_single(
-                r"SELECT <array<int64>>to_json('[1, 2, null]')")
+                r"SELECT <array<int64>>to_json('[1, 2, null]')"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'array<std::json>' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'array<std::json>' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"invalid null value in cast",
+        ):
             await self.con.query_single(
-                r"SELECT <array<int64>><array<json>>to_json('[1, 2, null]')")
+                r"SELECT <array<int64>><array<json>>to_json('[1, 2, null]')"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<array<std::str>>', "
-                r"at tuple element '0', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<array<std::str>>', "
+            r"at tuple element '0', "
+            r"invalid null value in cast",
+        ):
             await self.con.query_single(
-                r"select <tuple<array<str>>>to_json('[null]')")
+                r"select <tuple<array<str>>>to_json('[null]')"
+            )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<array<std::str>>', "
-                r"at tuple element '0', "
-                r"in array elements, "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<array<std::str>>', "
+            r"at tuple element '0', "
+            r"in array elements, "
+            r"invalid null value in cast",
+        ):
             await self.con.query_single(
-                r"select <tuple<array<str>>>to_json('[[null]]')")
+                r"select <tuple<array<str>>>to_json('[[null]]')"
+            )
 
         # object to array
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"expected JSON array; got JSON object"):
+            edgedb.InvalidValueError, r"expected JSON array; got JSON object"
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>to_json('{"a": 1}');
             """)
 
         # array of object to array of scalar
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'array<std::int64>', "
-                r"in array elements, "
-                r"expected JSON number or null; got JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'array<std::int64>', "
+            r"in array elements, "
+            r"expected JSON number or null; got JSON object",
+        ):
             await self.con.execute("""
                 SELECT <array<int64>>to_json('[{"a": 1}]');
             """)
 
         # nested array
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'array<tuple<array<std::str>>>', "
-                r"in array elements, "
-                r"at tuple element '0', "
-                r"in array elements, "
-                r"expected JSON string or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'array<tuple<array<std::str>>>', "
+            r"in array elements, "
+            r"at tuple element '0', "
+            r"in array elements, "
+            r"expected JSON string or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <array<tuple<array<str>>>>to_json('[[[1]]]');
             """)
@@ -2626,7 +2754,7 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                     to_json('[3000, {"a": 1, "b": 2}]')
                 """
             ),
-            (3000, edgedb.NamedTuple(a=1, b=2))
+            (3000, edgedb.NamedTuple(a=1, b=2)),
         )
 
         self.assertEqual(
@@ -2637,18 +2765,23 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                                      {"a": 12, "b": "bar"}]]')
                 """
             ),
-            (3000,
-             [edgedb.NamedTuple(a=1, b="foo"),
-              edgedb.NamedTuple(a=12, b="bar")])
+            (
+                3000,
+                [
+                    edgedb.NamedTuple(a=1, b="foo"),
+                    edgedb.NamedTuple(a=12, b="bar"),
+                ],
+            ),
         )
 
         # object with wrong element type to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: std::int64, b: std::int64>', "
-                r"at tuple element 'b', "
-                r"expected JSON number or null; got JSON string"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: std::int64, b: std::int64>', "
+            r"at tuple element 'b', "
+            r"expected JSON number or null; got JSON string",
+        ):
             await self.con.query(
                 r"""
                     SELECT <tuple<a: int64, b: int64>>
@@ -2658,44 +2791,48 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object with null value to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: std::int64>', "
-                r"at tuple element 'a', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: std::int64>', "
+            r"at tuple element 'a', "
+            r"invalid null value in cast",
+        ):
             await self.con.query(
                 r"""SELECT <tuple<a: int64>>to_json('{"a": null}')"""
             )
 
         # object with missing element to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: std::int64, b: std::int64>', "
-                r"at tuple element 'b', "
-                r"missing value in JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: std::int64, b: std::int64>', "
+            r"at tuple element 'b', "
+            r"missing value in JSON object",
+        ):
             await self.con.query(
                 r"""SELECT <tuple<a: int64, b: int64>>to_json('{"a": 1}')"""
             )
 
         # short array to unnamed tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<std::int64, std::int64>', "
-                r"at tuple element '1', "
-                r"missing value in JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<std::int64, std::int64>', "
+            r"at tuple element '1', "
+            r"missing value in JSON object",
+        ):
             await self.con.query(
                 r"""SELECT <tuple<int64, int64>>to_json('[3000]')"""
             )
 
         # array to named tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: std::int64, b: std::int64>', "
-                r"at tuple element 'a', "
-                r"missing value in JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: std::int64, b: std::int64>', "
+            r"at tuple element 'a', "
+            r"missing value in JSON object",
+        ):
             await self.con.query(
                 r"""
                     SELECT <tuple<a: int64, b: int64>>
@@ -2705,84 +2842,92 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # string to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r'expected JSON array or object or null; got JSON string'):
+            edgedb.InvalidValueError,
+            r'expected JSON array or object or null; got JSON string',
+        ):
             await self.con.query(
                 r"""SELECT <tuple<a: int64, b: int64>> to_json('"test"')"""
             )
 
         # short array to unnamed tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<std::json, std::json>', "
-                r"at tuple element '1', "
-                r"missing value in JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<std::json, std::json>', "
+            r"at tuple element '1', "
+            r"missing value in JSON object",
+        ):
             await self.con.query(
                 r"""SELECT <tuple<json, json>> to_json('[3000]')"""
             )
 
         # object to unnamed tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' to "
-                r"'tuple<std::int64>', "
-                r"at tuple element '0', "
-                r"missing value in JSON object"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' to "
+            r"'tuple<std::int64>', "
+            r"at tuple element '0', "
+            r"missing value in JSON object",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64>>to_json('{"a": 1}');
             """)
 
         # nested tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: tuple<b: std::str>>', "
-                r"at tuple element 'a', "
-                r"at tuple element 'b', "
-                r"expected JSON string or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: tuple<b: std::str>>', "
+            r"at tuple element 'a', "
+            r"at tuple element 'b', "
+            r"expected JSON string or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: tuple<b: str>>>to_json('{"a": {"b": 1}}');
             """)
 
         # array with null to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<std::int64, std::int64>', "
-                r"at tuple element '1', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<std::int64, std::int64>', "
+            r"at tuple element '1', "
+            r"invalid null value in cast",
+        ):
             await self.con.execute("""
                 SELECT <tuple<int64, int64>>to_json('[1, null]');
             """)
 
         # object with null to tuple
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: std::int64>', "
-                r"at tuple element 'a', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: std::int64>', "
+            r"at tuple element 'a', "
+            r"invalid null value in cast",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: int64>>to_json('{"a": null}');
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: array<std::int64>>', "
-                r"at tuple element 'a', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: array<std::int64>>', "
+            r"at tuple element 'a', "
+            r"invalid null value in cast",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: array<int64>>>to_json('{"a": null}');
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'tuple<a: tuple<b: std::str>>', "
-                r"at tuple element 'a', "
-                r"invalid null value in cast"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'tuple<a: tuple<b: std::str>>', "
+            r"at tuple element 'a', "
+            r"invalid null value in cast",
+        ):
             await self.con.execute("""
                 SELECT <tuple<a: tuple<b: str>>>to_json('{"a": null}');
             """)
@@ -2880,27 +3025,30 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_json_16(self):
         # number to range
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"expected JSON object or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"expected JSON object or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('1');
             """)
 
         # array to range
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"expected JSON object or null; got JSON array"):
+            edgedb.InvalidValueError,
+            r"expected JSON object or null; got JSON array",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('[1]');
             """)
 
         # object to range, bad empty
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'range<std::int64>', "
-                r"in range parameter 'empty', "
-                r"expected JSON boolean or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'range<std::int64>', "
+            r"in range parameter 'empty', "
+            r"expected JSON boolean or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "empty": 1
@@ -2909,9 +3057,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, empty with distinct lower and upper
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"conflicting arguments in range constructor: 'empty' is "
-                r"`true` while the specified bounds suggest otherwise"):
+            edgedb.InvalidValueError,
+            r"conflicting arguments in range constructor: 'empty' is "
+            r"`true` while the specified bounds suggest otherwise",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "empty": true,
@@ -2923,9 +3072,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         # object to range, empty with same lower and upper
         # and inc_lower and inc_upper
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"conflicting arguments in range constructor: 'empty' is "
-                r"`true` while the specified bounds suggest otherwise"):
+            edgedb.InvalidValueError,
+            r"conflicting arguments in range constructor: 'empty' is "
+            r"`true` while the specified bounds suggest otherwise",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "empty": true,
@@ -2938,9 +3088,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, missing inc_lower
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"JSON object representing a range must include an "
-                r"'inc_lower'"):
+            edgedb.InvalidValueError,
+            r"JSON object representing a range must include an "
+            r"'inc_lower'",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "inc_upper": false
@@ -2949,9 +3100,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, missing inc_upper
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"JSON object representing a range must include an "
-                r"'inc_upper'"):
+            edgedb.InvalidValueError,
+            r"JSON object representing a range must include an "
+            r"'inc_upper'",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "inc_lower": false
@@ -2960,11 +3112,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, bad inc_lower
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'range<std::int64>', "
-                r"in range parameter 'inc_lower', "
-                r"expected JSON boolean or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'range<std::int64>', "
+            r"in range parameter 'inc_lower', "
+            r"expected JSON boolean or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "inc_lower": 1,
@@ -2974,11 +3127,12 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, bad inc_upper
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"while casting 'std::json' "
-                r"to 'range<std::int64>', "
-                r"in range parameter 'inc_upper', "
-                r"expected JSON boolean or null; got JSON number"):
+            edgedb.InvalidValueError,
+            r"while casting 'std::json' "
+            r"to 'range<std::int64>', "
+            r"in range parameter 'inc_upper', "
+            r"expected JSON boolean or null; got JSON number",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "inc_lower": false,
@@ -2988,9 +3142,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
 
         # object to range, extra parameters
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"JSON object representing a range contains unexpected keys: "
-                r"bar, foo"):
+            edgedb.InvalidValueError,
+            r"JSON object representing a range contains unexpected keys: "
+            r"bar, foo",
+        ):
             await self.con.execute("""
                 SELECT <range<int64>>to_json('{
                     "lower": 1,
@@ -3005,16 +3160,16 @@ class TestEdgeQLCasts(tb.QueryTestCase):
     async def test_edgeql_casts_json_17(self):
         # number to multirange
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"expected JSON array; got JSON number"):
+            edgedb.InvalidValueError, r"expected JSON array; got JSON number"
+        ):
             await self.con.execute("""
                 SELECT <multirange<int64>>to_json('1');
             """)
 
         # object to multirange
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                r"expected JSON array; got JSON object"):
+            edgedb.InvalidValueError, r"expected JSON array; got JSON object"
+        ):
             await self.con.execute("""
                 SELECT <multirange<int64>>to_json('{"a": 1}');
             """)
@@ -3058,15 +3213,17 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                         p_decimal,
                     };
                 """,
-                [{
-                    'p_int16': 1,
-                    'p_int32': 1,
-                    'p_int64': 1,
-                    'p_float32': 1,
-                    'p_float64': 1,
-                    'p_bigint': 1,
-                    'p_decimal': 1,
-                }],
+                [
+                    {
+                        'p_int16': 1,
+                        'p_int32': 1,
+                        'p_int64': 1,
+                        'p_float32': 1,
+                        'p_float64': 1,
+                        'p_bigint': 1,
+                        'p_decimal': 1,
+                    }
+                ],
             )
 
     async def test_edgeql_casts_assignment_02(self):
@@ -3085,23 +3242,19 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                         p_float32,
                     };
                 """,
-                [{
-                    'p_float32': 1.5,
-                }],
+                [
+                    {
+                        'p_float32': 1.5,
+                    }
+                ],
             )
 
     async def test_edgeql_casts_assignment_03(self):
         async with self._run_and_rollback():
             # in particular, bigint and decimal are not assignment-castable
             # into any other numeric type
-            for typename in ['int16',
-                             'int32',
-                             'int64',
-                             'float32',
-                             'float64']:
-
+            for typename in ['int16', 'int32', 'int64', 'float32', 'float64']:
                 for numtype in {'bigint', 'decimal'}:
-
                     query = f'''
                         INSERT ScalarTest {{
                             p_{typename} := <{numtype}>3,
@@ -3109,30 +3262,33 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                         }};
                     '''
                     async with self.assertRaisesRegexTx(
-                            edgedb.QueryError,
-                            r'invalid target for property',
-                            msg=query):
-                        await self.con.execute(query + f'''
+                        edgedb.QueryError,
+                        r'invalid target for property',
+                        msg=query,
+                    ):
+                        await self.con.execute(
+                            query
+                            + f'''
                             # clean up, so other tests can proceed
                             DELETE (
                                 SELECT ScalarTest
                                 FILTER .p_{numtype} = 1001
                             );
-                        ''')
+                        '''
+                        )
 
     async def test_edgeql_casts_custom_scalar_01(self):
         await self.assert_query_result(
             '''
                 SELECT <custom_str_t>'ABC'
             ''',
-            ['ABC']
+            ['ABC'],
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                'invalid custom_str_t'):
-            await self.con.query(
-                "SELECT <custom_str_t>'123'")
+            edgedb.ConstraintViolationError, 'invalid custom_str_t'
+        ):
+            await self.con.query("SELECT <custom_str_t>'123'")
 
     async def test_edgeql_casts_custom_scalar_02(self):
         await self.assert_query_result(
@@ -3242,25 +3398,21 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             # Basic tuples
             'tuple<str, bool>': [('x', True), ('y', False)],
             'optional tuple<str, bool>': [('x', True), None],
-
             # Some pointlessly nested tuples
             'tuple<tuple<str, bool>>': [(('x', True),)],
             'tuple<tuple<str, bool>, int64>': [(('x', True), 1)],
-
             # Basic array examples
             'array<tuple<int64, str>>': [
                 [],
                 [(0, 'zero')],
                 [(0, 'zero'), (1, 'one')],
             ],
-
             'optional array<tuple<int64, str>>': [
                 None,
                 [],
                 [(0, 'zero')],
                 [(0, 'zero'), (1, 'one')],
             ],
-
             'array<tuple<str, array<int64>>>': [
                 [],
                 [('x', [])],
@@ -3271,7 +3423,6 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 [('x', []), ('y', []), ('z', [1])],
                 [('x', []), ('y', [1, 2]), ('z', [1, 2, 3])],
             ],
-
             # Arrays of pointlessly nested tuples
             'array<tuple<tuple<str, bool>, int64>>': [
                 [],
@@ -3283,31 +3434,35 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 [(([], True), 1)],
                 [((['x', 'y', 'z'], True), 1), ((['z'], False), 2)],
             ],
-
             # Using tuples to produce just a pure nested array
-            'array<tuple<array<int64>>>': [nest(x) for x in [
-                [],
-                [[], []],
-                [[], [], []],
-                [[1], [], []],
-                [[], [1], []],
-                [[], [], [1]],
-                [[1, 2, 3], [], [4, 5, 6]],
-                [[1], [2, 3], [4, 5, 6]],
-            ]],
-
-            'array<tuple<array<tuple<array<int64>>>>>': [nest(x) for x in [
-                [],
-                [[], []],
-                [[], [], []],
-                [[[], [], []], [[], []], [[]]],
-                [[[1]], [], []],
-                [[], [[1]], []],
-                [[], [], [[1]]],
-                [[[1, 2, 3], [], [4, 5, 6]]],
-                [[[1, 2, 3], []], [[4, 5, 6]]],
-                [[[1, 2], [3]], [], [[4, 5], [6]]],
-            ]],
+            'array<tuple<array<int64>>>': [
+                nest(x)
+                for x in [
+                    [],
+                    [[], []],
+                    [[], [], []],
+                    [[1], [], []],
+                    [[], [1], []],
+                    [[], [], [1]],
+                    [[1, 2, 3], [], [4, 5, 6]],
+                    [[1], [2, 3], [4, 5, 6]],
+                ]
+            ],
+            'array<tuple<array<tuple<array<int64>>>>>': [
+                nest(x)
+                for x in [
+                    [],
+                    [[], []],
+                    [[], [], []],
+                    [[[], [], []], [[], []], [[]]],
+                    [[[1]], [], []],
+                    [[], [[1]], []],
+                    [[], [], [[1]]],
+                    [[[1, 2, 3], [], [4, 5, 6]]],
+                    [[[1, 2, 3], []], [[4, 5, 6]]],
+                    [[[1, 2], [3]], [], [[4, 5], [6]]],
+                ]
+            ],
         }
 
         for typ, vals in tests.items():
@@ -3362,10 +3517,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         '''
 
         for inp in data:
-            exp = tb.bag([
-                {'name': name, 'tags': tb.bag(tags)}
-                for name, tags in inp
-            ])
+            exp = tb.bag(
+                [{'name': name, 'tags': tb.bag(tags)} for name, tags in inp]
+            )
 
             async with self._run_and_rollback():
                 await self.con.execute(qry, inp)
@@ -3410,10 +3564,14 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         t = f'tuple<{t}>'
         v = (v,)
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError, r'too deeply nested'):
-            await self.con.query(f"""
+            edgedb.QueryError, r'too deeply nested'
+        ):
+            await self.con.query(
+                f"""
                 select <{t}>$0
-            """, v)
+            """,
+                v,
+            )
 
     async def test_edgeql_casts_tuple_params_06(self):
         # Test multiple tuple params mixed with other stuff
@@ -3423,7 +3581,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 (<tuple<str, str>>$0).0 ++ <str>$1 ++ (<tuple<str, str>>$0).1
             ''',
             ['foo bar'],
-            variables=(('foo', 'bar'), ' ',),
+            variables=(
+                ('foo', 'bar'),
+                ' ',
+            ),
         )
         await self.assert_query_result(
             '''
@@ -3432,7 +3593,10 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 ++ '!'
             ''',
             ['foo bar!'],
-            variables=(('foo', 'bar'), ' ',),
+            variables=(
+                ('foo', 'bar'),
+                ' ',
+            ),
         )
         await self.assert_query_result(
             '''
@@ -3453,7 +3617,7 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             [{'name': 'a', 'flag': True}],
             # The server supports named tuple input, but edgedb-python
             # doesn't let you specify them nicely.
-            variables=(('a', True),)
+            variables=(('a', True),),
         )
 
     async def test_edgeql_casts_tuple_params_08(self):
@@ -3474,11 +3638,14 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         )
 
     async def test_edgeql_casts_tuple_params_09(self):
-        await self.con.query('''
+        await self.con.query(
+            '''
             WITH
               p := <tuple<test: str>>$0
             insert Test { p_tup := p };
-        ''', ('foo',))
+        ''',
+            ('foo',),
+        )
 
         await self.assert_query_result(
             '''
@@ -3546,22 +3713,18 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         def _t(s):
             # Instantiate polymorphic types
             return (
-                s
-                .replace('anytype', 'str')
+                s.replace('anytype', 'str')
                 .replace('anytuple', 'tuple<str, int64>')
                 .replace('std::anyenum', 'schema::Cardinality')
                 .replace('std::anypoint', 'int64')
             )
 
         from_types = {_t(cast.from_type.name) for cast in casts}
-        type_keys = {
-            name: f'x{i}' for i, name in enumerate(sorted(from_types))
-        }
+        type_keys = {name: f'x{i}' for i, name in enumerate(sorted(from_types))}
         # Populate a type that has an optional field for each cast source type
         sep = '\n                '
         props = sep.join(
-            f'CREATE PROPERTY {n} -> {_t(t)};'
-            for t, n in type_keys.items()
+            f'CREATE PROPERTY {n} -> {_t(t)};' for t, n in type_keys.items()
         )
         setup = f'''
             CREATE TYPE Null {{
@@ -3627,7 +3790,9 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 '''
                 select (<Person>{<uuid>$0, <uuid>$1}) { name }
                 order by .name;
-                ''', persons[0].id, dummy_uuid
+                ''',
+                persons[0].id,
+                dummy_uuid,
             )
 
         res = await self.con.query(

@@ -63,11 +63,14 @@ class MarkupTests(unittest.TestCase):
     def test_utils_markup_dumps(self):
         assert markup.dumps('123') == "'123'"
 
-        expected = \
+        expected = (
             "[\n    '123',\n    1,\n    1.1,\n    {\n        foo: ()\n    }\n]"
+        )
         expected = expected.replace(' ', '')
-        assert markup.dumps(['123', 1, 1.1, {'foo': ()}]).replace(
-            ' ', '') == expected
+        assert (
+            markup.dumps(['123', 1, 1.1, {'foo': ()}]).replace(' ', '')
+            == expected
+        )
 
     def test_utils_markup_overflow(self):
         obj = a = []
@@ -97,36 +100,44 @@ class MarkupTests(unittest.TestCase):
 
     def test_utils_markup_overflow_deep_2(self):
         assert isinstance(
-            markup.elements.base.OverflowBarier(),
-            markup.elements.lang.TreeNode)
+            markup.elements.base.OverflowBarier(), markup.elements.lang.TreeNode
+        )
         assert issubclass(
-            markup.elements.base.OverflowBarier, markup.elements.lang.TreeNode)
+            markup.elements.base.OverflowBarier, markup.elements.lang.TreeNode
+        )
         assert isinstance(
             markup.elements.base.SerializationError(text='1', cls='1'),
-            markup.elements.lang.TreeNode)
+            markup.elements.lang.TreeNode,
+        )
         assert issubclass(
             markup.elements.base.SerializationError,
-            markup.elements.lang.TreeNode)
+            markup.elements.lang.TreeNode,
+        )
         assert not isinstance(
-            markup.elements.base.Markup(), markup.elements.lang.TreeNode)
+            markup.elements.base.Markup(), markup.elements.lang.TreeNode
+        )
         assert not issubclass(
-            markup.elements.base.Markup, markup.elements.lang.TreeNode)
+            markup.elements.base.Markup, markup.elements.lang.TreeNode
+        )
 
-        from edb.common.markup.serializer.base \
-            import OVERFLOW_BARIER, Context
+        from edb.common.markup.serializer.base import OVERFLOW_BARIER, Context
 
         def gen(deep):
             if deep > 0:
                 return SpecialList([gen(deep - 1)])
 
         assert not str(
-            markup.serialize(gen(OVERFLOW_BARIER - 1), ctx=Context())).count(
-                'Overflow')
-        assert str(markup.serialize(gen(OVERFLOW_BARIER + 10), ctx=Context(
-        ))).count('Overflow') == 1
+            markup.serialize(gen(OVERFLOW_BARIER - 1), ctx=Context())
+        ).count('Overflow')
+        assert (
+            str(
+                markup.serialize(gen(OVERFLOW_BARIER + 10), ctx=Context())
+            ).count('Overflow')
+            == 1
+        )
         assert not str(
-            markup.serialize(gen(OVERFLOW_BARIER + 10), ctx=Context())).count(
-                'SerializationError')
+            markup.serialize(gen(OVERFLOW_BARIER + 10), ctx=Context())
+        ).count('SerializationError')
 
     def test_utils_markup_overflow_wide(self):
         obj3 = []

@@ -88,7 +88,7 @@ def init_worker(
     status_queue: multiprocessing.SimpleQueue,
     param_queue: multiprocessing.SimpleQueue,
     result_queue: multiprocessing.SimpleQueue,
-    additional_init: Optional[Callable]
+    additional_init: Optional[Callable],
 ) -> None:
     global result
     global coverage_run
@@ -142,8 +142,9 @@ class StreamingTestSuite(unittest.TestSuite):
             warnings.filterwarnings(
                 'ignore',
                 message=r'The "transaction\(\)" method is deprecated'
-                        r' and is scheduled to be removed',
-                category=DeprecationWarning)
+                r' and is scheduled to be removed',
+                category=DeprecationWarning,
+            )
 
             self._run(test, result)
 
@@ -160,15 +161,19 @@ class StreamingTestSuite(unittest.TestSuite):
         self._handleClassSetUp(test, result)
         result._previousTestClass = test.__class__
 
-        if (getattr(test.__class__, '_classSetupFailed', False) or
-                getattr(result, '_moduleSetUpFailed', False)):
+        if getattr(test.__class__, '_classSetupFailed', False) or getattr(
+            result, '_moduleSetUpFailed', False
+        ):
             return
 
-        result.annotate_test(test, {
-            'py-hash-secret': py_hash_secret,
-            'py-random-seed': py_random_seed,
-            'runner-pid': os.getpid(),
-        })
+        result.annotate_test(
+            test,
+            {
+                'py-hash-secret': py_hash_secret,
+                'py-random-seed': py_random_seed,
+                'runner-pid': os.getpid(),
+            },
+        )
 
         start = time.monotonic()
         test.run(result)
@@ -193,9 +198,9 @@ def _run_test(workload):
 
 def _is_exc_info(args):
     return (
-        isinstance(args, tuple) and
-        len(args) == 3 and
-        issubclass(args[0], BaseException)
+        isinstance(args, tuple)
+        and len(args) == 3
+        and issubclass(args[0], BaseException)
     )
 
 
@@ -237,22 +242,34 @@ class ChannelingTestResultMeta(type):
                 print(
                     f'!!! Test worker child process: '
                     f'failed to serialize arguments for {meth}: '
-                    f'*args={args} **kwargs={kwargs} !!!')
+                    f'*args={args} **kwargs={kwargs} !!!'
+                )
                 raise
+
         return _wrapper
 
     def __new__(mcls, name, bases, dct):
-        for meth in {'startTest', 'addSuccess', 'addError', 'addFailure',
-                     'addSkip', 'addExpectedFailure', 'addUnexpectedSuccess',
-                     'addSubTest', 'addWarning', 'record_test_stats',
-                     'annotate_test'}:
+        for meth in {
+            'startTest',
+            'addSuccess',
+            'addError',
+            'addFailure',
+            'addSkip',
+            'addExpectedFailure',
+            'addUnexpectedSuccess',
+            'addSubTest',
+            'addWarning',
+            'record_test_stats',
+            'annotate_test',
+        }:
             dct[meth] = mcls.get_wrapper(meth)
 
         return super().__new__(mcls, name, bases, dct)
 
 
-class ChannelingTestResult(unittest.result.TestResult,
-                           metaclass=ChannelingTestResultMeta):
+class ChannelingTestResult(
+    unittest.result.TestResult, metaclass=ChannelingTestResultMeta
+):
     def __init__(self, queue):
         super().__init__(io.StringIO(), False, 1)
         self._queue = queue
@@ -345,13 +362,17 @@ class ParallelTestSuite(unittest.TestSuite):
         status_thread.start()
 
         initargs = (
-            status_queue, worker_param_queue, result_queue, self.init_worker
+            status_queue,
+            worker_param_queue,
+            result_queue,
+            self.init_worker,
         )
 
         pool = multiprocessing.Pool(
             self.num_workers,
             initializer=mproc_fixes.WorkerScope(init_worker, shutdown_worker),
-            initargs=initargs)
+            initargs=initargs,
+        )
 
         # Wait for all workers to initialize.
         for _ in range(self.num_workers):
@@ -421,7 +442,6 @@ class ParallelTestSuite(unittest.TestSuite):
 
 
 class SequentialTestSuite(unittest.TestSuite):
-
     def __init__(self, tests, server_conn, backend_dsn, worker_init):
         self.tests = tests
         self.server_conn = server_conn
@@ -434,8 +454,9 @@ class SequentialTestSuite(unittest.TestSuite):
         result = result_
 
         if self.server_conn:
-            os.environ['GELITE_TEST_CLUSTER_ADDR'] = \
-                json.dumps(self.server_conn)
+            os.environ['GELITE_TEST_CLUSTER_ADDR'] = json.dumps(
+                self.server_conn
+            )
         if self.backend_dsn:
             os.environ['GELITE_TEST_BACKEND_DSN'] = self.backend_dsn
 
@@ -479,20 +500,21 @@ class BaseRenderer:
         self.stream = stream
         self.styles_map = {
             marker.value: getattr(styles, f'marker_{marker.name}')
-            for marker in Markers}
+            for marker in Markers
+        }
 
     def format_test(self, test):
         if isinstance(test, unittest.case._SubTest):
             if test.params:
-                params = ', '.join(
-                    f'{k}={v!r}' for k, v in test.params.items())
+                params = ', '.join(f'{k}={v!r}' for k, v in test.params.items())
             else:
                 params = '<subtest>'
             return f'{test.test_case} {{{params}}}'
         else:
             if hasattr(test, 'fail_notes') and test.fail_notes:
                 fail_notes = ', '.join(
-                    f'{k}={v!r}' for k, v in test.fail_notes.items())
+                    f'{k}={v!r}' for k, v in test.fail_notes.items()
+                )
                 return f'{test} {{{fail_notes}}}'
             else:
                 return str(test)
@@ -509,8 +531,11 @@ class BaseRenderer:
 
 class SimpleRenderer(BaseRenderer):
     def report(self, test, marker, description=None, *, currently_running):
-        click.echo(self.styles_map[marker.value](marker.value),
-                   nl=False, file=self.stream)
+        click.echo(
+            self.styles_map[marker.value](marker.value),
+            nl=False,
+            file=self.stream,
+        )
 
 
 class VerboseRenderer(BaseRenderer):
@@ -533,8 +558,10 @@ class VerboseRenderer(BaseRenderer):
 
     def report(self, test, marker, description=None, *, currently_running):
         style = self.styles_map[marker.value]
-        click.echo(style(self._render_test(test, marker, description)),
-                   file=self.stream)
+        click.echo(
+            style(self._render_test(test, marker, description)),
+            file=self.stream,
+        )
 
     def report_still_running(self, still_running: dict[str, float]) -> None:
         items = [f"{t} for {d:.02f}s" for t, d in still_running.items()]
@@ -542,7 +569,6 @@ class VerboseRenderer(BaseRenderer):
 
 
 class MultiLineRenderer(BaseRenderer):
-
     FT_LABEL = 'First few failed: '
     FT_MAX_LINES = 6
 
@@ -556,8 +582,10 @@ class MultiLineRenderer(BaseRenderer):
         self.completed_tests = 0
 
         test_modules = {test.__class__.__module__ for test in tests}
-        max_test_module_len = max((len(self._render_modname(name))
-                                   for name in test_modules), default=0)
+        max_test_module_len = max(
+            (len(self._render_modname(name)) for name in test_modules),
+            default=0,
+        )
         self.first_col_width = max_test_module_len + 1  # 1 == len(' ')
 
         self.failed_tests = set()
@@ -589,10 +617,11 @@ class MultiLineRenderer(BaseRenderer):
         return name.replace('.', '/') + '.py'
 
     def _color_second_column(self, line, style):
-        return line[:self.first_col_width] + style(line[self.first_col_width:])
+        return line[: self.first_col_width] + style(
+            line[self.first_col_width :]
+        )
 
     def _render(self, currently_running):
-
         def print_line(line):
             if len(line) < cols:
                 line += ' ' * (cols - len(line))
@@ -606,7 +635,6 @@ class MultiLineRenderer(BaseRenderer):
         second_col_width = cols - self.first_col_width
 
         def _render_test_list(label, max_lines, tests, style):
-
             if (
                 len(label) > self.first_col_width
                 or cols - self.first_col_width <= 40
@@ -660,8 +688,7 @@ class MultiLineRenderer(BaseRenderer):
             for _ in range(self.max_label_lines_rendered[lkey] - tests_lines):
                 lines.append(' ' * cols)
             self.max_label_lines_rendered[lkey] = max(
-                self.max_label_lines_rendered[lkey],
-                tests_lines
+                self.max_label_lines_rendered[lkey], tests_lines
             )
 
         clear_cmd = ''
@@ -681,9 +708,8 @@ class MultiLineRenderer(BaseRenderer):
                 # Apply styles *after* slicing and padding the string
                 # (otherwise ANSI codes could be sliced in half).
                 second_col = re.sub(
-                    r'\S',
-                    lambda x: self.styles_map[x[0]](x[0]),
-                    second_col)
+                    r'\S', lambda x: self.styles_map[x[0]](x[0]), second_col
+                )
 
                 lines.append(f'{line}{second_col}')
 
@@ -713,7 +739,7 @@ class MultiLineRenderer(BaseRenderer):
                 self.R_LABEL + f'({len(currently_running)})',
                 self.R_MAX_LINES,
                 running_tests,
-                styles.marker_passed
+                styles.marker_passed,
             )
 
         print_empty_line()
@@ -737,7 +763,7 @@ class MultiLineRenderer(BaseRenderer):
                 # cursor past the visible screen area, so if we
                 # render more data than the screen can fit, we
                 # will have lot's of garbage output.
-                lines = lines[len(lines) + 1 - rows:]
+                lines = lines[len(lines) + 1 - rows :]
                 lines[0] = '^' * cols
 
         # Hide cursor.
@@ -755,8 +781,17 @@ class MultiLineRenderer(BaseRenderer):
 
 
 class ParallelTextTestResult(unittest.result.TestResult):
-    def __init__(self, *, stream, verbosity, warnings, tests,
-                 output_format=OutputFormat.auto, failfast=False, suite):
+    def __init__(
+        self,
+        *,
+        stream,
+        verbosity,
+        warnings,
+        tests,
+        output_format=OutputFormat.auto,
+        failfast=False,
+        suite,
+    ):
         super().__init__(stream, False, verbosity)
         self.verbosity = verbosity
         self.catch_warnings = warnings
@@ -772,13 +807,16 @@ class ParallelTextTestResult(unittest.result.TestResult):
         self._warnings = {}
         self.suite = suite
 
-        if (output_format is OutputFormat.verbose or
-                (output_format is OutputFormat.auto and self.verbosity > 1)):
+        if output_format is OutputFormat.verbose or (
+            output_format is OutputFormat.auto and self.verbosity > 1
+        ):
             self.ren = VerboseRenderer(tests=tests, stream=stream)
-        elif (output_format is OutputFormat.stacked or
-                (output_format is OutputFormat.auto and stream.isatty() and
-                 shutil.get_terminal_size()[0] > 60 and
-                 os.name != 'nt')):
+        elif output_format is OutputFormat.stacked or (
+            output_format is OutputFormat.auto
+            and stream.isatty()
+            and shutil.get_terminal_size()[0] > 60
+            and os.name != 'nt'
+        ):
             self.ren = MultiLineRenderer(tests=tests, stream=stream)
         else:
             self.ren = SimpleRenderer(tests=tests, stream=stream)
@@ -799,9 +837,8 @@ class ParallelTextTestResult(unittest.result.TestResult):
             running_for = now - start
             if running_for > 5.0:
                 key = str(test)
-                if (
-                    test in self.test_annotations
-                    and (pid := self.test_annotations[test].get('runner-pid'))
+                if test in self.test_annotations and (
+                    pid := self.test_annotations[test].get('runner-pid')
                 ):
                     key = f'{key} (pid={pid})'
 
@@ -829,10 +866,10 @@ class ParallelTextTestResult(unittest.result.TestResult):
         super().startTest(test)
         self.currently_running[test] = time.monotonic()
         self.ren.report_start(
-            test, currently_running=list(self.currently_running))
-        if (
-            test in self.test_annotations
-            and (pid := self.test_annotations[test].get('runner-pid'))
+            test, currently_running=list(self.currently_running)
+        )
+        if test in self.test_annotations and (
+            pid := self.test_annotations[test].get('runner-pid')
         ):
             self.current_pids[pid] = test
 
@@ -860,7 +897,8 @@ class ParallelTextTestResult(unittest.result.TestResult):
             self.ren.report(
                 subtest,
                 Markers.errored,
-                currently_running=list(self.currently_running))
+                currently_running=list(self.currently_running),
+            )
             if self.failfast:
                 self.suite.stop_requested = True
 
@@ -885,7 +923,8 @@ class ParallelTextTestResult(unittest.result.TestResult):
         marker = Markers.not_implemented if not_impl else Markers.xfailed
         if not_impl:
             self.notImplemented.append(
-                (test, self._exc_info_to_string(err, test)))
+                (test, self._exc_info_to_string(err, test))
+            )
         else:
             is_fail = _is_assert_failure(err)
             if (allow_fail and is_fail) or (allow_error and not is_fail):
@@ -910,22 +949,40 @@ class ParallelTextTestResult(unittest.result.TestResult):
 
         if key not in self._warnings:
             self._warnings[key] = wmsg
-            self.warnings.append((test, warnings.formatwarning(
-                wmsg.message, wmsg.category, wmsg.filename, wmsg.lineno,
-                wmsg.line
-            )))
+            self.warnings.append(
+                (
+                    test,
+                    warnings.formatwarning(
+                        wmsg.message,
+                        wmsg.category,
+                        wmsg.filename,
+                        wmsg.lineno,
+                        wmsg.line,
+                    ),
+                )
+            )
 
     def wasSuccessful(self):
         # Overload TestResult.wasSuccessful to ignore unexpected successes
-        return (len(self.failures) == len(self.errors) == 0)
+        return len(self.failures) == len(self.errors) == 0
 
 
 class ParallelTextTestRunner:
-
-    def __init__(self, *, stream=None, num_workers=1, verbosity=1,
-                 output_format=OutputFormat.auto, warnings=True,
-                 failfast=False, shuffle=False, backend_dsn=None,
-                 data_dir=None, try_cached_db=False, use_data_dir_dbs=False):
+    def __init__(
+        self,
+        *,
+        stream=None,
+        num_workers=1,
+        verbosity=1,
+        output_format=OutputFormat.auto,
+        warnings=True,
+        failfast=False,
+        shuffle=False,
+        backend_dsn=None,
+        data_dir=None,
+        try_cached_db=False,
+        use_data_dir_dbs=False,
+    ):
         self.stream = stream if stream is not None else sys.stderr
         self.num_workers = num_workers
         self.verbosity = verbosity
@@ -955,7 +1012,11 @@ class ParallelTextTestRunner:
                 for k, v, c in csv.reader(running_times_log_file)
             }
         cases = tb.get_cases_by_shard(
-            cases, selected_shard, total_shards, self.verbosity, stats,
+            cases,
+            selected_shard,
+            total_shards,
+            self.verbosity,
+            stats,
         )
         setup = tb.get_test_cases_setup(cases)
         server_used = tb.test_cases_use_server(cases)
@@ -971,10 +1032,9 @@ class ParallelTextTestRunner:
         if server_used:
             tempdir = tempfile.TemporaryDirectory(prefix="edb-test-")
 
-            if (
-                not os.environ.get("GELITE_SERVER_TLS_CERT_FILE")
-                and not os.environ.get("GELITE_SERVER_TLS_KEY_FILE")
-            ):
+            if not os.environ.get(
+                "GELITE_SERVER_TLS_CERT_FILE"
+            ) and not os.environ.get("GELITE_SERVER_TLS_KEY_FILE"):
                 if self.verbosity >= 1:
                     self._echo(
                         'Generating TLS key and certificate...',
@@ -987,9 +1047,7 @@ class ParallelTextTestRunner:
                 os.environ["GELITE_SERVER_TLS_CERT_FILE"] = str(cert_file)
                 os.environ["GELITE_SERVER_TLS_KEY_FILE"] = str(key_file)
 
-            if (
-                not os.environ.get("GELITE_SERVER_JWS_KEY_FILE")
-            ):
+            if not os.environ.get("GELITE_SERVER_JWS_KEY_FILE"):
                 jwk_file = pathlib.Path(tempdir.name) / "jwk.json"
                 if self.verbosity >= 1:
                     self._echo(
@@ -1024,8 +1082,11 @@ class ParallelTextTestRunner:
 
                     if (
                         self.try_cached_db
-                        and (cache_file := (
-                            devmode.get_dev_mode_cache_dir() / 'test_dbs.tar')
+                        and (
+                            cache_file := (
+                                devmode.get_dev_mode_cache_dir()
+                                / 'test_dbs.tar'
+                            )
                         ).is_file()
                     ):
                         if self.verbosity >= 1:
@@ -1100,18 +1161,16 @@ class ParallelTextTestRunner:
 
                 assert cluster
                 if cluster.has_create_database():
-                    os.environ.update({
-                        'GELITE_TEST_CASES_SET_UP': "skip"
-                    })
+                    os.environ.update({'GELITE_TEST_CASES_SET_UP': "skip"})
                 else:
-                    os.environ.update({
-                        'GELITE_TEST_CASES_SET_UP': "inplace"
-                    })
-                os.environ.update({
-                    'GELITE_TEST_HAS_CREATE_ROLE': str(
-                        cluster.has_create_role()
-                    )
-                })
+                    os.environ.update({'GELITE_TEST_CASES_SET_UP': "inplace"})
+                os.environ.update(
+                    {
+                        'GELITE_TEST_HAS_CREATE_ROLE': str(
+                            cluster.has_create_role()
+                        )
+                    }
+                )
 
                 bootstrap_time_taken = time.monotonic() - session_start
 
@@ -1120,8 +1179,9 @@ class ParallelTextTestRunner:
 
             start = time.monotonic()
 
-            all_tests = list(itertools.chain.from_iterable(
-                tests for tests in cases.values()))
+            all_tests = list(
+                itertools.chain.from_iterable(tests for tests in cases.values())
+            )
 
             suite: unittest.TestSuite
             if self.num_workers > 1:
@@ -1141,10 +1201,14 @@ class ParallelTextTestRunner:
                 )
 
             result = ParallelTextTestResult(
-                stream=self.stream, verbosity=self.verbosity,
-                warnings=self.warnings, failfast=self.failfast,
+                stream=self.stream,
+                verbosity=self.verbosity,
+                warnings=self.warnings,
+                failfast=self.failfast,
                 output_format=self.output_format,
-                tests=all_tests, suite=suite)
+                tests=all_tests,
+                suite=suite,
+            )
             unittest.signals.registerResult(result)
 
             self._echo()
@@ -1160,7 +1224,7 @@ class ParallelTextTestRunner:
                 running_times_log_file.truncate()
                 writer = csv.writer(running_times_log_file)
                 for k, v in stats.items():
-                    writer.writerow((k, ) + v)
+                    writer.writerow((k,) + v)
             tests_time_taken = time.monotonic() - start
 
         except KeyboardInterrupt:
@@ -1208,7 +1272,8 @@ class ParallelTextTestRunner:
         tests = itertools.chain(
             serialized_suites.values(),
             itertools.chain.from_iterable(
-                tests for casecls, tests in cases.items()
+                tests
+                for casecls, tests in cases.items()
                 if (
                     casecls not in serialized_suites
                     and casecls not in exclusive_suites
@@ -1230,8 +1295,8 @@ class ParallelTextTestRunner:
 # to make sure that some random __traceback__ attribute
 # doesn't crash the test results queue.
 multiprocessing.reduction.ForkingPickler.register(
-    types.TracebackType,
-    lambda o: (_restore_Traceback, ()))
+    types.TracebackType, lambda o: (_restore_Traceback, ())
+)
 
 
 def _restore_Traceback():

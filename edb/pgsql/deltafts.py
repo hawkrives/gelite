@@ -214,6 +214,7 @@ def update_fts_document(
     exprs = _compile_ir_index_exprs(index, index_expr.irast.expr, schema)
 
     from edb.common import debug
+
     if debug.flags.zombodb:
         raise NotImplementedError('zombo refresh index not implemented')
     else:

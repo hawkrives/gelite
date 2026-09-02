@@ -32,7 +32,6 @@ def std_all_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
 
 
 def std_any_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
-
     match arg:
         case [l1]:
             return [BoolVal(any(val_is_true(v) for v in l1))]
@@ -238,10 +237,8 @@ def cal_to_local_datetime_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
             )
             return [
                 e.ScalarVal(
-                    e.ScalarTp(e.QualifiedName(
-                        ["std::cal", "local_datetime"]
-                    )),
-                    s
+                    e.ScalarTp(e.QualifiedName(["std::cal", "local_datetime"])),
+                    s,
                 )
             ]
     raise FunCallErr()
@@ -276,11 +273,7 @@ def std_contains_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
 def std_re_test_impl(arg: Sequence[Sequence[Val]]) -> Sequence[Val]:
     match arg:
         case [
-            [
-                e.ScalarVal(
-                    e.ScalarTp(e.QualifiedName(["std", "str"])), pattern
-                )
-            ],
+            [e.ScalarVal(e.ScalarTp(e.QualifiedName(["std", "str"])), pattern)],
             [e.ScalarVal(e.ScalarTp(e.QualifiedName(["std", "str"])), string)],
         ]:
             return [e.BoolVal(bool(re.search(pattern, string)))]

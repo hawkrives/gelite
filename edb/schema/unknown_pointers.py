@@ -166,19 +166,22 @@ class AlterUnknownPointer(
 
         obj = cmd.get_object(schema, context)
         source = obj.get_source(schema)
-        is_prop = (
-            isinstance(obj, s_props.Property)
-            or isinstance(source, pointers.Pointer)
+        is_prop = isinstance(obj, s_props.Property) or isinstance(
+            source, pointers.Pointer
         )
 
         astcls = (
-            qlast.AlterConcreteProperty
-            if is_prop
-            else qlast.AlterConcreteLink
-        ) if isinstance(astnode, qlast.AlterObject) else (
-            qlast.CreateConcreteProperty
-            if is_prop
-            else qlast.CreateConcreteLink
+            (
+                qlast.AlterConcreteProperty
+                if is_prop
+                else qlast.AlterConcreteLink
+            )
+            if isinstance(astnode, qlast.AlterObject)
+            else (
+                qlast.CreateConcreteProperty
+                if is_prop
+                else qlast.CreateConcreteLink
+            )
         )
         astnode = astnode.replace(__class__=astcls)
         assert isinstance(astnode, qlast.DDLCommand)

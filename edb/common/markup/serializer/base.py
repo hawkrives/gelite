@@ -46,7 +46,7 @@ OVERFLOW_BARIER = 100  # XXX Configurable?
 #:
 RUN_OVERFLOW_BARIER = 5000  # XXX Configurable?
 
-__all__ = 'serialize',
+__all__ = ('serialize',)
 
 
 def no_ref_detect[T](func: T) -> T:
@@ -96,8 +96,7 @@ def serialize(obj, *, ctx):
     if sr is serializer:
         raise LookupError(f'unable to find serializer for object {obj!r}')
 
-    if (sr is serialize_unknown_object and
-            hasattr(tobj, '__dataclass_fields__')):
+    if sr is serialize_unknown_object and hasattr(tobj, '__dataclass_fields__'):
         sr = serialize_dataclass
 
     ctx.level += 1
@@ -129,8 +128,11 @@ def serialize(obj, *, ctx):
             return sr(obj, ctx=ctx)
         except Exception as ex:
             return elements.base.SerializationError(
-                text=str(ex), cls='{}.{}'.format(
-                    ex.__class__.__module__, ex.__class__.__name__))
+                text=str(ex),
+                cls='{}.{}'.format(
+                    ex.__class__.__module__, ex.__class__.__name__
+                ),
+            )
     finally:
         ctx.level -= 1
 
@@ -162,7 +164,8 @@ def _serialize_traceback_point(
             filename = frame_fn
 
     point = point_cls(
-        name=name, lineno=lineno, filename=filename, locals=locals, id=id(obj))
+        name=name, lineno=lineno, filename=filename, locals=locals, id=id(obj)
+    )
 
     if include_source:
         point.load_source(window=source_window_size)
@@ -183,9 +186,15 @@ def serialize_traceback_point(
     assert isinstance(obj, types.TracebackType)
 
     return _serialize_traceback_point(
-        obj, obj.tb_frame, obj.tb_lineno, ctx=ctx,
-        include_source=include_source, source_window_size=source_window_size,
-        include_locals=include_locals, point_cls=point_cls)
+        obj,
+        obj.tb_frame,
+        obj.tb_lineno,
+        ctx=ctx,
+        include_source=include_source,
+        source_window_size=source_window_size,
+        include_locals=include_locals,
+        point_cls=point_cls,
+    )
 
 
 @no_ref_detect
@@ -201,9 +210,15 @@ def serialize_callstack_point(
     assert isinstance(obj, types.FrameType)
 
     return _serialize_traceback_point(
-        obj, obj, obj.f_lineno, ctx=ctx, include_source=include_source,
-        source_window_size=source_window_size, include_locals=include_locals,
-        point_cls=point_cls)
+        obj,
+        obj,
+        obj.f_lineno,
+        ctx=ctx,
+        include_source=include_source,
+        source_window_size=source_window_size,
+        include_locals=include_locals,
+        point_cls=point_cls,
+    )
 
 
 @serializer.register(types.TracebackType)
@@ -224,8 +239,10 @@ def serialize_exception(obj, *, ctx):
     if obj.__cause__ is not None and obj.__cause__ is not obj:
         cause = serialize(obj.__cause__, ctx=ctx)
     elif (
-            not obj.__suppress_context__ and obj.__context__ is not None and
-            obj.__context__ is not obj):
+        not obj.__suppress_context__
+        and obj.__context__ is not None
+        and obj.__context__ is not obj
+    ):
         context = serialize(obj.__context__, ctx=ctx)
 
     details_context = None
@@ -239,12 +256,16 @@ def serialize_exception(obj, *, ctx):
     obj_traceback = obj.__traceback__
     if obj_traceback:
         traceback = elements.lang.ExceptionContext(
-            title='Traceback', body=[serialize(obj_traceback, ctx=ctx)])
+            title='Traceback', body=[serialize(obj_traceback, ctx=ctx)]
+        )
 
         if isinstance(obj, SyntaxError):
             point = elements.lang.TracebackPoint(
-                name='<parser>', lineno=obj.lineno, colno=obj.offset,
-                filename=obj.filename or '<buffer>')
+                name='<parser>',
+                lineno=obj.lineno,
+                colno=obj.offset,
+                filename=obj.filename or '<buffer>',
+            )
             point.load_source()
             traceback.body[0].items.append(point)
 
@@ -255,8 +276,13 @@ def serialize_exception(obj, *, ctx):
 
     markup = elements.lang.Exception(
         class_module=obj.__class__.__module__,
-        classname=obj.__class__.__name__, msg=str(obj), contexts=contexts,
-        cause=cause, context=context, id=id(obj))
+        classname=obj.__class__.__name__,
+        msg=str(obj),
+        contexts=contexts,
+        cause=cause,
+        context=context,
+        id=id(obj),
+    )
 
     if isinstance(obj, BaseExceptionGroup):
         markup = elements.doc.Section(
@@ -267,8 +293,8 @@ def serialize_exception(obj, *, ctx):
                     body=[
                         elements.doc.SubNode(body=serializer(sub, ctx=ctx))
                         for sub in obj.exceptions
-                    ]
-                )
+                    ],
+                ),
             ],
         )
 
@@ -279,7 +305,8 @@ def serialize_exception(obj, *, ctx):
 def serialize_generic_exception_context(obj, *, ctx):
     msg = 'No markup serializer for {!r} context'.format(obj)
     return elements.lang.ExceptionContext(
-        title=obj.title, body=[elements.doc.Text(text=msg)])
+        title=obj.title, body=[elements.doc.Text(text=msg)]
+    )
 
 
 @serializer.register(exceptions.DefaultExceptionContext)
@@ -341,8 +368,9 @@ def serialize_sequence(obj, *, ctx, trim_at=100):
 
     if isinstance(obj, tuple):
         brackets = "()"
-    elif isinstance(obj,
-                    (collections.abc.Set, weakref.WeakSet, set, frozenset)):
+    elif isinstance(
+        obj, (collections.abc.Set, weakref.WeakSet, set, frozenset)
+    ):
         brackets = "{}"
     else:
         brackets = "[]"
@@ -352,8 +380,11 @@ def serialize_sequence(obj, *, ctx, trim_at=100):
         if trim and cnt >= trim_at:
             break
     return elements.lang.List(
-        items=els, id=id(obj), brackets=brackets,
-        trimmed=(trim and cnt >= trim_at))
+        items=els,
+        id=id(obj),
+        brackets=brackets,
+        trimmed=(trim and cnt >= trim_at),
+    )
 
 
 @serializer.register(dict)
@@ -372,15 +403,14 @@ def serialize_mapping(obj, *, ctx, trim_at=100):
         if trim and cnt >= trim_at:
             break
     return elements.lang.Dict(
-        items=map, id=id(obj), trimmed=(trim and cnt >= trim_at))
+        items=map, id=id(obj), trimmed=(trim and cnt >= trim_at)
+    )
 
 
 def serialize_dataclass(obj, *, ctx):
     fields = type(obj).__dataclass_fields__
 
-    node = elements.lang.TreeNode(
-        id=id(obj),
-        name=f'{type(obj).__name__}')
+    node = elements.lang.TreeNode(id=id(obj), name=f'{type(obj).__name__}')
 
     for fieldname, field in fields.items():
         try:
@@ -391,9 +421,7 @@ def serialize_dataclass(obj, *, ctx):
         if not field.repr:
             continue
 
-        node.add_child(
-            label=fieldname,
-            node=serialize(val, ctx=ctx))
+        node.add_child(label=fieldname, node=serialize(val, ctx=ctx))
 
     return node
 
@@ -402,8 +430,11 @@ def serialize_dataclass(obj, *, ctx):
 @no_ref_detect
 def serialize_unknown_object(obj, *, ctx):
     return elements.lang.Object(
-        id=id(obj), class_module=type(obj).__module__,
-        classname=type(obj).__name__, repr=xrepr(obj, max_len=200))
+        id=id(obj),
+        class_module=type(obj).__module__,
+        classname=type(obj).__name__,
+        repr=xrepr(obj, max_len=200),
+    )
 
 
 def _serialize_known_object(obj, attrs, *, ctx):
@@ -411,5 +442,8 @@ def _serialize_known_object(obj, attrs, *, ctx):
     for attr in attrs:
         map[attr] = serialize(getattr(obj, attr, None), ctx=ctx)
     return elements.lang.Object(
-        id=id(obj), class_module=obj.__class__.__module__,
-        classname=obj.__class__.__name__, attributes=map)
+        id=id(obj),
+        class_module=obj.__class__.__module__,
+        classname=obj.__class__.__name__,
+        attributes=map,
+    )

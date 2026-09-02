@@ -31,7 +31,7 @@ from . import tables
 class Record(type):
     def __new__(mcls, name, fields, default=None):
         dct = {'_fields___': fields, '_default___': default}
-        bases = (RecordBase, )
+        bases = (RecordBase,)
         return super(Record, mcls).__new__(mcls, name, bases, dct)
 
     def __init__(cls, name, fields, default):
@@ -108,7 +108,9 @@ class CompositeDBObject(base.DBObject):
     def record(self):
         return Record(
             self.__class__.__name__ + '_record',
-            [c.name for c in self._columns], default=base.Default)
+            [c.name for c in self._columns],
+            default=base.Default,
+        )
 
 
 class CompositeAttributeCommand:
@@ -117,13 +119,18 @@ class CompositeAttributeCommand:
 
     def __repr__(self):
         return '<%s.%s %r>' % (
-            self.__class__.__module__, self.__class__.__name__, self.attribute)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.attribute,
+        )
 
 
 class AlterCompositeAddAttribute(CompositeAttributeCommand):
     def code(self) -> str:
-        return (f'ADD {self.get_attribute_term()} '  # type: ignore
-                f'{self.attribute.code()}')
+        return (
+            f'ADD {self.get_attribute_term()} '  # type: ignore
+            f'{self.attribute.code()}'
+        )
 
     def generate_extra_composite(
         self, block: base.PLBlock, alter: base.CompositeCommandGroup

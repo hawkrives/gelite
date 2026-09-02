@@ -95,8 +95,11 @@ class SchemaConstraintDomainConstraint(
 
     def __repr__(self):
         return '<{}.{} {!r} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self.domain_name, self._constraint)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.domain_name,
+            self._constraint,
+        )
 
 
 class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
@@ -174,7 +177,8 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
         else:
             if self._type != 'unique':
                 raise ValueError(
-                    'unexpected constraint type: {}'.format(self._type))
+                    'unexpected constraint type: {}'.format(self._type)
+                )
 
             constr_exprs = []
 
@@ -192,7 +196,8 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
                     #
                     chunks = exprdata.exprdata.plain_chunks
                     expr = ', '.join(
-                        "{} WITH =".format(chunk) for chunk in chunks)
+                        "{} WITH =".format(chunk) for chunk in chunks
+                    )
                     expr = f'EXCLUDE ({expr})'
                     if self._except_data:
                         cond = self._except_data.plain
@@ -209,7 +214,8 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
 
     def get_trigger_procname(self):
         return common.get_backend_name(
-            self._schema, self._constraint, catenate=False, aspect='trigproc')
+            self._schema, self._constraint, catenate=False, aspect='trigproc'
+        )
 
     def get_trigger_condition(self):
         chunks = []
@@ -231,8 +237,11 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
         constr_name = self.constraint_name()
         raw_constr_name = self.constraint_name(quote=False)
 
-        errmsg = 'duplicate key value violates unique ' \
-                 'constraint {constr}'.format(constr=constr_name)
+        errmsg = (
+            'duplicate key value violates unique constraint {constr}'.format(
+                constr=constr_name
+            )
+        )
 
         for expr, relative_expr in zip(
             itertools.cycle(self._exprdata), self._relative_exprdata
@@ -262,7 +271,8 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
             # isn't needed and would take at least some time.
             src_check = (
                 ' AND source != NEW.source'
-                if self._table_type == 'link' else ''
+                if self._table_type == 'link'
+                else ''
             )
 
             schemaname, tablename = relative_expr.subject_db_name
@@ -315,8 +325,11 @@ class SchemaConstraintTableConstraint(ConstraintCommon, dbops.TableConstraint):
 
     def __repr__(self):
         return '<{}.{} {!r} at 0x{:x}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self.schema_constraint_name(), id(self))
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.schema_constraint_name(),
+            id(self),
+        )
 
 
 class MultiConstraintItem:
@@ -336,8 +349,10 @@ class MultiConstraintItem:
         name = self.constraint.numbered_constraint_name(self.index)
 
         return '{} ON {} {}'.format(
-            name, self.constraint.get_subject_type(),
-            self.constraint.get_subject_name())
+            name,
+            self.constraint.get_subject_type(),
+            self.constraint.get_subject_name(),
+        )
 
 
 class AlterTableAddMultiConstraint(
@@ -423,8 +438,7 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
             self, conditions=conditions, neg_conditions=neg_conditions
         )
 
-        dbops.AlterTableBaseMixin.__init__(
-            self, name=name, contained=contained)
+        dbops.AlterTableBaseMixin.__init__(self, name=name, contained=contained)
 
         self._constraint = constraint
 
@@ -438,16 +452,26 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
 
         ins_trigger_name = cname + '_instrigger'
         ins_trigger = dbops.Trigger(
-            name=ins_trigger_name, table_name=table_name, events=('insert', ),
-            procedure=proc_name, is_constraint=True, inherit=True)
+            name=ins_trigger_name,
+            table_name=table_name,
+            events=('insert',),
+            procedure=proc_name,
+            is_constraint=True,
+            inherit=True,
+        )
 
         upd_trigger_name = cname + '_updtrigger'
         condition = constraint.get_trigger_condition()
 
         upd_trigger = dbops.Trigger(
-            name=upd_trigger_name, table_name=table_name, events=('update', ),
-            procedure=proc_name, condition=condition, is_constraint=True,
-            inherit=True)
+            name=upd_trigger_name,
+            table_name=table_name,
+            events=('update',),
+            procedure=proc_name,
+            condition=condition,
+            is_constraint=True,
+            inherit=True,
+        )
 
         return ins_trigger, upd_trigger
 
@@ -499,13 +523,15 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
         return [dbops.CreateFunction(func, or_replace=True)]
 
     def drop_constr_trigger_function(self, proc_name: tuple[str, ...]):
-        return [dbops.DropFunction(
-            name=proc_name,
-            args=(),
-            # Use a condition instead of if_exists ot reduce annoying
-            # debug spew from postgres.
-            conditions=[dbops.FunctionExists(name=proc_name, args=())],
-        )]
+        return [
+            dbops.DropFunction(
+                name=proc_name,
+                args=(),
+                # Use a condition instead of if_exists ot reduce annoying
+                # debug spew from postgres.
+                conditions=[dbops.FunctionExists(name=proc_name, args=())],
+            )
+        ]
 
     def create_constraint(self, constraint: SchemaConstraintTableConstraint):
         # Add the constraint normally to our table
@@ -533,7 +559,8 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
 
             proc_name = constraint.get_trigger_procname()
             cr_trigger = self.create_constr_trigger(
-                self.name, constraint, proc_name)
+                self.name, constraint, proc_name
+            )
             self.add_commands(cr_trigger)
 
     def alter_constraint(
@@ -590,8 +617,9 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
     ):
         """Drop constraint trigger FUNCTION and TRIGGER."""
         if constraint.requires_triggers():
-            self.add_commands(self.drop_constr_trigger(
-                constraint._subject_name, constraint))
+            self.add_commands(
+                self.drop_constr_trigger(constraint._subject_name, constraint)
+            )
             proc_name = constraint.get_trigger_procname()
             self.add_commands(self.drop_constr_trigger_function(proc_name))
 
@@ -599,8 +627,8 @@ class AlterTableConstraintBase(dbops.AlterTableBaseMixin, dbops.CommandGroup):
 class AlterTableAddConstraint(AlterTableConstraintBase):
     def __repr__(self):
         return '<{}.{} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self._constraint)
+            self.__class__.__module__, self.__class__.__name__, self._constraint
+        )
 
     def generate(self, block):
         if not self._constraint.delegated:
@@ -609,16 +637,14 @@ class AlterTableAddConstraint(AlterTableConstraintBase):
 
 
 class AlterTableAlterConstraint(AlterTableConstraintBase):
-    def __init__(
-        self, name, *, constraint, new_constraint, **kwargs
-    ):
+    def __init__(self, name, *, constraint, new_constraint, **kwargs):
         super().__init__(name, constraint=constraint, **kwargs)
         self._new_constraint = new_constraint
 
     def __repr__(self):
         return '<{}.{} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self._constraint)
+            self.__class__.__module__, self.__class__.__name__, self._constraint
+        )
 
     def generate(self, block):
         self.alter_constraint(self._constraint, self._new_constraint)
@@ -628,8 +654,8 @@ class AlterTableAlterConstraint(AlterTableConstraintBase):
 class AlterTableDropConstraint(AlterTableConstraintBase):
     def __repr__(self):
         return '<{}.{} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self._constraint)
+            self.__class__.__module__, self.__class__.__name__, self._constraint
+        )
 
     def generate(self, block):
         if not self._constraint.delegated:
@@ -640,8 +666,8 @@ class AlterTableDropConstraint(AlterTableConstraintBase):
 class AlterTableUpdateConstraintTrigger(AlterTableConstraintBase):
     def __repr__(self):
         return '<{}.{} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self._constraint)
+            self.__class__.__module__, self.__class__.__name__, self._constraint
+        )
 
     def generate(self, block):
         self.drop_constraint_trigger_and_fuction(self._constraint)
@@ -652,8 +678,8 @@ class AlterTableUpdateConstraintTrigger(AlterTableConstraintBase):
 class AlterTableUpdateConstraintTriggerFixup(AlterTableConstraintBase):
     def __repr__(self):
         return '<{}.{} {!r}>'.format(
-            self.__class__.__module__, self.__class__.__name__,
-            self._constraint)
+            self.__class__.__module__, self.__class__.__name__, self._constraint
+        )
 
     def generate(self, block):
         # Pre 6.8 versions of gel created needless disabled triggers
@@ -671,7 +697,7 @@ def rename_pg_index(
     old_index: s_indexes.Index,
     new_index: s_indexes.Index,
     schema: s_schema.Schema,
-    aspect: str = 'index'
+    aspect: str = 'index',
 ) -> dbops.Command:
     table_name = common.get_index_table_backend_name(new_index, schema)
     module_name = new_index.get_name(schema).module

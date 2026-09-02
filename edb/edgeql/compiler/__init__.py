@@ -124,7 +124,6 @@ dispatch.py
 
 """
 
-
 from __future__ import annotations
 from typing import (
     Any,
@@ -288,10 +287,12 @@ def compile_ast_to_ir(
         # Also build and dump a mapping from scope ids to
         # paths that appear directly at them.
         scopes: dict[int, set[irast.PathId]] = {
-            k: set() for k in
-            sorted(node.unique_id
-                   for node in ctx.path_scope.descendants
-                   if node.unique_id)
+            k: set()
+            for k in sorted(
+                node.unique_id
+                for node in ctx.path_scope.descendants
+                if node.unique_id
+            )
         }
         for ir_set in ctx.env.set_types:
             if ir_set.path_scope_id and ir_set.path_scope_id in scopes:

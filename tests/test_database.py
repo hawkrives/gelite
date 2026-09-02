@@ -41,14 +41,16 @@ class TestDatabase(tb.ConnectedTestCase):
             self.assertEqual(dbname, ['mytestdb'])
 
             with self.assertRaisesRegex(
-                    edgedb.ExecutionError,
-                    r'cannot drop the currently open database'):
+                edgedb.ExecutionError,
+                r'cannot drop the currently open database',
+            ):
                 await conn.execute('DROP DATABASE mytestdb;')
 
             with self.assertRaisesRegex(
-                    edgedb.ExecutionError,
-                    r'''branch ["']mytestdb["'] is being '''
-                    r'''accessed by other users'''):
+                edgedb.ExecutionError,
+                r'''branch ["']mytestdb["'] is being '''
+                r'''accessed by other users''',
+            ):
                 await self.con.execute('DROP DATABASE mytestdb;')
 
             await conn.aclose()
@@ -57,11 +59,13 @@ class TestDatabase(tb.ConnectedTestCase):
 
     async def test_database_create_02(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'Branch names longer than \d+ '
-                r'characters are not supported'):
+            edgedb.SchemaDefinitionError,
+            r'Branch names longer than \d+ '
+            r'characters are not supported',
+        ):
             await self.con.execute(
-                f'CREATE DATABASE mytestdb_{"x" * s_def.MAX_NAME_LENGTH};')
+                f'CREATE DATABASE mytestdb_{"x" * s_def.MAX_NAME_LENGTH};'
+            )
 
     async def test_database_create_03(self):
         if not self.has_create_database:
@@ -71,8 +75,9 @@ class TestDatabase(tb.ConnectedTestCase):
 
         try:
             with self.assertRaisesRegex(
-                    edgedb.DuplicateDatabaseDefinitionError,
-                    r'branch "databasename" already exists'):
+                edgedb.DuplicateDatabaseDefinitionError,
+                r'branch "databasename" already exists',
+            ):
                 await self.con.execute('CREATE DATABASE databasename;')
         finally:
             await tb.drop_db(self.con, 'databasename')
@@ -98,8 +103,8 @@ class TestDatabase(tb.ConnectedTestCase):
             self.skipTest("create database is not supported by the backend")
 
         with self.assertRaisesRegex(
-                edgedb.UnknownDatabaseError,
-                r'branch "databasename" does not exist'):
+            edgedb.UnknownDatabaseError, r'branch "databasename" does not exist'
+        ):
             await self.con.execute('DROP DATABASE databasename;')
 
     async def test_database_drop_recreate(self):
@@ -114,8 +119,7 @@ class TestDatabase(tb.ConnectedTestCase):
             conn = await self.connect(database='test_db_drop')
 
             try:
-                dbname = await conn.query(
-                    'SELECT sys::get_current_database();')
+                dbname = await conn.query('SELECT sys::get_current_database();')
                 self.assertEqual(dbname, ['test_db_drop'])
             finally:
                 await conn.aclose()
@@ -135,8 +139,7 @@ class TestDatabase(tb.ConnectedTestCase):
             conn = await self.connect(database='test_tpl')
 
             try:
-                dbname = await conn.query(
-                    'SELECT sys::get_current_database();')
+                dbname = await conn.query('SELECT sys::get_current_database();')
                 self.assertEqual(dbname, ['test_tpl'])
             finally:
                 await conn.aclose()
@@ -157,14 +160,16 @@ class TestDatabase(tb.ConnectedTestCase):
             self.assertEqual(dbname, ['mytestdb'])
 
             with self.assertRaisesRegex(
-                    edgedb.ExecutionError,
-                    r'cannot drop the currently open database'):
+                edgedb.ExecutionError,
+                r'cannot drop the currently open database',
+            ):
                 await conn.execute('DROP BRANCH mytestdb;')
 
             with self.assertRaisesRegex(
-                    edgedb.ExecutionError,
-                    r'''branch ["']mytestdb["'] is being '''
-                    r'''accessed by other users'''):
+                edgedb.ExecutionError,
+                r'''branch ["']mytestdb["'] is being '''
+                r'''accessed by other users''',
+            ):
                 await self.con.execute('DROP BRANCH mytestdb;')
 
             await conn.aclose()
@@ -173,11 +178,13 @@ class TestDatabase(tb.ConnectedTestCase):
 
     async def test_branch_create_02(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r'Branch names longer than \d+ '
-                r'characters are not supported'):
+            edgedb.SchemaDefinitionError,
+            r'Branch names longer than \d+ '
+            r'characters are not supported',
+        ):
             await self.con.execute(
-                f'CREATE EMPTY BRANCH mytestdb_{"x" * s_def.MAX_NAME_LENGTH};')
+                f'CREATE EMPTY BRANCH mytestdb_{"x" * s_def.MAX_NAME_LENGTH};'
+            )
 
     async def test_branch_create_03(self):
         if not self.has_create_database:
@@ -187,8 +194,9 @@ class TestDatabase(tb.ConnectedTestCase):
 
         try:
             with self.assertRaisesRegex(
-                    edgedb.DuplicateDatabaseDefinitionError,
-                    r'branch "databasename" already exists'):
+                edgedb.DuplicateDatabaseDefinitionError,
+                r'branch "databasename" already exists',
+            ):
                 await self.con.execute('CREATE EMPTY BRANCH databasename;')
         finally:
             await tb.drop_db(self.con, 'databasename')
@@ -214,8 +222,8 @@ class TestDatabase(tb.ConnectedTestCase):
             self.skipTest("create branch is not supported by the backend")
 
         with self.assertRaisesRegex(
-                edgedb.UnknownDatabaseError,
-                r'branch "databasename" does not exist'):
+            edgedb.UnknownDatabaseError, r'branch "databasename" does not exist'
+        ):
             await self.con.execute('DROP BRANCH databasename;')
 
     async def test_branch_drop_recreate(self):
@@ -230,8 +238,7 @@ class TestDatabase(tb.ConnectedTestCase):
             conn = await self.connect(database='test_db_drop')
 
             try:
-                dbname = await conn.query(
-                    'SELECT sys::get_current_database();')
+                dbname = await conn.query('SELECT sys::get_current_database();')
                 self.assertEqual(dbname, ['test_db_drop'])
             finally:
                 await conn.aclose()
@@ -253,8 +260,7 @@ class TestDatabase(tb.ConnectedTestCase):
             if with_transaction:
                 await conn.query('START TRANSACTION')
 
-            dbname = await conn.query(
-                'SELECT sys::get_current_database();')
+            dbname = await conn.query('SELECT sys::get_current_database();')
             self.assertEqual(dbname, ['test_db_disconnect'])
 
             if with_query:
@@ -293,22 +299,26 @@ class TestDatabase(tb.ConnectedTestCase):
 
     async def test_branch_drop_disconnect_01(self):
         await self._test_branch_drop_disconnect(
-            with_transaction=False, with_query=False,
+            with_transaction=False,
+            with_query=False,
         )
 
     async def test_branch_drop_disconnect_02(self):
         await self._test_branch_drop_disconnect(
-            with_transaction=True, with_query=False,
+            with_transaction=True,
+            with_query=False,
         )
 
     async def test_branch_drop_disconnect_03(self):
         await self._test_branch_drop_disconnect(
-            with_transaction=False, with_query=True,
+            with_transaction=False,
+            with_query=True,
         )
 
     async def test_branch_drop_disconnect_04(self):
         await self._test_branch_drop_disconnect(
-            with_transaction=True, with_query=True,
+            with_transaction=True,
+            with_query=True,
         )
 
     async def test_branch_rename_disconnect(self):
@@ -319,8 +329,7 @@ class TestDatabase(tb.ConnectedTestCase):
         conn = await self.connect(database='test_db_rename')
 
         try:
-            dbname = await conn.query(
-                'SELECT sys::get_current_database();')
+            dbname = await conn.query('SELECT sys::get_current_database();')
             self.assertEqual(dbname, ['test_db_rename'])
 
             # Drop branch while the frontend connection is active
@@ -333,8 +342,7 @@ class TestDatabase(tb.ConnectedTestCase):
             self.assertTrue(conn.is_closed())
 
             conn2 = await self.connect(database='test_db_rename2')
-            dbname = await conn2.query(
-                'SELECT sys::get_current_database();')
+            dbname = await conn2.query('SELECT sys::get_current_database();')
             self.assertEqual(dbname, ['test_db_rename2'])
 
         finally:
@@ -357,8 +365,7 @@ class TestDatabase(tb.ConnectedTestCase):
             conn = await self.connect(database='test_tpl')
 
             try:
-                dbname = await conn.query(
-                    'SELECT sys::get_current_database();')
+                dbname = await conn.query('SELECT sys::get_current_database();')
                 self.assertEqual(dbname, ['test_tpl'])
             finally:
                 await conn.aclose()
@@ -375,18 +382,24 @@ class TestDatabase(tb.ConnectedTestCase):
         name = 'mytestdb'
         conn = None
         try:
-            res_old = await self.con.query('''
+            res_old = await self.con.query(
+                '''
                 SELECT sys::Branch.id filter sys::Branch.name = <str>$0
-            ''', name)
+            ''',
+                name,
+            )
 
             await self.con.execute('''
                 ALTER BRANCH mytestdb RENAME TO mytestdb2;
             ''')
             name = 'mytestdb2'
 
-            res_new = await self.con.query('''
+            res_new = await self.con.query(
+                '''
                 SELECT sys::Branch.id filter sys::Branch.name = <str>$0
-            ''', name)
+            ''',
+                name,
+            )
             self.assertEqual(res_old, res_new)
 
             conn = await self.connect(database=name)
@@ -407,12 +420,18 @@ class TestDatabase(tb.ConnectedTestCase):
         await self.con.execute(f'CREATE EMPTY BRANCH {name};')
 
         try:
-            res_old = await self.con.query('''
+            res_old = await self.con.query(
+                '''
                 SELECT sys::Database.id filter sys::Database.name = <str>$0
-            ''', name)
-            res_new = await self.con.query('''
+            ''',
+                name,
+            )
+            res_new = await self.con.query(
+                '''
                 SELECT sys::Branch.id filter sys::Branch.name = <str>$0
-            ''', name)
+            ''',
+                name,
+            )
             self.assertEqual(res_old, res_new)
 
         finally:

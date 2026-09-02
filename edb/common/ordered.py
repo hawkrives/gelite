@@ -32,7 +32,6 @@ import collections.abc
 
 
 class OrderedSet[K: Hashable](MutableSet[K]):
-
     map: dict[K, None]
 
     def __init__(self, iterable: Optional[Iterable[K]] = None) -> None:
@@ -74,7 +73,7 @@ class OrderedSet[K: Hashable](MutableSet[K]):
 
     def __repr__(self) -> str:
         if not self:
-            return '%s()' % (self.__class__.__name__, )
+            return '%s()' % (self.__class__.__name__,)
         return '%s(%r)' % (self.__class__.__name__, list(self))
 
     def __eq__(self, other: Any) -> bool:

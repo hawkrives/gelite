@@ -259,8 +259,7 @@ def _get_object_shape_id(
 
 
 def _get_set_type_id(basetype_id: uuid.UUID) -> uuid.UUID:
-    return uuidgen.uuid5(
-        s_obj.TYPE_ID_NAMESPACE, 'set-of::' + str(basetype_id))
+    return uuidgen.uuid5(s_obj.TYPE_ID_NAMESPACE, 'set-of::' + str(basetype_id))
 
 
 def _register_type_id(
@@ -298,7 +297,8 @@ def _describe_set(
 @functools.singledispatch
 def _describe_type(t: s_types.Type, *, ctx: Context) -> uuid.UUID:
     raise errors.InternalServerError(
-        f'cannot describe type {t.get_name(ctx.schema)}')
+        f'cannot describe type {t.get_name(ctx.schema)}'
+    )
 
 
 def _type_ref_packer(t: s_types.Type, *, ctx: Context) -> bytes:
@@ -344,8 +344,7 @@ def _finish_typedesc(
 @_describe_type.register
 def _describe_tuple(t: s_types.Tuple, *, ctx: Context) -> uuid.UUID:
     subtypes = [
-        _describe_type(st, ctx=ctx)
-        for st in t.get_subtypes(ctx.schema)
+        _describe_type(st, ctx=ctx) for st in t.get_subtypes(ctx.schema)
     ]
 
     is_named = t.is_named(ctx.schema)
@@ -358,7 +357,8 @@ def _describe_tuple(t: s_types.Tuple, *, ctx: Context) -> uuid.UUID:
         tag = DescriptorTag.TUPLE
 
     type_id = _get_collection_type_id(
-        t.get_schema_name(), subtypes, element_names)
+        t.get_schema_name(), subtypes, element_names
+    )
 
     if type_id in ctx.uuid_to_pos:
         return type_id
@@ -399,8 +399,7 @@ def _describe_tuple(t: s_types.Tuple, *, ctx: Context) -> uuid.UUID:
 @_describe_type.register
 def _describe_array(t: s_types.Array, *, ctx: Context) -> uuid.UUID:
     subtypes = [
-        _describe_type(st, ctx=ctx)
-        for st in t.get_subtypes(ctx.schema)
+        _describe_type(st, ctx=ctx) for st in t.get_subtypes(ctx.schema)
     ]
 
     assert len(subtypes) == 1
@@ -438,8 +437,7 @@ def _describe_array(t: s_types.Array, *, ctx: Context) -> uuid.UUID:
 @_describe_type.register
 def _describe_range(t: s_types.Range, *, ctx: Context) -> uuid.UUID:
     subtypes = [
-        _describe_type(st, ctx=ctx)
-        for st in t.get_subtypes(ctx.schema)
+        _describe_type(st, ctx=ctx) for st in t.get_subtypes(ctx.schema)
     ]
 
     assert len(subtypes) == 1
@@ -473,8 +471,7 @@ def _describe_range(t: s_types.Range, *, ctx: Context) -> uuid.UUID:
 @_describe_type.register
 def _describe_multirange(t: s_types.MultiRange, *, ctx: Context) -> uuid.UUID:
     subtypes = [
-        _describe_type(st, ctx=ctx)
-        for st in t.get_subtypes(ctx.schema)
+        _describe_type(st, ctx=ctx) for st in t.get_subtypes(ctx.schema)
     ]
 
     assert len(subtypes) == 1
@@ -612,8 +609,8 @@ def _describe_object_shape(
     # .element_count
     buf.append(_uint16_packer(len(subtypes)))
     # .elements
-    for el_name, el_type_id, el_lp, el_l, el_c, el_src in (
-        zip(element_names, subtypes, link_props, links, cardinalities, sources)
+    for el_name, el_type_id, el_lp, el_l, el_c, el_src in zip(
+        element_names, subtypes, link_props, links, cardinalities, sources
     ):
         flags = 0
         if el_lp:
@@ -621,12 +618,14 @@ def _describe_object_shape(
         if (implicit_id and el_name == 'id') or el_name == '__tid__':
             if el_type_id != UUID_TYPE_ID:
                 raise errors.InternalServerError(
-                    f"{el_name!r} is expected to be a 'std::uuid' singleton")
+                    f"{el_name!r} is expected to be a 'std::uuid' singleton"
+                )
             flags |= ShapePointerFlags.IS_IMPLICIT
         elif el_name == '__tname__':
             if el_type_id != STR_TYPE_ID:
                 raise errors.InternalServerError(
-                    f"{el_name!r} is expected to be a 'std::str' singleton")
+                    f"{el_name!r} is expected to be a 'std::str' singleton"
+                )
             flags |= ShapePointerFlags.IS_IMPLICIT
         if el_l:
             flags |= ShapePointerFlags.IS_LINK
@@ -720,7 +719,8 @@ def _describe_compound_object_type(
         components = t.get_intersection_of(ctx.schema).objects(ctx.schema)
         if not components:
             raise AssertionError(
-                f"{t.get_name(ctx.schema)} is not a compound type")
+                f"{t.get_name(ctx.schema)} is not a compound type"
+            )
         op = CompoundOp.INTERSECTION
 
     # .tag
@@ -734,10 +734,12 @@ def _describe_compound_object_type(
     # .op
     buf.append(_uint8_packer(op))
     # .components
-    buf.append(_type_ref_id_seq_packer(
-        [_describe_object_type(c, ctx=ctx) for c in components],
-        ctx=ctx,
-    ))
+    buf.append(
+        _type_ref_id_seq_packer(
+            [_describe_object_type(c, ctx=ctx) for c in components],
+            ctx=ctx,
+        )
+    )
 
     return _finish_typedesc(type_id, buf, ctx=ctx)
 
@@ -861,8 +863,7 @@ def describe_input_shape(
     *,
     prepare_state: Literal[False],
     ctx: Context,
-) -> uuid.UUID:
-    ...
+) -> uuid.UUID: ...
 
 
 @overload
@@ -871,8 +872,7 @@ def describe_input_shape(
     input_shapes: InputShapeMap,
     *,
     ctx: Context,
-) -> uuid.UUID:
-    ...
+) -> uuid.UUID: ...
 
 
 @overload
@@ -882,8 +882,7 @@ def describe_input_shape(
     *,
     prepare_state: Literal[True],
     ctx: Context,
-) -> None:
-    ...
+) -> None: ...
 
 
 def describe_input_shape(
@@ -899,13 +898,14 @@ def describe_input_shape(
         cardinalities = []
         for name, subtype, cardinality in input_shapes[t]:
             if (
-                cardinality == enums.Cardinality.MANY or
-                cardinality == enums.Cardinality.AT_LEAST_ONE
+                cardinality == enums.Cardinality.MANY
+                or cardinality == enums.Cardinality.AT_LEAST_ONE
             ):
                 subtype_id = _describe_set(subtype, ctx=ctx)
             else:
                 subtype_id = describe_input_shape(
-                    subtype, input_shapes, ctx=ctx)
+                    subtype, input_shapes, ctx=ctx
+                )
             element_names.append(name)
             subtypes.append(subtype_id)
             cardinalities.append(cardinality)
@@ -919,7 +919,8 @@ def describe_input_shape(
         base_type_name = str(mt.get_name(ctx.schema))
 
         type_id = _get_object_shape_id(
-            base_type_name, subtypes, element_names, cardinalities)
+            base_type_name, subtypes, element_names, cardinalities
+        )
 
         if type_id in ctx.uuid_to_pos:
             return type_id
@@ -932,8 +933,8 @@ def describe_input_shape(
         # .element_count
         buf.append(_uint16_packer(len(subtypes)))
         # .elements
-        for el_name, el_type_id, el_c in (
-            zip(element_names, subtypes, cardinalities)
+        for el_name, el_type_id, el_c in zip(
+            element_names, subtypes, cardinalities
         ):
             # ShapeElement.flags
             buf.append(_uint32_packer(0))
@@ -989,8 +990,9 @@ def describe_params(
         params_buf.append(_uint32_packer(0))
         # ShapeElement.cardinality
         card = (
-            p_enums.Cardinality.ONE if param_req else
-            p_enums.Cardinality.AT_MOST_ONE
+            p_enums.Cardinality.ONE
+            if param_req
+            else p_enums.Cardinality.AT_MOST_ONE
         )
         cardinalities.append(card)
         params_buf.append(_uint8_packer(card._value_))
@@ -1005,7 +1007,8 @@ def describe_params(
             params_buf.append(_uint16_packer(0))
 
     params_id = _get_object_shape_id(
-        "std::FreeObject", subtypes, element_names, cardinalities)
+        "std::FreeObject", subtypes, element_names, cardinalities
+    )
 
     params_shape = [
         DescriptorTag.SHAPE._value_,
@@ -1018,17 +1021,21 @@ def describe_params(
         # .type
         params_shape.append(_uint16_packer(0))
 
-    params_shape.extend([
-        _uint16_packer(len(params)),
-        *params_buf,
-    ])
+    params_shape.extend(
+        [
+            _uint16_packer(len(params)),
+            *params_buf,
+        ]
+    )
 
     _finish_typedesc(params_id, params_shape, ctx=ctx)
 
-    full_params = b''.join([
-        *ctx.buffer,
-        *ctx.anno_buffer,
-    ])
+    full_params = b''.join(
+        [
+            *ctx.buffer,
+            *ctx.anno_buffer,
+        ]
+    )
 
     return full_params, params_id
 
@@ -1065,17 +1072,21 @@ def describe_sql_result(
         rec_id.bytes,
     ]
 
-    record_body_bytes.extend([
-        _uint16_packer(len(row)),
-        *params_buf,
-    ])
+    record_body_bytes.extend(
+        [
+            _uint16_packer(len(row)),
+            *params_buf,
+        ]
+    )
 
     _finish_typedesc(rec_id, record_body_bytes, ctx=ctx)
 
-    record = b''.join([
-        *ctx.buffer,
-        *ctx.anno_buffer,
-    ])
+    record = b''.join(
+        [
+            *ctx.buffer,
+            *ctx.anno_buffer,
+        ]
+    )
 
     return record, rec_id
 
@@ -1108,6 +1119,7 @@ def describe(
 #
 # Type descriptor parsing
 #
+
 
 class ParseContext:
     def __init__(
@@ -1144,13 +1156,14 @@ def _parse(desc: binwrapper.BinWrapper, ctx: ParseContext) -> None:
     try:
         tag = DescriptorTag(t)
     except ValueError:
-        if (t[0] >= 0x80 and t[0] <= 0xff):
+        if t[0] >= 0x80 and t[0] <= 0xFF:
             # Ignore all type annotations.
             _parse_string(desc)
             return
         else:
             raise NotImplementedError(
-                f'no codec implementation for Gel data kind {hex(t[0])}')
+                f'no codec implementation for Gel data kind {hex(t[0])}'
+            )
     else:
         ctx.codecs_list.append(_parse_descriptor(tag, desc, ctx=ctx))
 
@@ -1158,6 +1171,7 @@ def _parse(desc: binwrapper.BinWrapper, ctx: ParseContext) -> None:
 #
 # Parsing helpers
 #
+
 
 def _parse_type_id(desc: binwrapper.BinWrapper) -> uuid.UUID:
     return uuidgen.from_bytes(desc.read_bytes(16))
@@ -1174,7 +1188,8 @@ def _parse_string(desc: binwrapper.BinWrapper) -> str:
     except UnicodeDecodeError as e:
         raise errors.InternalServerError(
             f"malformed type descriptor: invalid UTF-8 string "
-            f"at stream position {desc.tell()}") from e
+            f"at stream position {desc.tell()}"
+        ) from e
 
 
 def _parse_strings(desc: binwrapper.BinWrapper) -> list[str]:
@@ -1193,7 +1208,8 @@ def _parse_type_ref(
     except KeyError:
         raise errors.InternalServerError(
             f"malformed type descriptor: dangling type reference: {offset} "
-            f"at stream position {desc.tell()}") from None
+            f"at stream position {desc.tell()}"
+        ) from None
 
 
 def _parse_type_refs(
@@ -1209,6 +1225,7 @@ def _parse_type_refs(
 # Parsing dispatch.
 #
 
+
 @value_dispatch.value_dispatch
 def _parse_descriptor(
     tag: DescriptorTag,
@@ -1216,7 +1233,8 @@ def _parse_descriptor(
     ctx: ParseContext,
 ) -> TypeDesc:
     raise AssertionError(
-        f'no codec implementation for Gel data kind {tag._name_}')
+        f'no codec implementation for Gel data kind {tag._name_}'
+    )
 
 
 @_parse_descriptor.register(DescriptorTag.SET)
@@ -1242,7 +1260,8 @@ def _parse_object_descriptor(
     if ctx.protocol_version < (2, 0):
         raise errors.ProtocolError(
             "unexpected ObjectTypeDescriptor in protocol "
-            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}")
+            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}"
+        )
 
     # .id
     tid = _parse_type_id(desc)
@@ -1263,7 +1282,8 @@ def _parse_compound_descriptor(
     if ctx.protocol_version < (2, 0):
         raise errors.ProtocolError(
             "unexpected CompoundTypeDescriptor in protocol "
-            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}")
+            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}"
+        )
 
     # .id
     tid = _parse_type_id(desc)
@@ -1393,7 +1413,8 @@ def _parse_base_scalar_descriptor(
     if ctx.protocol_version >= (2, 0):
         raise errors.ProtocolError(
             "unexpected BaseScalarDescriptor in protocol "
-            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}")
+            f"{ctx.protocol_version[0]}.{ctx.protocol_version[1]}"
+        )
 
     # .id
     tid = _parse_type_id(desc)
@@ -1570,12 +1591,14 @@ def _parse_array_descriptor(
     els = desc.read_ui16()
     if els != 1:
         raise NotImplementedError(
-            'cannot handle arrays with more than one dimension')
+            'cannot handle arrays with more than one dimension'
+        )
     # .dimensions
     dim_len = desc.read_i32()
     if dim_len != -1:
         raise NotImplementedError(
-            'cannot handle arrays with non-infinite dimensions')
+            'cannot handle arrays with non-infinite dimensions'
+        )
 
     return ArrayDesc(
         tid=tid,
@@ -1664,7 +1687,10 @@ def _make_global_rep(typ: s_types.Type, ctx: Context) -> object:
     elif isinstance(typ, s_types.Array):
         subtyp = typ.get_element_type(ctx.schema)
         return (
-            int(enums.TypeTag.ARRAY), subtyp.id, _make_global_rep(subtyp, ctx))
+            int(enums.TypeTag.ARRAY),
+            subtyp.id,
+            _make_global_rep(subtyp, ctx),
+        )
     else:
         return None
 
@@ -1692,17 +1718,18 @@ class StateSerializerFactory:
 
         # aliases := { ('alias1', 'mod::type'), ... }
         schema, alias_tuple = s_types.Tuple.from_subtypes(
-            schema, [str_type, str_type])
+            schema, [str_type, str_type]
+        )
         schema, aliases_array = s_types.Array.from_subtypes(
-            schema, [alias_tuple])
+            schema, [alias_tuple]
+        )
 
         schema, self.globals_type = derive_alias(
-            schema, free_obj, 'state_globals')
+            schema, free_obj, 'state_globals'
+        )
 
         # config := cfg::Config { session_cfg1, session_cfg2, ... }
-        schema, config_type = derive_alias(
-            schema, free_obj, 'state_config'
-        )
+        schema, config_type = derive_alias(schema, free_obj, 'state_config')
         config_shape = self._make_config_shape(config_spec, schema)
 
         # Build type descriptors and codecs for compiler RPC
@@ -1721,14 +1748,23 @@ class StateSerializerFactory:
         self._input_shapes: immutables.Map[
             s_types.Type,
             tuple[InputShapeElement, ...],
-        ] = immutables.Map([
-            (config_type, config_shape),
-            (self._state_type, (
-                ("module", str_type, enums.Cardinality.AT_MOST_ONE),
-                ("aliases", aliases_array, enums.Cardinality.AT_MOST_ONE),
-                ("config", config_type, enums.Cardinality.AT_MOST_ONE),
-            ))
-        ])
+        ] = immutables.Map(
+            [
+                (config_type, config_shape),
+                (
+                    self._state_type,
+                    (
+                        ("module", str_type, enums.Cardinality.AT_MOST_ONE),
+                        (
+                            "aliases",
+                            aliases_array,
+                            enums.Cardinality.AT_MOST_ONE,
+                        ),
+                        ("config", config_type, enums.Cardinality.AT_MOST_ONE),
+                    ),
+                ),
+            ]
+        )
         self.config_type = config_type
         self._schema = schema
         self._contexts: dict[edbdef.ProtocolVersion, Context] = {}
@@ -1749,8 +1785,9 @@ class StateSerializerFactory:
                     (
                         setting.name,
                         setting_type,
-                        enums.Cardinality.MANY if setting.set_of else
-                        enums.Cardinality.AT_MOST_ONE,
+                        enums.Cardinality.MANY
+                        if setting.set_of
+                        else enums.Cardinality.AT_MOST_ONE,
                     )
                 )
         return tuple(sorted(config_shape))
@@ -1777,11 +1814,13 @@ class StateSerializerFactory:
 
         ctx = ctx.derive()
         ctx.schema = s_schema.ChainedSchema(
-            self._schema, user_schema, global_schema)
+            self._schema, user_schema, global_schema
+        )
 
         # Update the config shape with any extension configs
         ext_config_spec = config.load_ext_spec_from_schema(
-            user_schema, self._schema)
+            user_schema, self._schema
+        )
         new_config = self._make_config_shape(ext_config_spec, ctx.schema)
         full_config = self._input_shapes[self.config_type] + new_config
 
@@ -1801,17 +1840,20 @@ class StateSerializerFactory:
 
         type_id = describe_input_shape(
             self._state_type,
-            self._input_shapes.update({
-                self.globals_type: tuple(sorted(globals_shape)),
-                self.config_type: full_config,
-                self._state_type: self._input_shapes[self._state_type] + (
-                    (
-                        "globals",
-                        self.globals_type,
-                        enums.Cardinality.AT_MOST_ONE,
+            self._input_shapes.update(
+                {
+                    self.globals_type: tuple(sorted(globals_shape)),
+                    self.config_type: full_config,
+                    self._state_type: self._input_shapes[self._state_type]
+                    + (
+                        (
+                            "globals",
+                            self.globals_type,
+                            enums.Cardinality.AT_MOST_ONE,
+                        ),
                     ),
-                )
-            }),
+                }
+            ),
             ctx=ctx,
         )
 
@@ -1828,13 +1870,11 @@ class StateSerializerFactory:
         type_id = describe_input_shape(
             self._comp_config_type,
             {self._comp_config_type: self._comp_config_shape},
-            ctx=ctx
+            ctx=ctx,
         )
         type_data = b''.join(ctx.buffer)
         return CompilationConfigSerializer(
-            type_id,
-            type_data,
-            edbdef.CURRENT_PROTOCOL
+            type_id, type_data, edbdef.CURRENT_PROTOCOL
         )
 
 
@@ -1949,11 +1989,13 @@ class SequenceDesc(TypeDesc):
 
     def encode(self, data: collections.abc.Collection[Any]) -> bytes:
         if not data:
-            return b''.join((
-                _uint32_packer(0),
-                _uint32_packer(0),
-                _uint32_packer(0),
-            ))
+            return b''.join(
+                (
+                    _uint32_packer(0),
+                    _uint32_packer(0),
+                    _uint32_packer(0),
+                )
+            )
         bufs = [
             _uint32_packer(1),
             _uint32_packer(0),
@@ -2020,10 +2062,9 @@ class CompoundDesc(SchemaTypeDesc):
 
 @dataclasses.dataclass(frozen=True, kw_only=True)
 class BaseScalarDesc(SchemaTypeDesc):
-    codecs: ClassVar[dict[
-        uuid.UUID,
-        tuple[Callable[[Any], bytes], Callable[[bytes], Any]]
-    ]] = {
+    codecs: ClassVar[
+        dict[uuid.UUID, tuple[Callable[[Any], bytes], Callable[[bytes], Any]]]
+    ] = {
         s_obj.get_known_type_id('std::duration'): (
             statypes.Duration.encode,
             statypes.Duration.decode,

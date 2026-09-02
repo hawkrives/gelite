@@ -37,7 +37,6 @@ def pack_i32s(*args):
 
 
 class TestProtocol(ProtocolTestCase):
-
     async def _execute(
         self,
         command_text: str,
@@ -56,7 +55,8 @@ class TestProtocol(ProtocolTestCase):
             command_text=command_text,
             input_language=(
                 protocol.InputLanguage.SQL
-                if sql else protocol.InputLanguage.EDGEQL
+                if sql
+                else protocol.InputLanguage.EDGEQL
             ),
             output_format=protocol.OutputFormat.NONE,
             expected_cardinality=protocol.Cardinality.MANY,
@@ -88,8 +88,7 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('SELECT 1/0; SELECT 42')
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='division by zero'
+            protocol.ErrorResponse, message='division by zero'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
@@ -98,10 +97,7 @@ class TestProtocol(ProtocolTestCase):
 
         # Test that the protocol has recovered.
         await self._execute('SELECT 1')
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -114,8 +110,7 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('START TRANSACTION')
         await self.con.recv_match(
-            protocol.CommandComplete,
-            status='START TRANSACTION'
+            protocol.CommandComplete, status='START TRANSACTION'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
@@ -124,8 +119,7 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('SELECT 1/0')
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='division by zero'
+            protocol.ErrorResponse, message='division by zero'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
@@ -135,8 +129,7 @@ class TestProtocol(ProtocolTestCase):
         # Test that the protocol is still in a failed transaction
         await self._execute('SELECT 1/0')
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='current transaction is aborted'
+            protocol.ErrorResponse, message='current transaction is aborted'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
@@ -145,10 +138,7 @@ class TestProtocol(ProtocolTestCase):
 
         # Test recovery
         await self._execute('ROLLBACK')
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='ROLLBACK'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='ROLLBACK')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -168,10 +158,7 @@ class TestProtocol(ProtocolTestCase):
         await self.con.recv_match(
             protocol.Data,
         )
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -179,10 +166,7 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('SELECT 1')
 
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -202,10 +186,7 @@ class TestProtocol(ProtocolTestCase):
         await self.con.recv_match(
             protocol.Data,
         )
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -213,17 +194,13 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('SELECT 1', sql=True)
 
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
         )
 
     async def test_proto_flush_01(self):
-
         await self.con.connect()
 
         await self.con.send(
@@ -242,14 +219,13 @@ class TestProtocol(ProtocolTestCase):
         )
         # Should come through even without an explicit 'flush'
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message="Unexpected 'SEL'"
+            protocol.ErrorResponse, message="Unexpected 'SEL'"
         )
 
         # Recover the protocol state from the error
         self.assertEqual(
-            await self.con.sync(),
-            protocol.TransactionState.NOT_IN_TRANSACTION)
+            await self.con.sync(), protocol.TransactionState.NOT_IN_TRANSACTION
+        )
 
         await self.con.send(
             protocol.Parse(
@@ -264,7 +240,7 @@ class TestProtocol(ProtocolTestCase):
                 state_typedesc_id=b'\0' * 16,
                 state_data=b'',
             ),
-            protocol.Flush()
+            protocol.Flush(),
         )
         await self.con.recv_match(
             protocol.CommandDataDescription,
@@ -276,10 +252,7 @@ class TestProtocol(ProtocolTestCase):
         # be received.
         # While at it, rogue ROLLBACK should be allowed.
         await self._execute('ROLLBACK')
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='ROLLBACK'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='ROLLBACK')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -296,13 +269,13 @@ class TestProtocol(ProtocolTestCase):
             message=(
                 r"specified parameter type\(s\) do not match the parameter "
                 r"types inferred from specified command\(s\)"
-            )
+            ),
         )
 
         # Recover the protocol state from the error
         self.assertEqual(
-            await self.con.sync(),
-            protocol.TransactionState.NOT_IN_TRANSACTION)
+            await self.con.sync(), protocol.TransactionState.NOT_IN_TRANSACTION
+        )
 
     async def test_proto_state(self):
         await self.con.connect()
@@ -326,7 +299,7 @@ class TestProtocol(ProtocolTestCase):
             protocol.CommandComplete,
             state_typedesc_id=sdd1.typedesc_id,
             state_data=b'\0\0\0\x01\0\0\0\x03\0\0\0\x10\0\0\0\x01'
-                       b'\0\0\0\0\0\0\0\x04\0\0\0\x0b'
+            b'\0\0\0\0\0\0\0\x04\0\0\0\x0b',
         )
         await self.con.recv_match(protocol.ReadyForCommand)
 
@@ -360,8 +333,8 @@ class TestProtocol(ProtocolTestCase):
             protocol.CommandComplete,
             state_typedesc_id=sdd2.typedesc_id,
             state_data=b'\0\0\0\x01\0\0\0\x03\0\0\0\x1c\0\0\0\x02'
-                       b'\0\0\0\x00\0\0\0\x04\0\0\0\x0b'
-                       b'\0\0\0\x01\0\0\0\x04\0\0\0\x16'
+            b'\0\0\0\x00\0\0\0\x04\0\0\0\x0b'
+            b'\0\0\0\x01\0\0\0\x04\0\0\0\x16',
         )
         await self.con.recv_match(protocol.ReadyForCommand)
 
@@ -441,10 +414,7 @@ class TestProtocol(ProtocolTestCase):
             'SELECT GLOBAL state_desc_in_script;'
         )
         await self.con.recv_match(protocol.StateDataDescription)
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -458,8 +428,7 @@ class TestProtocol(ProtocolTestCase):
             'CREATE TYPE CardTest { CREATE PROPERTY prop -> int32; }'
         )
         await self.con.recv_match(
-            protocol.CommandComplete,
-            status='CREATE TYPE'
+            protocol.CommandComplete, status='CREATE TYPE'
         )
         await self.con.recv_match(protocol.ReadyForCommand)
 
@@ -469,13 +438,9 @@ class TestProtocol(ProtocolTestCase):
             await self.con.execute('DROP TYPE CardTest')
 
     async def _test_proto_desc_id_cardinality(self):
-
         await self._execute('SELECT CardTest { prop }', data=True)
         cdd1 = await self.con.recv_match(protocol.CommandDataDescription)
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(protocol.ReadyForCommand)
 
         await self._execute('''
@@ -486,18 +451,12 @@ class TestProtocol(ProtocolTestCase):
                 };
             }
         ''')
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='ALTER TYPE'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='ALTER TYPE')
         await self.con.recv_match(protocol.ReadyForCommand)
 
         await self._execute('SELECT CardTest { prop }', data=True)
         cdd2 = await self.con.recv_match(protocol.CommandDataDescription)
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='SELECT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
         await self.con.recv_match(protocol.ReadyForCommand)
 
         self.assertNotEqual(cdd1.output_typedesc_id, cdd2.output_typedesc_id)
@@ -516,7 +475,7 @@ class TestProtocol(ProtocolTestCase):
                 state_typedesc_id=b'\0' * 16,
                 state_data=b'',
             ),
-            protocol.Flush()
+            protocol.Flush(),
         )
 
     async def test_proto_parse_cardinality(self):
@@ -536,8 +495,7 @@ class TestProtocol(ProtocolTestCase):
 
         await self._execute('CREATE TYPE ParseCardTest')
         await self.con.recv_match(
-            protocol.CommandComplete,
-            status='CREATE TYPE'
+            protocol.CommandComplete, status='CREATE TYPE'
         )
         await self.con.recv_match(protocol.ReadyForCommand)
 
@@ -580,8 +538,7 @@ class TestProtocol(ProtocolTestCase):
             await self.con.recv_match(protocol.ReadyForCommand)
 
             # Verify the state is set
-            await self._execute(
-                'SELECT GLOBAL state_desc_3', data=True, cc=cc1)
+            await self._execute('SELECT GLOBAL state_desc_3', data=True, cc=cc1)
             await self.con.recv_match(protocol.CommandDataDescription)
             d1 = await self.con.recv_match(protocol.Data)
             await self.con.recv_match(protocol.CommandComplete)
@@ -599,8 +556,7 @@ class TestProtocol(ProtocolTestCase):
             self.assertNotEqual(sdd1.typedesc_id, sdd2.typedesc_id)
 
             # The same query in the first connection should now fail
-            await self._execute(
-                'SELECT GLOBAL state_desc_3', data=True, cc=cc1)
+            await self._execute('SELECT GLOBAL state_desc_3', data=True, cc=cc1)
             sdd3 = await self.con.recv_match(protocol.StateDataDescription)
             await self.con.recv_match(
                 protocol.ErrorResponse,
@@ -646,7 +602,6 @@ class TestProtocol(ProtocolTestCase):
             0,  # reserved
             3,  # num elems
             1,  # bound,
-
             4,  # el 1 length
             1337,  # el 1
             -1,  # NULL!
@@ -654,17 +609,19 @@ class TestProtocol(ProtocolTestCase):
             10000,
         )
 
-        args = pack_i32s(
-            1,   # num args
-            0,   # reserved
-            len(array),   # len
-        ) + array
+        args = (
+            pack_i32s(
+                1,  # num args
+                0,  # reserved
+                len(array),  # len
+            )
+            + array
+        )
 
         await self.con.connect()
         await self._parse_execute(q, args)
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='invalid NULL'
+            protocol.ErrorResponse, message='invalid NULL'
         )
 
     async def test_proto_execute_bad_array_02(self):
@@ -676,24 +633,25 @@ class TestProtocol(ProtocolTestCase):
             0,  # reserved
             2,  # num elems
             4,  # bound,
-
             4,  # el 1 length
             1337,  # el 1
             4,  # el 2 length
             10000,
         )
 
-        args = pack_i32s(
-            1,   # num args
-            0,   # reserved
-            len(array),   # len
-        ) + array
+        args = (
+            pack_i32s(
+                1,  # num args
+                0,  # reserved
+                len(array),  # len
+            )
+            + array
+        )
 
         await self.con.connect()
         await self._parse_execute(q, args)
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='unsupported array bound'
+            protocol.ErrorResponse, message='unsupported array bound'
         )
 
     async def test_proto_execute_bad_array_03(self):
@@ -705,24 +663,25 @@ class TestProtocol(ProtocolTestCase):
             0,  # reserved
             2,  # num elems
             1,  # bound,
-
             4,  # el 1 length
             1337,  # el 1
             4,  # el 2 length
             10000,
         )
 
-        args = pack_i32s(
-            1,   # num args
-            0,   # reserved
-            len(array),   # len
-        ) + array
+        args = (
+            pack_i32s(
+                1,  # num args
+                0,  # reserved
+                len(array),  # len
+            )
+            + array
+        )
 
         await self.con.connect()
         await self._parse_execute(q, args)
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='unsupported array dimensions'
+            protocol.ErrorResponse, message='unsupported array dimensions'
         )
 
     async def test_proto_global_bad_array(self):
@@ -758,26 +717,21 @@ class TestProtocol(ProtocolTestCase):
         # Verify the state is set
         await self._execute('SELECT 1', data=True, cc=cc1)
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='invalid NULL'
+            protocol.ErrorResponse, message='invalid NULL'
         )
 
     async def test_proto_parse_execute_transaction_id(self):
         await self.con.connect()
         await self._parse_execute("start transaction", b"")
         await self.con.recv_match(
-            protocol.CommandComplete,
-            status='START TRANSACTION'
+            protocol.CommandComplete, status='START TRANSACTION'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.IN_TRANSACTION,
         )
         await self._parse_execute("commit", b"")
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='COMMIT'
-        )
+        await self.con.recv_match(protocol.CommandComplete, status='COMMIT')
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
@@ -792,8 +746,7 @@ class TestProtocol(ProtocolTestCase):
         await self.con.recv_match(protocol.ReadyForCommand)
         await self._execute('CREATE TYPE TestStateChangeInTx::StateChangeInTx')
         await self.con.recv_match(
-            protocol.CommandComplete,
-            status='CREATE TYPE'
+            protocol.CommandComplete, status='CREATE TYPE'
         )
         await self.con.recv_match(protocol.ReadyForCommand)
 
@@ -802,7 +755,8 @@ class TestProtocol(ProtocolTestCase):
         finally:
             await self.con.execute('ROLLBACK')
             await self.con.execute(
-                'DROP TYPE TestStateChangeInTx::StateChangeInTx')
+                'DROP TYPE TestStateChangeInTx::StateChangeInTx'
+            )
             await self.con.execute('DROP MODULE TestStateChangeInTx')
 
     async def _test_proto_state_change_in_tx(self):
@@ -812,9 +766,12 @@ class TestProtocol(ProtocolTestCase):
         ''')
         cc = await self.con.recv_match(protocol.CommandComplete)
         await self.con.recv_match(protocol.ReadyForCommand)
-        await self._execute('''
+        await self._execute(
+            '''
             CONFIGURE SESSION SET allow_user_specified_id := true
-        ''', cc=cc)
+        ''',
+            cc=cc,
+        )
         cc_true = await self.con.recv_match(protocol.CommandComplete)
         await self.con.recv_match(protocol.ReadyForCommand)
         await self._execute('''
@@ -829,15 +786,15 @@ class TestProtocol(ProtocolTestCase):
         await self.con.recv_match(protocol.ReadyForCommand)
 
         # But insert with session that does allow_user_specified_id
-        await self._execute('''
+        await self._execute(
+            '''
             INSERT StateChangeInTx {
                 id := <uuid>'a768e9d5-d908-4072-b370-865b450216ff'
             };
-        ''', cc=cc_true)
-        await self.con.recv_match(
-            protocol.CommandComplete,
-            status='INSERT'
+        ''',
+            cc=cc_true,
         )
+        await self.con.recv_match(protocol.CommandComplete, status='INSERT')
         await self.con.recv_match(protocol.ReadyForCommand)
 
     async def test_proto_discard_prepared_statement_in_script(self):
@@ -878,8 +835,7 @@ class TestProtocol(ProtocolTestCase):
         # inconsistency of memory state.
         await self._execute('select 1/0; select 42', cc=state)
         await self.con.recv_match(
-            protocol.ErrorResponse,
-            message='division by zero'
+            protocol.ErrorResponse, message='division by zero'
         )
         await self.con.recv_match(
             protocol.ReadyForCommand,
@@ -988,8 +944,7 @@ class TestServerCancellation(tb.TestCase):
             security=srv_args.ServerSecurityMode.InsecureDevMode,
         ) as sd:
             self.assertNotIn(
-                'edgedb_server_background_errors_total'
-                '{source="release_pgcon"}',
+                'edgedb_server_background_errors_total{source="release_pgcon"}',
                 sd.fetch_metrics(),
             )
             con = await sd.connect_test_protocol()
@@ -1013,8 +968,7 @@ class TestServerCancellation(tb.TestCase):
                     protocol.Sync(),
                 )
                 await con.recv_match(
-                    protocol.CommandComplete,
-                    status='START TRANSACTION'
+                    protocol.CommandComplete, status='START TRANSACTION'
                 )
                 await con.recv_match(
                     protocol.ReadyForCommand,

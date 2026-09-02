@@ -29,12 +29,12 @@ from edb.testbase import server as tb
 class TestEdgeQLGlobals(tb.QueryTestCase):
     '''Tests for globals.'''
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
     SETUP = [
-        os.path.join(os.path.dirname(__file__), 'schemas',
-                     'cards_setup.edgeql'),
+        os.path.join(
+            os.path.dirname(__file__), 'schemas', 'cards_setup.edgeql'
+        ),
         '''
             create global cur_user -> str;
             create required global def_cur_user -> str {
@@ -79,15 +79,13 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             create global arrayTuple2 -> array<tuple<str, array<int64>>>;
             create global arrayTuple3 ->
               array<tuple<tuple<str, bool>, array<int64>>>;
-        '''
+        ''',
     ]
 
     @classmethod
     def setUpClass(cls):
         if cls.get_set_up() == 'inplace':
-            raise unittest.SkipTest(
-                'globals schema broken with in place setup'
-            )
+            raise unittest.SkipTest('globals schema broken with in place setup')
         super().setUpClass()
 
     async def test_edgeql_globals_errors_01(self):
@@ -136,47 +134,35 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
     async def test_edgeql_globals_03(self):
         # test the behaviors of an optional with a default
         await self.assert_query_result(
-            r'''select global cur_card''',
-            ['Dragon']
+            r'''select global cur_card''', ['Dragon']
         )
 
         await self.con.execute('''
             set global cur_card := 'foo'
         ''')
 
-        await self.assert_query_result(
-            r'''select global cur_card''',
-            ['foo']
-        )
+        await self.assert_query_result(r'''select global cur_card''', ['foo'])
 
         # setting it to {} actually sets it to {}
         await self.con.execute('''
             set global cur_card := {}
         ''')
 
-        await self.assert_query_result(
-            r'''select global cur_card''',
-            []
-        )
+        await self.assert_query_result(r'''select global cur_card''', [])
 
         # and RESET puts it back to the default
         await self.con.execute('''
             reset global cur_card
         ''')
         await self.assert_query_result(
-            r'''select global cur_card''',
-            ['Dragon']
+            r'''select global cur_card''', ['Dragon']
         )
 
     async def test_edgeql_globals_04(self):
-        await self.assert_query_result(
-            r'''select ACurUser { name }''',
-            []
-        )
+        await self.assert_query_result(r'''select ACurUser { name }''', [])
 
         await self.assert_query_result(
-            r'''select global CurUser { name }''',
-            []
+            r'''select global CurUser { name }''', []
         )
 
         await self.con.execute('''
@@ -184,17 +170,11 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''select ACurUser { name }''',
-            [
-                {'name': 'Bob'}
-            ]
+            r'''select ACurUser { name }''', [{'name': 'Bob'}]
         )
 
         await self.assert_query_result(
-            r'''select global CurUser { name }''',
-            [
-                {'name': 'Bob'}
-            ]
+            r'''select global CurUser { name }''', [{'name': 'Bob'}]
         )
 
     async def test_edgeql_globals_05(self):
@@ -203,10 +183,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''select get_current_user() { name }''',
-            [
-                {'name': 'Bob'}
-            ]
+            r'''select get_current_user() { name }''', [{'name': 'Bob'}]
         )
 
     async def test_edgeql_globals_06(self):
@@ -241,7 +218,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
 
         await self.assert_query_result(
             r'''select get_current_legal_cards().name''',
-            {"Dwarf", "Bog monster", "Golem", "Giant turtle"}
+            {"Dwarf", "Bog monster", "Golem", "Giant turtle"},
         )
 
     async def test_edgeql_globals_08(self):
@@ -304,36 +281,38 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             set global banned_cards := ["Dragon"];
         ''')
 
-        results = tb.bag([
-            {"active": True, "name": "Imp"},
-            {"active": False, "name": "Dragon"},
-            {"active": True, "name": "Bog monster"},
-            {"active": True, "name": "Giant turtle"},
-            {"active": True, "name": "Dwarf"},
-            {"active": True, "name": "Golem"},
-            {"active": True, "name": "Sprite"},
-            {"active": True, "name": "Giant eagle"},
-            {"active": False, "name": "Alice"},
-            {"active": True, "name": "Bob"},
-            {"active": False, "name": "Carol"},
-            {"active": False, "name": "Dave"},
-            {"active": True, "name": "Djinn"},
-            {"active": False, "name": "1st"},
-            {"active": False, "name": "2nd"},
-            {"active": False, "name": "3rd"},
-        ])
+        results = tb.bag(
+            [
+                {"active": True, "name": "Imp"},
+                {"active": False, "name": "Dragon"},
+                {"active": True, "name": "Bog monster"},
+                {"active": True, "name": "Giant turtle"},
+                {"active": True, "name": "Dwarf"},
+                {"active": True, "name": "Golem"},
+                {"active": True, "name": "Sprite"},
+                {"active": True, "name": "Giant eagle"},
+                {"active": False, "name": "Alice"},
+                {"active": True, "name": "Bob"},
+                {"active": False, "name": "Carol"},
+                {"active": False, "name": "Dave"},
+                {"active": True, "name": "Djinn"},
+                {"active": False, "name": "1st"},
+                {"active": False, "name": "2nd"},
+                {"active": False, "name": "3rd"},
+            ]
+        )
 
         await self.assert_query_result(
             r'''
                 select Named { name, required active := is_active(Named) }
             ''',
-            results
+            results,
         )
         await self.assert_query_result(
             r'''
                 select Named { name, required active := is_active2(Named) }
             ''',
-            results
+            results,
         )
 
         # swap the function to use def_cur_user and make sure it still works
@@ -353,7 +332,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             r'''
                 select Named { name, required active := is_active(Named) }
             ''',
-            results
+            results,
         )
 
         # An indirect call, to make sure it gets update that way
@@ -361,7 +340,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             r'''
                 select Named { name, required active := is_active2(Named) }
             ''',
-            results
+            results,
         )
 
     async def test_edgeql_globals_10(self):
@@ -377,26 +356,19 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''select global cur_user''',
-            ['test!!!']
+            r'''select global cur_user''', ['test!!!']
         )
 
     async def test_edgeql_globals_11(self):
         await self.con.execute('''
             set global cur_user := "";
         ''')
-        await self.assert_query_result(
-            r'''select global cur_user''',
-            ['']
-        )
+        await self.assert_query_result(r'''select global cur_user''', [''])
 
         await self.con.execute('''
             set global cur_user := {};
         ''')
-        await self.assert_query_result(
-            r'''select global cur_user''',
-            []
-        )
+        await self.assert_query_result(r'''select global cur_user''', [])
 
     async def test_edgeql_globals_12(self):
         await self.con.execute('''
@@ -404,13 +376,11 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         ''')
 
         await self.assert_query_result(
-            r'''select count((global Ug).deck)''',
-            [9]
+            r'''select count((global Ug).deck)''', [9]
         )
 
         await self.assert_query_result(
-            r'''select count(((global Ug).id, (global Ug).name))''',
-            [16]
+            r'''select count(((global Ug).id, (global Ug).name))''', [16]
         )
 
     async def test_edgeql_globals_13(self):
@@ -418,14 +388,14 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             create global my_var -> str;
         ''')
 
-        await self.con.execute('''
+        await self.con.execute(
+            '''
             set global my_var := <str>$my_param
-        ''', my_param='hello')
-
-        await self.assert_query_result(
-            r'''select global my_var''',
-            ['hello']
+        ''',
+            my_param='hello',
         )
+
+        await self.assert_query_result(r'''select global my_var''', ['hello'])
 
         with self.assertRaisesRegex(
             edgedb.QueryError,
@@ -442,7 +412,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
     async def test_edgeql_globals_14(self):
         async with self.assertRaisesRegexTx(
             edgedb.ConfigurationError,
-            "system global 'sys::current_role' may not be explicitly specified"
+            "system global 'sys::current_role' may not be explicitly specified",
         ):
             await self.con.execute(
                 '''
@@ -453,7 +423,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.ConfigurationError,
             "system global 'sys::current_permissions' may not be explicitly "
-            "specified"
+            "specified",
         ):
             await self.con.execute(
                 '''
@@ -533,9 +503,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
         )
 
     async def test_edgeql_globals_client_01(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
             globs = dict(
                 cur_user='Alice',
@@ -550,9 +518,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             await con.aclose()
 
     async def test_edgeql_globals_client_02(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
             globs = dict(
                 cur_user=1,  # wrong type
@@ -570,9 +536,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             await con.aclose()
 
     async def test_edgeql_globals_client_03(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
             globs = dict(
                 def_cur_user_excited='yay!',  # computed
@@ -592,9 +556,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             await con.aclose()
 
     async def test_edgeql_globals_client_04(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
             globs = dict(
                 imaginary='!',  # doesn't exist
@@ -612,13 +574,9 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             await con.aclose()
 
     async def test_edgeql_globals_client_05(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
-            globs = {
-                'sys::current_role': 'lol'
-            }
+            globs = {'sys::current_role': 'lol'}
             scon = con.with_globals(**globs)
             with self.assertRaisesRegex(
                 edgedb.QueryArgumentError,
@@ -630,13 +588,9 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             await con.aclose()
 
     async def test_edgeql_globals_client_06(self):
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
-            globs = {
-                'sys::current_permissions': ['lol']
-            }
+            globs = {'sys::current_permissions': ['lol']}
             scon = con.with_globals(**globs)
             with self.assertRaisesRegex(
                 edgedb.QueryArgumentError,
@@ -671,9 +625,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
 
         # with_globals isn't supported in the testbase client, so use
         # the stock client instead
-        con = edgedb.create_async_client(
-            **self.get_connect_args()
-        )
+        con = edgedb.create_async_client(**self.get_connect_args())
         try:
             globs = dict(
                 tupleStr=('foo', 42),
@@ -700,7 +652,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -711,7 +663,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -722,7 +674,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -734,7 +686,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -745,7 +697,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -756,7 +708,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_globals_schema_types_02(self):
@@ -769,7 +721,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'default::best_card'}]
+            [{'name': 'default::best_card'}],
         )
 
         await self.con.execute('''
@@ -780,7 +732,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -792,7 +744,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'my_mod::best_card'}]
+            [{'name': 'my_mod::best_card'}],
         )
 
         await self.con.execute('''
@@ -803,7 +755,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_globals_schema_types_03(self):
@@ -818,7 +770,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'default::best_card'}]
+            [{'name': 'default::best_card'}],
         )
 
         await self.con.execute('''
@@ -829,7 +781,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -843,7 +795,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            [{'name': 'my_mod::best_card'}]
+            [{'name': 'my_mod::best_card'}],
         )
 
         await self.con.execute('''
@@ -854,7 +806,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_globals_schema_types_04(self):
@@ -876,7 +828,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             [
                 {'name': 'default::__best_card'},
                 {'name': 'default::best_card'},
-            ]
+            ],
         )
 
         await self.con.execute('''
@@ -887,7 +839,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''
@@ -906,7 +858,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             [
                 {'name': 'my_mod::__best_card'},
                 {'name': 'my_mod::best_card'},
-            ]
+            ],
         )
 
         await self.con.execute('''
@@ -917,7 +869,7 @@ class TestEdgeQLGlobals(tb.QueryTestCase):
             with module schema select Type { name }
             filter .name ilike "%best_card%";
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_globals_unused_01(self):

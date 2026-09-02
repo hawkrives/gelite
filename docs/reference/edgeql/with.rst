@@ -89,9 +89,8 @@ for long queries which reuse many objects or functions from the same module.
 
 .. code-block:: edgeql
 
-  with http as module std::net::http
-  select http::ScheduledRequest
-  filter .method = http::Method.POST;
+  with cal as module std::cal
+  select cal::to_local_date(datetime_current(), 'UTC');
 
 If the aliased module does not exist at the top level, but does exists as a
 part of the ``std`` module, that will be used automatically.

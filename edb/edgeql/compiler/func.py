@@ -19,7 +19,6 @@
 
 """EdgeQL compiler routines for function calls and operators."""
 
-
 from __future__ import annotations
 from typing import (
     Callable,
@@ -79,20 +78,17 @@ if TYPE_CHECKING:
 def compile_FunctionCall(
     expr: qlast.FunctionCall, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     env = ctx.env
 
     funcname: sn.Name
     if isinstance(expr.func, str):
         if (
             ctx.env.options.func_params is not None
-            and ctx.env.options.func_params.get_by_name(
-                env.schema, expr.func
-            )
+            and ctx.env.options.func_params.get_by_name(env.schema, expr.func)
         ):
             raise errors.QueryError(
-                f'parameter `{expr.func}` is not callable',
-                span=expr.span)
+                f'parameter `{expr.func}` is not callable', span=expr.span
+            )
 
         funcname = sn.UnqualName(expr.func)
     else:
@@ -113,7 +109,7 @@ def compile_FunctionCall(
             suggestion_limit=1,
             item_type=s_types.Type,
             span=expr.span,
-            hint_text='did you mean to cast to'
+            hint_text='did you mean to cast to',
         )
         raise
 
@@ -123,28 +119,33 @@ def compile_FunctionCall(
 
     if funcs is None:
         raise errors.QueryError(
-            f'could not resolve function name {funcname}',
-            span=expr.span)
+            f'could not resolve function name {funcname}', span=expr.span
+        )
 
     in_polymorphic_func = (
-        ctx.env.options.func_params is not None and
-        ctx.env.options.func_params.has_polymorphic(env.schema)
+        ctx.env.options.func_params is not None
+        and ctx.env.options.func_params.has_polymorphic(env.schema)
     )
 
     in_abstract_constraint = (
-        in_polymorphic_func and
-        ctx.env.options.schema_object_context is s_constr.Constraint
+        in_polymorphic_func
+        and ctx.env.options.schema_object_context is s_constr.Constraint
     )
 
     typemods = polyres.find_callable_typemods(
-        funcs, num_args=len(expr.args), kwargs_names=expr.kwargs.keys(),
-        ctx=ctx)
+        funcs, num_args=len(expr.args), kwargs_names=expr.kwargs.keys(), ctx=ctx
+    )
     args, kwargs = compile_func_call_args(
-        expr, funcname, typemods, prefer_subquery_args=prefer_subquery_args,
-        ctx=ctx)
+        expr,
+        funcname,
+        typemods,
+        prefer_subquery_args=prefer_subquery_args,
+        ctx=ctx,
+    )
     with errors.ensure_span(expr.span):
         matched = polyres.find_callable(
-            funcs, args=args, kwargs=kwargs, ctx=ctx)
+            funcs, args=args, kwargs=kwargs, ctx=ctx
+        )
     if not matched:
         alts = [f.get_signature_as_str(env.schema) for f in funcs]
         sig: list[str] = []
@@ -155,9 +156,7 @@ def compile_FunctionCall(
             while f'arg{argnum}' in kwargs:
                 argnum += 1
             ty = schemactx.get_material_type(argtype, ctx=ctx)
-            sig.append(
-                f'arg{argnum}: {ty.get_displayname(env.schema)}'
-            )
+            sig.append(f'arg{argnum}: {ty.get_displayname(env.schema)}')
             argnum += 1
         for kwname, (kwtype, _) in kwargs.items():
             ty = schemactx.get_material_type(kwtype, ctx=ctx)
@@ -172,15 +171,13 @@ def compile_FunctionCall(
         elif len(alts) == 1:
             hint = f'Did you want "{alts[0]}"?'
         else:  # Multiple alternatives
-            hint = (
-                f'Did you want one of the following functions instead:\n' +
-                ('\n'.join(alts))
+            hint = f'Did you want one of the following functions instead:\n' + (
+                '\n'.join(alts)
             )
 
         raise errors.QueryError(
-            f'function "{signature}" does not exist',
-            hint=hint,
-            span=expr.span)
+            f'function "{signature}" does not exist', hint=hint, span=expr.span
+        )
     elif len(matched) > 1:
         if in_abstract_constraint:
             matched_call = matched[0]
@@ -189,9 +186,9 @@ def compile_FunctionCall(
             raise errors.QueryError(
                 f'function {funcname} is not unique',
                 hint=f'Please disambiguate between the following '
-                     f'alternatives:\n' +
-                     ('\n'.join(alts)),
-                span=expr.span)
+                f'alternatives:\n' + ('\n'.join(alts)),
+                span=expr.span,
+            )
     else:
         matched_call = matched[0]
 
@@ -199,26 +196,24 @@ def compile_FunctionCall(
     assert isinstance(func, s_func.Function)
 
     if matched_call.server_param_conversions:
-        for param_name, conversions in (
-            matched_call.server_param_conversions.items()
-        ):
+        for (
+            param_name,
+            conversions,
+        ) in matched_call.server_param_conversions.items():
             if param_name not in ctx.env.server_param_conversions:
                 ctx.env.server_param_conversions[param_name] = {}
-            ctx.env.server_param_conversions[param_name].update(
-                conversions
+            ctx.env.server_param_conversions[param_name].update(conversions)
+        ctx.env.server_param_conversion_calls.append(
+            (
+                func.get_signature_as_str(env.schema),
+                expr.span,
             )
-        ctx.env.server_param_conversion_calls.append((
-            func.get_signature_as_str(env.schema),
-            expr.span,
-        ))
+        )
 
     inline_func = None
-    if (
-        func.get_language(ctx.env.schema) == qlast.Language.EdgeQL
-        and (
-            func.get_volatility(ctx.env.schema) == ft.Volatility.Modifying
-            or func.get_is_inlined(ctx.env.schema)
-        )
+    if func.get_language(ctx.env.schema) == qlast.Language.EdgeQL and (
+        func.get_volatility(ctx.env.schema) == ft.Volatility.Modifying
+        or func.get_is_inlined(ctx.env.schema)
     ):
         inline_func = s_func.compile_function_inline(
             schema=ctx.env.schema,
@@ -251,7 +246,8 @@ def compile_FunctionCall(
             (dv := ctx.defining_view) is not None
             and dv.get_expr_type(ctx.env.schema) is s_types.ExprType.Select
             and not irutils.is_trivial_free_object(
-                not_none(ctx.partial_path_prefix))
+                not_none(ctx.partial_path_prefix)
+            )
         ):
             # This is some shape in a regular query. Although
             # DML is not allowed in the computable, but it may
@@ -277,11 +273,10 @@ def compile_FunctionCall(
         )
 
     matched_func_ret_type = func.get_return_type(env.schema)
-    is_polymorphic = (
-        any(p.get_type(env.schema).is_polymorphic(env.schema)
-            for p in matched_func_params.objects(env.schema)) and
-        matched_func_ret_type.is_polymorphic(env.schema)
-    )
+    is_polymorphic = any(
+        p.get_type(env.schema).is_polymorphic(env.schema)
+        for p in matched_func_params.objects(env.schema)
+    ) and matched_func_ret_type.is_polymorphic(env.schema)
 
     matched_func_initial_value = func.get_initial_value(env.schema)
 
@@ -304,7 +299,7 @@ def compile_FunctionCall(
             raise errors.UnsupportedFeatureError(
                 'newly created or updated objects cannot be passed to '
                 'functions',
-                span=arg.expr.span
+                span=arg.expr.span,
             )
 
     if not in_abstract_constraint:
@@ -339,14 +334,18 @@ def compile_FunctionCall(
         nested_path_ids = []
         for n, st in rtype.iter_subtypes(ctx.env.schema):
             elem_path_id = pathctx.get_tuple_indirection_path_id(
-                path_id, n, st, ctx=ctx)
+                path_id, n, st, ctx=ctx
+            )
 
             if isinstance(st, s_types.Tuple):
-                nested_path_ids.append([
-                    pathctx.get_tuple_indirection_path_id(
-                        elem_path_id, nn, sst, ctx=ctx)
-                    for nn, sst in st.iter_subtypes(ctx.env.schema)
-                ])
+                nested_path_ids.append(
+                    [
+                        pathctx.get_tuple_indirection_path_id(
+                            elem_path_id, nn, sst, ctx=ctx
+                        )
+                        for nn, sst in st.iter_subtypes(ctx.env.schema)
+                    ]
+                )
 
             tuple_path_ids.append(elem_path_id)
         for nested in nested_path_ids:
@@ -356,24 +355,24 @@ def compile_FunctionCall(
 
     global_args = None
     if not inline_func:
-        global_args = get_globals(
-            expr, matched_call, candidates=funcs, ctx=ctx
-        )
+        global_args = get_globals(expr, matched_call, candidates=funcs, ctx=ctx)
 
     volatility = (
         # Incorporate the volatility of any server param conversions
-        max([
-            func.get_volatility(env.schema),
-            *(
-                conversion.volatility
-                for conversions in (
-                    matched_call.server_param_conversions.values()
-                )
-                for conversion in conversions.values()
-            )
-        ])
-        if matched_call.server_param_conversions else
-        func.get_volatility(env.schema)
+        max(
+            [
+                func.get_volatility(env.schema),
+                *(
+                    conversion.volatility
+                    for conversions in (
+                        matched_call.server_param_conversions.values()
+                    )
+                    for conversion in conversions.values()
+                ),
+            ]
+        )
+        if matched_call.server_param_conversions
+        else func.get_volatility(env.schema)
     )
 
     fcall = irast.FunctionCall(
@@ -389,9 +388,11 @@ def compile_FunctionCall(
         error_on_null_result=func.get_error_on_null_result(env.schema),
         preserves_optionality=func.get_preserves_optionality(env.schema),
         preserves_upper_cardinality=func.get_preserves_upper_cardinality(
-            env.schema),
+            env.schema
+        ),
         typeref=typegen.type_to_typeref(
-            rtype, env=env,
+            rtype,
+            env=env,
         ),
         typemod=matched_call.func.get_return_typemod(env.schema),
         has_empty_variadic=(matched_call.variadic_arg_count == 0),
@@ -450,7 +451,7 @@ def compile_FunctionCall(
                         for arg_key in range(
                             matched_call.variadic_arg_id,
                             matched_call.variadic_arg_id
-                            + matched_call.variadic_arg_count
+                            + matched_call.variadic_arg_count,
                         )
                     ],
                     typeref=variadic_param_type,
@@ -504,9 +505,7 @@ def compile_FunctionCall(
         for arg in res.args.values():
             pathctx.register_set_in_scope(
                 arg.expr,
-                optional=(
-                    arg.param_typemod == ft.TypeModifier.OptionalType
-                ),
+                optional=(arg.param_typemod == ft.TypeModifier.OptionalType),
                 ctx=ctx,
             )
 
@@ -515,7 +514,6 @@ def compile_FunctionCall(
 
 
 class ArgumentInliner(ast.NodeTransformer):
-
     # Don't look through hidden nodes, they may contain references to nodes
     # which should not be modified. For example, irast.Stmt.parent_stmt.
     skip_hidden = True
@@ -585,9 +583,7 @@ class ArgumentInliner(ast.NodeTransformer):
 
     # Don't transform pointer refs.
     # They are updated in other places, such as cardinality inference.
-    def visit_PointerRef(
-        self, node: irast.PointerRef
-    ) -> irast.Base:
+    def visit_PointerRef(self, node: irast.PointerRef) -> irast.Base:
         return node
 
     def visit_TupleIndirectionPointerRef(
@@ -631,7 +627,6 @@ def compile_operator(
     *,
     ctx: context.ContextLevel,
 ) -> irast.Set:
-
     env = ctx.env
     schema = env.schema
     opers = s_oper.lookup_operators(
@@ -641,10 +636,12 @@ def compile_operator(
     if opers is None:
         raise errors.QueryError(
             f'no operator matches the given name and argument types',
-            span=qlexpr.span)
+            span=qlexpr.span,
+        )
 
     typemods = polyres.find_callable_typemods(
-        opers, num_args=len(qlargs), kwargs_names=set(), ctx=ctx)
+        opers, num_args=len(qlargs), kwargs_names=set(), ctx=ctx
+    )
 
     prefer_subquery_args = any(
         oper.get_prefer_subquery_args(env.schema) for oper in opers
@@ -663,9 +660,9 @@ def compile_operator(
         arg_type = setgen.get_set_type(arg_ir, ctx=ctx)
         if arg_type is None:
             raise errors.QueryError(
-                f'could not resolve the type of operand '
-                f'#{ai} of {op_name}',
-                span=qlarg.span)
+                f'could not resolve the type of operand #{ai} of {op_name}',
+                span=qlarg.span,
+            )
 
         args.append((arg_type, arg_ir))
 
@@ -680,14 +677,16 @@ def compile_operator(
         if len(opers) > 1:
             raise errors.InternalServerError(
                 f'more than one derived operator of the same name: {op_name}',
-                span=qlarg.span)
+                span=qlarg.span,
+            )
 
         derivative_op = opers[0]
         opers = s_oper.lookup_operators(origin_op, schema=schema)
         if not opers:
             raise errors.InternalServerError(
                 f'cannot find the origin operator for {op_name}',
-                span=qlarg.span)
+                span=qlarg.span,
+            )
         actual_typemods = [
             param.get_typemod(schema)
             for param in derivative_op.get_params(schema).objects(schema)
@@ -708,7 +707,8 @@ def compile_operator(
             # Out of the candidate operators, find the ones that
             # correspond to tuples.
             coll_opers = [
-                op for op in opers
+                op
+                for op in opers
                 if all(
                     param.get_type(schema).is_tuple(schema)
                     for param in op.get_params(schema).objects(schema)
@@ -719,7 +719,8 @@ def compile_operator(
             # Out of the candidate operators, find the ones that
             # correspond to arrays.
             coll_opers = [
-                op for op in opers
+                op
+                for op in opers
                 if all(
                     param.get_type(schema).is_array()
                     for param in op.get_params(schema).objects(schema)
@@ -736,7 +737,8 @@ def compile_operator(
                 # The operator is non-recursive, so regular processing
                 # is needed.
                 matched = polyres.find_callable(
-                    coll_opers, args=args, kwargs={}, ctx=ctx)
+                    coll_opers, args=args, kwargs={}, ctx=ctx
+                )
 
             else:
                 # The recursive operators are usually defined as
@@ -759,7 +761,8 @@ def compile_operator(
                 # Now that we have an operator, we need to validate that it
                 # can be applied to the tuple or array elements.
                 submatched = validate_recursive_operator(
-                    opers, args[0], args[1], ctx=ctx)
+                    opers, args[0], args[1], ctx=ctx
+                )
 
                 if len(submatched) != 1:
                     # This is an error. We want the error message to
@@ -773,18 +776,19 @@ def compile_operator(
         matched = polyres.find_callable(opers, args=args, kwargs={}, ctx=ctx)
 
     in_polymorphic_func = (
-        ctx.env.options.func_params is not None and
-        ctx.env.options.func_params.has_polymorphic(env.schema)
+        ctx.env.options.func_params is not None
+        and ctx.env.options.func_params.has_polymorphic(env.schema)
     )
 
     in_abstract_constraint = (
-        in_polymorphic_func and
-        ctx.env.options.schema_object_context is s_constr.Constraint
+        in_polymorphic_func
+        and ctx.env.options.schema_object_context is s_constr.Constraint
     )
 
     if not in_polymorphic_func:
-        matched = [call for call in matched
-                   if not call.func.get_abstract(env.schema)]
+        matched = [
+            call for call in matched if not call.func.get_abstract(env.schema)
+        ]
 
     if len(matched) == 1:
         matched_call = matched[0]
@@ -798,21 +802,25 @@ def compile_operator(
             types = ', '.join(a for a in args_dn)
 
         if not matched:
-            hint = ('Consider using an explicit type cast or a conversion '
-                    'function.')
+            hint = (
+                'Consider using an explicit type cast or a conversion function.'
+            )
 
             if op_name == 'std::IF':
-                hint = (f"The IF and ELSE result clauses must be of "
-                        f"compatible types, while the condition clause must "
-                        f"be 'std::bool'. {hint}")
+                hint = (
+                    f"The IF and ELSE result clauses must be of "
+                    f"compatible types, while the condition clause must "
+                    f"be 'std::bool'. {hint}"
+                )
             elif op_name == '+':
                 str_t = env.schema.get('std::str', type=s_scalars.ScalarType)
-                bytes_t = env.schema.get('std::bytes',
-                                         type=s_scalars.ScalarType)
+                bytes_t = env.schema.get(
+                    'std::bytes', type=s_scalars.ScalarType
+                )
                 if (
-                    all(t.issubclass(env.schema, str_t) for t in args_ty) or
-                    all(t.issubclass(env.schema, bytes_t) for t in args_ty) or
-                    all(t.is_array() for t in args_ty)
+                    all(t.issubclass(env.schema, str_t) for t in args_ty)
+                    or all(t.issubclass(env.schema, bytes_t) for t in args_ty)
+                    or all(t.is_array() for t in args_ty)
                 ):
                     hint = 'Consider using the "++" operator for concatenation'
 
@@ -826,10 +834,7 @@ def compile_operator(
                     f'operator {str(op_name)!r} cannot be applied to '
                     f'operands of type {types}'
                 )
-            raise errors.InvalidTypeError(
-                msg,
-                hint=hint,
-                span=qlexpr.span)
+            raise errors.InvalidTypeError(msg, hint=hint, span=qlexpr.span)
         elif len(matched) > 1:
             if in_abstract_constraint:
                 matched_call = matched[0]
@@ -842,7 +847,8 @@ def compile_operator(
                     f'operator {str(op_name)!r} is ambiguous for '
                     f'operands of type {types}',
                     hint=f'Possible variants: {detail}.',
-                    span=qlexpr.span)
+                    span=qlexpr.span,
+                )
 
     oper = matched_call.func
     assert isinstance(oper, s_oper.Operator)
@@ -856,11 +862,10 @@ def compile_operator(
     rtype = matched_call.return_type
     matched_rtype = oper.get_return_type(env.schema)
 
-    is_polymorphic = (
-        any(p.get_type(env.schema).is_polymorphic(env.schema)
-            for p in matched_params.objects(env.schema)) and
-        matched_rtype.is_polymorphic(env.schema)
-    )
+    is_polymorphic = any(
+        p.get_type(env.schema).is_polymorphic(env.schema)
+        for p in matched_params.objects(env.schema)
+    ) and matched_rtype.is_polymorphic(env.schema)
 
     final_args, _ = finalize_args(
         matched_call,
@@ -870,9 +875,10 @@ def compile_operator(
         ctx=ctx,
     )
 
-    if str_oper_name in {
-        'std::UNION', 'std::IF', 'std::??'
-    } and rtype.is_object_type():
+    if (
+        str_oper_name in {'std::UNION', 'std::IF', 'std::??'}
+        and rtype.is_object_type()
+    ):
         # Special case for the UNION, IF and ?? operators: instead of common
         # parent type, we return a union type.
         if str_oper_name == 'std::IF':
@@ -886,7 +892,7 @@ def compile_operator(
             [left_type, right_type],
             preserve_derived=True,
             ctx=ctx,
-            span=qlexpr.span
+            span=qlexpr.span,
         )
 
     from_op = oper.get_from_operator(env.schema)
@@ -903,7 +909,8 @@ def compile_operator(
     if derivative_op is not None:
         origin_name = oper_name
         origin_module_id = env.schema.get_global(
-            s_mod.Module, origin_name.module).id
+            s_mod.Module, origin_name.module
+        ).id
         oper_name = derivative_op.get_shortname(env.schema)
         is_singleton_set_of = derivative_op.get_is_singleton_set_of(env.schema)
     else:
@@ -941,15 +948,22 @@ def compile_operator(
     _check_free_shape_op(node, ctx=ctx)
 
     return stmt.maybe_add_view(
-        setgen.ensure_set(node, typehint=rtype, ctx=ctx),
-        ctx=ctx)
+        setgen.ensure_set(node, typehint=rtype, ctx=ctx), ctx=ctx
+    )
 
 
 # These ops are all footguns when used with free shapes,
 # so we ban them
 INVALID_FREE_SHAPE_OPS: Final = {
-    sn.QualName('std', x) for x in [
-        'DISTINCT', '=', '!=', '?=', '?!=', 'IN', 'NOT IN',
+    sn.QualName('std', x)
+    for x in [
+        'DISTINCT',
+        '=',
+        '!=',
+        '?=',
+        '?!=',
+        'IN',
+        'NOT IN',
         'assert_distinct',
     ]
 }
@@ -959,14 +973,14 @@ def _check_free_shape_op(ir: irast.Call, *, ctx: context.ContextLevel) -> None:
     if ir.func_shortname not in INVALID_FREE_SHAPE_OPS:
         return
 
-    virt_obj = ctx.env.schema.get(
-        'std::FreeObject', type=s_objtypes.ObjectType)
+    virt_obj = ctx.env.schema.get('std::FreeObject', type=s_objtypes.ObjectType)
     for arg in ir.args.values():
         typ = setgen.get_set_type(arg.expr, ctx=ctx)
         if typ.issubclass(ctx.env.schema, virt_obj):
             raise errors.QueryError(
                 f'cannot use {ir.func_shortname.name} on free shape',
-                span=ir.span)
+                span=ir.span,
+            )
 
 
 def validate_recursive_operator(
@@ -976,25 +990,21 @@ def validate_recursive_operator(
     *,
     ctx: context.ContextLevel,
 ) -> list[polyres.BoundCall]:
-
     matched: list[polyres.BoundCall] = []
 
     # if larg and rarg are tuples or arrays, recurse into their subtypes
     if (
-        (
-            larg[0].is_tuple(ctx.env.schema)
-            and rarg[0].is_tuple(ctx.env.schema)
-        ) or (
-            larg[0].is_array()
-            and rarg[0].is_array()
-        )
-    ):
+        larg[0].is_tuple(ctx.env.schema) and rarg[0].is_tuple(ctx.env.schema)
+    ) or (larg[0].is_array() and rarg[0].is_array()):
         assert isinstance(larg[0], s_types.Collection)
         assert isinstance(rarg[0], s_types.Collection)
-        for rsub, lsub in zip(larg[0].get_subtypes(ctx.env.schema),
-                              rarg[0].get_subtypes(ctx.env.schema)):
+        for rsub, lsub in zip(
+            larg[0].get_subtypes(ctx.env.schema),
+            rarg[0].get_subtypes(ctx.env.schema),
+        ):
             matched = validate_recursive_operator(
-                opers, (lsub, larg[1]), (rsub, rarg[1]), ctx=ctx)
+                opers, (lsub, larg[1]), (rsub, rarg[1]), ctx=ctx
+            )
             if len(matched) != 1:
                 # this is an error already
                 break
@@ -1002,7 +1012,8 @@ def validate_recursive_operator(
     else:
         # we just have a pair of non-containers to compare
         matched = polyres.find_callable(
-            opers, args=[larg, rarg], kwargs={}, ctx=ctx)
+            opers, args=[larg, rarg], kwargs={}, ctx=ctx
+        )
 
     return matched
 
@@ -1012,8 +1023,8 @@ def compile_func_call_args(
     funcname: sn.Name,
     typemods: dict[int | str, ft.TypeModifier],
     *,
-    prefer_subquery_args: bool=False,
-    ctx: context.ContextLevel
+    prefer_subquery_args: bool = False,
+    ctx: context.ContextLevel,
 ) -> tuple[
     list[tuple[s_types.Type, irast.Set]],
     dict[str, tuple[s_types.Type, irast.Set]],
@@ -1023,28 +1034,36 @@ def compile_func_call_args(
 
     for ai, arg in enumerate(expr.args):
         arg_ir = polyres.compile_arg(
-            arg, typemods[ai], prefer_subquery_args=prefer_subquery_args,
-            ctx=ctx)
+            arg,
+            typemods[ai],
+            prefer_subquery_args=prefer_subquery_args,
+            ctx=ctx,
+        )
         arg_type = setgen.get_set_type(arg_ir, ctx=ctx)
         if arg_type is None:
             raise errors.QueryError(
                 f'could not resolve the type of positional argument '
                 f'#{ai} of function {funcname}',
-                span=arg.span)
+                span=arg.span,
+            )
 
         args.append((arg_type, arg_ir))
 
     for aname, arg in expr.kwargs.items():
         arg_ir = polyres.compile_arg(
-            arg, typemods[aname], prefer_subquery_args=prefer_subquery_args,
-            ctx=ctx)
+            arg,
+            typemods[aname],
+            prefer_subquery_args=prefer_subquery_args,
+            ctx=ctx,
+        )
 
         arg_type = setgen.get_set_type(arg_ir, ctx=ctx)
         if arg_type is None:
             raise errors.QueryError(
                 f'could not resolve the type of named argument '
                 f'${aname} of function {funcname}',
-                span=arg.span)
+                span=arg.span,
+            )
 
         kwargs[aname] = (arg_type, arg_ir)
 
@@ -1055,7 +1074,8 @@ def get_globals(
     expr: qlast.FunctionCall,
     bound_call: polyres.BoundCall,
     candidates: Sequence[s_func.Function],
-    *, ctx: context.ContextLevel,
+    *,
+    ctx: context.ContextLevel,
 ) -> list[irast.Set]:
     assert isinstance(bound_call.func, s_func.Function)
 
@@ -1080,14 +1100,11 @@ def get_globals(
         )
 
     if (
-        (
-            ctx.env.options.func_name is None
-            or ctx.env.options.func_params is None
-        )
-        and not ctx.env.options.json_parameters
-    ):
+        ctx.env.options.func_name is None or ctx.env.options.func_params is None
+    ) and not ctx.env.options.json_parameters:
         glob_set = setgen.get_globals_as_json(
-            tuple(globs), ctx=ctx, span=expr.span)
+            tuple(globs), ctx=ctx, span=expr.span
+        )
     else:
         # Make sure that we properly track the globals we use in functions
         for glob in globs:
@@ -1106,7 +1123,6 @@ def finalize_args(
     is_polymorphic: bool = False,
     ctx: context.ContextLevel,
 ) -> tuple[dict[int | str, irast.CallArg], dict[str, int | str]]:
-
     args: dict[int | str, irast.CallArg] = {}
     param_name_to_arg: dict[str, int | str] = {}
     position_index: int = 0
@@ -1143,12 +1159,9 @@ def finalize_args(
                 and param_mod is not guessed_typemods[barg.arg_id]
             ):
                 for child in ctx.path_scope.children:
-                    if (
-                        child.path_id == arg_val.path_id
-                        or (
-                            arg_val.path_scope_id is not None
-                            and child.unique_id == arg_val.path_scope_id
-                        )
+                    if child.path_id == arg_val.path_id or (
+                        arg_val.path_scope_id is not None
+                        and child.unique_id == arg_val.path_scope_id
                     ):
                         child.optional = False
 
@@ -1158,10 +1171,9 @@ def finalize_args(
             # is "anytype", though, then it can't be overloaded on
             # that argument.
             arg_type = setgen.get_set_type(arg_val, ctx=ctx)
-            if (
-                isinstance(arg_type, s_objtypes.ObjectType)
-                and not barg.orig_param_type.is_any(ctx.env.schema)
-            ):
+            if isinstance(
+                arg_type, s_objtypes.ObjectType
+            ) and not barg.orig_param_type.is_any(ctx.env.schema):
                 arg_type_path_id = pathctx.extend_path_id(
                     arg_val.path_id,
                     ptrcls=setgen.resolve_ptr(
@@ -1170,12 +1182,9 @@ def finalize_args(
                     ctx=ctx,
                 )
         else:
-            is_array_agg = (
-                isinstance(bound_call.func, s_func.Function)
-                and (
-                    bound_call.func.get_shortname(ctx.env.schema)
-                    == sn.QualName('std', 'array_agg')
-                )
+            is_array_agg = isinstance(bound_call.func, s_func.Function) and (
+                bound_call.func.get_shortname(ctx.env.schema)
+                == sn.QualName('std', 'array_agg')
             )
 
             if (
@@ -1205,7 +1214,9 @@ def finalize_args(
         # Check if we need to cast the argument value before passing
         # it to the callable.
         compatible = s_types.is_type_compatible(
-            paramtype, barg.valtype, schema=ctx.env.schema,
+            paramtype,
+            barg.valtype,
+            schema=ctx.env.schema,
         )
 
         if not compatible:
@@ -1214,8 +1225,7 @@ def finalize_args(
             # wiggle room to apply its own (potentially different)
             # casting.
             orig_arg_val = arg_val
-            arg_val = casts.compile_cast(
-                arg_val, paramtype, span=None, ctx=ctx)
+            arg_val = casts.compile_cast(arg_val, paramtype, span=None, ctx=ctx)
             if ctx.path_scope.is_optional(orig_arg_val.path_id):
                 pathctx.register_set_in_scope(arg_val, optional=True, ctx=ctx)
 
@@ -1241,100 +1251,6 @@ def finalize_args(
             position_index += 1
 
     return args, param_name_to_arg
-
-
-@_special_case('ext::ai::search')
-def compile_ext_ai_search(
-    call: irast.FunctionCall, *, ctx: context.ContextLevel
-) -> irast.Expr:
-    indexes = _validate_object_search_call(
-        call,
-        context="ext::ai::search()",
-        object_arg=call.args[0],
-        index_name=sn.QualName("ext::ai", "index"),
-        ctx=ctx,
-    )
-
-    schema = ctx.env.schema
-
-    index_metadata = {}
-    for typeref, index in indexes.items():
-        dimensions = index.must_get_json_annotation(
-            schema,
-            sn.QualName("ext::ai", "embedding_dimensions"),
-            int,
-        )
-        kwargs = index.get_concrete_kwargs(schema)
-        df_expr = kwargs.get("distance_function")
-        if df_expr is not None:
-            df = df_expr.ensure_compiled(
-                schema,
-                as_fragment=True,
-                context=None,
-            ).as_python_value()
-        else:
-            df = "Cosine"
-
-        match df:
-            case "Cosine":
-                distance_fname = "cosine_distance"
-            case "InnerProduct":
-                distance_fname = "neg_inner_product"
-            case "L2":
-                distance_fname = "euclidean_distance"
-            case _:
-                raise RuntimeError(f"unsupported distance_function: {df}")
-
-        distance_func = schema.get_by_shortname(
-            s_func.Function, sn.QualName("ext::pgvector", distance_fname)
-        )[0]
-
-        index_metadata[typeref] = {
-            "id": s_indexes.get_ai_index_id(schema, index),
-            "dimensions": dimensions,
-            "distance_function": (
-                distance_func.get_shortname(schema),
-                distance_func.get_backend_name(schema),
-            ),
-        }
-    call.extras = {"index_metadata": index_metadata}
-
-    return call
-
-
-@_special_case('ext::ai::to_context')
-def compile_ext_ai_to_str(
-    call: irast.FunctionCall, *, ctx: context.ContextLevel
-) -> irast.Expr:
-    indexes = _validate_object_search_call(
-        call,
-        context="ext::ai::to_context()",
-        object_arg=call.args[0],
-        index_name=sn.QualName("ext::ai", "index"),
-        ctx=ctx,
-    )
-
-    index = next(iter(indexes.values()))
-    index_expr = index.get_expr(ctx.env.schema)
-    assert index_expr is not None
-
-    with ctx.detached() as subctx:
-        subctx.partial_path_prefix = call.args[0].expr
-        subctx.anchors["__subject__"] = call.args[0].expr
-        call.body = dispatch.compile(
-            qlast.FunctionCall(
-                func=('__std__', 'assert_exists'),
-                args=[index_expr.parse()],
-                kwargs={
-                    'message': qlast.Constant.string(
-                        'Object context is not set.'
-                    ),
-                }
-            ),
-            ctx=subctx,
-        )
-
-    return call
 
 
 @_special_case('std::fts::search')
@@ -1375,11 +1291,13 @@ def _validate_object_search_call(
         for variant in union_variants.objects(schema):
             schema, variant = variant.material_type(schema)
             idx = _validate_has_object_index(
-                variant, schema, span, context, index_name)
+                variant, schema, span, context, index_name
+            )
             indexes[typegen.type_to_typeref(variant, ctx.env)] = idx
     else:
         idx = _validate_has_object_index(
-            stype, schema, span, context, index_name)
+            stype, schema, span, context, index_name
+        )
         indexes[object_typeref] = idx
 
     return indexes
@@ -1442,7 +1360,8 @@ def compile_fts_with_options(
     weight_expr = call.args['weight_category'].expr
     try:
         weight: str = staeval.evaluate_to_python_val(
-            weight_expr, ctx.env.schema)
+            weight_expr, ctx.env.schema
+        )
     except staeval.UnsupportedExpressionError:
         raise errors.InvalidValueError(
             f"std::fts::search weight_category must be a constant",
@@ -1457,7 +1376,7 @@ def compile_fts_with_options(
         typeref=typegen.type_to_typeref(
             ctx.env.schema.get('std::fts::document', type=s_scalars.ScalarType),
             env=ctx.env,
-        )
+        ),
     )
 
 

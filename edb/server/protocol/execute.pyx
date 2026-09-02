@@ -52,7 +52,6 @@ from edb.server.compiler import sertypes
 from edb.server.dbview cimport dbview
 from edb.server.protocol cimport args_ser
 from edb.server.protocol cimport frontend
-from edb.server.protocol import ai_ext
 from edb.server.pgcon cimport pgcon
 from edb.server.pgcon import errors as pgerror
 
@@ -526,33 +525,6 @@ async def _convert_parameters(
 
     unit_group = compiled.query_unit_group
 
-    # First check for conversions which should be done in batches
-    ai_text_embedding_conversion_indexes: list[int] = []
-    ai_text_embedding_conversions: list[args_ser.ParamConversion] = []
-    for unit_index, converted_params_indexes in (
-        unit_group.unit_converted_param_indexes.items()
-    ):
-        for conversion_index in converted_params_indexes:
-            conversion = param_conversions[conversion_index]
-
-            conversion_name: str = conversion.get_conversion_name()
-
-            if conversion_name == 'ai_text_embedding':
-                ai_text_embedding_conversion_indexes.append(conversion_index)
-                ai_text_embedding_conversions.append(conversion)
-
-    # Compute batched conversions and store them in cache
-    if ai_text_embedding_conversions:
-        converted_args = (
-            await _batch_convert_ai_text_embedding(
-                dbv, ai_text_embedding_conversions
-            )
-        )
-        for conversion_index, converted_arg in zip(
-            ai_text_embedding_conversion_indexes,
-            converted_args,
-        ):
-            converted_args_cache[conversion_index] = converted_arg
 
     # Do the remaining conversions
     converted_args: dict[int, list[args_ser.ConvertedArg]] = {}
@@ -613,50 +585,10 @@ async def _convert_parameter(
             separator.join(decoded_param_data)
         )
 
-    elif conversion_name == 'ai_text_embedding':
-        raise RuntimeError(f'conversion should be batched: {conversion_name}')
-
     else:
         raise errors.QueryError(
             f'unknown param conversion: {conversion_name}'
         )
-
-
-async def _batch_convert_ai_text_embedding(
-    dbv: dbview.DatabaseConnectionView,
-    conversions: list[args_ser.ParamConversion],
-) -> list[args_ser.ConvertedArg]:
-    embeddings_inputs: list[tuple[str, str]] = [
-        (
-            conversion_data.get_additional_info()[0],
-            conversion_data.param_as_str(),
-        )
-        for conversion_data in conversions
-    ]
-
-    tenant = dbv.tenant
-    db = tenant.maybe_get_db(dbname=dbv.dbname)
-    assert db is not None
-
-    embeddings_result = await ai_ext.generate_embeddings_for_texts(
-        db,
-        tenant.get_http_client(originator="ai/index"),
-        embeddings_inputs,
-    )
-    if embeddings_result.too_long:
-        long_input = embeddings_inputs[embeddings_result.too_long[0]][1][:100]
-        raise errors.QueryError(
-            f'Search text exceeds maximum input token length: {long_input}...'
-        )
-    if not embeddings_result.success:
-        raise RuntimeError('failed to get embeddings')
-
-    return [
-        args_ser.ConvertedArgListFloat32.new(
-            embeddings
-        )
-        for embeddings in embeddings_result.success
-    ]
 
 
 async def execute_script(
@@ -1020,7 +952,7 @@ async def parse_execute_json(
     # WARNING: only set cached_globally to True when the query is
     # strictly referring to only shared stable objects in user schema
     # or anything from std schema, for example:
-    #     YES:  select ext::auth::UIConfig { ... }
+    #     YES:  select cfg::Config { ... }
     #     NO:   select default::User { ... }
     cached_globally: bool = False,
     use_metrics: bool = True,
@@ -1244,7 +1176,6 @@ async def interpret_error(
     *,
     global_schema_pickle: object=None,
     user_schema_pickle: object=None,
-    from_graphql: bool=False,
 ) -> Exception:
 
     if isinstance(exc, RecursionError):
@@ -1263,9 +1194,7 @@ async def interpret_error(
             source_map = getattr(exc, '_source_map', None)
             fields = exc.fields
 
-            static_exc = errormech.static_interpret_backend_error(
-                fields, from_graphql=from_graphql
-            )
+            static_exc = errormech.static_interpret_backend_error(fields)
 
             # only use the backend if schema is required
             if static_exc is errormech.SchemaRequired:
@@ -1283,7 +1212,6 @@ async def interpret_error(
                     user_schema_pickle,
                     global_schema_pickle,
                     fields,
-                    from_graphql,
                 )
 
             elif isinstance(static_exc, (

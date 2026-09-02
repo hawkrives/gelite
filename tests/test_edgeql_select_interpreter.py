@@ -817,8 +817,7 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
             [
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {
-                    'body':
-                    'We need to be able to render data in tabular format.'
+                    'body': 'We need to be able to render data in tabular format.'
                 },
             ],
         )
@@ -837,8 +836,7 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {'body': 'Initial public release of EdgeDB.'},
                 {
-                    'body':
-                    'We need to be able to render data in tabular format.'
+                    'body': 'We need to be able to render data in tabular format.'
                 },
             ],
         )
@@ -856,8 +854,7 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {'body': 'Initial public release of EdgeDB.'},
                 {
-                    'body':
-                    'We need to be able to render data in tabular format.'
+                    'body': 'We need to be able to render data in tabular format.'
                 },
             ],
         )
@@ -874,8 +871,7 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
                 {'body': 'EdgeDB needs to happen soon.'},
                 {'body': 'Fix regression introduced by lexer tweak.'},
                 {
-                    'body':
-                    'We need to be able to render data in tabular format.'
+                    'body': 'We need to be able to render data in tabular format.'
                 },
             ],
         )
@@ -1075,7 +1071,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
 
     def test_edgeql_select_interpreter_limit_10(self):
         with self.assertRaisesRegex(ValueError, r'LIMIT must not be negative'):
-
             self.execute(
                 """
                 SELECT 1 LIMIT -1
@@ -1083,10 +1078,7 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
             )
 
     def test_edgeql_select_interpreter_offset_01(self):
-        with self.assertRaisesRegex(
-            ValueError, r'OFFSET must not be negative'
-        ):
-
+        with self.assertRaisesRegex(ValueError, r'OFFSET must not be negative'):
             self.execute(
                 """
                 SELECT 1 OFFSET -1
@@ -4253,7 +4245,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_slice_04(self):
-
         self.assert_query_result(
             r"""
             select [1,2,3,4,5][1:];
@@ -4434,7 +4425,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_bigint_index_01(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -4481,7 +4471,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_bigint_index_02(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -4528,7 +4517,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_bigint_index_03(self):
-
         big_pos = str(2**40)
         big_neg = str(-(2**40))
 
@@ -5366,7 +5354,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_is_03(self):
-
         self.assert_query_result(
             r'''SELECT Issue.time_estimate IS int64 LIMIT 1;''',
             [True],
@@ -5413,7 +5400,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_is_04(self):
-
         self.assert_query_result(
             r'''SELECT Issue.number IS int64 LIMIT 1;''',
             [False],
@@ -5460,7 +5446,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_is_05(self):
-
         self.assert_query_result(
             r'''SELECT Issue.status IS int64 LIMIT 1;''',
             [False],
@@ -5783,7 +5768,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_reverse_overload_01(self):
-
         self.assert_query_result(
             r'''
                 SELECT User {
@@ -5795,7 +5779,6 @@ class TestEdgeQLSelectInterpreter(tb.ExperimentalInterpreterTestCase):
         )
 
     def test_edgeql_select_interpreter_reverse_overload_02(self):
-
         self.assert_query_result(
             r'''
                 SELECT User {

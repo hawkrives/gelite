@@ -21,6 +21,7 @@ This stub file is needed so that __and__, __or__, __sub__, __xor__, and
 so on properly return the instance of the *current class*, not the abstract
 versions.
 """
+
 from __future__ import annotations
 
 from typing import (

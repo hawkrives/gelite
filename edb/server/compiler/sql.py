@@ -95,7 +95,8 @@ def compile_sql(
             allow_user_specified_id=allow_user_specified_id,
             apply_access_policies=apply_access_policies,
             include_edgeql_io_format_alternative=(
-                include_edgeql_io_format_alternative),
+                include_edgeql_io_format_alternative
+            ),
             allow_prepared_statements=allow_prepared_statements,
             disambiguate_column_names=disambiguate_column_names,
             backend_runtime_params=backend_runtime_params,
@@ -138,7 +139,8 @@ def compile_sql(
                 raise original_err
             else:
                 raise AssertionError(
-                    "Normalized query is broken while original is valid")
+                    "Normalized query is broken while original is valid"
+                )
         else:
             raise original_err
 
@@ -172,15 +174,11 @@ def _build_constant_extraction_map(
 
         if isinstance(v1, pgast.Base) and isinstance(v2, pgast.Base):
             children.append(_build_constant_extraction_map(v1, v2))
-        elif (
-            isinstance(v1, (tuple, list)) and isinstance(v2, (tuple, list))
-        ):
+        elif isinstance(v1, (tuple, list)) and isinstance(v2, (tuple, list)):
             for v1e, v2e in zip(v1, v2):
                 if isinstance(v1e, pgast.Base) and isinstance(v2e, pgast.Base):
                     children.append(_build_constant_extraction_map(v1e, v2e))
-        elif (
-            isinstance(v1, dict) and isinstance(v2, dict)
-        ):
+        elif isinstance(v1, dict) and isinstance(v2, dict):
             for k, v1e in v1.items():
                 v2e = v2.get(k)
                 if isinstance(v1e, pgast.Base) and isinstance(v2e, pgast.Base):
@@ -247,6 +245,7 @@ def _compile_sql(
         if isinstance(stmt, (pgast.VariableSetStmt, pgast.VariableResetStmt)):
             if protocol_version != defines.POSTGRES_PROTOCOL:
                 from edb.pgsql import resolver as pg_resolver
+
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
             value: Optional[dbstate.SQLSetting]
@@ -290,6 +289,7 @@ def _compile_sql(
         elif isinstance(stmt, pgast.VariableShowStmt):
             if protocol_version != defines.POSTGRES_PROTOCOL:
                 from edb.pgsql import resolver as pg_resolver
+
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
             stmt = _compile_show_command(stmt)
@@ -299,6 +299,7 @@ def _compile_sql(
         elif isinstance(stmt, pgast.SetTransactionStmt):
             if protocol_version != defines.POSTGRES_PROTOCOL:
                 from edb.pgsql import resolver as pg_resolver
+
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
             if stmt.scope == pgast.OptionsScope.SESSION:
@@ -361,6 +362,7 @@ def _compile_sql(
 
             if not isinstance(stmt.query, (pgast.Query, pgast.CopyStmt)):
                 from edb.pgsql import resolver as pg_resolver
+
                 pg_resolver.dispatch._raise_unsupported(stmt.query)
 
             # Translate the underlying query.
@@ -408,7 +410,7 @@ def _compile_sql(
             mangled_name = prepared_stmt_map.get(orig_name)
             if not mangled_name:
                 raise errors.QueryError(
-                    f"prepared statement \"{orig_name}\" does " f"not exist",
+                    f"prepared statement \"{orig_name}\" does not exist",
                     pgext_code='26000',  # invalid_sql_statement_name
                 )
             stmt.name = mangled_name
@@ -430,7 +432,7 @@ def _compile_sql(
             mangled_name = prepared_stmt_map.get(orig_name)
             if not mangled_name:
                 raise errors.QueryError(
-                    f"prepared statement \"{orig_name}\" does " f"not exist",
+                    f"prepared statement \"{orig_name}\" does not exist",
                     pgext_code='26000',  # invalid_sql_statement_name
                 )
             stmt.name = mangled_name
@@ -448,11 +450,11 @@ def _compile_sql(
             # just ignore
             unit.query = "DO $$ BEGIN END $$;"
         elif isinstance(stmt, (pgast.Query, pgast.CopyStmt)):
-            if (
-                protocol_version != defines.POSTGRES_PROTOCOL
-                and isinstance(stmt, pgast.CopyStmt)
+            if protocol_version != defines.POSTGRES_PROTOCOL and isinstance(
+                stmt, pgast.CopyStmt
             ):
                 from edb.pgsql import resolver as pg_resolver
+
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
             stmt_resolved, stmt_source, edgeql_fmt_src = resolve_query(
@@ -461,11 +463,11 @@ def _compile_sql(
             unit.query = stmt_source.text
             unit.source_map = stmt_source.source_map
             if stmt_source.source_map:
-                unit.source_map = (
-                    pg_codegen.ChainedSourceMap([
+                unit.source_map = pg_codegen.ChainedSourceMap(
+                    [
                         stmt_source.source_map,
                         extract_data,
-                    ])
+                    ]
                 )
 
             if edgeql_fmt_src is not None:
@@ -484,6 +486,7 @@ def _compile_sql(
             track_stats = True
         else:
             from edb.pgsql import resolver as pg_resolver
+
             pg_resolver.dispatch._raise_unsupported(stmt)
 
         unit.stmt_name = compute_stmt_name(unit.query, tx_state).encode("utf-8")
@@ -491,7 +494,8 @@ def _compile_sql(
         sql_info: dict[str, Any] = {}
         if track_stats and backend_runtime_params.has_stat_statements:
             cconfig: dict[str, dbstate.SQLSetting] = {
-                k: v for k, v in fe_settings.items()
+                k: v
+                for k, v in fe_settings.items()
                 if k is not None and v is not None and k in FE_SETTINGS_MUTABLE
             }
             cconfig.pop('server_version', None)
@@ -513,24 +517,24 @@ def _compile_sql(
                 'pv': protocol_version,  # protocol_version
                 'dn': ', '.join(search_path),  # default_namespace
             }
-            sql_info['query'] = orig_text,
-            sql_info['type'] = defines.QueryType.SQL,
-            sql_info['extras'] = json.dumps(extras),
+            sql_info['query'] = (orig_text,)
+            sql_info['type'] = (defines.QueryType.SQL,)
+            sql_info['extras'] = (json.dumps(extras),)
             id_hash = hashlib.blake2b(digest_size=16)
-            id_hash.update(
-                json.dumps(sql_info).encode(defines.GELITE_ENCODING)
-            )
+            id_hash.update(json.dumps(sql_info).encode(defines.GELITE_ENCODING))
             sql_info['id'] = str(uuidgen.from_bytes(id_hash.digest()))
 
         if debug.flags.sql_text_in_sql:
             sql_info['sql'] = orig_query_str or query_str
 
         if sql_info:
-            prefix = ''.join([
-                '-- ',
-                json.dumps(sql_info),
-                '\n',
-            ])
+            prefix = ''.join(
+                [
+                    '-- ',
+                    json.dumps(sql_info),
+                    '\n',
+                ]
+            )
             unit.prefix_len = len(prefix)
             unit.query = prefix + unit.query
             if unit.eql_format_query is not None:
@@ -566,9 +570,7 @@ def _compile_show_command(stmt: pgast.VariableShowStmt) -> pgast.Query:
     if stmt.name.lower() == 'all':
         return pgast.SelectStmt(
             target_list=[
-                pgast.ResTarget(
-                    val=pgast.ColumnRef(name=[pgast.Star()])
-                )
+                pgast.ResTarget(val=pgast.ColumnRef(name=[pgast.Star()]))
             ],
             from_clause=[pg_settings_for_show],
         )
@@ -595,9 +597,7 @@ def _compile_show_command(stmt: pgast.VariableShowStmt) -> pgast.Query:
                     ],
                     from_clause=[
                         pgast.RelRangeVar(
-                            relation=pgast.Relation(
-                                name='_edgecon_state'
-                            ),
+                            relation=pgast.Relation(name='_edgecon_state'),
                         ),
                     ],
                     where_clause=pgast.Expr(
@@ -613,7 +613,7 @@ def _compile_show_command(stmt: pgast.VariableShowStmt) -> pgast.Query:
                             rexpr=pgast.StringConstant(val=typ),
                         ),
                     ),
-                )
+                ),
             )
             for typ in ["L", "S"]
         ]
@@ -643,7 +643,7 @@ def _compile_show_command(stmt: pgast.VariableShowStmt) -> pgast.Query:
                 name='=',
                 lexpr=pgast.ColumnRef(name=['name']),
                 rexpr=pgast.StringConstant(val=stmt.name),
-            )
+            ),
         )
 
 

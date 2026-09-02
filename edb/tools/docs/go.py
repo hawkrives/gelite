@@ -29,7 +29,6 @@ from sphinx import domains as s_domains
 
 
 class BaseGoDirective(s_directives.ObjectDescription):
-
     def get_signatures(self):
         return [re.compile(r'\\\s*\n').sub('\n', self.arguments[0])]
 
@@ -37,8 +36,7 @@ class BaseGoDirective(s_directives.ObjectDescription):
         target = name.replace(' ', '-')
 
         if target in self.state.document.ids:
-            raise self.error(
-                f'duplicate {self.objtype} {name} description')
+            raise self.error(f'duplicate {self.objtype} {name} description')
 
         signode['names'].append(target)
         signode['ids'].append(target)
@@ -47,13 +45,11 @@ class BaseGoDirective(s_directives.ObjectDescription):
         objects = self.env.domaindata['go']['objects']
 
         if target in objects:
-            raise self.error(
-                f'duplicate {self.objtype} {name} description')
+            raise self.error(f'duplicate {self.objtype} {name} description')
         objects[target] = (self.env.docname, self.objtype)
 
 
 class GoTypeDirective(BaseGoDirective):
-
     def handle_signature(self, sig, signode):
         name = re.split(r'\s+', sig)[1].strip()
 
@@ -62,9 +58,8 @@ class GoTypeDirective(BaseGoDirective):
 
         signode['is_multiline'] = True
         signode += [
-            s_nodes.desc_signature_line(sig, line)
-            for line in sig.split('\n')
-          ]
+            s_nodes.desc_signature_line(sig, line) for line in sig.split('\n')
+        ]
 
         return name
 
@@ -73,11 +68,11 @@ class GoTypeDirective(BaseGoDirective):
 
 
 goFuncRegex = re.compile(
-    r"func\s+(?:\(.+?\s+\*?(?P<receiver>.+?)\)\s+)?(?P<name>.+?)\s*\(")
+    r"func\s+(?:\(.+?\s+\*?(?P<receiver>.+?)\)\s+)?(?P<name>.+?)\s*\("
+)
 
 
 class GoFunctionDirective(BaseGoDirective):
-
     def handle_signature(self, sig, signode):
         match = goFuncRegex.match(sig)
         if match is None:
@@ -92,9 +87,8 @@ class GoFunctionDirective(BaseGoDirective):
 
         signode['is_multiline'] = True
         signode += [
-            s_nodes.desc_signature_line(sig, line)
-            for line in sig.split('\n')
-          ]
+            s_nodes.desc_signature_line(sig, line) for line in sig.split('\n')
+        ]
 
         return fullname
 
@@ -107,7 +101,6 @@ class GoMethodDirective(GoFunctionDirective):
 
 
 class GolangDomain(s_domains.Domain):
-
     name = "go"
     label = "Golang"
 

@@ -23,14 +23,13 @@ from edb.testbase import server as tb
 
 
 class TestEdgeQLCoalesce(tb.QueryTestCase):
-    """The test DB is designed to test various coalescing operations.
-    """
+    """The test DB is designed to test various coalescing operations."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'issues.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'issues.esdl')
 
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'issues_coalesce_setup.edgeql')
+    SETUP = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'issues_coalesce_setup.edgeql'
+    )
 
     async def test_edgeql_coalesce_scalar_01(self):
         await self.assert_query_result(
@@ -47,7 +46,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'time_estimate': 90},
                 {'time_estimate': 90},
             ],
-            sort=lambda x: x['time_estimate']
+            sort=lambda x: x['time_estimate'],
         )
 
     @tb.needs_factoring
@@ -64,7 +63,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ['4', -1],
                 ['5', -1],
                 ['6', -1],
-            ]
+            ],
         )
 
     async def test_edgeql_coalesce_scalar_03(self):
@@ -80,7 +79,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 90,
                 90,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_scalar_04(self):
@@ -96,7 +95,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             ''',
             [
                 -1,
-            ]
+            ],
         )
 
     async def test_edgeql_coalesce_scalar_05(self):
@@ -110,9 +109,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 # Therefore, the second argument to ?? will be returned.
                 SELECT I.time_estimate ?? -1;
             ''',
-            [
-                -1
-            ]
+            [-1],
         )
 
     async def test_edgeql_coalesce_scalar_06(self):
@@ -124,7 +121,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?? -1
                 FILTER NOT EXISTS Issue.time_estimate;
             """,
-            []
+            [],
         )
 
     async def test_edgeql_coalesce_scalar_07(self):
@@ -143,7 +140,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'number': '5', 'has_estimate': False},
                 {'number': '6', 'has_estimate': False},
             ],
-            sort=lambda x: x['number']
+            sort=lambda x: x['number'],
         )
 
     @tb.needs_factoring
@@ -160,7 +157,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ['4', False],
                 ['5', False],
                 ['6', False],
-            ]
+            ],
         )
 
     async def test_edgeql_coalesce_scalar_09(self):
@@ -170,9 +167,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?= 60;
             ''',
             [
-                False, False, True,
+                False,
+                False,
+                True,
             ],
-            sort=True
+            sort=True,
         )
 
         await self.assert_query_result(
@@ -180,9 +179,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?= <int64>{};
             ''',
             [
-                False, False, False,
+                False,
+                False,
+                False,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_scalar_10(self):
@@ -197,7 +198,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             ''',
             [
                 True,
-            ]
+            ],
         )
 
     async def test_edgeql_coalesce_scalar_11(self):
@@ -210,9 +211,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                           FILTER Issue.status.name = 'Open')
                 SELECT I.time_estimate ?!= <int64>{};
             ''',
-            [
-                False
-            ]
+            [False],
         )
 
         await self.assert_query_result(
@@ -222,9 +221,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                           FILTER Issue.status.name = 'Open')
                 SELECT I.time_estimate ?!= 60;
             ''',
-            [
-                True
-            ]
+            [True],
         )
 
     @tb.needs_factoring
@@ -253,7 +250,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     'related_to': [{'time_estimate': 90}],
                     'time_estimate': None,
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -266,8 +263,13 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ORDER BY Issue.number;
             ''',
             [
-                False, False, False, False, True, False,
-            ]
+                False,
+                False,
+                False,
+                False,
+                True,
+                False,
+            ],
         )
 
     async def test_edgeql_coalesce_set_01(self):
@@ -285,7 +287,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'comp_time_estimate': [90]},
                 {'comp_time_estimate': [90]},
             ],
-            sort=lambda x: x['comp_time_estimate']
+            sort=lambda x: x['comp_time_estimate'],
         )
 
     async def test_edgeql_coalesce_set_02(self):
@@ -305,7 +307,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'te': [90]},
                 {'te': [90]},
             ],
-            sort=lambda x: x['te']
+            sort=lambda x: x['te'],
         )
 
     @tb.needs_factoring
@@ -341,7 +343,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 90,
                 90,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_set_05(self):
@@ -356,7 +358,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?? {-1, -2};
             ''',
             {
-                -1, -2,
+                -1,
+                -2,
             },
         )
 
@@ -372,7 +375,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT I.time_estimate ?? {-1, -2};
             ''',
             {
-                -1, -2,
+                -1,
+                -2,
             },
         )
 
@@ -392,7 +396,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'number': '5', 'te': [False, False]},
                 {'number': '6', 'te': [False, False]},
             ],
-            sort=lambda x: x['number']
+            sort=lambda x: x['number'],
         )
 
     @tb.needs_factoring
@@ -432,7 +436,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 False,
                 True,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_set_10(self):
@@ -446,7 +450,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?!= {-1, -2};
             ''',
             [
-                True, True,
+                True,
+                True,
             ],
         )
 
@@ -461,7 +466,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT I.time_estimate ?= {-1, -2};
             ''',
             [
-                False, False,
+                False,
+                False,
             ],
         )
 
@@ -516,9 +522,14 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?? -<int64>Issue.number;
             ''',
             [
-                -6, -5, -4, 60, 90, 90,
+                -6,
+                -5,
+                -4,
+                60,
+                90,
+                90,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_04(self):
@@ -531,10 +542,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     FILTER Issue.status.name = 'Open'
                 ).time_estimate ?? -<int64>Issue.number;
             ''',
-            [
-                -6, -5, -4, -3, -2, -1
-            ],
-            sort=True
+            [-6, -5, -4, -3, -2, -1],
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_05(self):
@@ -550,9 +559,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT I.time_estimate ?? -<int64>I.number;
             ''',
             [
-                -6, -5, -4,
+                -6,
+                -5,
+                -4,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_06(self):
@@ -567,9 +578,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?? -<int64>I2.number;
             ''',
             [
-                60, 90, 90,
+                60,
+                90,
+                90,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_07(self):
@@ -581,9 +594,14 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?? -<int64>Issue.number;
             ''',
             [
-                -6, -5, -4, -3, -2, -1,
+                -6,
+                -5,
+                -4,
+                -3,
+                -2,
+                -1,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_08(self):
@@ -600,9 +618,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?? {Issue.time_estimate, -1};
             ''',
             [
-                60, 90, 90,
+                60,
+                90,
+                90,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_09(self):
@@ -617,9 +637,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?? {Issue.time_estimate, -1}
                 ORDER BY _;
             ''',
-            [
-                -1, 60, 90, 90
-            ],
+            [-1, 60, 90, 90],
         )
 
     async def test_edgeql_coalesce_dependent_10(self):
@@ -694,7 +712,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 False,
                 True,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_14(self):
@@ -705,10 +723,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     FILTER Issue.status.name = 'Open'
                 ).time_estimate ?= <int64>Issue.number;
             ''',
-            [
-                False, False, False, False, False, False
-            ],
-            sort=True
+            [False, False, False, False, False, False],
+            sort=True,
         )
 
     @tb.needs_factoring
@@ -723,9 +739,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT I.time_estimate ?!= I.time_spent_log.spent_time;
             ''',
             [
-                False, False, False,
+                False,
+                False,
+                False,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_16(self):
@@ -741,14 +759,26 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?= <int64>I2.number * 30;
             ''',
             [
-                False, False, False,
-                False, False, False,
-                False, False, False,
-                False, False, False,
-                False, False, False,
-                True, True, True,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_17(self):
@@ -769,10 +799,14 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?!= <int64>I2.number * 30;
             ''',
             [
-                True, True, True,
-                True, True, True,
+                True,
+                True,
+                True,
+                True,
+                True,
+                True,
             ],
-            sort=True
+            sort=True,
         )
 
     @tb.needs_factoring
@@ -785,9 +819,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.time_estimate ?= Issue.time_estimate * 2;
             ''',
             [
-                False, False, False,
+                False,
+                False,
+                False,
             ],
-            sort=True
+            sort=True,
         )
 
     @tb.needs_factoring
@@ -802,9 +838,14 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ).time_estimate ?= Issue.time_estimate * 2;
             ''',
             [
-                False, False, False, True, True, True,
+                False,
+                False,
+                False,
+                True,
+                True,
+                True,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_dependent_20(self):
@@ -953,9 +994,9 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'foo': 'Closed'},
                 {'foo': 'High'},
                 {'foo': 'Low'},
-                {'foo': 'Open'}
+                {'foo': 'Open'},
             ],
-            sort=lambda x: x['foo']
+            sort=lambda x: x['foo'],
         )
 
         await self.assert_query_result(
@@ -966,13 +1007,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     foo := X[IS Priority].name[0] ?? X[IS Status].name
                 };
             ''',
-            [
-                {'foo': 'Closed'},
-                {'foo': 'H'},
-                {'foo': 'L'},
-                {'foo': 'Open'}
-            ],
-            sort=lambda x: x['foo']
+            [{'foo': 'Closed'}, {'foo': 'H'}, {'foo': 'L'}, {'foo': 'Open'}],
+            sort=lambda x: x['foo'],
         )
 
         await self.assert_query_result(
@@ -983,13 +1019,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     foo := X[IS Priority].name ?? X[IS Status].name[0]
                 };
             ''',
-            [
-                {'foo': 'C'},
-                {'foo': 'High'},
-                {'foo': 'Low'},
-                {'foo': 'O'}
-            ],
-            sort=lambda x: x['foo']
+            [{'foo': 'C'}, {'foo': 'High'}, {'foo': 'Low'}, {'foo': 'O'}],
+            sort=lambda x: x['foo'],
         )
 
         await self.assert_query_result(
@@ -1000,13 +1031,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     foo := X[IS Priority].name[0] ?? X[IS Status].name[0]
                 };
             ''',
-            [
-                {'foo': 'C'},
-                {'foo': 'H'},
-                {'foo': 'L'},
-                {'foo': 'O'}
-            ],
-            sort=lambda x: x['foo']
+            [{'foo': 'C'}, {'foo': 'H'}, {'foo': 'L'}, {'foo': 'O'}],
+            sort=lambda x: x['foo'],
         )
 
     async def test_edgeql_coalesce_object_01(self):
@@ -1028,36 +1054,54 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             [
                 {
                     'number': '1',
-                    'time_spent_log': [{
-                        'spent_time': 60,
-                    }],
-                }, {
+                    'time_spent_log': [
+                        {
+                            'spent_time': 60,
+                        }
+                    ],
+                },
+                {
                     'number': '2',
-                    'time_spent_log': [{
-                        'spent_time': 90,
-                    }],
-                }, {
+                    'time_spent_log': [
+                        {
+                            'spent_time': 90,
+                        }
+                    ],
+                },
+                {
                     'number': '3',
-                    'time_spent_log': [{
-                        'spent_time': 30,
-                    }, {
-                        'spent_time': 60,
-                    }],
-                }, {
+                    'time_spent_log': [
+                        {
+                            'spent_time': 30,
+                        },
+                        {
+                            'spent_time': 60,
+                        },
+                    ],
+                },
+                {
                     'number': '4',
-                    'time_spent_log': [{
-                        'spent_time': -1,
-                    }],
-                }, {
+                    'time_spent_log': [
+                        {
+                            'spent_time': -1,
+                        }
+                    ],
+                },
+                {
                     'number': '5',
-                    'time_spent_log': [{
-                        'spent_time': -1,
-                    }],
-                }, {
+                    'time_spent_log': [
+                        {
+                            'spent_time': -1,
+                        }
+                    ],
+                },
+                {
                     'number': '6',
-                    'time_spent_log': [{
-                        'spent_time': -1,
-                    }],
+                    'time_spent_log': [
+                        {
+                            'spent_time': -1,
+                        }
+                    ],
                 },
             ],
         )
@@ -1100,7 +1144,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {'spent_time': 60},
                 {'spent_time': 90},
             ],
-            sort=lambda x: x['spent_time']
+            sort=lambda x: x['spent_time'],
         )
 
     async def test_edgeql_coalesce_object_04(self):
@@ -1156,19 +1200,21 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 {
                     'number': '1',
                     'log1': [True],
-                }, {
+                },
+                {
                     'number': '2',
                     'log1': [False],
-                }, {
-                    'number': '3',
-                    'log1': [False, False]
-                }, {
+                },
+                {'number': '3', 'log1': [False, False]},
+                {
                     'number': '4',
                     'log1': [False],
-                }, {
+                },
+                {
                     'number': '5',
                     'log1': [False],
-                }, {
+                },
+                {
                     'number': '6',
                     'log1': [False],
                 },
@@ -1209,7 +1255,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 True,
                 True,
             ],
-            sort=True
+            sort=True,
         )
 
     async def test_edgeql_coalesce_object_09(self):
@@ -1255,9 +1301,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                         number
                     }
             ''',
-            [{
-                'number': '1',
-            }]
+            [
+                {
+                    'number': '1',
+                }
+            ],
         )
 
     async def test_edgeql_coalesce_object_12(self):
@@ -1272,9 +1320,11 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                         number
                     }
             ''',
-            [{
-                'number': '2',
-            }]
+            [
+                {
+                    'number': '2',
+                }
+            ],
         )
 
     async def test_edgeql_coalesce_wrapping_optional(self):
@@ -1417,7 +1467,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                     (Publication ?!= Publication)
                 )
             ''',
-            [[True, False]]
+            [[True, False]],
         )
 
     async def test_edgeql_coalesce_set_of_13(self):
@@ -1430,10 +1480,8 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
 
     @tb.needs_factoring
     async def test_edgeql_coalesce_set_of_nonempty_01(self):
-        await self.con.execute(
-            '''INSERT Publication { title := "1" }''')
-        await self.con.execute(
-            '''INSERT Publication { title := "asdf" }''')
+        await self.con.execute('''INSERT Publication { title := "1" }''')
+        await self.con.execute('''INSERT Publication { title := "asdf" }''')
 
         await self.assert_query_result(
             r'''
@@ -1513,7 +1561,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             ''',
             [
                 ['a', 'b'],
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -1530,8 +1578,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ["Issue 4", ["hm", "n/a"]],
                 ["Issue 5", ["hm", "n/a"]],
                 ["Issue 6", ["hm", "n/a"]],
-            ]
-
+            ],
         )
 
     @tb.needs_factoring
@@ -1548,7 +1595,7 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 ["Issue 4", ["Issue 4", -1]],
                 ["Issue 5", ["Issue 5", -1]],
                 ["Issue 6", ["Issue 6", -1]],
-            ]
+            ],
         )
 
     @tb.needs_factoring
@@ -1597,27 +1644,21 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             r'''
                 SELECT (SELECT () FILTER false) ?? {(), ()};
             ''',
-            [
-                [], []
-            ],
+            [[], []],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT (SELECT () FILTER true) ?? {(), ()};
             ''',
-            [
-                []
-            ],
+            [[]],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT (SELECT ((), ()) FILTER true) ?? {((), ()), ((), ())}
             ''',
-            [
-                [[], []]
-            ],
+            [[[], []]],
         )
 
     @tb.needs_factoring
@@ -1738,8 +1779,12 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.name ++ opt_test(false, <str>Issue.time_estimate)
             ''',
             {
-                "Issue 160", "Issue 290", "Issue 390",
-                "Issue 4", "Issue 5", "Issue 6",
+                "Issue 160",
+                "Issue 290",
+                "Issue 390",
+                "Issue 4",
+                "Issue 5",
+                "Issue 6",
             },
         )
 
@@ -1775,20 +1820,32 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             r'''
                 select Issue { z := opt_test(true, .time_estimate) }
             ''',
-            tb.bag([
-                {"z": 60}, {"z": 90}, {"z": 90},
-                {"z": -1}, {"z": -1}, {"z": -1}
-            ]),
+            tb.bag(
+                [
+                    {"z": 60},
+                    {"z": 90},
+                    {"z": 90},
+                    {"z": -1},
+                    {"z": -1},
+                    {"z": -1},
+                ]
+            ),
         )
 
         await self.assert_query_result(
             r'''
                 select Issue { z := opt_test(true, .time_estimate, 1) }
             ''',
-            tb.bag([
-                {"z": 1}, {"z": 1}, {"z": 1},
-                {"z": 1}, {"z": 1}, {"z": 1},
-            ]),
+            tb.bag(
+                [
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": 1},
+                ]
+            ),
         )
 
     @tb.needs_factoring
@@ -1799,7 +1856,9 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
                 SELECT Issue.name ++ opt_test(0, <str>Issue.time_estimate)
             ''',
             {
-                "Issue 160", "Issue 290", "Issue 390",
+                "Issue 160",
+                "Issue 290",
+                "Issue 390",
             },
         )
 
@@ -1832,20 +1891,32 @@ class TestEdgeQLCoalesce(tb.QueryTestCase):
             r'''
                 select Issue { z := opt_test(0, .time_estimate) }
             ''',
-            tb.bag([
-                {"z": 60}, {"z": 90}, {"z": 90},
-                {"z": None}, {"z": None}, {"z": None}
-            ]),
+            tb.bag(
+                [
+                    {"z": 60},
+                    {"z": 90},
+                    {"z": 90},
+                    {"z": None},
+                    {"z": None},
+                    {"z": None},
+                ]
+            ),
         )
 
         await self.assert_query_result(
             r'''
                 select Issue { z := opt_test(0, .time_estimate, 1) }
             ''',
-            tb.bag([
-                {"z": 1}, {"z": 1}, {"z": 1},
-                {"z": None}, {"z": None}, {"z": None}
-            ]),
+            tb.bag(
+                [
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": 1},
+                    {"z": None},
+                    {"z": None},
+                    {"z": None},
+                ]
+            ),
         )
 
     async def test_edgeql_coalesce_single_links_01(self):

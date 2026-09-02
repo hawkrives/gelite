@@ -80,7 +80,8 @@ class CreateEnum(ddl.SchemaObjectOperation):
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ) -> None:
         super().__init__(
-            enum.name, conditions=conditions, neg_conditions=neg_conditions)
+            enum.name, conditions=conditions, neg_conditions=neg_conditions
+        )
         self.values = enum.values
 
     def code(self) -> str:

@@ -98,16 +98,19 @@ class SQLBlock:
                 'block is non-transactional, please use .get_statements()'
             )
         stmts = self.get_statements()
-        body = '\n\n'.join(stmt + ';' if stmt[-1] != ';' else stmt
-                           for stmt in stmts if stmt).rstrip()
+        body = '\n\n'.join(
+            stmt + ';' if stmt[-1] != ';' else stmt for stmt in stmts if stmt
+        ).rstrip()
         if body and body[-1] != ';':
             body += ';'
 
         return body
 
     def get_statements(self) -> list[str]:
-        return [(cmd if isinstance(cmd, str) else cmd.to_string()).rstrip()
-                for cmd in self.commands]
+        return [
+            (cmd if isinstance(cmd, str) else cmd.to_string()).rstrip()
+            for cmd in self.commands
+        ]
 
     def add_command(self, stmt: str | PLBlock) -> None:
         self.commands.append(stmt)
@@ -123,7 +126,6 @@ class SQLBlock:
 
 
 class PLBlock(SQLBlock):
-
     varcounter: dict[str, int]
     shared_vars: set[str]
     declarations: list[tuple[str, str | tuple[str, str]]]
@@ -182,8 +184,7 @@ class PLBlock(SQLBlock):
                     exprs.append(f'NOT {cond_expr}')
 
             if_clause = '\n    AND'.join(
-                f'({textwrap.indent(expr, "    ").lstrip()})'
-                for expr in exprs
+                f'({textwrap.indent(expr, "    ").lstrip()})' for expr in exprs
             )
 
             body = textwrap.indent(body, '    ').rstrip()
@@ -203,7 +204,7 @@ class PLBlock(SQLBlock):
         cmd: str | PLBlock,
         *,
         conditions: Optional[Iterable[str | Condition]] = None,
-        neg_conditions: Optional[Iterable[str | Condition]] = None
+        neg_conditions: Optional[Iterable[str | Condition]] = None,
     ) -> None:
         stmt: str | PLBlock
         if conditions or neg_conditions:
@@ -225,8 +226,7 @@ class PLBlock(SQLBlock):
                     exprs.append(f'NOT {cond_expr}')
 
             if_clause = '\n    AND'.join(
-                f'({textwrap.indent(expr, "    ").lstrip()})'
-                for expr in exprs
+                f'({textwrap.indent(expr, "    ").lstrip()})' for expr in exprs
             )
 
             if isinstance(cmd, PLBlock):
@@ -250,9 +250,9 @@ class PLBlock(SQLBlock):
         self,
         type_name: str | tuple[str, str],
         *,
-        var_name: str='',
-        var_name_prefix: str='v',
-        shared: bool=False,
+        var_name: str = '',
+        var_name_prefix: str = 'v',
+        shared: bool = False,
     ) -> str:
         if shared:
             if not var_name:
@@ -299,7 +299,6 @@ class BaseCommand(markup.MarkupCapableMixin):
 
 
 class Command(BaseCommand):
-
     conditions: set[str | Condition]
     neg_conditions: set[str | Condition]
 
@@ -384,7 +383,6 @@ class CommandGroup(Command):
 
 
 class CompositeCommand(Command):
-
     def generate_extra_composite(
         self, block: PLBlock, group: CompositeCommandGroup
     ) -> None:
@@ -422,17 +420,16 @@ class CompositeCommandGroup(Command):
             if isinstance(cmd, tuple) and (cmd[1] or cmd[2]):
                 action = cmd[0].code_with_block(self_block)
                 if isinstance(action, PLExpression):
-                    subcommand = \
-                        f"EXECUTE {ql(prefix_code)} || ' ' || {action}"
+                    subcommand = f"EXECUTE {ql(prefix_code)} || ' ' || {action}"
                 else:
                     subcommand = prefix_code + ' ' + action
                 self_block.add_command(
-                    subcommand, conditions=cmd[1], neg_conditions=cmd[2])
+                    subcommand, conditions=cmd[1], neg_conditions=cmd[2]
+                )
             else:
                 action = cmd.code_with_block(self_block)
                 if isinstance(action, PLExpression):
-                    subcommand = \
-                        f"EXECUTE {ql(prefix_code)} || ' ' || {action}"
+                    subcommand = f"EXECUTE {ql(prefix_code)} || ' ' || {action}"
                     dynamic_actions.append(subcommand)
                 else:
                     actions.append(action)
@@ -466,7 +463,6 @@ class CompositeCommandGroup(Command):
 
 
 class Condition(BaseCommand):
-
     def code(self) -> str:
         raise NotImplementedError()
 
@@ -479,7 +475,7 @@ class Query(Command):
         type: Optional[str | tuple[str, str]] = None,
         trampoline_fixup: bool = True,
     ) -> None:
-        from ..import trampoline
+        from .. import trampoline
 
         super().__init__()
         if trampoline_fixup:
@@ -519,11 +515,7 @@ class Default(metaclass=DefaultMeta):
 
 
 class DBObject:
-    def __init__(
-        self,
-        *,
-        metadata: Optional[Mapping[str, Any]] = None
-    ) -> None:
+    def __init__(self, *, metadata: Optional[Mapping[str, Any]] = None) -> None:
         self.metadata = dict(metadata) if metadata else None
 
     def add_metadata(self, key: str, value: Any) -> None:

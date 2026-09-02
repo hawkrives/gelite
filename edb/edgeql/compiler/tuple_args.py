@@ -146,8 +146,7 @@ def translate_type(
         typ: irast.TypeRef, in_array: bool, depth: int
     ) -> irast.ParamTransType:
         if depth > MAX_NESTING:
-            raise errors.QueryError(
-                f'type of parameter is too deeply nested')
+            raise errors.QueryError(f'type of parameter is too deeply nested')
 
         start = len(typs)
 
@@ -156,11 +155,14 @@ def translate_type(
             # we need to add an extra parameter
             if in_array:
                 int_typeref = schema.get(
-                    sn.QualName('std', 'int32'), type=s_types.Type)
+                    sn.QualName('std', 'int32'), type=s_types.Type
+                )
                 nschema, array_styp = s_types.Array.from_subtypes(
-                    schema, [int_typeref])
-                typs.append(irtypeutils.type_to_typeref(
-                    nschema, array_styp, cache=None))
+                    schema, [int_typeref]
+                )
+                typs.append(
+                    irtypeutils.type_to_typeref(nschema, array_styp, cache=None)
+                )
 
             if irtypeutils.is_array(typ.subtypes[0]):
                 # Treat nested arrays as if they are arrays of tuples of arrays
@@ -218,7 +220,8 @@ def _ref_to_ast(
     typeref: irast.TypeRef, *, ctx: context.ContextLevel
 ) -> qlast.TypeExpr:
     ctx.env.schema, styp = irtypeutils.ir_typeref_to_type(
-        ctx.env.schema, typeref)
+        ctx.env.schema, typeref
+    )
     return s_utils.typeref_to_ast(ctx.env.schema, styp)
 
 
@@ -246,18 +249,18 @@ def _index(expr: qlast.Expr, idx: qlast.Expr) -> qlast.Indirection:
 
 
 def _make_tuple(
-    fields: Sequence[tuple[Optional[str], qlast.Expr]]
+    fields: Sequence[tuple[Optional[str], qlast.Expr]],
 ) -> qlast.NamedTuple | qlast.Tuple:
     is_named = fields and fields[0][0]
     if is_named:
-        return qlast.NamedTuple(elements=[
-            qlast.TupleElement(name=qlast.Ptr(name=not_none(f)), val=e)
-            for f, e in fields
-        ])
-    else:
-        return qlast.Tuple(
-            elements=[e for _, e in fields]
+        return qlast.NamedTuple(
+            elements=[
+                qlast.TupleElement(name=qlast.Ptr(name=not_none(f)), val=e)
+                for f, e in fields
+            ]
         )
+    else:
+        return qlast.Tuple(elements=[e for _, e in fields])
 
 
 def make_decoder(
@@ -275,7 +278,8 @@ def make_decoder(
             expr=qlast.QueryParameter(name=param.name),
             type=_ref_to_ast(param.ir_type, ctx=ctx),
             cardinality_mod=(
-                qlast.CardinalityModifier.Optional if not param.required
+                qlast.CardinalityModifier.Optional
+                if not param.required
                 else None
             ),
         )
@@ -305,15 +309,17 @@ def make_decoder(
             if idx is None:
                 lo = qlast.Constant.integer(0)
                 hi = qlast.FunctionCall(
-                    func=('__std__', 'len'), args=[params[typ.idx]])
+                    func=('__std__', 'len'), args=[params[typ.idx]]
+                )
                 # If the leftmost element inside a toplevel array is
                 # itself an array, subtract 1 from the length (since
                 # array params have an extra element). We also need to
                 # call `max` to prevent generating an invalid range.
                 if _lmost_is_array(typ.typ):
                     hi = qlast.FunctionCall(
-                        func=('__std__', 'max'), args=[
-                            qlast.Set(elements=[lo, _plus_const(hi, -1)])])
+                        func=('__std__', 'max'),
+                        args=[qlast.Set(elements=[lo, _plus_const(hi, -1)])],
+                    )
             else:
                 lo = _index(params[typ.idx], idx)
                 hi = _index(params[typ.idx], _plus_const(idx, 1))
@@ -343,7 +349,8 @@ def make_decoder(
                 result=sub_expr,
             )
             res: qlast.Expr = qlast.FunctionCall(
-                func=('__std__', 'array_agg'), args=[loop],
+                func=('__std__', 'array_agg'),
+                args=[loop],
             )
 
             # If the param is optional, and we are still at the
@@ -370,7 +377,7 @@ def create_sub_params(
     required: bool,
     typeref: irast.TypeRef,
     pt: s_types.Type,
-    is_func_param: bool=False,
+    is_func_param: bool = False,
     *,
     ctx: context.ContextLevel,
 ) -> Optional[irast.SubParams]:
@@ -382,15 +389,18 @@ def create_sub_params(
     as array<tuple<array>>.
     """
     json_cast = ctx.env.options.json_parameters and not is_func_param
-    if not (
-        (
-            pt.is_tuple(ctx.env.schema)
-            or pt.is_anytuple(ctx.env.schema)
-            or pt.contains_array_of_array(ctx.env.schema)
-            or pt.contains_array_of_tuples(ctx.env.schema)
+    if (
+        not (
+            (
+                pt.is_tuple(ctx.env.schema)
+                or pt.is_anytuple(ctx.env.schema)
+                or pt.contains_array_of_array(ctx.env.schema)
+                or pt.contains_array_of_tuples(ctx.env.schema)
+            )
+            and not ctx.env.options.func_params
         )
-        and not ctx.env.options.func_params
-    ) and not json_cast:
+        and not json_cast
+    ):
         return None
 
     pdt: irast.ParamTransType
@@ -405,20 +415,23 @@ def create_sub_params(
     else:
         pdt, arg_typs = translate_type(typeref, schema=ctx.env.schema)
 
-    params = tuple([
-        irast.Param(
-            name=f'__edb_decoded_{name}_{i}__',
-            required=required,
-            ir_type=arg_typeref,
-            schema_type=typegen.type_from_typeref(arg_typeref, env=ctx.env),
-        )
-        for i, arg_typeref in enumerate(arg_typs)
-    ])
+    params = tuple(
+        [
+            irast.Param(
+                name=f'__edb_decoded_{name}_{i}__',
+                required=required,
+                ir_type=arg_typeref,
+                schema_type=typegen.type_from_typeref(arg_typeref, env=ctx.env),
+            )
+            for i, arg_typeref in enumerate(arg_typs)
+        ]
+    )
 
     decode_ql = make_decoder(pdt, params, ctx=ctx)
 
     return irast.SubParams(
-        trans_type=pdt, decoder_edgeql=decode_ql, params=params)
+        trans_type=pdt, decoder_edgeql=decode_ql, params=params
+    )
 
 
 def finish_sub_params(

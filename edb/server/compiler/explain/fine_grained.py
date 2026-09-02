@@ -44,7 +44,6 @@ class Prop(to_json.ToJson):
 
 
 class Properties(to_json.ToJson):
-
     def __init__(self, props: Iterable[Prop]):
         self._props = {p.attribute_name: p for p in props}
 
@@ -182,8 +181,7 @@ class TreeBuilder:
             if alias:
                 aliases.add(alias)
 
-        subplans = [self.build(subplan, args)
-                    for subplan in plans]
+        subplans = [self.build(subplan, args) for subplan in plans]
 
         alias_info = self.alias_info.get(alias) if alias else None
         contexts = alias_info.contexts if alias_info else None
@@ -194,11 +192,10 @@ class TreeBuilder:
                     contexts = context_intersect(contexts, inner_contexts)
 
             if contexts:  # some contexts are hoisted
-                for (sub, node) in zip(subplans, plans):
+                for sub, node in zip(subplans, plans):
                     sub.contexts = context_diff(sub.contexts, contexts)
-                    if (
-                        not sub.contexts and
-                        (subalias := getattr(node, 'alias', None))
+                    if not sub.contexts and (
+                        subalias := getattr(node, 'alias', None)
                     ):
                         aliases.add(subalias)
 
@@ -235,12 +232,14 @@ class TreeBuilder:
         properties = []
         for name, prop in plan.get_props().items():
             if (value := getattr(plan, name, None)) is not None:
-                properties.append(Prop(
-                    title=name,
-                    value=value,
-                    type=prop.enum_type,
-                    important=prop.important,
-                ))
+                properties.append(
+                    Prop(
+                        title=name,
+                        value=value,
+                        type=prop.enum_type,
+                        important=prop.important,
+                    )
+                )
 
         return Stage(
             plan_type=type(plan).__name__,
@@ -277,8 +276,9 @@ def _filter_plans(
     plans = [
         p
         for p in node.plans
-        if not isinstance(p, pg_tree.Result) or
-        p.total_cost > min_cost or p.plan_rows > 1
+        if not isinstance(p, pg_tree.Result)
+        or p.total_cost > min_cost
+        or p.plan_rows > 1
     ]
     return plans
 

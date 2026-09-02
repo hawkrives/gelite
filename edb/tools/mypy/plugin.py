@@ -57,7 +57,6 @@ def plugin(version: str):
 
 
 class EDBPlugin(mypy_plugin.Plugin):
-
     def get_base_class_hook(self, fullname: str):
         if fullname.startswith('edb.'):
             return self.handle_schema_class
@@ -145,7 +144,8 @@ class EDBPlugin(mypy_plugin.Plugin):
             info.mro = []
             try:
                 mro.calculate_mro(
-                    info, lambda: ctx.api.named_type('builtins.object', []))
+                    info, lambda: ctx.api.named_type('builtins.object', [])
+                )
             except mro.MroError:
                 ctx.api.fail(
                     "Cannot determine consistent method resolution "
@@ -160,7 +160,6 @@ class DeferException(Exception):
 
 
 class Field(NamedTuple):
-
     name: str
     has_explicit_accessor: bool
     has_default: bool
@@ -208,7 +207,6 @@ class Field(NamedTuple):
 
 
 class BaseTransformer:
-
     def __init__(
         self,
         ctx: mypy_plugin.ClassDefContext,
@@ -297,6 +295,7 @@ class BaseTransformer:
 
         if isinstance(type_sym.node, nodes.TypeInfo):
             from mypy.typevars import fill_typevars
+
             t = fill_typevars(type_sym.node)
         elif type_sym.type:
             t = type_sym.type
@@ -329,7 +328,8 @@ class BaseTransformer:
             ancestor_fields = []
 
             ctx.api.add_plugin_dependency(
-                mypy_trigger.make_wildcard_trigger(ancestor_info.fullname))
+                mypy_trigger.make_wildcard_trigger(ancestor_info.fullname)
+            )
 
             for name, data in metadata['fields'].items():
                 if name not in known_fields:
@@ -357,11 +357,9 @@ class BaseTransformer:
             raise DeferException
 
         if (
-            (
-                '__init__' not in cls_info.names
-                or cls_info.names['__init__'].plugin_generated
-            ) and fields
-        ):
+            '__init__' not in cls_info.names
+            or cls_info.names['__init__'].plugin_generated
+        ) and fields:
             mypy_helpers.add_method(
                 ctx,
                 '__init__',
@@ -372,7 +370,6 @@ class BaseTransformer:
 
 
 class BaseStructTransformer(BaseTransformer):
-
     def __init__(
         self,
         ctx: mypy_plugin.ClassDefContext,
@@ -401,9 +398,8 @@ class BaseStructTransformer(BaseTransformer):
         fdef = rhs.callee
 
         ftype = None
-        if (
-            isinstance(fdef, nodes.IndexExpr)
-            and isinstance(fdef.analyzed, nodes.TypeApplication)
+        if isinstance(fdef, nodes.IndexExpr) and isinstance(
+            fdef.analyzed, nodes.TypeApplication
         ):
             # Explicitly typed Field declaration
             ctor = fdef.analyzed.expr
@@ -461,7 +457,7 @@ class BaseStructTransformer(BaseTransformer):
         )
 
     def _get_default(self, call) -> Optional[nodes.Expression]:
-        for (n, v) in zip(call.arg_names, call.args):
+        for n, v in zip(call.arg_names, call.args):
             if n == 'default':
                 return v
         else:
@@ -469,7 +465,6 @@ class BaseStructTransformer(BaseTransformer):
 
 
 class StructTransformer(BaseStructTransformer):
-
     def _transform(self) -> list[Field]:
         fields = self._collect_fields()
         self._synthesize_init(fields)
@@ -503,7 +498,6 @@ class StructTransformer(BaseStructTransformer):
 
 
 class SchemaClassTransformer(BaseStructTransformer):
-
     def _transform(self) -> list[Field]:
         ctx = self._ctx
         fields = self._collect_fields()
@@ -534,7 +528,6 @@ class SchemaClassTransformer(BaseStructTransformer):
 
 
 class ASTClassTransformer(BaseTransformer):
-
     def _transform(self) -> list[Field]:
         fields = self._collect_fields()
         self._synthesize_init(fields)
@@ -546,7 +539,6 @@ class ASTClassTransformer(BaseTransformer):
         name: nodes.NameExpr,
         sym: nodes.SymbolTableNode,
     ) -> Optional[Field]:
-
         if sym.type is None:
             # If the assignment has a type annotation but the symbol
             # doesn't yet, we need to defer

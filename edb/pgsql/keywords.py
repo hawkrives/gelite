@@ -21,8 +21,12 @@ from __future__ import annotations
 
 
 keyword_types = range(1, 5)
-(UNRESERVED_KEYWORD, RESERVED_KEYWORD,
- TYPE_FUNC_NAME_KEYWORD, COL_NAME_KEYWORD) = keyword_types
+(
+    UNRESERVED_KEYWORD,
+    RESERVED_KEYWORD,
+    TYPE_FUNC_NAME_KEYWORD,
+    COL_NAME_KEYWORD,
+) = keyword_types
 
 pg_keywords = {
     "abort": ("ABORT_P", UNRESERVED_KEYWORD),

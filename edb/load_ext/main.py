@@ -52,7 +52,6 @@ def install_pg_extension(
     pg_config: dict[str, str],
     manifest_target: pathlib.Path | None,
 ) -> None:
-
     to_install = []
     with zipfile.ZipFile(pkg) as z:
         base = get_dir(z)
@@ -76,9 +75,7 @@ def install_pg_extension(
                 continue
 
             fpath = fpath.relative_to(
-                pathlib.Path(fpath.parts[0])
-                / fpath.parts[1]
-                / 'postgresql'
+                pathlib.Path(fpath.parts[0]) / fpath.parts[1] / 'postgresql'
             )
             to_install.append((entry.filename, config_field, fpath))
 
@@ -152,9 +149,7 @@ def install_edgedb_extension(
     pkg: pathlib.Path,
     ext_dir: pathlib.Path,
 ) -> pathlib.Path:
-    with tempfile.TemporaryDirectory() as tdir, \
-         zipfile.ZipFile(pkg) as z:
-
+    with tempfile.TemporaryDirectory() as tdir, zipfile.ZipFile(pkg) as z:
         dirname = get_dir(z)
 
         target = ext_dir / dirname
@@ -209,6 +204,7 @@ def load_ext_install(
     if not skip_postgres:
         if with_pg_config is None:
             from edb import buildmeta
+
             with_pg_config = buildmeta.get_pg_config_path()
 
         pg_config = get_pg_config(with_pg_config)
@@ -224,11 +220,10 @@ def load_ext_uninstall(
     with_pg_config: pathlib.Path | None,
 ) -> None:
     from edb import buildmeta
+
     target_dir = None
     if len(package.parts) != 1:
-        print(
-            f'ERROR: {package} is not a valid extension name'
-        )
+        print(f'ERROR: {package} is not a valid extension name')
         sys.exit(1)
 
     ext_dir = buildmeta.get_extension_dir_path()
@@ -270,10 +265,7 @@ def load_ext_list_packages() -> None:
             for entry in it:
                 entry_path = pathlib.Path(entry)
                 manifest_path = entry_path / 'MANIFEST.toml'
-                if (
-                    entry.is_dir()
-                    and manifest_path.exists()
-                ):
+                if entry.is_dir() and manifest_path.exists():
                     with open(manifest_path, 'rb') as m:
                         manifest = tomllib.load(m)
 
@@ -310,33 +302,38 @@ def load_ext_main(
 
 parser = argparse.ArgumentParser(description='Install an extension package')
 parser.add_argument(
-    '--skip-gel', action='store_true',
-    help="Skip installing the extension package into the Gel "
-          "installation",
+    '--skip-gel',
+    action='store_true',
+    help="Skip installing the extension package into the Gel installation",
 )
 parser.add_argument(
-    '--skip-edgedb', action='store_true', help=argparse.SUPPRESS,
+    '--skip-edgedb',
+    action='store_true',
+    help=argparse.SUPPRESS,
 )
 parser.add_argument(
-    '--skip-postgres', action='store_true',
-    help="Skip installing the extension package into the "
-         "Postgres installation",
+    '--skip-postgres',
+    action='store_true',
+    help="Skip installing the extension package into the Postgres installation",
 )
 parser.add_argument(
-    '--with-pg-config', metavar='PATH',
+    '--with-pg-config',
+    metavar='PATH',
     help="Use the specified pg_config binary to find the Postgres "
-         "to install into (instead of using the bundled one)"
+    "to install into (instead of using the bundled one)",
 )
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument(
-    '--list-packages', action='store_true',
-    help="List the extension packages that are installed (in JSON)"
+    '--list-packages',
+    action='store_true',
+    help="List the extension packages that are installed (in JSON)",
 )
 group.add_argument(
-    '--uninstall', metavar='NAME',
+    '--uninstall',
+    metavar='NAME',
     type=pathlib.Path,
     help="Uninstall a package (by package directory name) instead of "
-         "installing it"
+    "installing it",
 )
 group.add_argument('package', nargs='?', type=pathlib.Path)
 

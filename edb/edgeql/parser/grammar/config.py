@@ -29,7 +29,6 @@ from .expressions import *  # NOQA
 
 
 class ConfigScope(Nonterm):
-
     def reduce_SESSION(self, _):
         self.val = qltypes.ConfigScope.SESSION
 
@@ -69,14 +68,14 @@ class ConfigOp(Nonterm):
 
 
 class ConfigStmt(Nonterm):
-
     def reduce_CONFIGURE_DATABASE_ConfigOp(self, configure, database, _config):
         raise errors.EdgeQLSyntaxError(
             f"'{configure.val} {database.val}' is invalid syntax. "
             f"Did you mean '{configure.val} "
             f"{'current' if database.val[0] == 'd' else 'CURRENT'} "
             f"{database.val}'?",
-            span=database.span)
+            span=database.span,
+        )
 
     def reduce_CONFIGURE_BRANCH_ConfigOp(self, configure, database, _config):
         raise errors.EdgeQLSyntaxError(
@@ -84,7 +83,8 @@ class ConfigStmt(Nonterm):
             f"Did you mean '{configure.val} "
             f"{'current' if database.val[0] == 'd' else 'CURRENT'} "
             f"{database.val}'?",
-            span=database.span)
+            span=database.span,
+        )
 
     def reduce_CONFIGURE_ConfigScope_ConfigOp(self, _, scope, op):
         self.val = op.val

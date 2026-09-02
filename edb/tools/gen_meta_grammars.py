@@ -79,25 +79,30 @@ def main(names, data):
 
     for gname in names:
         if gname == 'edgeql':
-            code.extend(gen_grammar_class(
-                'EdgeQL',
-                collections.OrderedDict(
-                    reserved_keywords=sorted(
-                        eql_keywords.reserved_keywords.union(
-                            eql_keywords.partial_reserved_keywords
-                        ) - BOOL_LITERALS),
-                    unreserved_keywords=sorted(
-                        eql_keywords.unreserved_keywords - BOOL_LITERALS),
-                    bool_literals=sorted(BOOL_LITERALS),
-                    type_builtins=types,
-                    module_builtins=(sorted(modules)),
-                    constraint_builtins=constraints,
-                    fn_builtins=fn_builtins,
-                    index_builtins=index_builtins,
-                    operators=operators,
-                    navigation=NAVIGATION,
+            code.extend(
+                gen_grammar_class(
+                    'EdgeQL',
+                    collections.OrderedDict(
+                        reserved_keywords=sorted(
+                            eql_keywords.reserved_keywords.union(
+                                eql_keywords.partial_reserved_keywords
+                            )
+                            - BOOL_LITERALS
+                        ),
+                        unreserved_keywords=sorted(
+                            eql_keywords.unreserved_keywords - BOOL_LITERALS
+                        ),
+                        bool_literals=sorted(BOOL_LITERALS),
+                        type_builtins=types,
+                        module_builtins=(sorted(modules)),
+                        constraint_builtins=constraints,
+                        fn_builtins=fn_builtins,
+                        index_builtins=index_builtins,
+                        operators=operators,
+                        navigation=NAVIGATION,
+                    ),
                 )
-            ))
+            )
 
         code.append('\n\n')
 
@@ -124,13 +129,13 @@ def gen_meta_grammars(names):
             die(f'too many NAMES')
 
     try:
-        res = subprocess.run([
-            'edb',
-            'cli',
-            'query',
-            '-Fjson',
-
-            r"""
+        res = subprocess.run(
+            [
+                'edb',
+                'cli',
+                'query',
+                '-Fjson',
+                r"""
             WITH
                 MODULE schema,
                 T := (SELECT Type
@@ -164,7 +169,9 @@ def gen_meta_grammars(names):
                 i_names := i_names,
             }
             """,
-        ], capture_output=True)
+            ],
+            capture_output=True,
+        )
 
         if res.returncode != 0:
             die('Could not connect to the dev Gel instance')

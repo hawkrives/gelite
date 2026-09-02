@@ -152,7 +152,6 @@ def print_schema(
     for index, (table, columns) in enumerate(tables_latest.items()):
         print(f'    "{table}": [', file=f)
         for [col_name, col_typ] in columns:
-
             ver_since = version_latest
             for v in versions_desc:
                 schema = schemas_by_version.get(v)

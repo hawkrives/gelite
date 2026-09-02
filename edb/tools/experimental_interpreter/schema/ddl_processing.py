@@ -34,9 +34,9 @@ def process_ddl(schema: e.DBSchema, ddl: qlast.DDLOperation) -> None:
             bases=bases,
             abstract=is_abstract,
         ):
-            assert (
-                module_name is not None
-            ), "Scalar types cannot be created in top level"
+            assert module_name is not None, (
+                "Scalar types cannot be created in top level"
+            )
             schema.modules[(module_name,)].defs[type_name] = (
                 e.ModuleEntityTypeDef(
                     e.ScalarTp(e.QualifiedName([module_name, type_name])),
@@ -63,9 +63,7 @@ def process_ddl(schema: e.DBSchema, ddl: qlast.DDLOperation) -> None:
                         # choice: make anytype live in std
                         schema.subtyping_relations[
                             e.QualifiedName([module_name, type_name])
-                        ].append(
-                            e.QualifiedName(["std", "any" + (spec or "")])
-                        )
+                        ].append(e.QualifiedName(["std", "any" + (spec or "")]))
                     case e.CompositeTp(kind=e.CompositeTpKind.Enum, tps=_):
                         print_warning(
                             "WARNING: behavior of extending"
@@ -155,9 +153,9 @@ def process_ddl(schema: e.DBSchema, ddl: qlast.DDLOperation) -> None:
             name=qlast.ObjectRef(name=name, module=module_name),
             abstract=abstract,
         ):
-            assert (
-                module_name is not None
-            ), "Object types cannot be created in top level"
+            assert module_name is not None, (
+                "Object types cannot be created in top level"
+            )
             obj_tp, constraints, indexes = elab_schema.elab_create_object_tp(
                 commands
             )

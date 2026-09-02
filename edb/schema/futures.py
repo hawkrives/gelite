@@ -114,11 +114,10 @@ class FutureBehaviorCommand(
         if not context.canonical and not isinstance(self, sd.AlterObject):
             key = str(self.classname)
             if key not in FUTURE_HANDLERS:
-                raise errors.QueryError(
-                    f"Unknown future '{str(key)}'"
-                )
+                raise errors.QueryError(f"Unknown future '{str(key)}'")
             schema, cmd = FUTURE_HANDLERS[key](
-                self, schema, context, isinstance(self, sd.CreateObject))
+                self, schema, context, isinstance(self, sd.CreateObject)
+            )
             self.future_cmd = cmd
 
         if self.future_cmd:

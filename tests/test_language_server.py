@@ -1540,6 +1540,7 @@ class TestLanguageServer(unittest.TestCase):
 
     def test_language_server_completion_07(self):
         from edb.schema import schema
+
         std_module_completions = [
             {'kind': 9, 'label': f'{m}', 'insertText': f'{m}::'}
             for m in schema.STD_MODULES
@@ -1622,19 +1623,22 @@ class TestLanguageServer(unittest.TestCase):
                     "id": 5,
                     "result": {
                         "isIncomplete": False,
-                        'items': bag([
-                            {'kind': 22, 'label': 'Player'},
-                            {'kind': 22, 'label': 'Club'},
-                            {'kind': 12, 'label': 'age'},
-                            {'kind': 9, 'label': 'another'},
-                            {'kind': 9, 'label': 'default'},
-                            {'kind': 9, 'label': 'flat'},
-                            {'kind': 14, 'label': 'optional'},
-                            {'kind': 14, 'label': 'single'},
-                        ] + std_module_completions),
+                        'items': bag(
+                            [
+                                {'kind': 22, 'label': 'Player'},
+                                {'kind': 22, 'label': 'Club'},
+                                {'kind': 12, 'label': 'age'},
+                                {'kind': 9, 'label': 'another'},
+                                {'kind': 9, 'label': 'default'},
+                                {'kind': 9, 'label': 'flat'},
+                                {'kind': 14, 'label': 'optional'},
+                                {'kind': 14, 'label': 'single'},
+                            ]
+                            + std_module_completions
+                        ),
                     },
                 },
-                fail=self.fail
+                fail=self.fail,
             )
 
         finally:

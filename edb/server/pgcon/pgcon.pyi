@@ -38,7 +38,6 @@ class BackendPrivilegeError(BackendError): ...
 class BackendCatalogNameError(BackendError): ...
 
 class PGConnection(asyncio.Protocol):
-
     idle: bool
     backend_pid: int
     connection: pgconnparams.ConnectionParams

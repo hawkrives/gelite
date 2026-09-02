@@ -46,7 +46,6 @@ class Trigger(
     qlkind=qltypes.SchemaObjectClass.TRIGGER,
     data_safe=True,
 ):
-
     # XXX: compcoef is zero since we don't have syntax yet
     timing = so.SchemaField(
         qltypes.TriggerTiming,
@@ -84,9 +83,8 @@ class Trigger(
     )
 
     subject = so.SchemaField(
-        so.InheritingObject,
-        compcoef=None,
-        inheritable=False)
+        so.InheritingObject, compcoef=None, inheritable=False
+    )
 
     # We don't support SET/DROP OWNED owned on triggers so we set its
     # compcoef to 0.0
@@ -140,14 +138,16 @@ class TriggerCommand(
             vname = 'when' if field == 'condition' else 'using'
 
             expression = self.compile_expr_field(
-                schema, context,
+                schema,
+                context,
                 field=Trigger.get_field(field),
                 value=expr,
             )
 
             if field == 'condition':
                 target = schema.get(
-                    sn.QualName('std', 'bool'), type=s_types.Type)
+                    sn.QualName('std', 'bool'), type=s_types.Type
+                )
                 expr_type = expression.irast.stype
                 if not expr_type.issubclass(expression.irast.schema, target):
                     span = self.get_attribute_span(field)
@@ -186,7 +186,7 @@ class TriggerCommand(
         context: sd.CommandContext,
         field: so.Field[Any],
         value: s_expr.Expression,
-        track_schema_ref_exprs: bool=False,
+        track_schema_ref_exprs: bool = False,
     ) -> s_expr.CompiledExpression:
         if field.name in {'expr', 'condition'}:
             from edb.ir import pathid
@@ -223,7 +223,8 @@ class TriggerCommand(
 
             singletons = (
                 frozenset(anchors.values())
-                if scope == qltypes.TriggerScope.Each else frozenset()
+                if scope == qltypes.TriggerScope.Each
+                else frozenset()
             )
 
             assert isinstance(source, s_types.Type)
@@ -248,13 +249,12 @@ class TriggerCommand(
                 )
             except errors.QueryError as e:
                 if not e.has_span():
-                    e.set_span(
-                        self.get_attribute_span(field.name)
-                    )
+                    e.set_span(self.get_attribute_span(field.name))
                 raise
         else:
             return super().compile_expr_field(
-                schema, context, field, value, track_schema_ref_exprs)
+                schema, context, field, value, track_schema_ref_exprs
+            )
 
     def get_dummy_expr_field_value(
         self,
@@ -291,10 +291,13 @@ class CreateTrigger(
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field in ('timing', 'condition', 'kinds', 'scope', 'expr')
-            and issubclass(astnode, qlast.CreateTrigger)
-        ):
+        if field in (
+            'timing',
+            'condition',
+            'kinds',
+            'scope',
+            'expr',
+        ) and issubclass(astnode, qlast.CreateTrigger):
             return field
         else:
             return super().get_ast_attr_for_field(field, astnode)
@@ -315,7 +318,9 @@ class CreateTrigger(
             cmd.set_attribute_value(
                 'expr',
                 s_expr.Expression.from_ast(
-                    astnode.expr, schema, context.modaliases,
+                    astnode.expr,
+                    schema,
+                    context.modaliases,
                     context.localnames,
                 ),
                 span=astnode.expr.span,
@@ -324,7 +329,9 @@ class CreateTrigger(
             cmd.set_attribute_value(
                 'condition',
                 s_expr.Expression.from_ast(
-                    astnode.condition, schema, context.modaliases,
+                    astnode.condition,
+                    schema,
+                    context.modaliases,
                     context.localnames,
                 ),
                 span=astnode.condition.span,
@@ -366,14 +373,13 @@ class AlterTrigger(
 
         # TODO: We may wish to support this in the future but it will
         # take some thought.
-        if (
-            self.get_attribute_value('owned')
-            and not self.get_orig_attribute_value('owned')
-        ):
+        if self.get_attribute_value(
+            'owned'
+        ) and not self.get_orig_attribute_value('owned'):
             raise errors.SchemaDefinitionError(
                 f'cannot alter the definition of inherited trigger '
                 f'{self.scls.get_displayname(schema)}',
-                span=self.span
+                span=self.span,
             )
 
         return schema

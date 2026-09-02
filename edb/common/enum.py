@@ -25,12 +25,13 @@ import functools
 
 class StrEnum(str, enum.Enum):
     """A version of string enum with reasonable __str__."""
+
     def __str__(self):
         return self._value_
 
 
 @functools.total_ordering
-class OrderedEnumMixin():
+class OrderedEnumMixin:
     @classmethod
     @functools.lru_cache(None)
     def _index_of(cls, value):

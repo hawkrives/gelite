@@ -55,7 +55,6 @@ MAX_CONFIG_SET_SIZE = 128
 
 
 class OpCode(enum.StrEnum):
-
     CONFIG_ADD = 'ADD'
     CONFIG_REM = 'REM'
     CONFIG_SET = 'SET'
@@ -63,7 +62,6 @@ class OpCode(enum.StrEnum):
 
 
 class SettingValue(NamedTuple):
-
     name: str
     value: Any
     source: str
@@ -86,18 +84,22 @@ def _issubclass[T_type: type](
 def coerce_single_value(setting: spec.Setting, value: Any) -> Any:
     if isinstance(setting.type, type) and isinstance(value, setting.type):
         return value
-    elif (isinstance(value, str) and
-          _issubclass(setting.type, statypes.Duration)):
+    elif isinstance(value, str) and _issubclass(
+        setting.type, statypes.Duration
+    ):
         return statypes.Duration(value)
-    elif (isinstance(value, (str, int)) and
-          _issubclass(setting.type, statypes.ConfigMemory)):
+    elif isinstance(value, (str, int)) and _issubclass(
+        setting.type, statypes.ConfigMemory
+    ):
         return statypes.ConfigMemory(value)
-    elif (isinstance(value, str) and
-          _issubclass(setting.type, statypes.EnumScalarType)):
+    elif isinstance(value, str) and _issubclass(
+        setting.type, statypes.EnumScalarType
+    ):
         return setting.type(value)
     else:
         raise errors.ConfigurationError(
-            f'invalid value type for the {setting.name!r} setting')
+            f'invalid value type for the {setting.name!r} setting'
+        )
 
 
 def _check_object_set_uniqueness(
@@ -112,7 +114,7 @@ def _check_object_set_uniqueness(
         for name in tspec.fields:
             if (val := getattr(new_value, name, None)) is None:
                 continue
-            if (site := tspec.get_field_unique_site(name)):
+            if site := tspec.get_field_unique_site(name):
                 key = (site.name, name)
                 current = exclusive_keys.setdefault(key, set())
                 if val in current:
@@ -130,8 +132,8 @@ def _check_object_set_uniqueness(
 
     if len(new_values) > MAX_CONFIG_SET_SIZE:
         raise errors.ConfigurationError(
-            f'invalid value for the '
-            f'{setting.name!r} setting: set is too large')
+            f'invalid value for the {setting.name!r} setting: set is too large'
+        )
 
     return frozenset(new_values)
 
@@ -149,14 +151,14 @@ def coerce_object_set(
         setting,
         (
             types.CompositeConfigType.from_pyvalue(
-                jv, spec=spec, tspec=setting.type)
+                jv, spec=spec, tspec=setting.type
+            )
             for jv in values
         ),
     )
 
 
 class Operation(NamedTuple):
-
     opcode: OpCode
     scope: qltypes.ConfigScope
     setting_name: str
@@ -167,7 +169,8 @@ class Operation(NamedTuple):
             return spec[self.setting_name]
         except KeyError:
             raise errors.ConfigurationError(
-                f'unknown setting {self.setting_name!r}') from None
+                f'unknown setting {self.setting_name!r}'
+            ) from None
 
     def coerce_value(
         self,
@@ -182,27 +185,32 @@ class Operation(NamedTuple):
                     return coerce_object_set(spec, setting, self.value)
                 else:
                     return types.CompositeConfigType.from_pyvalue(
-                        self.value, spec=spec, tspec=setting.type,
+                        self.value,
+                        spec=spec,
+                        tspec=setting.type,
                         allow_missing=allow_missing,
                     )
             except (ValueError, TypeError):
                 raise errors.ConfigurationError(
-                    f'invalid value type for the {setting.name!r} setting')
+                    f'invalid value type for the {setting.name!r} setting'
+                )
         elif setting.set_of:
             if self.value is None and allow_missing:
                 return None
             elif not typeutils.is_container(self.value):
                 raise errors.ConfigurationError(
-                    f'invalid value type for the '
-                    f'{setting.name!r} setting')
+                    f'invalid value type for the {setting.name!r} setting'
+                )
             else:
                 val = frozenset(
                     coerce_single_value(setting, v)
-                    for v in self.value)  # type: ignore
+                    for v in self.value  # type: ignore
+                )
                 if len(val) > MAX_CONFIG_SET_SIZE:
                     raise errors.ConfigurationError(
                         f'invalid value for the '
-                        f'{setting.name!r} setting: set is too large')
+                        f'{setting.name!r} setting: set is too large'
+                    )
                 return val
 
         else:
@@ -233,7 +241,6 @@ class Operation(NamedTuple):
         *,
         source: str | None = None,
     ) -> SettingsMap:
-
         allow_missing = (
             self.opcode is OpCode.CONFIG_REM
             or self.opcode is OpCode.CONFIG_RESET
@@ -242,7 +249,8 @@ class Operation(NamedTuple):
         if self.scope != qltypes.ConfigScope.GLOBAL:
             setting = self.get_setting(spec)
             value = self.coerce_value(
-                spec, setting, allow_missing=allow_missing)
+                spec, setting, allow_missing=allow_missing
+            )
         else:
             setting = None
             value = self.coerce_global_value(allow_missing=allow_missing)
@@ -271,7 +279,8 @@ class Operation(NamedTuple):
                 exist_value = setting.default
 
             new_value = _check_object_set_uniqueness(
-                setting, list(exist_value) + [value])
+                setting, list(exist_value) + [value]
+            )
             storage = self._set_value(storage, new_value, source=source)
 
         elif self.opcode is OpCode.CONFIG_REM:
@@ -299,7 +308,6 @@ class Operation(NamedTuple):
         *,
         source: str | None = None,
     ) -> SettingsMap:
-
         if source is None:
             if self.scope is qltypes.ConfigScope.INSTANCE:
                 source = 'system override'
@@ -355,7 +363,8 @@ def spec_to_json(spec: spec.Spec):
             typeid = types.CompositeConfigType.get_edgeql_typeid()
         else:
             raise RuntimeError(
-                f'cannot serialize type for config setting {setting.name}')
+                f'cannot serialize type for config setting {setting.name}'
+            )
 
         typemod = qltypes.TypeModifier.SingletonType
         if setting.set_of:
@@ -386,8 +395,9 @@ def value_to_json_value(setting: spec.Setting, value: Any):
             # if they are single, because it simplifies things in the
             # config handling SQL.
             return [value.to_json_value()] if value is not None else []
-        elif (_issubclass(setting.type, statypes.ScalarType) and
-                value is not None):
+        elif (
+            _issubclass(setting.type, statypes.ScalarType) and value is not None
+        ):
             return value.to_json()
         else:
             return value
@@ -398,7 +408,9 @@ def value_from_json_value(spec: spec.Spec, setting: spec.Setting, value: Any):
         if isinstance(setting.type, types.ConfigTypeSpec):
             return frozenset(
                 types.CompositeConfigType.from_pyvalue(
-                    v, spec=spec, tspec=setting.type,
+                    v,
+                    spec=spec,
+                    tspec=setting.type,
                 )
                 for v in value
             )
@@ -413,7 +425,9 @@ def value_from_json_value(spec: spec.Spec, setting: spec.Setting, value: Any):
                     f'multiple entries for single object {setting.name}'
                 )
             return types.CompositeConfigType.from_pyvalue(
-                value[0], spec=spec, tspec=setting.type,
+                value[0],
+                spec=spec,
+                tspec=setting.type,
             )
         elif _issubclass(setting.type, statypes.Duration):
             return statypes.Duration.from_iso8601(value)
@@ -485,7 +499,8 @@ def from_json(spec: spec.Spec, js: str | bytes) -> SettingsMap:
 
         if not isinstance(dct, dict):
             raise errors.ConfigurationError(
-                'invalid JSON: top-level dict was expected')
+                'invalid JSON: top-level dict was expected'
+            )
 
         for key, value in dct.items():
             setting = spec.get(key)
@@ -549,11 +564,11 @@ def set_value(
     source: str,
     scope: qltypes.ConfigScope,
 ) -> SettingsMap:
-
     secret = name in storage and storage[name].secret
 
     return storage.set(
         name,
-        SettingValue(name=name, value=value, source=source, scope=scope,
-                     secret=secret),
+        SettingValue(
+            name=name, value=value, source=source, scope=scope, secret=secret
+        ),
     )

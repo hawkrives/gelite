@@ -19,7 +19,6 @@
 
 """Compiler functions to generate SQL relations for IR sets."""
 
-
 from __future__ import annotations
 from typing import (
     Callable,
@@ -42,14 +41,12 @@ from edb.edgeql import qltypes
 from edb.schema import objects as s_obj
 from edb.schema import name as sn
 
-from edb.edgeql import ast as qlast
 
 from edb.ir import ast as irast
 from edb.ir import typeutils as irtyputils
 from edb.ir import utils as irutils
 
 from edb.pgsql import ast as pgast
-from edb.pgsql import common
 from edb.pgsql import types as pg_types
 
 from edb.common.typeutils import not_none
@@ -105,7 +102,7 @@ def new_stmt_set_rvar(
     ir_set: irast.Set,
     stmt: pgast.Query,
     *,
-    aspects: Optional[Iterable[pgce.PathAspect]]=None,
+    aspects: Optional[Iterable[pgce.PathAspect]] = None,
     ctx: context.CompilerContextLevel,
 ) -> SetRVars:
     rvar = relctx.new_rel_rvar(ir_set, stmt, ctx=ctx)
@@ -117,7 +114,6 @@ def new_stmt_set_rvar(
 
 
 class OptionalRel(NamedTuple):
-
     scope_rel: pgast.SelectStmt
     target_rel: pgast.SelectStmt
     emptyrel: pgast.SelectStmt
@@ -128,26 +124,33 @@ class OptionalRel(NamedTuple):
 
 
 def _lookup_set_rvar(
-        ir_set: irast.Set, *,
-        scope_stmt: Optional[pgast.SelectStmt]=None,
-        ctx: context.CompilerContextLevel) -> Optional[pgast.PathRangeVar]:
+    ir_set: irast.Set,
+    *,
+    scope_stmt: Optional[pgast.SelectStmt] = None,
+    ctx: context.CompilerContextLevel,
+) -> Optional[pgast.PathRangeVar]:
     path_id = ir_set.path_id
 
-    rvar = relctx.find_rvar(ctx.rel, source_stmt=scope_stmt,
-                            path_id=path_id, ctx=ctx)
+    rvar = relctx.find_rvar(
+        ctx.rel, source_stmt=scope_stmt, path_id=path_id, ctx=ctx
+    )
 
     if rvar is not None:
         return rvar
 
     # We couldn't find a regular rvar, but maybe we can find a packed one?
-    packed_rvar = relctx.find_rvar(ctx.rel, flavor='packed',
-                                   source_stmt=scope_stmt,
-                                   path_id=path_id, ctx=ctx)
+    packed_rvar = relctx.find_rvar(
+        ctx.rel,
+        flavor='packed',
+        source_stmt=scope_stmt,
+        path_id=path_id,
+        ctx=ctx,
+    )
 
     if packed_rvar is not None:
         rvar = relctx.unpack_rvar(
-            scope_stmt or ctx.rel,
-            path_id, packed_rvar=packed_rvar, ctx=ctx)
+            scope_stmt or ctx.rel, path_id, packed_rvar=packed_rvar, ctx=ctx
+        )
 
         return rvar
 
@@ -155,8 +158,8 @@ def _lookup_set_rvar(
 
 
 def get_set_rvar(
-        ir_set: irast.Set, *,
-        ctx: context.CompilerContextLevel) -> pgast.PathRangeVar:
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> pgast.PathRangeVar:
     """Return a PathRangeVar for a given IR Set.
 
     Basically all of compilation comes through here for each set.
@@ -174,7 +177,6 @@ def get_set_rvar(
         return _process_toplevel_query(ir_set, ctx=ctx)
 
     with contextlib.ExitStack() as cstack:
-
         # If there was a scope_stmt registered for our path, we compile
         # as a subrel of that scope_stmt. Otherwise we use whatever the
         # current rel was.
@@ -204,16 +206,17 @@ def get_set_rvar(
         path_scope = relctx.get_scope(ir_set, ctx=subctx)
         new_scope = path_scope or subctx.scope_tree
         is_optional = (
-            subctx.scope_tree.is_optional(path_id) or
-            new_scope.is_optional(path_id) or
-            path_id in subctx.force_optional
+            subctx.scope_tree.is_optional(path_id)
+            or new_scope.is_optional(path_id)
+            or path_id in subctx.force_optional
         ) and not can_omit_optional_wrapper(ir_set, new_scope, ctx=ctx)
 
         optional_wrapping = is_optional and not is_empty_set
 
         if optional_wrapping:
             stmt, optrel = prepare_optional_rel(
-                ir_set=ir_set, stmt=stmt, ctx=subctx)
+                ir_set=ir_set, stmt=stmt, ctx=subctx
+            )
             subctx.pending_query = subctx.rel = stmt
 
         # XXX: This is pretty dodgy, because it updates the path_scope
@@ -239,8 +242,9 @@ def get_set_rvar(
                 srvar.rvar.ir_origins.append(ir_set)
 
         if optional_wrapping:
-            rvars = finalize_optional_rel(ir_set, optrel=optrel,
-                                          rvars=rvars, ctx=subctx)
+            rvars = finalize_optional_rel(
+                ir_set, optrel=optrel, rvars=rvars, ctx=subctx
+            )
             relctx.update_scope_masks(ir_set, rvars.main.rvar, ctx=subctx)
         elif not is_optional and is_empty_set:
             # In most cases it is totally fine for us to represent an
@@ -248,7 +252,8 @@ def get_set_rvar(
             # (except when it needs to be fed to an optional argument)
             null_query = rvars.main.rvar.query
             assert isinstance(
-                null_query, (pgast.SelectStmt, pgast.NullRelation))
+                null_query, (pgast.SelectStmt, pgast.NullRelation)
+            )
             null_query.where_clause = pgast.BooleanConstant(val=False)
 
         result_rvar = _include_rvars(rvars, scope_stmt=scope_stmt, ctx=subctx)
@@ -313,7 +318,8 @@ def _process_toplevel_query(
 
 class _SpecialCaseFunc(Protocol):
     def __call__(
-        self, ir_set: irast.SetE[irast.Call],
+        self,
+        ir_set: irast.SetE[irast.Call],
         *,
         ctx: context.CompilerContextLevel,
     ) -> SetRVars:
@@ -328,9 +334,9 @@ class _FunctionSpecialCase(NamedTuple):
 _SPECIAL_FUNCTIONS: dict[str, _FunctionSpecialCase] = {}
 
 
-def _special_case(name: str, only_as_fallback: bool = False) -> Callable[
-    [_SpecialCaseFunc], _SpecialCaseFunc
-]:
+def _special_case(
+    name: str, only_as_fallback: bool = False
+) -> Callable[[_SpecialCaseFunc], _SpecialCaseFunc]:
     def func(f: _SpecialCaseFunc) -> _SpecialCaseFunc:
         _SPECIAL_FUNCTIONS[name] = _FunctionSpecialCase(f, only_as_fallback)
         return f
@@ -382,8 +388,7 @@ def register_get_rvar[T_expr: irast.Expr](
     typ: type[T_expr],
 ) -> Callable[[_GetExprRvarFunc[T_expr]], _GetExprRvarFunc[T_expr]]:
     def func(f: _GetExprRvarFunc[T_expr]) -> _GetExprRvarFunc[T_expr]:
-        _get_expr_set_rvar.register(typ)(
-            lambda _, ir, *, ctx: f(ir, ctx=ctx))
+        _get_expr_set_rvar.register(typ)(lambda _, ir, *, ctx: f(ir, ctx=ctx))
         return f
 
     return func
@@ -396,27 +401,27 @@ def _get_source_rvar(
     ctx: context.CompilerContextLevel,
 ) -> pgast.PathRangeVar:
     is_optional = (
-        ctx.scope_tree.is_optional(ir_set.path_id) or
-        ir_set.path_id in ctx.force_optional
+        ctx.scope_tree.is_optional(ir_set.path_id)
+        or ir_set.path_id in ctx.force_optional
     )
 
     if not is_optional:
         rvar = relctx.new_root_rvar(ir_set, lateral=True, ctx=ctx)
-        relctx.include_rvar(
-            scope_stmt, rvar, path_id=ir_set.path_id, ctx=ctx
-        )
+        relctx.include_rvar(scope_stmt, rvar, path_id=ir_set.path_id, ctx=ctx)
     else:
         # If the path is optional in the context we are in, then we
         # need to put optional wrapping around the join with the base table.
         with ctx.subrel() as subctx:
             stmt, optrel = prepare_optional_rel(
-                ir_set=ir_set, stmt=subctx.rel, ctx=subctx)
+                ir_set=ir_set, stmt=subctx.rel, ctx=subctx
+            )
             subctx.pending_query = subctx.rel = stmt
 
             rvar = relctx.new_root_rvar(ir_set, lateral=True, ctx=subctx)
             rvars = new_source_set_rvar(ir_set, rvar)
             rvars = finalize_optional_rel(
-                ir_set, optrel=optrel, rvars=rvars, ctx=subctx)
+                ir_set, optrel=optrel, rvars=rvars, ctx=subctx
+            )
 
             rvar = _include_rvars(rvars, scope_stmt=scope_stmt, ctx=ctx)
 
@@ -436,12 +441,14 @@ def ensure_source_rvar(
     """
 
     rvar = relctx.maybe_get_path_rvar(
-        stmt, ir_set.path_id, aspect=pgce.PathAspect.SOURCE, ctx=ctx)
+        stmt, ir_set.path_id, aspect=pgce.PathAspect.SOURCE, ctx=ctx
+    )
     if rvar is None:
         get_set_rvar(ir_set, ctx=ctx)
 
     rvar = relctx.maybe_get_path_rvar(
-        stmt, ir_set.path_id, aspect=pgce.PathAspect.SOURCE, ctx=ctx)
+        stmt, ir_set.path_id, aspect=pgce.PathAspect.SOURCE, ctx=ctx
+    )
     if rvar is None:
         scope_stmt = relctx.maybe_get_scope_stmt(ir_set.path_id, ctx=ctx)
         if scope_stmt is None:
@@ -467,17 +474,22 @@ def ensure_source_rvar(
             else:
                 rvar = _get_source_rvar(ir_set, scope_stmt, ctx=ctx)
             pathctx.put_path_rvar(
-                stmt, ir_set.path_id, rvar, aspect=pgce.PathAspect.SOURCE,
+                stmt,
+                ir_set.path_id,
+                rvar,
+                aspect=pgce.PathAspect.SOURCE,
             )
 
     return rvar
 
 
 def set_as_subquery(
-        ir_set: irast.Set, *,
-        as_value: bool=False,
-        explicit_cast: Optional[tuple[str, ...]] = None,
-        ctx: context.CompilerContextLevel) -> pgast.Query:
+    ir_set: irast.Set,
+    *,
+    as_value: bool = False,
+    explicit_cast: Optional[tuple[str, ...]] = None,
+    ctx: context.CompilerContextLevel,
+) -> pgast.Query:
     # Compile *ir_set* into a subquery as follows:
     #     (
     #         SELECT <set_rel>.v
@@ -489,16 +501,18 @@ def set_as_subquery(
         dispatch.visit(ir_set, ctx=subctx)
 
         if as_value:
-
             if output.in_serialization_ctx(ctx):
                 pathctx.get_path_serialized_output(
-                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env)
+                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env
+                )
             else:
                 pathctx.get_path_value_output(
-                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env)
+                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env
+                )
 
                 var = pathctx.get_path_value_var(
-                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env)
+                    rel=wrapper, path_id=ir_set.path_id, env=ctx.env
+                )
                 value = output.output_as_value(var, env=ctx.env)
 
                 if explicit_cast is not None:
@@ -507,19 +521,21 @@ def set_as_subquery(
                         type_name=pgast.TypeName(name=explicit_cast),
                     )
 
-                wrapper.target_list = [
-                    pgast.ResTarget(val=value)
-                ]
+                wrapper.target_list = [pgast.ResTarget(val=value)]
         else:
             pathctx.get_path_value_output(
-                rel=wrapper, path_id=ir_set.path_id, env=ctx.env)
+                rel=wrapper, path_id=ir_set.path_id, env=ctx.env
+            )
 
     return wrapper
 
 
 def can_omit_optional_wrapper(
-        ir_set: irast.Set, new_scope: irast.ScopeTreeNode, *,
-        ctx: context.CompilerContextLevel) -> bool:
+    ir_set: irast.Set,
+    new_scope: irast.ScopeTreeNode,
+    *,
+    ctx: context.CompilerContextLevel,
+) -> bool:
     """Determine whether it is safe to omit the optional wrapper.
 
     Doing so is safe when the expression is guarenteed to result in
@@ -546,15 +562,15 @@ def can_omit_optional_wrapper(
     # cases. This is mainly an optimization for passing globals to
     # functions, where we need to convert a bunch of optional params
     # to json, and for casting out of json there and in schema updates.
-    if (
-        isinstance(ir_set.expr, irast.TypeCast)
-        and ((
+    if isinstance(ir_set.expr, irast.TypeCast) and (
+        (
             irtyputils.is_scalar(ir_set.expr.expr.typeref)
             and irtyputils.is_json(ir_set.expr.to_type)
-        ) or (
+        )
+        or (
             irtyputils.is_json(ir_set.expr.expr.typeref)
             and irtyputils.is_scalar(ir_set.expr.to_type)
-        ))
+        )
     ):
         return can_omit_optional_wrapper(
             ir_set.expr.expr,
@@ -579,10 +595,11 @@ def can_omit_optional_wrapper(
 
 
 def prepare_optional_rel(
-        *, ir_set: irast.Set, stmt: pgast.SelectStmt,
-        ctx: context.CompilerContextLevel) \
-        -> tuple[pgast.SelectStmt, OptionalRel]:
-
+    *,
+    ir_set: irast.Set,
+    stmt: pgast.SelectStmt,
+    ctx: context.CompilerContextLevel,
+) -> tuple[pgast.SelectStmt, OptionalRel]:
     # For OPTIONAL sets we compute a UNION of both sides and annotate
     # each side with a marker.  We then select only rows that match
     # the marker of the first row:
@@ -607,7 +624,6 @@ def prepare_optional_rel(
             wrapper = wrapctx.rel
 
             with wrapctx.subrel() as unionctx:
-
                 with unionctx.subrel() as scopectx:
                     scope_rel = scopectx.rel
 
@@ -624,22 +640,30 @@ def prepare_optional_rel(
 
                     emptyrvar = relctx.new_empty_rvar(
                         cast('irast.SetE[irast.EmptySet]', empty_ir),
-                        ctx=scopectx)
+                        ctx=scopectx,
+                    )
 
                     relctx.include_rvar(
-                        emptyrel, emptyrvar, path_id=ir_set.path_id,
-                        ctx=scopectx)
+                        emptyrel,
+                        emptyrvar,
+                        path_id=ir_set.path_id,
+                        ctx=scopectx,
+                    )
 
                 marker = unionctx.env.aliases.get('m')
 
                 scope_rel.target_list.insert(
                     0,
-                    pgast.ResTarget(val=pgast.NumericConstant(val='1'),
-                                    name=marker))
+                    pgast.ResTarget(
+                        val=pgast.NumericConstant(val='1'), name=marker
+                    ),
+                )
                 emptyrel.target_list.insert(
                     0,
-                    pgast.ResTarget(val=pgast.NumericConstant(val='2'),
-                                    name=marker))
+                    pgast.ResTarget(
+                        val=pgast.NumericConstant(val='2'), name=marker
+                    ),
+                )
 
                 unionqry = unionctx.rel
                 unionqry.op = 'UNION'
@@ -650,7 +674,7 @@ def prepare_optional_rel(
             lagged_marker = pgast.FuncCall(
                 name=('first_value',),
                 args=[pgast.ColumnRef(name=[marker])],
-                over=pgast.WindowDef()
+                over=pgast.WindowDef(),
             )
 
             marker_ok = astutils.new_binop(
@@ -660,31 +684,40 @@ def prepare_optional_rel(
             )
 
             wrapper.target_list.append(
-                pgast.ResTarget(
-                    name=marker,
-                    val=marker_ok
-                )
+                pgast.ResTarget(name=marker, val=marker_ok)
             )
 
     return (
         target_rel,
-        OptionalRel(scope_rel=scope_rel, target_rel=target_rel,
-                    emptyrel=emptyrel, unionrel=unionqry,
-                    wrapper=wrapper, container=stmt, marker=marker)
+        OptionalRel(
+            scope_rel=scope_rel,
+            target_rel=target_rel,
+            emptyrel=emptyrel,
+            unionrel=unionqry,
+            wrapper=wrapper,
+            container=stmt,
+            marker=marker,
+        ),
     )
 
 
 def finalize_optional_rel(
-        ir_set: irast.Set, optrel: OptionalRel, rvars: SetRVars,
-        ctx: context.CompilerContextLevel) -> SetRVars:
-
+    ir_set: irast.Set,
+    optrel: OptionalRel,
+    rvars: SetRVars,
+    ctx: context.CompilerContextLevel,
+) -> SetRVars:
     with ctx.new() as subctx:
         subctx.rel = setrel = optrel.scope_rel
 
         for set_rvar in rvars.new:
             relctx.include_specific_rvar(
-                setrel, set_rvar.rvar, path_id=set_rvar.path_id,
-                aspects=set_rvar.aspects, ctx=subctx)
+                setrel,
+                set_rvar.rvar,
+                path_id=set_rvar.path_id,
+                aspects=set_rvar.aspects,
+                ctx=subctx,
+            )
 
         for aspect in rvars.main.aspects:
             pathctx.put_path_rvar_if_not_exists(
@@ -692,17 +725,15 @@ def finalize_optional_rel(
             )
 
         lvar = pathctx.get_path_value_var(
-            setrel, path_id=ir_set.path_id, env=subctx.env)
+            setrel, path_id=ir_set.path_id, env=subctx.env
+        )
 
         if lvar.nullable:
             # The left var is still nullable, which may be the
             # case for non-required singleton properties.
             # Filter out NULLs.
             setrel.where_clause = astutils.extend_binop(
-                setrel.where_clause,
-                pgast.NullTest(
-                    arg=lvar, negated=True
-                )
+                setrel.where_clause, pgast.NullTest(arg=lvar, negated=True)
             )
 
     unionrel = optrel.unionrel
@@ -720,28 +751,29 @@ def finalize_optional_rel(
 
         stmt.where_clause = astutils.extend_binop(
             stmt.where_clause,
-            astutils.get_column(wrapper_rvar, optrel.marker, nullable=False))
+            astutils.get_column(wrapper_rvar, optrel.marker, nullable=False),
+        )
 
         stmt.nullable = True
 
-    sub_rvar = SetRVar(rvar=relctx.new_rel_rvar(ir_set, stmt, ctx=ctx),
-                       path_id=ir_set.path_id,
-                       aspects=rvars.main.aspects)
+    sub_rvar = SetRVar(
+        rvar=relctx.new_rel_rvar(ir_set, stmt, ctx=ctx),
+        path_id=ir_set.path_id,
+        aspects=rvars.main.aspects,
+    )
 
     return SetRVars(main=sub_rvar, new=[sub_rvar])
 
 
-def get_set_rel_alias(ir_set: irast.Set, *,
-                      ctx: context.CompilerContextLevel) -> str:
+def get_set_rel_alias(
+    ir_set: irast.Set, *, ctx: context.CompilerContextLevel
+) -> str:
     dname = ir_set.path_id.target_name_hint.name
     if (
         isinstance(ir_set.expr, irast.Pointer)
         and ir_set.expr.source.typeref is not None
     ):
-        alias_hint = '{}_{}'.format(
-            dname,
-            ir_set.expr.ptrref.shortname.name
-        )
+        alias_hint = '{}_{}'.format(dname, ir_set.expr.ptrref.shortname.name)
     else:
         alias_hint = dname.replace('~', '-')
 
@@ -752,7 +784,6 @@ def get_set_rel_alias(ir_set: irast.Set, *,
 def process_set_as_root(
     ir_set: irast.Set, *, ctx: context.CompilerContextLevel
 ) -> SetRVars:
-
     # TODO(ir): Represent these as something other than TypeRoot?
     if ir_set.path_id in ctx.external_rels:
         return process_external_rel(ir_set, ctx=ctx)
@@ -771,7 +802,8 @@ register_get_rvar(irast.TypeRoot)(process_set_as_root)
 @register_get_rvar(irast.VisibleBindingExpr)
 def process_set_as_visible_binding(
     ir_set: irast.SetE[irast.VisibleBindingExpr],
-    *, ctx: context.CompilerContextLevel
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> SetRVars:
     raise AssertionError(
         f"Can't compile ref to visible binding {ir_set.path_id}"
@@ -781,7 +813,8 @@ def process_set_as_visible_binding(
 @register_get_rvar(irast.InlinedParameterExpr)
 def process_set_as_inlined_parameter(
     ir_set: irast.SetE[irast.InlinedParameterExpr],
-    *, ctx: context.CompilerContextLevel
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> SetRVars:
     raise AssertionError(
         f"Can't compile ref to inline parameter {ir_set.path_id}"
@@ -792,7 +825,6 @@ def process_set_as_inlined_parameter(
 def process_set_as_empty(
     ir_set: irast.SetE[irast.EmptySet], *, ctx: context.CompilerContextLevel
 ) -> SetRVars:
-
     rvar = relctx.new_empty_rvar(ir_set, ctx=ctx)
     return new_source_set_rvar(ir_set, rvar)
 
@@ -817,10 +849,13 @@ def process_set_as_link_property_ref(
 
     lpropref = rptr.ptrref
     ptr_info = pg_types.get_ptrref_storage_info(
-        lpropref, resolve_type=False, link_bias=False)
+        lpropref, resolve_type=False, link_bias=False
+    )
 
-    if (ptr_info.table_type == 'ObjectType' or
-            str(lpropref.std_parent_name) == 'std::target'):
+    if (
+        ptr_info.table_type == 'ObjectType'
+        or str(lpropref.std_parent_name) == 'std::target'
+    ):
         # This is a singleton link property stored in source rel,
         # e.g. @target
         src_rvar = get_set_rvar(ir_source, ctx=ctx)
@@ -837,7 +872,8 @@ def process_set_as_link_property_ref(
         )
 
         return SetRVars(
-            main=SetRVar(rvar=src_rvar, path_id=ir_set.path_id), new=[])
+            main=SetRVar(rvar=src_rvar, path_id=ir_set.path_id), new=[]
+        )
 
     with ctx.new() as newctx:
         link_path_id = ir_set.path_id.src_path()
@@ -847,16 +883,17 @@ def process_set_as_link_property_ref(
 
         if link_path_id.is_type_intersection_path():
             rptr_specialization = set()
-            link_prefix, ind_ptrs = (
-                irutils.collapse_type_intersection(ir_source))
+            link_prefix, ind_ptrs = irutils.collapse_type_intersection(
+                ir_source
+            )
             for ind_ptr in ind_ptrs:
                 rptr_specialization.update(ind_ptr.ptrref.rptr_specialization)
         else:
             link_prefix = ir_source
 
-        source_scope_stmt = relctx.maybe_get_scope_stmt(
-            ir_source.path_id, ctx=ctx
-        ) or ctx.rel
+        source_scope_stmt = (
+            relctx.maybe_get_scope_stmt(ir_source.path_id, ctx=ctx) or ctx.rel
+        )
         link_rvar = pathctx.maybe_get_path_rvar(
             source_scope_stmt, link_path_id, aspect=pgce.PathAspect.SOURCE
         )
@@ -864,15 +901,17 @@ def process_set_as_link_property_ref(
         if link_rvar is None:
             src_rvar = get_set_rvar(ir_source, ctx=newctx)
             assert irutils.is_set_instance(link_prefix, irast.Pointer), (
-                f'projecting lprop on {link_prefix.expr}')
+                f'projecting lprop on {link_prefix.expr}'
+            )
             link_rvar = relctx.new_pointer_rvar(
-                link_prefix, src_rvar=src_rvar,
-                link_bias=True, ctx=newctx)
+                link_prefix, src_rvar=src_rvar, link_bias=True, ctx=newctx
+            )
             # Make sure the link rvar understands the path_id we are using.
             # (FIXME: Would it be better to pass this in to new_pointer_rvar?)
             pathctx.put_path_bond(link_rvar.query, link_path_id.tgt_path())
             var = pathctx.get_rvar_path_identity_var(
-                link_rvar, link_prefix.path_id, env=ctx.env)
+                link_rvar, link_prefix.path_id, env=ctx.env
+            )
             pathctx.put_rvar_path_output(
                 link_rvar,
                 link_path_id.tgt_path(),
@@ -888,11 +927,13 @@ def process_set_as_link_property_ref(
             # property references to correct UNION subqueries.
             ptr_ids = (
                 {spec.id for spec in rptr_specialization}
-                if rptr_specialization is not None else None
+                if rptr_specialization is not None
+                else None
             )
             if ptr_ids and rptr_specialization:
                 ptr_ids.update(
-                    x.id for spec in rptr_specialization
+                    x.id
+                    for spec in rptr_specialization
                     for x in spec.descendants()
                     if isinstance(x, irast.PointerRef)
                 )
@@ -916,7 +957,8 @@ def process_set_as_link_property_ref(
                         arg=pgast.NullConstant(),
                         type_name=pgast.TypeName(
                             name=pg_types.pg_type_from_ir_typeref(
-                                ir_set.typeref),
+                                ir_set.typeref
+                            ),
                         ),
                     ),
                 )
@@ -933,14 +975,16 @@ def process_set_as_link_property_ref(
                     pathctx.put_path_id_map(
                         link_rvar.query,
                         link_path_id,
-                        from_rvar.relation.query.path_id
+                        from_rvar.relation.query.path_id,
                     )
 
-        rvars.append(SetRVar(
-            link_rvar,
-            link_path_id,
-            aspects=[pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE],
-        ))
+        rvars.append(
+            SetRVar(
+                link_rvar,
+                link_path_id,
+                aspects=[pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE],
+            )
+        )
 
     return SetRVars(main=SetRVar(link_rvar, ir_set.path_id), new=rvars)
 
@@ -967,26 +1011,29 @@ def process_set_as_path_type_intersection(
             expr=irast.EmptySet(typeref=ir_set.typeref),
         )
         source_rvar = relctx.new_empty_rvar(
-            cast('irast.SetE[irast.EmptySet]', empty_ir),
-            ctx=ctx)
+            cast('irast.SetE[irast.EmptySet]', empty_ir), ctx=ctx
+        )
         relctx.include_rvar(stmt, source_rvar, ir_set.path_id, ctx=ctx)
 
-    elif (not source_is_visible
-            and isinstance(ir_source.expr, irast.Pointer)
-            and not ir_source.path_id.is_type_intersection_path()
-            and not ir_source.expr.expr
-            and (
-                rptr.ptrref.is_subtype
-                or pg_types.get_ptrref_storage_info(
-                    ir_source.expr.ptrref).table_type != 'ObjectType'
-            )):
+    elif (
+        not source_is_visible
+        and isinstance(ir_source.expr, irast.Pointer)
+        and not ir_source.path_id.is_type_intersection_path()
+        and not ir_source.expr.expr
+        and (
+            rptr.ptrref.is_subtype
+            or pg_types.get_ptrref_storage_info(
+                ir_source.expr.ptrref
+            ).table_type
+            != 'ObjectType'
+        )
+    ):
         # Otherwise, if the source link path is not visible,
         # and this is a subtype intersection, or the pointer is not inline,
         # we have an opportunity to opmimize the target join by
         # directly replacing the target type.
         with ctx.new() as subctx:
-            subctx.intersection_narrowing = (
-                subctx.intersection_narrowing.copy())
+            subctx.intersection_narrowing = subctx.intersection_narrowing.copy()
             subctx.intersection_narrowing[ir_source] = ir_set
             source_rvar = get_set_rvar(ir_source, ctx=subctx)
 
@@ -1008,7 +1055,8 @@ def process_set_as_path_type_intersection(
         assert prefix_path_id is not None, 'expected a path'
 
         relctx.deep_copy_primitive_rvar_path_var(
-            ir_set.path_id, prefix_path_id, poly_rvar, env=ctx.env)
+            ir_set.path_id, prefix_path_id, poly_rvar, env=ctx.env
+        )
         pathctx.put_rvar_path_bond(poly_rvar, prefix_path_id)
         relctx.include_rvar(stmt, poly_rvar, ir_set.path_id, ctx=ctx)
         int_rvar = pgast.IntersectionRangeVar(
@@ -1020,7 +1068,8 @@ def process_set_as_path_type_intersection(
 
         if isinstance(source_rvar.query, pgast.Query):
             pathctx.put_path_id_map(
-                source_rvar.query, ir_set.path_id, ir_source.path_id)
+                source_rvar.query, ir_set.path_id, ir_source.path_id
+            )
 
         for aspect in (pgce.PathAspect.SOURCE, pgce.PathAspect.VALUE):
             pathctx.put_path_rvar(
@@ -1064,8 +1113,8 @@ def process_set_as_path_type_intersection(
 
 
 def _source_path_needs_semi_join(
-        ir_source: irast.Set,
-        ctx: context.CompilerContextLevel) -> bool:
+    ir_source: irast.Set, ctx: context.CompilerContextLevel
+) -> bool:
     """Check if the path might need a semi-join
 
     It does not need one if it has a visible prefix followed by single
@@ -1094,8 +1143,7 @@ def _source_path_needs_semi_join(
 
 @register_get_rvar(irast.Pointer)
 def process_set_as_path(
-    ir_set: irast.SetE[irast.Pointer],
-    *, ctx: context.CompilerContextLevel
+    ir_set: irast.SetE[irast.Pointer], *, ctx: context.CompilerContextLevel
 ) -> SetRVars:
     if ir_set.expr.expr:
         return process_set_as_subquery(ir_set, ctx=ctx)
@@ -1124,9 +1172,10 @@ def process_set_as_path(
     is_id_ref_to_inline_source = False
 
     semi_join = (
-        ir_set.path_id not in ctx.disable_semi_join and
-        not (is_linkprop or is_primitive_ref) and
-        _source_path_needs_semi_join(ir_source, ctx=ctx) and
+        ir_set.path_id not in ctx.disable_semi_join
+        and not (is_linkprop or is_primitive_ref)
+        and _source_path_needs_semi_join(ir_source, ctx=ctx)
+        and
         # This is an optimization for when we are inside of a semi-join on
         # a computable: process_set_as_subquery will have included an
         # rvar for the computable source, and we want to join on it
@@ -1149,8 +1198,7 @@ def process_set_as_path(
         )
         empty_rvar = SetRVar(
             relctx.new_empty_rvar(
-                cast('irast.SetE[irast.EmptySet]', empty_ir),
-                ctx=ctx
+                cast('irast.SetE[irast.EmptySet]', empty_ir), ctx=ctx
             ),
             path_id=ir_set.path_id,
             aspects=aspects,
@@ -1159,23 +1207,27 @@ def process_set_as_path(
 
     main_rvar = None
     source_rptr = (
-        ir_source.expr if isinstance(ir_source.expr, irast.Pointer) else None)
-    if (irtyputils.is_id_ptrref(ptrref) and source_rptr is not None
-            and isinstance(source_rptr.ptrref, irast.PointerRef)
-            and not source_rptr.is_inbound
-            and not irtyputils.is_computable_ptrref(source_rptr.ptrref)
-            and not irutils.is_type_intersection_reference(ir_set)
-            and not pathctx.link_needs_type_rewrite(
-                ir_source.typeref, env=ctx.env)):
-
+        ir_source.expr if isinstance(ir_source.expr, irast.Pointer) else None
+    )
+    if (
+        irtyputils.is_id_ptrref(ptrref)
+        and source_rptr is not None
+        and isinstance(source_rptr.ptrref, irast.PointerRef)
+        and not source_rptr.is_inbound
+        and not irtyputils.is_computable_ptrref(source_rptr.ptrref)
+        and not irutils.is_type_intersection_reference(ir_set)
+        and not pathctx.link_needs_type_rewrite(ir_source.typeref, env=ctx.env)
+    ):
         src_src_is_visible = ctx.scope_tree.is_visible(
-            source_rptr.source.path_id)
+            source_rptr.source.path_id
+        )
 
         # Record the ptrref visibility in a way that get_path_var
         # can access, to properly apply the second part of this
         # optimization.
         ctx.env.ptrref_source_visibility[source_rptr.ptrref] = (
-            src_src_is_visible)
+            src_src_is_visible
+        )
 
         if src_src_is_visible:
             # When there is a reference to the id property of
@@ -1188,10 +1240,14 @@ def process_set_as_path(
             # __type__[IS Array].id, or if Foo is not visible in
             # this scope.
             source_ptr_info = pg_types.get_ptrref_storage_info(
-                source_rptr.ptrref, resolve_type=False, link_bias=False,
-                allow_missing=True)
+                source_rptr.ptrref,
+                resolve_type=False,
+                link_bias=False,
+                allow_missing=True,
+            )
             is_id_ref_to_inline_source = bool(
-                source_ptr_info and source_ptr_info.table_type == 'ObjectType')
+                source_ptr_info and source_ptr_info.table_type == 'ObjectType'
+            )
 
     if semi_join:
         with ctx.subrel() as srcctx:
@@ -1203,11 +1259,13 @@ def process_set_as_path(
             if not ir_source.path_id.is_type_intersection_path():
                 src_rvar = ensure_source_rvar(ir_source, stmt, ctx=srcctx)
             set_rvar = relctx.semi_join(stmt, ir_set, src_rvar, ctx=srcctx)
-            rvars.append(SetRVar(
-                set_rvar,
-                ir_set.path_id,
-                [pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE]
-            ))
+            rvars.append(
+                SetRVar(
+                    set_rvar,
+                    ir_set.path_id,
+                    [pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE],
+                )
+            )
 
     elif is_id_ref_to_inline_source:
         assert source_rptr is not None
@@ -1226,11 +1284,13 @@ def process_set_as_path(
                 ensure_source_rvar(ir_source, srcctx.rel, ctx=srcctx)
 
                 var = pathctx.get_path_value_var(
-                    srcctx.rel, path_id=ir_set.path_id, env=ctx.env)
+                    srcctx.rel, path_id=ir_set.path_id, env=ctx.env
+                )
                 if var.nullable:
                     srcctx.rel.where_clause = astutils.extend_binop(
                         srcctx.rel.where_clause,
-                        pgast.NullTest(arg=var, negated=True))
+                        pgast.NullTest(arg=var, negated=True),
+                    )
 
         srcrel = srcctx.rel
         src_rvar = relctx.rvar_for_rel(srcrel, lateral=True, ctx=srcctx)
@@ -1247,7 +1307,7 @@ def process_set_as_path(
         main_rvar = SetRVar(
             ensure_source_rvar(ir_source, stmt, ctx=ctx),
             path_id=ir_set.path_id,
-            aspects=[pgce.PathAspect.VALUE]
+            aspects=[pgce.PathAspect.VALUE],
         )
 
     elif is_inline_primitive_ref:
@@ -1258,7 +1318,7 @@ def process_set_as_path(
         main_rvar = SetRVar(
             ensure_source_rvar(ir_source, stmt, ctx=ctx),
             path_id=ir_set.path_id,
-            aspects=[pgce.PathAspect.VALUE]
+            aspects=[pgce.PathAspect.VALUE],
         )
         rvars = [main_rvar]
 
@@ -1274,11 +1334,13 @@ def process_set_as_path(
             # source aspect wasn't available, make sure we include it
             # in our return. This can come up with __old__ in triggers.
             if source_is_visible:
-                rvars.append(SetRVar(
-                    src_rvar,
-                    path_id=ir_source.path_id,
-                    aspects=[pgce.PathAspect.SOURCE]
-                ))
+                rvars.append(
+                    SetRVar(
+                        src_rvar,
+                        path_id=ir_source.path_id,
+                        aspects=[pgce.PathAspect.SOURCE],
+                    )
+                )
         else:
             aspects = [pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE]
             src_rvar = get_set_rvar(ir_source, ctx=ctx)
@@ -1286,7 +1348,7 @@ def process_set_as_path(
         map_rvar = SetRVar(
             relctx.new_pointer_rvar(ir_set, src_rvar=src_rvar, ctx=ctx),
             path_id=ir_set.path_id.ptr_path(),
-            aspects=aspects
+            aspects=aspects,
         )
 
         rvars.append(map_rvar)
@@ -1298,7 +1360,7 @@ def process_set_as_path(
             main_rvar = SetRVar(
                 target_rvar,
                 path_id=ir_set.path_id,
-                aspects=[pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE]
+                aspects=[pgce.PathAspect.VALUE, pgce.PathAspect.SOURCE],
             )
 
             rvars.append(main_rvar)
@@ -1317,8 +1379,12 @@ def process_set_as_path(
         # rather than a simple set of ranges.
         for srvar in rvars:
             relctx.include_specific_rvar(
-                stmt, srvar.rvar, path_id=srvar.path_id,
-                aspects=srvar.aspects, ctx=ctx)
+                stmt,
+                srvar.rvar,
+                path_id=srvar.path_id,
+                aspects=srvar.aspects,
+                ctx=ctx,
+            )
 
         if is_primitive_ref:
             aspects = [pgce.PathAspect.VALUE]
@@ -1350,14 +1416,15 @@ def _new_subquery_stmt_set_rvar(
         # over-represent it in terms of the exposed aspects.
         aspects -= {pgce.PathAspect.SERIALIZED}
 
-    return new_stmt_set_rvar(
-        ir_set, stmt, aspects=aspects, ctx=ctx)
+    return new_stmt_set_rvar(ir_set, stmt, aspects=aspects, ctx=ctx)
 
 
 def _lookup_set_rvar_in_source(
-        ir_set: irast.Set,
-        src_rvar: Optional[pgast.PathRangeVar], *,
-        ctx: context.CompilerContextLevel) -> Optional[pgast.PathRangeVar]:
+    ir_set: irast.Set,
+    src_rvar: Optional[pgast.PathRangeVar],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> Optional[pgast.PathRangeVar]:
     if not (
         ir_set.is_materialized_ref
         and isinstance(src_rvar, pgast.RangeSubselect)
@@ -1390,7 +1457,8 @@ def _lookup_set_rvar_in_source(
         env=ctx.env,
     ):
         return relctx.unpack_var(
-            ctx.rel, ir_set.path_id, ref=packed_ref, ctx=ctx)
+            ctx.rel, ir_set.path_id, ref=packed_ref, ctx=ctx
+        )
     return None
 
 
@@ -1446,8 +1514,7 @@ def process_set_as_subquery(
         # aliases/globals.  While they might try to apply volatility
         # refs due to FOR/free objects, it shouldn't be semantically
         # necessary that they actually are attached to the enclosing
-        # location. This turns out to be an important optimization for
-        # ext::auth::ClientTokenIdentity.
+        # location.
         if ir_set.is_schema_alias:
             newctx.volatility_ref = ()
 
@@ -1512,17 +1579,22 @@ def process_set_as_subquery(
                     ensure_source_rvar(ir_source, subctx.rel, ctx=subctx)
 
                 relctx.include_rvar(
-                    stmt, subrvar, ir_source.path_id, ctx=newctx)
+                    stmt, subrvar, ir_source.path_id, ctx=newctx
+                )
 
         # If we are looking at a materialized computable, running
         # get_set_rvar on the source above may have made it show
         # up. So try to lookup the rvar again, and try to look it up
         # in the source_rvar itself, and if we find it, skip compiling
         # the computable.
-        if ir_source and (new_rvar := (
-            _lookup_set_rvar(ir_set, ctx=newctx)
-            or _lookup_set_rvar_in_source(ir_set, source_set_rvar, ctx=newctx)
-        )):
+        if ir_source and (
+            new_rvar := (
+                _lookup_set_rvar(ir_set, ctx=newctx)
+                or _lookup_set_rvar_in_source(
+                    ir_set, source_set_rvar, ctx=newctx
+                )
+            )
+        ):
             if semi_join:
                 # We need to use DISTINCT, instead of doing an actual
                 # semi-join, unfortunately: we need to extract data
@@ -1533,13 +1605,11 @@ def process_set_as_subquery(
                     aspect=pgce.PathAspect.VALUE,
                     env=ctx.env,
                 )
-                stmt.distinct_clause = (
-                    pathctx.get_rvar_output_var_as_col_list(
-                        subrvar,
-                        value_var,
-                        aspect=pgce.PathAspect.VALUE,
-                        env=ctx.env,
-                    )
+                stmt.distinct_clause = pathctx.get_rvar_output_var_as_col_list(
+                    subrvar,
+                    value_var,
+                    aspect=pgce.PathAspect.VALUE,
+                    env=ctx.env,
                 )
 
             return _new_subquery_stmt_set_rvar(ir_set, stmt, ctx=newctx)
@@ -1570,10 +1640,10 @@ def process_set_as_subquery(
         if semi_join:
             set_rvar = relctx.new_root_rvar(ir_set, ctx=newctx)
             tgt_ref = pathctx.get_rvar_path_identity_var(
-                set_rvar, ir_set.path_id, env=ctx.env)
+                set_rvar, ir_set.path_id, env=ctx.env
+            )
 
-            pathctx.get_path_identity_output(
-                stmt, ir_set.path_id, env=ctx.env)
+            pathctx.get_path_identity_output(stmt, ir_set.path_id, env=ctx.env)
             cond_expr = astutils.new_binop(tgt_ref, stmt, 'IN')
 
             # Make a new stmt, join in the new root, and semi join on
@@ -1581,7 +1651,8 @@ def process_set_as_subquery(
             stmt = pgast.SelectStmt()
             relctx.include_rvar(stmt, set_rvar, ir_set.path_id, ctx=newctx)
             stmt.where_clause = astutils.extend_binop(
-                stmt.where_clause, cond_expr)
+                stmt.where_clause, cond_expr
+            )
 
     rvars = _new_subquery_stmt_set_rvar(ir_set, stmt, ctx=ctx)
     # If the inner set also exposes a pointer path source, we need to
@@ -1647,19 +1718,16 @@ def process_set_as_membership_expr(
         with newctx.subrel() as _, _.newscope() as subctx:
             if is_array_unpack:
                 relctx.update_scope(orig_right_arg, subctx.rel, ctx=subctx)
-                relctx.update_scope(
-                    unwrapped_right_arg, subctx.rel, ctx=subctx)
+                relctx.update_scope(unwrapped_right_arg, subctx.rel, ctx=subctx)
 
             dispatch.compile(right_arg, ctx=subctx)
             right_rel = subctx.rel
             right_out = pathctx.get_path_value_var(
-                right_rel, right_arg.path_id, env=subctx.env)
+                right_rel, right_arg.path_id, env=subctx.env
+            )
             right_out = output.output_as_value(right_out, env=ctx.env)
 
-            if (
-                left_is_row_expr
-                and right_arg.path_id.is_tuple_path()
-            ):
+            if left_is_row_expr and right_arg.path_id.is_tuple_path():
                 # When the RHS is an opaque tuple, we must unpack
                 # it using the (...).* indirection syntax, otherwise
                 # we get "subquery has too few columns".
@@ -1674,9 +1742,8 @@ def process_set_as_membership_expr(
                 right_rel = pgast.TypeCast(
                     arg=right_rel,
                     type_name=pgast.TypeName(
-                        name=pg_types.pg_type_from_ir_typeref(
-                            right_arg.typeref)
-                    )
+                        name=pg_types.pg_type_from_ir_typeref(right_arg.typeref)
+                    ),
                 )
 
             negated = str(expr.func_shortname) == 'std::NOT IN'
@@ -1697,8 +1764,9 @@ def process_set_as_membership_expr(
             # need to coalesce if that is possible.
             if needs_coalesce:
                 empty_val = negated
-                set_expr = pgast.CoalesceExpr(args=[
-                    set_expr, pgast.BooleanConstant(val=empty_val)])
+                set_expr = pgast.CoalesceExpr(
+                    args=[set_expr, pgast.BooleanConstant(val=empty_val)]
+                )
 
             # Filter out situations where the LHS is a SQL NULL,
             # since those will report false instead of {}.
@@ -1779,7 +1847,8 @@ def process_set_as_distinct(
         pathctx.put_path_id_map(subqry, ir_set.path_id, arg.path_id)
         dispatch.visit(arg, ctx=subctx)
         subrvar = relctx.rvar_for_rel(
-            subqry, typeref=arg.typeref, lateral=True, ctx=subctx)
+            subqry, typeref=arg.typeref, lateral=True, ctx=subctx
+        )
 
     relctx.include_rvar(stmt, subrvar, ir_set.path_id, ctx=ctx)
 
@@ -1829,8 +1898,11 @@ def process_set_as_ifelse(
             ctx=newctx,
         )
 
-    if (if_expr_card.is_single() and else_expr_card.is_single()
-            and irtyputils.is_scalar(expr.typeref)):
+    if (
+        if_expr_card.is_single()
+        and else_expr_card.is_single()
+        and irtyputils.is_scalar(expr.typeref)
+    ):
         # For a simple case of singleton scalars on both ends of IF,
         # use a CASE WHEN construct, since it's normally faster than
         # a UNION ALL with filters.  The reason why we limit this
@@ -1863,14 +1935,12 @@ def process_set_as_ifelse(
             relctx.include_rvar(stmt, sub_rvar, ir_set.path_id, ctx=subctx)
 
         rvar = pathctx.get_path_value_var(
-            stmt, path_id=ir_set.path_id, env=ctx.env)
+            stmt, path_id=ir_set.path_id, env=ctx.env
+        )
         # We need to NULL filter both the result and the input condition
         for var in [rvar, condref]:
             stmt.where_clause = astutils.extend_binop(
-                stmt.where_clause,
-                pgast.NullTest(
-                    arg=var, negated=True
-                )
+                stmt.where_clause, pgast.NullTest(arg=var, negated=True)
             )
 
     else:
@@ -1881,8 +1951,7 @@ def process_set_as_ifelse(
             dispatch.visit(if_expr, ctx=subctx)
 
             larg.where_clause = astutils.extend_binop(
-                larg.where_clause,
-                condref
+                larg.where_clause, condref
             )
 
         with ctx.subrel() as _, _.newscope() as subctx:
@@ -1892,8 +1961,7 @@ def process_set_as_ifelse(
             dispatch.visit(else_expr, ctx=subctx)
 
             rarg.where_clause = astutils.extend_binop(
-                rarg.where_clause,
-                astutils.new_unop('NOT', condref)
+                rarg.where_clause, astutils.new_unop('NOT', condref)
             )
 
         aspects = pathctx.list_path_aspects(
@@ -1931,8 +1999,7 @@ def process_set_as_coalesce(
         left_ir, right_ir = (a.expr for a in expr.args.values())
         _left_card, right_card = (a.cardinality for a in expr.args.values())
         is_object = (
-            ir_set.path_id.is_objtype_path()
-            or ir_set.path_id.is_tuple_path()
+            ir_set.path_id.is_objtype_path() or ir_set.path_id.is_tuple_path()
         )
 
         # The cardinality optimization below applies only to
@@ -2000,10 +2067,7 @@ def process_set_as_coalesce(
 
                 # Include the LHS when it is not NULL.
                 larg.where_clause = astutils.extend_binop(
-                    larg.where_clause,
-                    pgast.NullTest(
-                        arg=lval, negated=True
-                    )
+                    larg.where_clause, pgast.NullTest(arg=lval, negated=True)
                 )
 
             with newctx.subrel() as rctx:
@@ -2021,7 +2085,8 @@ def process_set_as_coalesce(
                 rarg.where_clause = astutils.extend_binop(
                     rarg.where_clause,
                     astutils.new_binop(
-                        lval, pgast.NullConstant(),
+                        lval,
+                        pgast.NullConstant(),
                         'IS NOT DISTINCT FROM',
                     ),
                 )
@@ -2029,7 +2094,7 @@ def process_set_as_coalesce(
                 if rvar.nullable:
                     rarg.where_clause = astutils.extend_binop(
                         rarg.where_clause,
-                        pgast.NullTest(arg=rvar, negated=True)
+                        pgast.NullTest(arg=rvar, negated=True),
                     )
 
             union_rvar = relctx.rvar_for_rel(
@@ -2038,10 +2103,9 @@ def process_set_as_coalesce(
                 ctx=newctx,
             )
 
-            aspects = (
-                pathctx.list_path_aspects(larg, left_ir.path_id)
-                & pathctx.list_path_aspects(rarg, right_ir.path_id)
-            )
+            aspects = pathctx.list_path_aspects(
+                larg, left_ir.path_id
+            ) & pathctx.list_path_aspects(rarg, right_ir.path_id)
 
             # No pull_namespace because we don't want the coalesce arguments to
             # escape, just the final result.
@@ -2088,13 +2152,12 @@ def process_set_as_tuple(
 
                 if path_id != element.val.path_id:
                     pathctx.put_path_id_map(
-                        newctx.rel, path_id, element.val.path_id)
+                        newctx.rel, path_id, element.val.path_id
+                    )
                 dispatch.visit(element.val, ctx=newctx)
 
             el_rvar = relctx.new_rel_rvar(ir_set, newctx.rel, ctx=ctx)
-            aspects = pathctx.list_path_aspects(
-                newctx.rel, element.val.path_id
-            )
+            aspects = pathctx.list_path_aspects(newctx.rel, element.val.path_id)
             # update_mask=False because we are doing this solely to remap
             # elements individually and don't want to affect the mask.
             relctx.include_rvar(
@@ -2113,8 +2176,7 @@ def process_set_as_tuple(
             # prevent having tuples that are part-NULL.
             if tvar.nullable:
                 stmt.where_clause = astutils.extend_binop(
-                    stmt.where_clause,
-                    pgast.NullTest(arg=tvar, negated=True)
+                    stmt.where_clause, pgast.NullTest(arg=tvar, negated=True)
                 )
 
             var = pathctx.maybe_get_path_var(
@@ -2147,9 +2209,8 @@ def process_set_as_tuple(
     # wrong one to be output. (See test_edgeql_scope_shape_03 for an example
     # where this can come up.)
     # (We only do it for objects as an optimization.)
-    if (
-        output.in_serialization_ctx(ctx)
-        and any(irtyputils.is_object(x) for x in ir_set.typeref.subtypes)
+    if output.in_serialization_ctx(ctx) and any(
+        irtyputils.is_object(x) for x in ir_set.typeref.subtypes
     ):
         pathctx.get_path_serialized_output(stmt, ir_set.path_id, env=ctx.env)
 
@@ -2164,7 +2225,8 @@ def process_set_as_tuple(
 @register_get_rvar(irast.TupleIndirectionPointer)
 def process_set_as_tuple_indirection(
     ir_set: irast.SetE[irast.TupleIndirectionPointer],
-    *, ctx: context.CompilerContextLevel
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> SetRVars:
     rptr = ir_set.expr
     tuple_set = rptr.source
@@ -2205,7 +2267,8 @@ def process_set_as_tuple_indirection(
             # `SELECT [(1,)][0].0`.  This means we must
             # use an explicit row attribute dereference.
             tuple_val = pathctx.get_path_value_var(
-                stmt, path_id=tuple_set.path_id, env=subctx.env)
+                stmt, path_id=tuple_set.path_id, env=subctx.env
+            )
 
             set_expr = astutils.tuple_getattr(
                 tuple_val,
@@ -2243,11 +2306,14 @@ def process_set_as_type_cast(
     implicit_cast = (
         is_json_cast
         and not irtyputils.is_range(inner_set.typeref)
-        and (irtyputils.is_collection(inner_set.typeref)
-             or irtyputils.is_object(inner_set.typeref))
+        and (
+            irtyputils.is_collection(inner_set.typeref)
+            or irtyputils.is_object(inner_set.typeref)
+        )
     )
     fmt_ctx = (
-        context.output_format(ctx, context.OutputFormat.JSONB) if implicit_cast
+        context.output_format(ctx, context.OutputFormat.JSONB)
+        if implicit_cast
         else contextlib.nullcontext()
     )
 
@@ -2261,14 +2327,17 @@ def process_set_as_type_cast(
 
             serialized: Optional[pgast.BaseExpr] = (
                 pathctx.maybe_get_path_serialized_var(
-                    stmt, inner_set.path_id, env=subctx.env)
+                    stmt, inner_set.path_id, env=subctx.env
+                )
             )
 
             if serialized is not None:
                 if irtyputils.is_collection(inner_set.typeref):
                     serialized = output.serialize_expr_to_json(
-                        serialized, styperef=inner_set.path_id.target,
-                        env=subctx.env)
+                        serialized,
+                        styperef=inner_set.path_id.target,
+                        env=subctx.env,
+                    )
 
                 pathctx.put_path_value_var(
                     stmt, inner_set.path_id, serialized, force=True
@@ -2324,9 +2393,7 @@ def process_set_as_oper_expr(
                 oper_expr, ir_set.expr.typeref
             )
 
-    pathctx.put_path_value_var_if_not_exists(
-        ctx.rel, ir_set.path_id, oper_expr
-    )
+    pathctx.put_path_value_var_if_not_exists(ctx.rel, ir_set.path_id, oper_expr)
 
     return new_stmt_set_rvar(ir_set, ctx.rel, ctx=ctx)
 
@@ -2368,10 +2435,7 @@ def process_set_as_singleton_assertion(
     ir_arg = expr.args[0]
     ir_arg_set = ir_arg.expr
 
-    if (
-        ir_arg.cardinality.is_single()
-        and not msg_arg.cardinality.is_multi()
-    ):
+    if ir_arg.cardinality.is_single() and not msg_arg.cardinality.is_multi():
         # If the argument has been statically proven to be a singleton,
         # elide the entire assertion.
         arg_ref = dispatch.compile(ir_arg_set, ctx=ctx)
@@ -2398,9 +2462,7 @@ def process_set_as_singleton_assertion(
             name=('nullif',),
             args=[
                 pgast.FuncCall(
-                    name=('row_number',),
-                    args=[],
-                    over=pgast.WindowDef()
+                    name=('row_number',), args=[], over=pgast.WindowDef()
                 ),
                 pgast.NumericConstant(
                     val='2',
@@ -2420,7 +2482,7 @@ def process_set_as_singleton_assertion(
                             msg,
                             pgast.StringConstant(
                                 val='assert_single violation: more than one '
-                                    'element returned by an expression',
+                                'element returned by an expression',
                             ),
                         ],
                     ),
@@ -2457,8 +2519,9 @@ def process_set_as_singleton_assertion(
 
     aspects = pathctx.list_path_aspects(newctx.rel, ir_arg_set.path_id)
     func_rvar = relctx.new_rel_rvar(ir_set, newctx.rel, ctx=ctx)
-    relctx.include_rvar(stmt, func_rvar, ir_set.path_id,
-                        aspects=aspects, ctx=ctx)
+    relctx.include_rvar(
+        stmt, func_rvar, ir_set.path_id, aspects=aspects, ctx=ctx
+    )
 
     return new_stmt_set_rvar(ir_set, stmt, aspects=aspects, ctx=ctx)
 
@@ -2511,7 +2574,7 @@ def process_set_as_existence_assertion(
                             msg,
                             pgast.StringConstant(
                                 val='assert_exists violation: expression '
-                                    'returned an empty set',
+                                'returned an empty set',
                             ),
                         ]
                     ),
@@ -2531,8 +2594,8 @@ def process_set_as_existence_assertion(
         )
         other_aspect = (
             pgce.PathAspect.IDENTITY
-            if ir_set.path_id.is_objtype_path() else
-            pgce.PathAspect.SERIALIZED
+            if ir_set.path_id.is_objtype_path()
+            else pgce.PathAspect.SERIALIZED
         )
         pathctx.put_path_var(
             newctx.rel,
@@ -2618,8 +2681,11 @@ def process_set_as_multiplicity_assertion(
 
             aspects = pathctx.list_path_aspects(subctx.rel, ir_arg_set.path_id)
             relctx.include_rvar(
-                newctx.rel, sub_rvar, ir_arg_set.path_id,
-                aspects=aspects, ctx=subctx,
+                newctx.rel,
+                sub_rvar,
+                ir_arg_set.path_id,
+                aspects=aspects,
+                ctx=subctx,
             )
             alias = ctx.env.aliases.get('i')
             subctx.rel.target_list.append(
@@ -2629,7 +2695,7 @@ def process_set_as_multiplicity_assertion(
                         name=('row_number',),
                         args=[],
                         over=pgast.WindowDef(),
-                    )
+                    ),
                 )
             )
 
@@ -2642,7 +2708,8 @@ def process_set_as_multiplicity_assertion(
                     arg=pgast.NullConstant(),
                     type_name=pgast.TypeName(
                         name=pg_types.pg_type_from_ir_typeref(
-                            ir_arg_set.typeref),
+                            ir_arg_set.typeref
+                        ),
                     ),
                 ),
                 pgast.StringConstant(val='cardinality_violation'),
@@ -2653,7 +2720,7 @@ def process_set_as_multiplicity_assertion(
                             msg,
                             pgast.StringConstant(
                                 val='assert_distinct violation: expression '
-                                    'returned a set with duplicate elements',
+                                'returned a set with duplicate elements',
                             ),
                         ],
                     ),
@@ -2702,14 +2769,18 @@ def process_set_as_multiplicity_assertion(
 
         if newctx.rel.sort_clause is None:
             newctx.rel.sort_clause = []
-        newctx.rel.sort_clause.extend([
-            pgast.SortBy(
-                node=pgast.ColumnRef(name=[sub_rvar.alias.aliasname, alias]),
-            ),
-            pgast.SortBy(
-                node=pgast.ColumnRef(name=[alias2]),
-            ),
-        ])
+        newctx.rel.sort_clause.extend(
+            [
+                pgast.SortBy(
+                    node=pgast.ColumnRef(
+                        name=[sub_rvar.alias.aliasname, alias]
+                    ),
+                ),
+                pgast.SortBy(
+                    node=pgast.ColumnRef(name=[alias2]),
+                ),
+            ]
+        )
 
         pathctx.put_path_id_map(newctx.rel, ir_set.path_id, ir_arg_set.path_id)
 
@@ -2753,7 +2824,7 @@ def process_set_as_simple_enumerate(
         if arg_ref.nullable:
             newctx.rel.where_clause = astutils.extend_binop(
                 newctx.rel.where_clause,
-                pgast.NullTest(arg=arg_ref, negated=True)
+                pgast.NullTest(arg=arg_ref, negated=True),
             )
 
         rtype = expr.typeref
@@ -2762,9 +2833,7 @@ def process_set_as_simple_enumerate(
         num_expr = pgast.Expr(
             name='-',
             lexpr=pgast.FuncCall(
-                name=('row_number',),
-                args=[],
-                over=pgast.WindowDef()
+                name=('row_number',), args=[], over=pgast.WindowDef()
             ),
             rexpr=pgast.NumericConstant(val='1'),
             nullable=False,
@@ -2788,9 +2857,7 @@ def process_set_as_simple_enumerate(
         )
 
         for element in set_expr.elements:
-            pathctx.put_path_value_var(
-                newctx.rel, element.path_id, element.val
-            )
+            pathctx.put_path_value_var(newctx.rel, element.path_id, element.val)
 
         var = pathctx.maybe_get_path_var(
             newctx.rel,
@@ -2846,7 +2913,8 @@ def process_set_as_enumerate(
                 or arg_expr.limit
                 or arg_expr.offset
             )
-        ) and not any(
+        )
+        and not any(
             f_arg.param_typemod == qltypes.TypeModifier.SetOfType
             for _, f_arg in arg_subj.args.items()
         )
@@ -2891,7 +2959,8 @@ def process_set_as_std_min_max(
         dispatch.visit(ir_arg, ctx=newctx)
 
         arg_ref = pathctx.get_path_value_var(
-            newctx.rel, ir_arg.path_id, env=newctx.env)
+            newctx.rel, ir_arg.path_id, env=newctx.env
+        )
 
         arg_val = output.output_as_value(arg_ref, env=newctx.env)
 
@@ -3004,7 +3073,8 @@ def process_set_as_std_range(
     # If any of the non-optional arguments are nullable, add an explicit
     # null check for them.
     null_checks = [
-        pgast.NullTest(arg=e) for e in [empty, inc_upper, inc_lower]
+        pgast.NullTest(arg=e)
+        for e in [empty, inc_upper, inc_lower]
         if e.nullable
     ]
     if null_checks:
@@ -3073,8 +3143,7 @@ def process_set_as_std_multirange(
     ranges = dispatch.compile(expr.args[0].expr, ctx=ctx)
     pg_type = pg_types.pg_type_from_ir_typeref(expr.typeref)
     set_expr = pgast.FuncCall(
-        name=pg_type,
-        args=[pgast.VariadicArgument(expr=ranges)]
+        name=pg_type, args=[pgast.VariadicArgument(expr=ranges)]
     )
 
     pathctx.put_path_value_var(ctx.rel, ir_set.path_id, set_expr)
@@ -3128,7 +3197,7 @@ def _process_typical_set_func_with_ordinality(
     outer_func_set: irast.Set,
     func_name: tuple[str, ...],
     args: list[pgast.BaseExpr],
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> _FuncWithOrdinalityInfo:
     expr = ir_set.expr
     assert isinstance(expr, irast.FunctionCall)
@@ -3151,7 +3220,7 @@ def _process_typical_set_func_with_ordinality(
                     name=colname,
                     typename=pgast.TypeName(
                         name=pg_types.pg_type_from_ir_typeref(st)
-                    )
+                    ),
                 )
             )
 
@@ -3161,26 +3230,26 @@ def _process_typical_set_func_with_ordinality(
         colnames = [ctx.env.aliases.get('v')]
         coldeflist = []
 
-    if (expr.sql_func_has_out_params
-            or irtyputils.is_persistent_tuple(inner_rtype)):
+    if expr.sql_func_has_out_params or irtyputils.is_persistent_tuple(
+        inner_rtype
+    ):
         # SQL functions declared with OUT params reject column definitions.
         # Also persistent tuple types
         coldeflist = []
 
     fexpr = pgast.FuncCall(name=func_name, args=args, coldeflist=coldeflist)
 
-    colnames.append(
-        rtype.subtypes[0].element_name or '_i'
-    )
+    colnames.append(rtype.subtypes[0].element_name or '_i')
 
     func_rvar = pgast.RangeFunction(
         alias=pgast.Alias(
-            aliasname=ctx.env.aliases.get('f'),
-            colnames=colnames),
+            aliasname=ctx.env.aliases.get('f'), colnames=colnames
+        ),
         lateral=True,
         is_rowsfrom=True,
         with_ordinality=True,
-        functions=[fexpr])
+        functions=[fexpr],
+    )
 
     ctx.rel.from_clause.append(func_rvar)
 
@@ -3192,10 +3261,12 @@ def _process_typical_set_func_with_ordinality(
             elements=[
                 pgast.TupleElement(
                     path_id=outer_func_expr.tuple_path_ids[
-                        len(rtype.subtypes) + i],
+                        len(rtype.subtypes) + i
+                    ],
                     name=n,
                     val=astutils.get_column(
-                        func_rvar, n, nullable=fexpr.nullable)
+                        func_rvar, n, nullable=fexpr.nullable
+                    ),
                 )
                 for i, n in enumerate(colnames[:-1])
             ],
@@ -3204,7 +3275,8 @@ def _process_typical_set_func_with_ordinality(
         )
     else:
         inner_expr = astutils.get_column(
-            func_rvar, colnames[0], nullable=fexpr.nullable)
+            func_rvar, colnames[0], nullable=fexpr.nullable
+        )
 
     return _FuncWithOrdinalityInfo(
         rvar=func_rvar,
@@ -3220,7 +3292,7 @@ def _process_nested_array_set_func_with_ordinality(
     *,
     outer_func_set: irast.Set,
     args: list[pgast.BaseExpr],
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> _FuncWithOrdinalityInfo:
     # array<array<...>> is implemented as array<tuple<array<...>>>
     #
@@ -3246,10 +3318,7 @@ def _process_nested_array_set_func_with_ordinality(
     # - select the resulting ordinal and tuple<array<...>>
     ordinal_tuple_expr = pgast.SelectStmt(
         target_list=[
-            pgast.ResTarget(
-                val=pgast.ColumnRef(name=[colname]),
-                name=colname
-            )
+            pgast.ResTarget(val=pgast.ColumnRef(name=[colname]), name=colname)
             for colname in colnames
         ],
         from_clause=[
@@ -3266,16 +3335,16 @@ def _process_nested_array_set_func_with_ordinality(
                                     name=pg_types.pg_type_from_ir_typeref(
                                         inner_rtype
                                     )
-                                )
+                                ),
                             )
-                        ]
+                        ],
                     )
                 ],
                 lateral=True,
                 is_rowsfrom=True,
                 with_ordinality=True,
             )
-        ]
+        ],
     )
     ordinal_tuple_rvar = relctx.rvar_for_rel(
         ordinal_tuple_expr,
@@ -3290,9 +3359,7 @@ def _process_nested_array_set_func_with_ordinality(
             pgast.TypeCast(
                 arg=pgast.ArrayExpr(elements=[]),
                 type_name=pgast.TypeName(
-                    name=pg_types.pg_type_from_ir_typeref(
-                        inner_rtype
-                    )
+                    name=pg_types.pg_type_from_ir_typeref(inner_rtype)
                 ),
             ),
         ]
@@ -3311,7 +3378,7 @@ def _process_nested_array_set_func_with_ordinality(
         ],
         from_clause=[
             ordinal_tuple_rvar,
-        ]
+        ],
     )
 
     func_rvar = relctx.rvar_for_rel(
@@ -3336,7 +3403,7 @@ def _process_set_func_with_ordinality(
     outer_func_set: irast.Set,
     func_name: tuple[str, ...],
     args: list[pgast.BaseExpr],
-    ctx: context.CompilerContextLevel
+    ctx: context.CompilerContextLevel,
 ) -> pgast.BaseExpr:
     expr = ir_set.expr
     assert isinstance(expr, irast.FunctionCall)
@@ -3345,10 +3412,7 @@ def _process_set_func_with_ordinality(
     assert isinstance(outer_func_expr, irast.FunctionCall)
 
     func_info: _FuncWithOrdinalityInfo
-    if (
-        func_name == ('unnest',)
-        and irtyputils.is_array(ir_set.typeref)
-    ):
+    if func_name == ('unnest',) and irtyputils.is_array(ir_set.typeref):
         func_info = _process_nested_array_set_func_with_ordinality(
             ir_set,
             outer_func_set=outer_func_set,
@@ -3378,8 +3442,8 @@ def _process_set_func_with_ordinality(
                         func_info.colnames[-1],
                         nullable=func_info.nullable,
                     ),
-                    rexpr=pgast.NumericConstant(val='1')
-                )
+                    rexpr=pgast.NumericConstant(val='1'),
+                ),
             ),
             pgast.TupleElement(
                 path_id=outer_func_expr.tuple_path_ids[1],
@@ -3403,8 +3467,11 @@ def _process_set_func_with_ordinality(
     # If there is a shape specified on the argument to enumerate, we need
     # to compile it here manually, since we are skipping the normal
     # code path for it.
-    if (output.in_serialization_ctx(ctx) and ir_set.shape
-            and not ctx.env.ignore_object_shapes):
+    if (
+        output.in_serialization_ctx(ctx)
+        and ir_set.shape
+        and not ctx.env.ignore_object_shapes
+    ):
         ensure_source_rvar(ir_set, ctx.rel, ctx=ctx)
         exprcomp._compile_shape(ir_set, ir_set.shape, ctx=ctx)
 
@@ -3450,7 +3517,7 @@ def _process_set_func(
                     name=colname,
                     typename=pgast.TypeName(
                         name=pg_types.pg_type_from_ir_typeref(st)
-                    )
+                    ),
                 )
             )
 
@@ -3466,15 +3533,14 @@ def _process_set_func(
                     name='v',
                     typename=pgast.TypeName(
                         name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-                    )
+                    ),
                 )
             ]
 
     if (
         # SQL functions declared with OUT params or returning
         # named composite types reject column definitions.
-        irtyputils.is_persistent_tuple(rtype)
-        or expr.sql_func_has_out_params
+        irtyputils.is_persistent_tuple(rtype) or expr.sql_func_has_out_params
     ):
         coldeflist = []
 
@@ -3482,11 +3548,12 @@ def _process_set_func(
 
     func_rvar = pgast.RangeFunction(
         alias=pgast.Alias(
-            aliasname=ctx.env.aliases.get('f'),
-            colnames=colnames),
+            aliasname=ctx.env.aliases.get('f'), colnames=colnames
+        ),
         lateral=True,
         is_rowsfrom=True,
-        functions=[fexpr])
+        functions=[fexpr],
+    )
 
     ctx.rel.from_clause.append(func_rvar)
 
@@ -3494,7 +3561,8 @@ def _process_set_func(
 
     if not is_tuple:
         set_expr = astutils.get_column(
-            func_rvar, colnames[0], nullable=fexpr.nullable)
+            func_rvar, colnames[0], nullable=fexpr.nullable
+        )
     else:
         set_expr = pgast.TupleVar(
             elements=[
@@ -3502,7 +3570,8 @@ def _process_set_func(
                     path_id=expr.tuple_path_ids[i],
                     name=n,
                     val=astutils.get_column(
-                        func_rvar, n, nullable=fexpr.nullable)
+                        func_rvar, n, nullable=fexpr.nullable
+                    ),
                 )
                 for i, n in enumerate(colnames)
             ],
@@ -3519,10 +3588,12 @@ def _process_set_func(
 
 
 def _compile_func_epilogue(
-        ir_set: irast.Set, *,
-        set_expr: pgast.BaseExpr,
-        func_rel: pgast.SelectStmt,
-        ctx: context.CompilerContextLevel) -> SetRVars:
+    ir_set: irast.Set,
+    *,
+    set_expr: pgast.BaseExpr,
+    func_rel: pgast.SelectStmt,
+    ctx: context.CompilerContextLevel,
+) -> SetRVars:
     expr = ir_set.expr
     assert isinstance(expr, irast.FunctionCall)
 
@@ -3554,8 +3625,10 @@ def _compile_func_epilogue(
         ctx=ctx,
     )
 
-    if (ir_set.path_id.is_tuple_path()
-            and expr.typemod is qltypes.TypeModifier.SetOfType):
+    if (
+        ir_set.path_id.is_tuple_path()
+        and expr.typemod is qltypes.TypeModifier.SetOfType
+    ):
         # Functions returning a set of tuples are compiled with an
         # explicit coldeflist, so the result is represented as a
         # TupleVar as opposed to an opaque record datum, so
@@ -3567,9 +3640,11 @@ def _compile_func_epilogue(
 
 
 def _needs_arg_null_check(
-    call_expr: irast.Call, ir_arg: irast.CallArg,
-    typemod: qltypes.TypeModifier, *,
-    ctx: context.CompilerContextLevel
+    call_expr: irast.Call,
+    ir_arg: irast.CallArg,
+    typemod: qltypes.TypeModifier,
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> bool:
     return (
         not call_expr.impl_is_strict
@@ -3578,23 +3653,26 @@ def _needs_arg_null_check(
             (
                 typemod == qltypes.TypeModifier.SingletonType
                 and ir_arg.cardinality.can_be_zero()
-            ) or typemod == qltypes.TypeModifier.SetOfType
+            )
+            or typemod == qltypes.TypeModifier.SetOfType
         )
     )
 
 
 def _compile_arg_null_check(
-    call_expr: irast.Call, ir_arg: irast.CallArg, arg_ref: pgast.BaseExpr,
-    typemod: qltypes.TypeModifier, *,
-    ctx: context.CompilerContextLevel
+    call_expr: irast.Call,
+    ir_arg: irast.CallArg,
+    arg_ref: pgast.BaseExpr,
+    typemod: qltypes.TypeModifier,
+    *,
+    ctx: context.CompilerContextLevel,
 ) -> None:
     if (
         _needs_arg_null_check(call_expr, ir_arg, typemod, ctx=ctx)
         and arg_ref.nullable
     ):
         ctx.rel.where_clause = astutils.extend_binop(
-            ctx.rel.where_clause,
-            pgast.NullTest(arg=arg_ref, negated=True)
+            ctx.rel.where_clause, pgast.NullTest(arg=arg_ref, negated=True)
         )
 
 
@@ -3613,36 +3691,29 @@ def _compile_arg_null_check(
 # contents of the array. The result needs to be unwrapped to get the actual
 # array.
 
-def _has_polymorphic_array_arg(
-    expr: irast.Call
-) -> bool:
+
+def _has_polymorphic_array_arg(expr: irast.Call) -> bool:
     return any(
         ir_arg.polymorphism == qltypes.Polymorphism.Array
         for ir_arg in expr.args.values()
     )
 
 
-def _should_wrap_polymorphic_array_args(
-    expr: irast.Call
-) -> bool:
+def _should_wrap_polymorphic_array_args(expr: irast.Call) -> bool:
     return (
         _has_polymorphic_array_arg(expr)
         or expr.return_polymorphism == qltypes.Polymorphism.Array
     )
 
 
-def _is_array_arg_as_simple_polymorphic(
-    arg: irast.CallArg
-) -> bool:
+def _is_array_arg_as_simple_polymorphic(arg: irast.CallArg) -> bool:
     return (
         arg.polymorphism == qltypes.Polymorphism.Simple
         and irtyputils.is_array(arg.expr.typeref)
     )
 
 
-def _should_unwrap_polymorphic_return_array(
-    expr: irast.Call
-) -> bool:
+def _should_unwrap_polymorphic_return_array(expr: irast.Call) -> bool:
     return (
         _has_polymorphic_array_arg(expr)
         and expr.return_polymorphism == qltypes.Polymorphism.Simple
@@ -3680,8 +3751,7 @@ def _compile_call_args(
         # Support a mode where we try to compile arguments as pure
         # subqueries. This is occasionally valuable as it lets us
         # "push down" the subqueries from the top level, which is
-        # important for things like hitting pgvector indexes in an
-        # ORDER BY.
+        # important for hitting indexes in an ORDER BY.
         arg_typeref = ir_arg.expr.typeref
         make_subquery = (
             expr.prefer_subquery_args
@@ -3700,10 +3770,9 @@ def _compile_call_args(
             arg_ref = dispatch.compile(ir_arg.expr, ctx=ctx)
             arg_ref = output.output_as_value(arg_ref, env=ctx.env)
 
-        if (
-            _should_wrap_polymorphic_array_args(expr)
-            and _is_array_arg_as_simple_polymorphic(ir_arg)
-        ):
+        if _should_wrap_polymorphic_array_args(
+            expr
+        ) and _is_array_arg_as_simple_polymorphic(ir_arg):
             arg_ref = pgast.RowExpr(args=[arg_ref])
 
         args.append(arg_ref)
@@ -3734,9 +3803,8 @@ def _compile_call_args(
         var = pgast.TypeCast(
             arg=pgast.ArrayExpr(elements=[]),
             type_name=pgast.TypeName(
-                name=pg_types.pg_type_from_ir_typeref(
-                    expr.variadic_param_type)
-            )
+                name=pg_types.pg_type_from_ir_typeref(expr.variadic_param_type)
+            ),
         )
 
         args.append(pgast.VariadicArgument(expr=var))
@@ -3818,9 +3886,7 @@ def _compile_inlined_call_args(
 
         # Merge the new iterator
         ctx.path_scope = ctx.path_scope.new_child()
-        arg_rvar = not_none(
-            dml.merge_iterator(arg_iterator, ctx.rel, ctx=ctx)
-        )
+        arg_rvar = not_none(dml.merge_iterator(arg_iterator, ctx.rel, ctx=ctx))
         clauses.setup_iterator_volatility(arg_iterator, ctx=ctx)
 
         ctx.enclosing_cte_iterator = arg_iterator
@@ -3844,9 +3910,7 @@ def _compile_inlined_call_args(
 
     for ir_arg in expr.args.values():
         arg_path_id = ir_arg.expr.path_id
-        if arg_scope_stmt := relctx.maybe_get_scope_stmt(
-            arg_path_id, ctx=ctx
-        ):
+        if arg_scope_stmt := relctx.maybe_get_scope_stmt(arg_path_id, ctx=ctx):
             # The args are joined to ctx.rel, but other sets may
             # look for it in the scope statement. Make sure it's
             # available.
@@ -3877,7 +3941,8 @@ def process_set_as_func_enumerate(
             outer_func_set=ir_set,
             func_name=func_name,
             args=args,
-            ctx=newctx)
+            ctx=newctx,
+        )
 
         func_rel = newctx.rel
 
@@ -3944,9 +4009,10 @@ def process_set_as_func_expr(
                     ),
                     pgast.StringConstant(
                         val=irutils.get_span_as_json(
-                            expr, errors.InvalidValueError),
+                            expr, errors.InvalidValueError
+                        ),
                     ),
-                ]
+                ],
             )
 
         if expr.force_return_cast:
@@ -3957,7 +4023,7 @@ def process_set_as_func_expr(
                 arg=set_expr,
                 type_name=pgast.TypeName(
                     name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-                )
+                ),
             )
 
         func_rel = newctx.rel
@@ -3992,8 +4058,7 @@ def process_set_as_agg_expr_inner(
             # check if the aggregate accepts a single argument
             # of "any" to determine serialized input safety.
             serialization_safe = (
-                expr.func_polymorphic
-                and aspect == pgce.PathAspect.SERIALIZED
+                expr.func_polymorphic and aspect == pgce.PathAspect.SERIALIZED
             )
 
             if not serialization_safe:
@@ -4006,40 +4071,44 @@ def process_set_as_agg_expr_inner(
 
                 arg_ref: pgast.BaseExpr
                 if for_group_by:
-                    arg_ref = set_as_subquery(
-                        ir_arg, as_value=True, ctx=argctx)
+                    arg_ref = set_as_subquery(ir_arg, as_value=True, ctx=argctx)
                     arg_ref.nullable = False
                 elif aspect == pgce.PathAspect.SERIALIZED:
                     dispatch.visit(ir_arg, ctx=argctx)
 
                     arg_ref = pathctx.get_path_serialized_or_value_var(
-                        argctx.rel, ir_arg.path_id, env=argctx.env)
+                        argctx.rel, ir_arg.path_id, env=argctx.env
+                    )
 
                     if isinstance(arg_ref, pgast.TupleVar):
                         arg_ref = output.serialize_expr(
-                            arg_ref, path_id=ir_arg.path_id, env=argctx.env)
+                            arg_ref, path_id=ir_arg.path_id, env=argctx.env
+                        )
                 else:
                     dispatch.visit(ir_arg, ctx=argctx)
 
                     arg_ref = pathctx.get_path_value_var(
-                        argctx.rel, ir_arg.path_id, env=argctx.env)
+                        argctx.rel, ir_arg.path_id, env=argctx.env
+                    )
 
                     if isinstance(arg_ref, pgast.TupleVar):
                         arg_ref = output.output_as_value(
-                            arg_ref, env=argctx.env)
+                            arg_ref, env=argctx.env
+                        )
 
                 _compile_arg_null_check(
                     expr,
                     ir_call_arg,
                     arg_ref,
                     ir_call_arg.param_typemod,
-                    ctx=argctx
+                    ctx=argctx,
                 )
 
                 path_scope = relctx.get_scope(ir_arg, ctx=argctx)
                 if path_scope is not None and path_scope.parent is not None:
                     arg_is_visible = path_scope.parent.is_any_prefix_visible(
-                        ir_arg.path_id)
+                        ir_arg.path_id
+                    )
                 else:
                     arg_is_visible = False
 
@@ -4054,7 +4123,8 @@ def process_set_as_agg_expr_inner(
                     )
                     colname = argctx.env.aliases.get('a')
                     wrapper_rvar = relctx.rvar_for_rel(
-                        wrapper, lateral=True, colnames=[colname], ctx=argctx)
+                        wrapper, lateral=True, colnames=[colname], ctx=argctx
+                    )
                     relctx.include_rvar(
                         ctx.rel,
                         wrapper_rvar,
@@ -4072,8 +4142,10 @@ def process_set_as_agg_expr_inner(
                     if isinstance(substmt, irast.GroupStmt):
                         substmt = substmt.result.expr
 
-                    if (isinstance(substmt, irast.SelectStmt) and
-                            substmt.orderby):
+                    if (
+                        isinstance(substmt, irast.SelectStmt)
+                        and substmt.orderby
+                    ):
                         qrvar = pathctx.get_path_rvar(
                             ctx.rel,
                             ir_arg.path_id,
@@ -4086,43 +4158,44 @@ def process_set_as_agg_expr_inner(
                             alias = argctx.env.aliases.get(f's{i}')
 
                             query.target_list.append(
-                                pgast.ResTarget(
-                                    val=sortref.node,
-                                    name=alias
-                                )
+                                pgast.ResTarget(val=sortref.node, name=alias)
                             )
 
                             agg_sort.append(
                                 pgast.SortBy(
                                     node=astutils.get_column(qrvar, alias),
                                     dir=sortref.dir,
-                                    nulls=sortref.nulls))
+                                    nulls=sortref.nulls,
+                                )
+                            )
 
                         query.sort_clause = []
 
-                if (
-                    _should_wrap_polymorphic_array_args(expr)
-                    and _is_array_arg_as_simple_polymorphic(ir_call_arg)
-                ):
+                if _should_wrap_polymorphic_array_args(
+                    expr
+                ) and _is_array_arg_as_simple_polymorphic(ir_call_arg):
                     # Wrap aggregated arrays in a tuple
                     arg_ref = pgast.RowExpr(args=[arg_ref])
 
                     if aspect == pgce.PathAspect.SERIALIZED:
                         arg_ref = output.serialize_expr(
-                            arg_ref, path_id=ir_arg.path_id, env=argctx.env)
+                            arg_ref, path_id=ir_arg.path_id, env=argctx.env
+                        )
 
                 args.append(arg_ref)
 
         name = exprcomp.get_func_call_backend_name(expr, ctx=newctx)
 
         set_expr = pgast.FuncCall(
-            name=name, args=args, agg_order=agg_sort, agg_filter=agg_filter,
-            ser_safe=serialization_safe and all(x.ser_safe for x in args))
+            name=name,
+            args=args,
+            agg_order=agg_sort,
+            agg_filter=agg_filter,
+            ser_safe=serialization_safe and all(x.ser_safe for x in args),
+        )
 
         if _should_unwrap_polymorphic_return_array(expr):
-            set_expr = astutils.array_get_inner_array(
-                set_expr, expr.typeref
-            )
+            set_expr = astutils.array_get_inner_array(set_expr, expr.typeref)
 
         if for_group_by and not expr.impl_is_strict:
             # If we are doing this for a GROUP BY, and the function is not
@@ -4143,8 +4216,7 @@ def process_set_as_agg_expr_inner(
             # TODO: only do this when there might really be a null?
             assert str(expr.func_shortname) == 'std::array_agg'
             set_expr = pgast.FuncCall(
-                name=('array_remove',),
-                args=[set_expr, pgast.NullConstant()]
+                name=('array_remove',), args=[set_expr, pgast.NullConstant()]
             )
 
         if expr.error_on_null_result:
@@ -4160,9 +4232,10 @@ def process_set_as_agg_expr_inner(
                     ),
                     pgast.StringConstant(
                         val=irutils.get_span_as_json(
-                            expr, errors.InvalidValueError),
+                            expr, errors.InvalidValueError
+                        ),
                     ),
-                ]
+                ],
             )
 
         if expr.force_return_cast:
@@ -4173,7 +4246,7 @@ def process_set_as_agg_expr_inner(
                 arg=set_expr,
                 type_name=pgast.TypeName(
                     name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-                )
+                ),
             )
 
     if expr.func_initial_value is not None and wrapper:
@@ -4186,9 +4259,11 @@ def process_set_as_agg_expr_inner(
                 iv = dispatch.compile(iv_ir, ctx=ivctx)
 
                 iv = output.serialize_expr_if_needed(
-                    iv, path_id=ir_set.path_id, ctx=ctx)
+                    iv, path_id=ir_set.path_id, ctx=ctx
+                )
                 set_expr = output.serialize_expr_if_needed(
-                    set_expr, path_id=ir_set.path_id, ctx=ctx)
+                    set_expr, path_id=ir_set.path_id, ctx=ctx
+                )
         else:
             with ctx.new() as ivctx:
                 iv = dispatch.compile(iv_ir, ctx=ivctx)
@@ -4209,7 +4284,8 @@ def process_set_as_agg_expr_inner(
 
         assert wrapper
         set_expr = pgast.CoalesceExpr(
-            args=[val, iv], ser_safe=serialization_safe)
+            args=[val, iv], ser_safe=serialization_safe
+        )
 
         pathctx.put_path_var(wrapper, ir_set.path_id, set_expr, aspect=aspect)
         stmt = wrapper
@@ -4247,18 +4323,15 @@ def process_set_as_agg_expr(
     # Though if the result type contains no objects, the value should be good
     # enough, so don't generate a bunch of unnecessary code to produce
     # a serialized value when we can use value.
-    serialized = (
-        output.in_serialization_ctx(ctx=ctx)
-        and irtyputils.contains_object(ir_set.typeref)
-    )
+    serialized = output.in_serialization_ctx(
+        ctx=ctx
+    ) and irtyputils.contains_object(ir_set.typeref)
 
     cctx = ctx.subrel() if wrapper else ctx.new()
     with cctx as xctx:
         xctx.expr_exposed = serialized
         aspect = (
-            pgce.PathAspect.SERIALIZED
-            if serialized else
-            pgce.PathAspect.VALUE
+            pgce.PathAspect.SERIALIZED if serialized else pgce.PathAspect.VALUE
         )
         process_set_as_agg_expr_inner(
             ir_set, aspect=aspect, wrapper=wrapper, ctx=xctx
@@ -4282,7 +4355,8 @@ def process_set_as_exists_expr(
         pathctx.get_path_value_output(wrapper, ir_set.path_id, env=ctx.env)
 
         wrapper.where_clause = astutils.extend_binop(
-            wrapper.where_clause, pgast.NullTest(arg=set_ref, negated=True))
+            wrapper.where_clause, pgast.NullTest(arg=set_ref, negated=True)
+        )
 
         set_expr = pgast.SubLink(operator="EXISTS", expr=wrapper)
 
@@ -4329,10 +4403,11 @@ def process_set_as_json_object_pack(
 
 
 def build_array_expr(
-        ir_expr: irast.Base,
-        elements: list[pgast.BaseExpr], *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    ir_expr: irast.Base,
+    elements: list[pgast.BaseExpr],
+    *,
+    ctx: context.CompilerContextLevel,
+) -> pgast.BaseExpr:
     array = astutils.safe_array_expr(elements, ctx=ctx)
 
     if irutils.is_empty_array_expr(ir_expr):
@@ -4349,7 +4424,8 @@ def build_array_expr(
         else:
             serialized = output.in_serialization_ctx(ctx=ctx)
             pg_type = pg_types.pg_type_from_ir_typeref(
-                typeref, serialized=serialized)
+                typeref, serialized=serialized
+            )
 
         return pgast.TypeCast(
             arg=array,
@@ -4369,10 +4445,9 @@ def process_set_as_array_expr(
 
     elements = []
     s_elements = []
-    serializing = (
-        output.in_serialization_ctx(ctx=ctx)
-        and irtyputils.contains_object(ir_set.typeref)
-    )
+    serializing = output.in_serialization_ctx(
+        ctx=ctx
+    ) and irtyputils.contains_object(ir_set.typeref)
 
     for ir_element in expr.elements:
         element = dispatch.compile(ir_element, ctx=ctx)
@@ -4393,23 +4468,26 @@ def process_set_as_array_expr(
                     ctx.rel, ir_element.path_id, env=ctx.env
                 )
                 s_var = output.serialize_expr(
-                    v_var, path_id=ir_element.path_id, env=ctx.env)
+                    v_var, path_id=ir_element.path_id, env=ctx.env
+                )
             elif isinstance(s_var, pgast.TupleVar):
                 s_var = output.serialize_expr(
-                    s_var, path_id=ir_element.path_id, env=ctx.env)
+                    s_var, path_id=ir_element.path_id, env=ctx.env
+                )
 
             s_elements.append(s_var)
 
     if serializing:
         set_expr = astutils.safe_array_expr(
-            s_elements, ser_safe=all(x.ser_safe for x in s_elements), ctx=ctx)
+            s_elements, ser_safe=all(x.ser_safe for x in s_elements), ctx=ctx
+        )
 
         if irutils.is_empty_array_expr(expr):
             set_expr = pgast.TypeCast(
                 arg=set_expr,
                 type_name=pgast.TypeName(
                     name=pg_types.pg_type_from_ir_typeref(expr.typeref)
-                )
+                ),
             )
 
         pathctx.put_path_serialized_var(ctx.rel, ir_set.path_id, set_expr)
@@ -4422,9 +4500,8 @@ def process_set_as_array_expr(
 
 
 def process_encoded_param(
-        param: irast.Param, *,
-        ctx: context.CompilerContextLevel) -> pgast.BaseExpr:
-
+    param: irast.Param, *, ctx: context.CompilerContextLevel
+) -> pgast.BaseExpr:
     assert param.sub_params
     decoder = param.sub_params.decoder_ir
     assert decoder
@@ -4453,11 +4530,15 @@ def process_encoded_param(
         cte_rvar = pgast.RelRangeVar(
             relation=param_cte,
             typeref=decoder.typeref,
-            alias=pgast.Alias(aliasname=ctx.env.aliases.get('t'))
+            alias=pgast.Alias(aliasname=ctx.env.aliases.get('t')),
         )
         relctx.include_rvar(
-            sctx.rel, cte_rvar, decoder.path_id, pull_namespace=False,
-            aspects=(pgce.PathAspect.VALUE,), ctx=sctx,
+            sctx.rel,
+            cte_rvar,
+            decoder.path_id,
+            pull_namespace=False,
+            aspects=(pgce.PathAspect.VALUE,),
+            ctx=sctx,
         )
         pathctx.get_path_value_output(sctx.rel, decoder.path_id, env=ctx.env)
         if not param.required:
@@ -4491,110 +4572,7 @@ def process_set_as_fts_search(
     else:
         cb = _fts_search_inner_pg
 
-    return _process_set_as_object_search(
-        ir_set, inner_cb=cb, ctx=ctx)
-
-
-@_special_case('ext::ai::search')
-def process_set_as_ext_ai_search(
-    ir_set: irast.SetE[irast.Call], *, ctx: context.CompilerContextLevel
-) -> SetRVars:
-    cb = _ext_ai_search_inner_pgvector
-    return _process_set_as_object_search(
-        ir_set, inner_cb=cb, ctx=ctx)
-
-
-def _ext_ai_search_inner_pgvector(
-    call: irast.Call,
-    obj_id: irast.PathId,
-    args_pg: list[pgast.BaseExpr],
-    _ctx: context.CompilerContextLevel,
-    newctx: context.CompilerContextLevel,
-    _inner_ctx: context.CompilerContextLevel,
-) -> tuple[pgast.BaseExpr, Optional[pgast.BaseExpr]]:
-    assert isinstance(call, irast.FunctionCall)
-    if call.extras is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    index_metadata = call.extras.get("index_metadata")
-    if index_metadata is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    tgt = obj_id.target
-    if tgt.material_type is not None:
-        tgt = tgt.material_type
-    target_index_metadata = index_metadata.get(tgt)
-    if target_index_metadata is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    index_id = target_index_metadata.get("id")
-    if index_id is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    dimensions = target_index_metadata.get("dimensions")
-    if dimensions is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    df = target_index_metadata.get("distance_function")
-    if index_id is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-
-    query, = args_pg
-    el_name = sn.QualName(
-        '__object__',
-        f'__ext_ai_{index_id}_embedding__',
-    )
-    embedding_ptrref = irast.SpecialPointerRef(
-        name=el_name,
-        shortname=el_name,
-        out_source=obj_id.target,
-        out_target=pg_types.pg_tsvector_typeref,
-        out_cardinality=qltypes.Cardinality.AT_MOST_ONE,
-    )
-    embedding_id = obj_id.extend(ptrref=embedding_ptrref)
-    embedding = relctx.get_path_var(
-        newctx.rel,
-        embedding_id,
-        aspect=pgce.PathAspect.VALUE,
-        ctx=newctx,
-    )
-
-    similarity = pgast.FuncCall(
-        name=common.get_function_backend_name(*df),
-        args=[
-            embedding,
-            pgast.TypeCast(
-                arg=query,
-                type_name=pgast.TypeName(
-                    name=('edgedb', f'vector({dimensions})'),
-                ),
-            ),
-        ],
-    )
-
-    # Install the filter directly in newctx.rel. We could return it
-    # and have it put in inner_ctx.rel, and that does seem to work,
-    # but seems weirder.
-    valid = pgast.NullTest(arg=embedding, negated=True)
-    newctx.rel.where_clause = astutils.extend_binop(
-        newctx.rel.where_clause, valid
-    )
-
-    # Do an integrated sort. This ensures we can hit the index, and is
-    # more ergonomic anyway. Having the ORDER BY operate directly on
-    # the function call is not the *only* way to have it work, but it
-    # is the most reliable.
-    sort_by = pgast.SortBy(
-        node=similarity,
-        dir=qlast.SortOrder.Asc,
-        nulls=qlast.NonesOrder.Last,
-    )
-    if newctx.rel.sort_clause is None:
-        newctx.rel.sort_clause = []
-    newctx.rel.sort_clause.append(sort_by)
-
-    return similarity, None
+    return _process_set_as_object_search(ir_set, inner_cb=cb, ctx=ctx)
 
 
 def _process_set_as_object_search(
@@ -4611,7 +4589,8 @@ def _process_set_as_object_search(
     # scoping effects, but we don't need to use it here, since
     # it can cause the ai search to duplicate arguments.
     args_pg = _compile_call_args(
-        ir_set, skip={0}, no_subquery_args=True, ctx=ctx)
+        ir_set, skip={0}, no_subquery_args=True, ctx=ctx
+    )
 
     with ctx.subrel() as newctx:
         newctx.expr_exposed = False
@@ -4756,7 +4735,7 @@ def _fts_search_inner_pg(
 
     parsed_query: pgast.BaseExpr = pgast.FuncCall(
         name=astutils.edgedb_func('fts_parse_query', ctx=ctx),
-        args=[query, lang]
+        args=[query, lang],
     )
     parsed_query_id = create_subrel_for_expr(parsed_query, ctx=inner_ctx)
     parsed_query = pathctx.get_path_var(
@@ -4875,7 +4854,6 @@ def create_subrel_for_expr(
     expr_id = irast.PathId.new_dummy(ctx.env.aliases.get('d'))
 
     with ctx.subrel() as newctx:
-
         # register the expression
         pathctx.put_path_var(
             newctx.rel,

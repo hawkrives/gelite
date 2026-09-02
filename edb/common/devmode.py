@@ -31,7 +31,6 @@ logger = logging.getLogger('edb.devmode.cache')
 
 
 class CoverageConfig(NamedTuple):
-
     config: str
     datadir: str
     paths: list[str]
@@ -45,9 +44,7 @@ class CoverageConfig(NamedTuple):
         return cls(**dct)
 
     def save_to_environ(self):
-        os.environ.update({
-            'GELITE_TEST_COVERAGE': self.to_json()
-        })
+        os.environ.update({'GELITE_TEST_COVERAGE': self.to_json()})
 
     @classmethod
     def from_environ(cls) -> Optional['CoverageConfig']:
@@ -114,7 +111,7 @@ def is_in_dev_mode() -> bool:
 def get_dev_mode_cache_dir() -> pathlib.Path:
     if is_in_dev_mode():
         root = pathlib.Path(__file__).parent.parent.parent
-        cache_dir = (root / 'build' / 'cache')
+        cache_dir = root / 'build' / 'cache'
         cache_dir.mkdir(exist_ok=True)
         return cache_dir
     else:

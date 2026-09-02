@@ -193,7 +193,8 @@ class RelOverlays:
                     OverlayOp,
                     pgast.BaseRelation | pgast.CommonTableExpr,
                     irast.PathId,
-                ], ...
+                ],
+                ...,
             ],
         ],
     ] = immu.Map()
@@ -283,8 +284,11 @@ class CompilerContextLevel(compiler.ContextLevel):
     #: Expression to use to force SQL expression volatility in this context
     #: (Delayed with a lambda to avoid inserting it when not used.)
     volatility_ref: tuple[
-        Callable[[pgast.SelectStmt, CompilerContextLevel],
-                 Optional[pgast.BaseExpr]], ...]
+        Callable[
+            [pgast.SelectStmt, CompilerContextLevel], Optional[pgast.BaseExpr]
+        ],
+        ...,
+    ]
 
     # Current path_id we are INSERTing, so that we can avoid creating
     # a bogus volatility ref to it...
@@ -325,8 +329,8 @@ class CompilerContextLevel(compiler.ContextLevel):
         irast.PathId,
         tuple[
             pgast.BaseRelation | pgast.CommonTableExpr,
-            tuple[pgce.PathAspect, ...]
-        ]
+            tuple[pgce.PathAspect, ...],
+        ],
     ]
 
     #: The CTE and some metadata of any enclosing iterator-like
@@ -504,8 +508,7 @@ class CompilerContextLevel(compiler.ContextLevel):
         return self.new(ContextSwitchMode.NEWSCOPE)
 
     def up_hierarchy(
-        self,
-        n: int, q: Optional[pgast.Query]=None
+        self, n: int, q: Optional[pgast.Query] = None
     ) -> Optional[pgast.Query]:
         # mostly intended as a debugging helper
         q = q or self.rel
@@ -522,7 +525,8 @@ class CompilerContext(compiler.CompilerContext[CompilerContextLevel]):
 
 RewriteKey = tuple[uuid.UUID, bool]
 FullRewriteKey = tuple[
-    uuid.UUID, bool, Optional[frozenset['irast.MutatingLikeStmt']]]
+    uuid.UUID, bool, Optional[frozenset['irast.MutatingLikeStmt']]
+]
 
 
 class Environment:

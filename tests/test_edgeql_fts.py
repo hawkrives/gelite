@@ -40,9 +40,9 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
 
     async def _assert_index_use(self, query, *args):
         def look(obj):
-            if (
-                isinstance(obj, dict)
-                and obj.get('plan_type') in ("IndexScan", "BitmapIndexScan")
+            if isinstance(obj, dict) and obj.get('plan_type') in (
+                "IndexScan",
+                "BitmapIndexScan",
             ):
                 return any(
                     prop['title'] == 'index_name'
@@ -64,6 +64,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             plan = await self.con.query_json(f'analyze {query};', *args)
         if not look(json.loads(plan)):
             from edb.common import debug
+
             debug.dump(json.loads(plan))
             raise AssertionError(f'query did not use fts::index index')
 
@@ -503,10 +504,12 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             }
             ''',
             # We only care to validate which types got indexed
-            [{
-                'title': 'big',
-                'text': 'important',
-            }],
+            [
+                {
+                    'title': 'big',
+                    'text': 'important',
+                }
+            ],
         )
 
     async def test_edgeql_fts_multifield_01(self):
@@ -835,7 +838,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il vetro della finestra è chiaro",
                     "score": 0.6079271,
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -871,7 +874,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il maiale impanato è buono",
                     "score": 0.6079271,
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -907,7 +910,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il maiale impanato è buono",
                     "score": 0.6079271,
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_fts_lang_03(self):
@@ -937,7 +940,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il vetro della finestra è chiaro",
                     "score": 0.6079271,
                 }
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -964,7 +967,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il maiale impanato è buono",
                     "score": 0.6079271,
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -991,7 +994,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Questo pane buonissimo",
                     "score": 0.6079271,
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_fts_lang_04(self):
@@ -1021,7 +1024,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                     "ita": "Il vetro della finestra è chiaro",
                     "score": 0.6079271,
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_fts_lang_05(self):
@@ -1043,7 +1046,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             [
                 {"text": "The window pane is clear", "score": 0.6079271},
                 {"text": "Questo pane buonissimo", "score": 0.30396354},
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1063,7 +1066,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             [
                 {"text": "No pain no gain", "score": 0.6079271},
                 {"text": "Ce délicieux pain", "score": 0.30396354},
-            ]
+            ],
         )
 
     async def test_edgeql_fts_lang_06(self):
@@ -1080,10 +1083,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             filter res.score > 0
             order by res.score desc
             ''',
-            [
-                "The window pane is clear -- "
-                "Il vetro della finestra è chiaro"
-            ]
+            ["The window pane is clear -- Il vetro della finestra è chiaro"],
         )
 
         await self.assert_query_result(
@@ -1098,10 +1098,7 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
             filter res.score > 0
             order by res.score desc
             ''',
-            [
-                "This delicious bread -- "
-                "Questo pane buonissimo"
-            ]
+            ["This delicious bread -- Questo pane buonissimo"],
         )
 
     async def test_edgeql_fts_weights_01(self):
@@ -1156,17 +1153,17 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
                 {
                     'title': 'angry reply',
                     'body': 'No! Wrong! It\'s blue!',
-                    'score': 0.40528473
+                    'score': 0.40528473,
                 },
                 {
                     'title': 'helpful reply',
                     'body': 'That\'s Rayleigh scattering for you',
-                    'score': 0.20264237
+                    'score': 0.20264237,
                 },
                 {
                     'title': 'random stuff',
                     'body': 'angry giraffes',
-                    'score': 0.20264237
+                    'score': 0.20264237,
                 },
             ],
         )

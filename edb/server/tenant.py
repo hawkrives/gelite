@@ -32,7 +32,6 @@ from typing import (
 
 import asyncio
 import contextlib
-import dataclasses
 import json
 import logging
 import os
@@ -68,8 +67,6 @@ from . import pgcon
 from . import compiler as edbcompiler
 from . import pgconnparams
 
-from .ha import adaptive as adaptive_ha
-from .ha import base as ha_base
 from .http import HttpClient
 from .pgcon import errors as pgcon_errors
 from .compiler import enums as compiler_enums
@@ -79,7 +76,6 @@ if TYPE_CHECKING:
 
     from . import pgcluster
     from . import server as edbserver
-    from . import compiler_pool as edbcompiler_pool
 
 
 logger = logging.getLogger("edb.server")
@@ -103,7 +99,7 @@ class RoleDescriptor(TypedDict):
     apply_access_policies_pg_default: bool | None
 
 
-class Tenant(ha_base.ClusterProtocol):
+class Tenant:
     _server: edbserver.BaseServer
     _cluster: pgcluster.BaseCluster
     _tenant_id: str
@@ -133,8 +129,6 @@ class Tenant(ha_base.ClusterProtocol):
     _init_con_data: list[config.ConState]
     _init_con_sql: bytes | None
 
-    _ha_master_serial: int
-    _backend_adaptive_ha: adaptive_ha.AdaptiveHASupport | None
     _readiness_state_file: pathlib.Path | None
     _readiness: srvargs.ReadinessState
     _readiness_reason: str
@@ -156,15 +150,12 @@ class Tenant(ha_base.ClusterProtocol):
 
     _http_client: HttpClient | None
 
-    _sidechannel_email_configs: list[Any]
-
     def __init__(
         self,
         cluster: pgcluster.BaseCluster,
         *,
         instance_name: str,
         max_backend_connections: int,
-        backend_adaptive_ha: bool = False,
         extensions_dir: tuple[pathlib.Path, ...] = (),
     ):
         self._cluster = cluster
@@ -181,7 +172,6 @@ class Tenant(ha_base.ClusterProtocol):
         self._accept_new_tasks = False
         self._file_watch_finalizers = []
         self._introspection_locks = weakref.WeakValueDictionary()
-        self._sidechannel_email_configs = []
 
         self._extensions_dirs = extensions_dir
 
@@ -190,14 +180,6 @@ class Tenant(ha_base.ClusterProtocol):
         self.__sys_pgcon = None
         self._sys_pgcon_last_active_time = 0
 
-        # Increase-only counter to reject outdated attempts to connect
-        self._ha_master_serial = 0
-        if backend_adaptive_ha:
-            self._backend_adaptive_ha = adaptive_ha.AdaptiveHASupport(
-                self, self._instance_name
-            )
-        else:
-            self._backend_adaptive_ha = None
         self._readiness_state_file = None
         self._readiness = srvargs.ReadinessState.Default
         self._readiness_reason = ""
@@ -279,28 +261,6 @@ class Tenant(ha_base.ClusterProtocol):
         self._server = server
         self.__loop = server.get_loop()
 
-    async def load_sidechannel_configs(
-        self,
-        value: Any,
-        *,
-        compiler: (
-            edbcompiler.Compiler | edbcompiler_pool.AbstractPool | None
-        ) = None,
-    ) -> None:
-        if compiler is None:
-            compiler = self._server.get_compiler_pool()
-        objects = {"cfg::Config": {"email_providers": value}}
-        if isinstance(compiler, edbcompiler.Compiler):
-            result = compiler.compile_structured_config(
-                objects, source="magic", allow_nested=True
-            )
-        else:
-            result = await compiler.compile_structured_config(
-                objects, source="magic", allow_nested=True
-            )
-        email_providers = result["cfg::Config"]["email_providers"]
-        self._sidechannel_email_configs = list(email_providers.value)
-
     def get_http_client(self, *, originator: str) -> HttpClient:
         if self._http_client is None:
             http_max_connections = self._server.config_lookup(
@@ -311,38 +271,9 @@ class Tenant(ha_base.ClusterProtocol):
                 user_agent=f"EdgeDB {buildmeta.get_version_string(short=True)}",
                 stat_callback=lambda stat: logger.debug(
                     f"HTTP stat: {originator} {stat}"
-                )
+                ),
             )
         return self._http_client
-
-    def on_switch_over(self):
-        # Bumping this serial counter will "cancel" all pending connections
-        # to the old master.
-        self._ha_master_serial += 1
-
-        if self._accept_new_tasks:
-            self.create_task(
-                self._pg_pool.prune_all_connections(),
-                interruptable=True,
-            )
-
-        if self.__sys_pgcon is None:
-            # Assume a reconnect task is already running, now that we know the
-            # new master is likely ready, let's just give the task a push.
-            self._sys_pgcon_reconnect_evt.set()
-        else:
-            # Brutally close the sys_pgcon to the old master - this should
-            # trigger a reconnect task.
-            self.__sys_pgcon.abort()
-
-        if self._backend_adaptive_ha is not None:
-            # Switch to FAILOVER if adaptive HA is enabled
-            self._backend_adaptive_ha.set_state_failover(
-                call_on_switch_over=False
-            )
-
-    def get_active_pgcon_num(self) -> int:
-        return self._pg_pool.active_conns
 
     @property
     def client_id(self) -> int:
@@ -437,7 +368,7 @@ class Tenant(ha_base.ClusterProtocol):
 
         for name, role_desc in self._roles.items():
             superuser = bool(role_desc.get('superuser'))
-            available_permissions = (role_desc.get('all_permissions') or ())
+            available_permissions = role_desc.get('all_permissions') or ()
 
             if superuser:
                 capability = compiler_enums.Capability.ALL
@@ -484,8 +415,7 @@ class Tenant(ha_base.ClusterProtocol):
 
     async def get_patch_count(self, conn: pgcon.PGConnection) -> int:
         """Get the number of applied patches."""
-        num_patches = await instdata.get_instdata(
-            conn, 'num_patches', 'json')
+        num_patches = await instdata.get_instdata(conn, 'num_patches', 'json')
         res: int = json.loads(num_patches) if num_patches else 0
         return res
 
@@ -511,7 +441,7 @@ class Tenant(ha_base.ClusterProtocol):
                 hint=(
                     'You need to either recreate the instance and upgrade '
                     'using dump/restore, or do an inplace upgrade.'
-                )
+                ),
             )
 
         # Check patch count
@@ -520,10 +450,10 @@ class Tenant(ha_base.ClusterProtocol):
             raise errors.ConfigurationError(
                 'database instance incompatible with this version of Gel',
                 details=f"expected {len(pg_patches.PATCHES)} patches, "
-                        f"but only {num_patches} applied",
+                f"but only {num_patches} applied",
                 hint="if you are adding an old backend to a multi-tenant "
-                     "server, firstly run a new single-tenant server on "
-                     "that backend to apply the patches.",
+                "server, firstly run a new single-tenant server on "
+                "that backend to apply the patches.",
             )
 
     async def init(self, compat_check: bool = False) -> None:
@@ -531,8 +461,7 @@ class Tenant(ha_base.ClusterProtocol):
         async with self.use_sys_pgcon() as syscon:
             if compat_check:
                 await self._check_metaschema_compatibility(syscon)
-            result = await instdata.get_instdata(
-                syscon, 'instancedata', 'json')
+            result = await instdata.get_instdata(syscon, 'instancedata', 'json')
             self._instance_data = immutables.Map(json.loads(result))
             await self._fetch_roles(syscon)
             if self._server.get_compiler_pool() is None:
@@ -548,15 +477,14 @@ class Tenant(ha_base.ClusterProtocol):
                 compiler_pool = self._server.get_compiler_pool()
 
             default_database = await instdata.get_instdata(
-                syscon, 'default_branch', 'text')
+                syscon, 'default_branch', 'text'
+            )
             if default_database:
                 self.default_database = default_database.decode('utf-8')
 
         if data is not None:
             logger.debug("parsing global schema")
-            global_schema_pickle = (
-                await compiler_pool.parse_global_schema(data)
-            )
+            global_schema_pickle = await compiler_pool.parse_global_schema(data)
 
         logger.info("loading system config")
         sys_config = await self._load_sys_config()
@@ -566,7 +494,8 @@ class Tenant(ha_base.ClusterProtocol):
         # To make in-place upgrade failures more testable, check
         # 'force_database_error' with a 'startup' scope.
         force_error = self._server.config_lookup(
-            'force_database_error', sys_config)
+            'force_database_error', sys_config
+        )
         edbcompiler.maybe_force_database_error(force_error, scope='startup')
 
         self._dbindex = dbview.DatabaseIndex(
@@ -604,10 +533,7 @@ class Tenant(ha_base.ClusterProtocol):
             try:
                 with os.scandir(path) as it:
                     for entry in it:
-                        if (
-                            entry.is_dir()
-                            and self._is_extension_package(entry)
-                        ):
+                        if entry.is_dir() and self._is_extension_package(entry):
                             exts.append(pathlib.Path(entry))
             except FileNotFoundError:
                 pass
@@ -617,6 +543,7 @@ class Tenant(ha_base.ClusterProtocol):
 
         async with self.use_sys_pgcon() as syscon:
             from edb.pgsql import trampoline
+
             ext_packages_json = await syscon.sql_fetch_val(
                 trampoline.fixup_query("""
                     SELECT json_agg(o.c)
@@ -685,8 +612,7 @@ class Tenant(ha_base.ClusterProtocol):
 
         script = '\n'.join(scripts)
         _, sql_script = edbcompiler.compile_edgeql_script(compilerctx, script)
-        logger.info(
-            f"Installing extension package '{manifest['name']}'")
+        logger.info(f"Installing extension package '{manifest['name']}'")
         async with self.use_sys_pgcon() as syscon:
             await syscon.sql_execute(sql_script.encode('utf-8'))
             global_schema = await self._server.introspect_global_schema(syscon)
@@ -743,14 +669,10 @@ class Tenant(ha_base.ClusterProtocol):
         self._task_group = asyncio.TaskGroup()
         await self._task_group.__aenter__()
         self._accept_new_tasks = True
-        await self._cluster.start_watching(self.on_switch_over)
 
     def start_running(self) -> None:
         self._running = True
         self._accepting_connections = True
-        assert self._dbindex is not None
-        for db in self._dbindex.iter_dbs():
-            db.start_stop_extensions()
 
     def stop_accepting_connections(self) -> None:
         self._accepting_connections = False
@@ -795,10 +717,12 @@ class Tenant(ha_base.ClusterProtocol):
             if name is not None:
                 if name in self._named_tasks:
                     raise RuntimeError(
-                        f"task {name!r} already exists on on this server")
+                        f"task {name!r} already exists on on this server"
+                    )
                 self._named_tasks[name] = rv
                 rv.add_done_callback(
-                    lambda task: self._named_tasks.pop(task.get_name(), None))
+                    lambda task: self._named_tasks.pop(task.get_name(), None)
+                )
             else:
                 self._tasks.add(rv)
                 rv.add_done_callback(self._tasks.discard)
@@ -814,7 +738,6 @@ class Tenant(ha_base.ClusterProtocol):
     def stop(self) -> None:
         self._running = False
         self._accept_new_tasks = False
-        self._cluster.stop_watching()
         self._stop_watching_files()
         self._server.request_frontend_stop(self)
 
@@ -848,20 +771,21 @@ class Tenant(ha_base.ClusterProtocol):
         from edb.pgsql import common
 
         quoted_json = common.quote_literal(json.dumps(data))
-        return textwrap.dedent(
-            f'''
+        return (
+            textwrap.dedent(
+                f'''
                 INSERT INTO _edgecon_state
                     SELECT * FROM jsonb_to_recordset({quoted_json}::jsonb)
                         AS cfg(name text, value jsonb, type text);
             '''
-        ).strip().encode()
+            )
+            .strip()
+            .encode()
+        )
 
     async def _pg_connect(
-        self,
-        dbname: str,
-        source_description: str="pool connection"
+        self, dbname: str, source_description: str = "pool connection"
     ) -> pgcon.PGConnection:
-        ha_serial = self._ha_master_serial
         if self.get_backend_runtime_params().has_create_database:
             pg_dbname = self.get_pg_dbname(dbname)
         else:
@@ -871,7 +795,7 @@ class Tenant(ha_base.ClusterProtocol):
             rv = await self._cluster.connect(
                 source_description=source_description,
                 database=pg_dbname,
-                apply_init_script=True
+                apply_init_script=True,
             )
             if self._server.stmt_cache_size is not None:
                 rv.set_stmt_cache_size(self._server.stmt_cache_size)
@@ -889,18 +813,10 @@ class Tenant(ha_base.ClusterProtocol):
             metrics.backend_connection_establishment_latency.observe(
                 time.monotonic() - started_at, self._instance_name
             )
-        if ha_serial == self._ha_master_serial:
-            rv.set_tenant(self)
-            if self._backend_adaptive_ha is not None:
-                self._backend_adaptive_ha.on_pgcon_made(
-                    dbname == defines.GELITE_SYSTEM_DB
-                )
-            metrics.total_backend_connections.inc(1.0, self._instance_name)
-            metrics.current_backend_connections.inc(1.0, self._instance_name)
-            return rv
-        else:
-            rv.terminate()
-            raise ConnectionError("connected to outdated Postgres master")
+        rv.set_tenant(self)
+        metrics.total_backend_connections.inc(1.0, self._instance_name)
+        metrics.current_backend_connections.inc(1.0, self._instance_name)
+        return rv
 
     async def _pg_disconnect(self, conn: pgcon.PGConnection) -> None:
         metrics.current_backend_connections.dec(1.0, self._instance_name)
@@ -923,8 +839,7 @@ class Tenant(ha_base.ClusterProtocol):
         conn = None
         try:
             conn = await self._pg_connect(
-                dbname,
-                source_description="direct_pgcon"
+                dbname, source_description="direct_pgcon"
             )
             yield conn
         finally:
@@ -964,44 +879,6 @@ class Tenant(ha_base.ClusterProtocol):
         for conn in self._pg_pool.iterate_connections():
             conn.set_stmt_cache_size(size)
 
-    def on_sys_pgcon_parameter_status_updated(
-        self,
-        name: str,
-        value: str,
-    ) -> None:
-        try:
-            if name == "in_hot_standby" and value == "on":
-                # It is a strong evidence of failover if the sys_pgcon receives
-                # a notification that in_hot_standby is turned on.
-                self.on_sys_pgcon_failover_signal()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0,
-                self._instance_name,
-                "on_sys_pgcon_parameter_status_updated"
-            )
-            raise
-
-    def on_sys_pgcon_failover_signal(self) -> None:
-        if not self._running:
-            return
-        try:
-            if self._backend_adaptive_ha is not None:
-                # Switch to FAILOVER if adaptive HA is enabled
-                self._backend_adaptive_ha.set_state_failover()
-            elif getattr(self._cluster, "_ha_backend", None) is None:
-                # If the server is not using an HA backend, nor has enabled the
-                # adaptive HA monitoring, we still try to "switch over" by
-                # disconnecting all pgcons if failover signal is received,
-                # allowing reconnection to happen sooner.
-                self.on_switch_over()
-            # Else, the HA backend should take care of calling on_switch_over()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_sys_pgcon_failover_signal"
-            )
-            raise
-
     def on_sys_pgcon_connection_lost(self, exc: Exception | None) -> None:
         try:
             if not self._running:
@@ -1024,7 +901,6 @@ class Tenant(ha_base.ClusterProtocol):
                 self.create_task(
                     self._reconnect_sys_pgcon(), interruptable=True
                 )
-            self.on_pgcon_broken(True)
         except Exception:
             metrics.background_errors.inc(
                 1.0, self._instance_name, "on_sys_pgcon_connection_lost"
@@ -1041,7 +917,7 @@ class Tenant(ha_base.ClusterProtocol):
                 try:
                     conn = await self._pg_connect(
                         defines.GELITE_SYSTEM_DB,
-                        source_description="_reconnect_sys_pgcon"
+                        source_description="_reconnect_sys_pgcon",
                     )
                     break
                 except OSError:
@@ -1092,33 +968,13 @@ class Tenant(ha_base.ClusterProtocol):
         finally:
             self._sys_pgcon_ready_evt.set()
 
-    def on_pgcon_broken(self, is_sys_pgcon: bool = False) -> None:
-        try:
-            if self._backend_adaptive_ha:
-                self._backend_adaptive_ha.on_pgcon_broken(is_sys_pgcon)
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_pgcon_broken"
-            )
-            raise
-
-    def on_pgcon_lost(self) -> None:
-        try:
-            if self._backend_adaptive_ha:
-                self._backend_adaptive_ha.on_pgcon_lost()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_pgcon_lost")
-            raise
-
     def set_pg_unavailable_msg(self, msg: str | None) -> None:
         if msg is None or self._pg_unavailable_msg is None:
             self._pg_unavailable_msg = msg
 
     @contextlib.asynccontextmanager
     async def with_pgcon(
-        self, dbname: str, *,
-        discard: bool=False
+        self, dbname: str, *, discard: bool = False
     ) -> AsyncGenerator[pgcon.PGConnection, None]:
         conn = await self.acquire_pgcon(dbname=dbname)
         try:
@@ -1139,13 +995,11 @@ class Tenant(ha_base.ClusterProtocol):
             elif conn.last_init_con_data is not self._init_con_data:
                 try:
                     await conn.sql_execute(
-                        pgcon.RESET_STATIC_CFG_SCRIPT +
-                        (self._init_con_sql or b'')
+                        pgcon.RESET_STATIC_CFG_SCRIPT
+                        + (self._init_con_sql or b'')
                     )
                 except Exception as e:
-                    logger.warning(
-                        "failed to update pgcon; discard now: %s", e
-                    )
+                    logger.warning("failed to update pgcon; discard now: %s", e)
                 else:
                     conn.last_init_con_data = self._init_con_data
                     return conn
@@ -1278,6 +1132,7 @@ class Tenant(ha_base.ClusterProtocol):
         self, conn: pgcon.PGConnection
     ) -> set[str]:
         from edb.pgsql import trampoline
+
         extension_names_json = await conn.sql_fetch_val(
             trampoline.fixup_query("""
                 SELECT json_agg(name) FROM edgedb_VER."_SchemaExtension";
@@ -1295,22 +1150,24 @@ class Tenant(ha_base.ClusterProtocol):
         conn: pgcon.PGConnection,
         global_schema_pickle,
     ) -> Any:
-        user_schema_json = (
-            await self._server.introspect_user_schema_json(conn)
-        )
+        user_schema_json = await self._server.introspect_user_schema_json(conn)
         db_config_json = await self._server.introspect_db_config(conn)
 
         compiler_pool = self._server.get_compiler_pool()
-        return (await compiler_pool.parse_user_schema_db_config(
-            user_schema_json, db_config_json, global_schema_pickle,
-        )).user_schema_pickle
+        return (
+            await compiler_pool.parse_user_schema_db_config(
+                user_schema_json,
+                db_config_json,
+                global_schema_pickle,
+            )
+        ).user_schema_pickle
 
     async def introspect_db(
         self,
         dbname: str,
         *,
-        conn: Optional[pgcon.PGConnection]=None,
-        reintrospection: bool=False,
+        conn: Optional[pgcon.PGConnection] = None,
+        reintrospection: bool = False,
     ) -> None:
         """Use this method to (re-)introspect a DB.
 
@@ -1334,7 +1191,8 @@ class Tenant(ha_base.ClusterProtocol):
 
         """
         cm = (
-            contextlib.nullcontext(conn) if conn
+            contextlib.nullcontext(conn)
+            if conn
             else self._with_intro_pgcon(dbname)
         )
 
@@ -1356,6 +1214,7 @@ class Tenant(ha_base.ClusterProtocol):
         reintrospection: bool,
     ) -> None:
         from edb.pgsql import trampoline
+
         logger.info("introspecting database '%s'", dbname)
 
         assert self._dbindex is not None
@@ -1366,9 +1225,7 @@ class Tenant(ha_base.ClusterProtocol):
         old_cache_mode = config.QueryCacheMode.effective(cache_mode_val)
 
         # Introspection
-        user_schema_json = (
-            await self._server.introspect_user_schema_json(conn)
-        )
+        user_schema_json = await self._server.introspect_user_schema_json(conn)
 
         reflection_cache_json = await conn.sql_fetch_val(
             trampoline.fixup_query("""
@@ -1444,17 +1301,15 @@ class Tenant(ha_base.ClusterProtocol):
         if query_cache and cache_mode is not config.QueryCacheMode.InMemory:
             db.hydrate_cache(query_cache)
         elif old_cache_mode is not cache_mode:
-            logger.info(
-                "clearing query cache for database '%s'", dbname)
-            await conn.sql_execute(
-                b'SELECT edgedb._clear_query_cache()')
+            logger.info("clearing query cache for database '%s'", dbname)
+            await conn.sql_execute(b'SELECT edgedb._clear_query_cache()')
             assert self._dbindex
             self._dbindex.get_db(dbname).clear_query_cache()
 
     async def _early_introspect_db(self, dbname: str) -> None:
         """We need to always introspect the extensions for each database.
 
-        Otherwise, we won't know to accept connections for graphql or
+        Otherwise, we won't know to accept connections for
         http, for example, until a native connection is made.
         """
         current_tenant.set(self.get_instance_name())
@@ -1477,7 +1332,6 @@ class Tenant(ha_base.ClusterProtocol):
                         backend_ids=None,
                         extensions=extensions,
                         ext_config_settings=None,
-                        early=True,
                     )
 
         # Early introspection runs *before* we start accepting tasks.
@@ -1661,6 +1515,7 @@ class Tenant(ha_base.ClusterProtocol):
                     )
                 else:
                     from . import server as edbserver
+
                     raise edbserver.StartupError(
                         "cannot load JWT sub allowlist: no secret key"
                     )
@@ -1687,6 +1542,7 @@ class Tenant(ha_base.ClusterProtocol):
                     )
                 else:
                     from . import server as edbserver
+
                     raise edbserver.StartupError(
                         "cannot load JWT revocation list: no secret key"
                     )
@@ -1764,13 +1620,6 @@ class Tenant(ha_base.ClusterProtocol):
         # Read the TOML file
         with self._config_file.open('rb') as f:
             toml_data = tomllib.load(f)
-
-        # Handle special case for `magic_smtp_config`
-        magic_smtp_config = toml_data.pop("magic_smtp_config", None)
-        if magic_smtp_config:
-            await self.load_sidechannel_configs(
-                magic_smtp_config, compiler=compiler
-            )
 
         # Parse TOML config file content into JSON
         if toml_data and toml_data.get("cfg::Config"):
@@ -1888,9 +1737,11 @@ class Tenant(ha_base.ClusterProtocol):
         from . import bootstrap  # noqa: F402
 
         real_tgt_dbname = common.get_database_backend_name(
-            tgt_dbname, tenant_id=self._tenant_id)
+            tgt_dbname, tenant_id=self._tenant_id
+        )
         real_src_dbname = common.get_database_backend_name(
-            src_dbname, tenant_id=self._tenant_id)
+            src_dbname, tenant_id=self._tenant_id
+        )
 
         # HACK: Limit the maximum number of in-flight branch
         # creations. This is because branches use up to 3 concurrent
@@ -2202,8 +2053,6 @@ class Tenant(ha_base.ClusterProtocol):
             self.create_task(task(), interruptable=True)
 
     def get_debug_info(self) -> dict[str, Any]:
-        from . import smtp
-
         pgaddr = self.get_pgaddr()
         pgaddr.clear_server_settings()
         pgdict = pgaddr.__dict__
@@ -2217,7 +2066,8 @@ class Tenant(ha_base.ClusterProtocol):
                 tenant_id=self._tenant_id,
             ),
             instance_config=config.debug_serialize_config(
-                self.get_sys_config()),
+                self.get_sys_config()
+            ),
             user_roles=self._roles,
             pg_addr=dict(
                 server_settings=vars(self._cluster.get_connection_params()),
@@ -2232,12 +2082,6 @@ class Tenant(ha_base.ClusterProtocol):
                 if db.name in defines.GELITE_SPECIAL_DBS:
                     continue
 
-                try:
-                    email_provider = dataclasses.asdict(
-                        smtp.get_current_email_provider(db)
-                    )
-                except errors.ConfigurationError:
-                    email_provider = None
                 dbs[db.name] = dict(
                     name=db.name,
                     dbver=db.dbver,
@@ -2253,12 +2097,12 @@ class Tenant(ha_base.ClusterProtocol):
                             in_tx=view.in_tx(),
                             in_tx_error=view.in_tx_error(),
                             config=config.debug_serialize_config(
-                                view.get_session_config()),
+                                view.get_session_config()
+                            ),
                             module_aliases=view.get_modaliases(),
                         )
                         for view in db.iter_views()
                     ],
-                    current_email_provider=email_provider,
                 )
 
         obj["databases"] = dbs

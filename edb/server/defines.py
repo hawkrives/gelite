@@ -29,7 +29,6 @@ from edb.schema import defines as s_def
 
 
 GELITE_PORT = 5656
-GELITE_REMOTE_COMPILER_PORT = 5660
 GELITE_SUPERGROUP = 'edgedb_supergroup'
 GELITE_SUPERUSER = s_def.GELITE_SUPERUSER
 GELITE_OLD_SUPERUSER = s_def.GELITE_OLD_SUPERUSER
@@ -96,10 +95,6 @@ _TLS_CERT_RELOAD_EXP_INTERVAL = 0.1
 
 PGEXT_POSTGRES_VERSION = 13.9
 PGEXT_POSTGRES_VERSION_NUM = 130009
-
-# The time in seconds the Gel server will wait for a tenant to be gracefully
-# shutdown when removed from a multi-tenant host.
-MULTITENANT_TENANT_DESTROY_TIMEOUT = 30
 
 
 class TxIsolationLevel(s_enum.StrEnum):

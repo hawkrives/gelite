@@ -52,7 +52,6 @@ LONG_WAIT = 60
 
 
 class TestServerCompiler(tb.BaseSchemaLoadTest):
-
     SCHEMA = '''
         type Foo {
             property bar -> str;
@@ -139,20 +138,24 @@ class TestServerCompiler(tb.BaseSchemaLoadTest):
             enumprop="One",
             multiprop=frozenset(["v1", "v2", "v3"]),
             listen_port=5,
-            sysobj=frozenset([
-                self.composite_obj(
-                    "cfg::TestInstanceConfig",
-                    name="1",
-                    obj=self.composite_obj(
-                        "cfg::Subclass1", name="aa", sub1="bb",
+            sysobj=frozenset(
+                [
+                    self.composite_obj(
+                        "cfg::TestInstanceConfig",
+                        name="1",
+                        obj=self.composite_obj(
+                            "cfg::Subclass1",
+                            name="aa",
+                            sub1="bb",
+                        ),
                     ),
-                ),
-                self.composite_obj(
-                    "cfg::TestInstanceConfigStatTypes",
-                    name="2",
-                    memprop=statypes.ConfigMemory(128),
-                ),
-            ])
+                    self.composite_obj(
+                        "cfg::TestInstanceConfigStatTypes",
+                        name="2",
+                        memprop=statypes.ConfigMemory(128),
+                    ),
+                ]
+            ),
         )
 
     def test_server_compiler_compile_structured_config_02(self):
@@ -249,10 +252,14 @@ class TestAmsg(tbs.TestCase):
                 proc = await asyncio.create_subprocess_exec(
                     sys.executable,
                     "-I",
-                    "-m", pool.WORKER_PKG + pool.BaseLocalPool._worker_mod,
-                    "--sockname", sock_name,
-                    "--numproc", str(num_proc),
-                    "--version-serial", "1",
+                    "-m",
+                    pool.WORKER_PKG + pool.BaseLocalPool._worker_mod,
+                    "--sockname",
+                    sock_name,
+                    "--numproc",
+                    str(num_proc),
+                    "--version-serial",
+                    "1",
                     env=pool._ENV,
                     stdin=subprocess.DEVNULL,
                     stdout=subprocess.DEVNULL,
@@ -346,7 +353,8 @@ class TestAmsg(tbs.TestCase):
 
             for _ in range(2):
                 pid = await asyncio.wait_for(
-                    proto.disconnected.get(), SHORT_WAIT)
+                    proto.disconnected.get(), SHORT_WAIT
+                )
                 pids.append(pid)
 
             self.assertIn(pid1, pids)
@@ -373,7 +381,8 @@ class TestAmsg(tbs.TestCase):
             pids = []
             for _ in range(2):
                 pid = await asyncio.wait_for(
-                    proto.disconnected.get(), SHORT_WAIT)
+                    proto.disconnected.get(), SHORT_WAIT
+                )
                 pids.append(pid)
 
             self.assertIn(pid1, pids)
@@ -457,7 +466,8 @@ class TestServerCompilerPool(tbs.TestCase):
             compiler_pool_size=2,
             compiler_pool_mode=edbargs.CompilerPoolMode.Fixed,
             http_endpoint_security=(
-                edbargs.ServerEndpointSecurityMode.Optional),
+                edbargs.ServerEndpointSecurityMode.Optional
+            ),
         ) as sd:
             self.assertEqual(sd.call_system_api('/server/status/ready'), 'OK')
             pid1, pid2 = await self._get_worker_pids(sd)
@@ -559,7 +569,8 @@ class TestCompilerPool(tbs.TestCase):
                     sys_config={},
                     default_sysconfig=immutables.Map(),
                     sys_config_spec=config.load_spec_from_schema(
-                        self._std_schema),
+                        self._std_schema
+                    ),
                 ),
             )
             try:
@@ -599,15 +610,20 @@ class TestCompilerPool(tbs.TestCase):
                     implicit_limit=101,
                 )
 
-                await asyncio.gather(*(pool_.compile_in_tx(
-                    None,
-                    pickle.dumps(context.state.root_user_schema),
-                    context.state.current_tx().id,
-                    pickle.dumps(context.state),
-                    0,
-                    request.serialize(),
-                    orig_query,
-                ) for _ in range(4)))
+                await asyncio.gather(
+                    *(
+                        pool_.compile_in_tx(
+                            None,
+                            pickle.dumps(context.state.root_user_schema),
+                            context.state.current_tx().id,
+                            pickle.dumps(context.state),
+                            0,
+                            request.serialize(),
+                            orig_query,
+                        )
+                        for _ in range(4)
+                    )
+                )
             finally:
                 await pool_.stop()
 
@@ -633,7 +649,8 @@ class TestCompilerPool(tbs.TestCase):
                 compilation_config_serializer=cfg_ser,
             )
             request2 = rpc.CompilationRequest.deserialize(
-                request1.serialize(), "<unknown>", cfg_ser)
+                request1.serialize(), "<unknown>", cfg_ser
+            )
             self.assertEqual(hash(request1), hash(request2))
             self.assertEqual(request1, request2)
 

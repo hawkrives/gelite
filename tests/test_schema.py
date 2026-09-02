@@ -11758,7 +11758,7 @@ class TestDescribe(BaseDescribeTest):
     def test_schema_describe_schema_02(self):
         self._assert_describe(
             """
-            using extension notebook version '1.0';
+            using extension pg_unaccent version '1.1';
             module default {
                 type Foo {
                     link bar -> test::Bar;
@@ -11773,10 +11773,21 @@ class TestDescribe(BaseDescribeTest):
 
             'DESCRIBE SCHEMA AS DDL',
 
+            # This was `notebook`, whose extension package declared no
+            # schema of its own. pg_unaccent is the only extension left,
+            # and it does: DESCRIBE emits its module and its one function
+            # alongside the user's schema.
             """
-            CREATE EXTENSION NOTEBOOK VERSION '1.0';
+            CREATE EXTENSION PG_UNACCENT VERSION '1.1';
             CREATE MODULE default IF NOT EXISTS;
+            CREATE MODULE ext::pg_unaccent IF NOT EXISTS;
             CREATE MODULE test IF NOT EXISTS;
+            CREATE FUNCTION ext::pg_unaccent::unaccent(
+                text: std::str
+            ) -> std::str {
+                SET volatility := 'Immutable';
+                USING SQL $$select edgedb.unaccent(text)$$;
+            };
             CREATE TYPE default::Foo;
             CREATE TYPE test::Bar {
                 CREATE LINK foo: default::Foo;
@@ -11789,58 +11800,21 @@ class TestDescribe(BaseDescribeTest):
             'DESCRIBE SCHEMA AS SDL',
 
             r"""
-            using extension notebook version '1.0';
+            using extension pg_unaccent version '1.1';
             module default {
                 type Foo {
                     link bar: test::Bar;
                 };
             };
+            module ext::pg_unaccent {
+                function unaccent(text: std::str) -> std::str {
+                    volatility := 'Immutable';
+                    using sql $$select edgedb.unaccent(text)$$;
+                };
+            };
             module test {
                 type Bar {
                     link foo: default::Foo;
-                };
-            };
-            """,
-            explicit_modules=True,
-        )
-
-    @test.xfail('''
-        describe command includes module pgvector
-
-        ... this *doesn't* happen when actually testing via the CLI, though?
-    ''')
-    def test_schema_describe_schema_03(self):
-        self._assert_describe(
-            """
-            using extension pgvector version '0.5';
-            module default {
-                scalar type v3 extending ext::pgvector::vector<3>;
-
-                type Foo {
-                    data: v3;
-                }
-            };
-            """,
-
-            'describe schema as ddl',
-
-            """
-            create extension vector version '0.5';
-            create module default if not exists;
-            create scalar type default::v3 extending ext::pgvector::vector<3>;
-            create type default::Foo {
-                create property data: default::v3;
-            };
-            """,
-
-            'describe schema as sdl',
-
-            r"""
-            using extension pgvector version '0.5';
-            module default {
-                scalar type v3 extending ext::pgvector::vector<3>;
-                type Foo {
-                    property data: default::v3;
                 };
             };
             """,

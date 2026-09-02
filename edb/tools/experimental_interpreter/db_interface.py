@@ -6,7 +6,6 @@ import copy
 
 
 class EdgeDatabaseStorageProviderInterface:
-
     # filters have intersection semantics
     def query_ids_for_a_type(
         self, tp: e.QualifiedName, filters: e.EdgeDatabaseSelectFilter
@@ -66,10 +65,7 @@ class EdgeDatabaseStorageProviderInterface:
         raise NotImplementedError()
 
 
-class InMemoryEdgeDatabaseStorageProvider(
-    EdgeDatabaseStorageProviderInterface
-):
-
+class InMemoryEdgeDatabaseStorageProvider(EdgeDatabaseStorageProviderInterface):
     def __init__(self, schema) -> None:
         super().__init__()
         self.schema = schema
@@ -211,7 +207,6 @@ class InMemoryEdgeDatabaseStorageProvider(
 
 
 class EdgeDatabase:
-
     def __init__(self, storage: EdgeDatabaseStorageProviderInterface) -> None:
         super().__init__()
         self.storage = storage

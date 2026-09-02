@@ -25,7 +25,6 @@ from edb.testbase.asyncutils import with_fake_event_loop
 
 
 class TestDebounce(unittest.TestCase):
-
     @with_fake_event_loop
     async def test_debounce_01(self):
         loop = asyncio.get_running_loop()
@@ -39,15 +38,17 @@ class TestDebounce(unittest.TestCase):
         async def sleep_until(t):
             await asyncio.sleep(t - loop.time())
 
-        task = asyncio.create_task(asyncutil.debounce(
-            ins.get,
-            output,
-            # Use integers for delays to avoid any possibility of
-            # floating point nonsense
-            max_wait=500,
-            delay_amt=200,
-            max_batch_size=4,
-        ))
+        task = asyncio.create_task(
+            asyncutil.debounce(
+                ins.get,
+                output,
+                # Use integers for delays to avoid any possibility of
+                # floating point nonsense
+                max_wait=500,
+                delay_amt=200,
+                max_batch_size=4,
+            )
+        )
 
         ins.put_nowait(1)
         await sleep_until(10)
@@ -214,7 +215,10 @@ class TestExclusiveTask(unittest.TestCase):
     @with_fake_event_loop
     async def test_exclusive_task_05(self):
         class MyClass:
-            __slots__ = ("counter", "another",)
+            __slots__ = (
+                "counter",
+                "another",
+            )
 
             def __init__(self):
                 self.counter = 0
@@ -254,6 +258,7 @@ class TestExclusiveTask(unittest.TestCase):
 
     def test_exclusive_task_07(self):
         with self.assertRaises(TypeError):
+
             class MyClass:
                 __slots__ = ()
 
@@ -263,6 +268,7 @@ class TestExclusiveTask(unittest.TestCase):
 
     def test_exclusive_task_08(self):
         with self.assertRaises(TypeError):
+
             class MyClass:
                 __slots__ = ()
 
@@ -272,18 +278,21 @@ class TestExclusiveTask(unittest.TestCase):
 
     def test_exclusive_task_09(self):
         with self.assertRaises(TypeError):
+
             @asyncutil.exclusive_task
             async def task(*args, **kwargs):
                 pass
 
     def test_exclusive_task_10(self):
         with self.assertRaises(TypeError):
+
             @asyncutil.exclusive_task
             async def task(*, p):
                 pass
 
     def test_exclusive_task_11(self):
         with self.assertRaises(TypeError):
+
             class MyClass:
                 @asyncutil.exclusive_task
                 async def task(self, p):
@@ -291,6 +300,7 @@ class TestExclusiveTask(unittest.TestCase):
 
     def test_exclusive_task_12(self):
         with self.assertRaises(TypeError):
+
             class MyClass:
                 @asyncutil.exclusive_task
                 @classmethod
@@ -314,9 +324,5 @@ class TestExclusiveTask(unittest.TestCase):
         obj2 = MyClass()
 
         async with asyncio.TaskGroup() as g:
-            g.create_task(
-                self._test(obj1.task, lambda: counter)
-            )
-            g.create_task(
-                self._test(obj2.task, lambda: counter)
-            )
+            g.create_task(self._test(obj1.task, lambda: counter))
+            g.create_task(self._test(obj2.task, lambda: counter))

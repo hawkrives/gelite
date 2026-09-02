@@ -35,8 +35,6 @@ EdgeQL
 * :ref:`insert <ref_cheatsheet_insert>` -- Create new database objects.
 * :ref:`update <ref_cheatsheet_update>` -- Update database objects.
 * :ref:`delete <ref_cheatsheet_delete>` -- Remove objects from the database.
-* :ref:`GraphQL <ref_cheatsheet_graphql>` -- GraphQL queries supported natively
-  out of the box.
 
 Schema
 ======

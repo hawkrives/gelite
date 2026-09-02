@@ -25,8 +25,7 @@ from edb.testbase import server as server_tb
 from edb.testbase import http as tb
 
 
-class TestServerPermissions(tb.EdgeQLTestCase):
-
+class TestServerPermissions(server_tb.QueryTestCase):
     PARALLELISM_GRANULARITY = 'system'
     TRANSACTION_ISOLATION = False
 
@@ -52,7 +51,12 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                     global default::perm_a,
                 ];
             """)
-            self.assert_data_shape(result, [[True, True],])
+            self.assert_data_shape(
+                result,
+                [
+                    [True, True],
+                ],
+            )
 
             result = await conn.query("""
                 SELECT global sys::current_role;
@@ -64,72 +68,6 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             await self.con.query('''
                 DROP ROLE foo;
                 DROP PERMISSION default::perm_a;
-            ''')
-
-    async def test_server_permissions_role_02(self):
-        # Check that non-superuser has permissions
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    default::perm_a,
-                    cfg::perm::configure_allow_user_specified_id,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-            CREATE PERMISSION default::perm_b;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT [
-                    global sys::perm::superuser,
-                    global default::perm_a,
-                    global default::perm_b,
-                ];
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [[False, True, False]])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [[False, True, False]])
-
-            # Check that we reject configuring apply_access_policies
-            with self.assertRaisesRegex(
-                edgedb.DisabledCapabilityError,
-                'to configure session config variable apply_access_policies',
-            ):
-                self.edgeql_query(
-                    qry,
-                    user='foo',
-                    password='secret',
-                    config=dict(apply_access_policies=False),
-                )
-
-            # This one we said is OK though.
-            self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-                config=dict(allow_user_specified_id=False),
-            )
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
-                DROP PERMISSION default::perm_b;
             ''')
 
     async def test_server_permissions_role_03(self):
@@ -163,7 +101,17 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                     global default::perm_c,
                 ];
             """)
-            self.assert_data_shape(result, [[False, True, True, False,]])
+            self.assert_data_shape(
+                result,
+                [
+                    [
+                        False,
+                        True,
+                        True,
+                        False,
+                    ]
+                ],
+            )
 
         finally:
             await conn.aclose()
@@ -200,7 +148,16 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                     global default::perm_b,
                 ];
             """)
-            self.assert_data_shape(result, [[False, True, False,]])
+            self.assert_data_shape(
+                result,
+                [
+                    [
+                        False,
+                        True,
+                        False,
+                    ]
+                ],
+            )
 
             await self.con.query('''
                 ALTER ROLE foo {
@@ -215,7 +172,16 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                     global default::perm_b,
                 ];
             """)
-            self.assert_data_shape(result, [[False, False, True,]])
+            self.assert_data_shape(
+                result,
+                [
+                    [
+                        False,
+                        False,
+                        True,
+                    ]
+                ],
+            )
 
         finally:
             await conn.aclose()
@@ -259,7 +225,17 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                     global default::perm_c,
                 ];
             """)
-            self.assert_data_shape(result, [[False, True, True, False,]])
+            self.assert_data_shape(
+                result,
+                [
+                    [
+                        False,
+                        True,
+                        True,
+                        False,
+                    ]
+                ],
+            )
 
         finally:
             await conn.aclose()
@@ -270,80 +246,6 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 DROP PERMISSION default::perm_a;
                 DROP PERMISSION default::perm_b;
                 DROP PERMISSION default::perm_c;
-            ''')
-
-    async def test_server_permissions_role_06(self):
-        # Check that superusers can read Role data
-
-        await self.con.query('''
-            CREATE SUPERUSER ROLE foo {
-                SET password := 'secret';
-                SET permissions := default::perm_a;
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT n := sys::Role.name FILTER n in {'admin', 'foo'}
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, tb.bag(['admin', 'foo']))
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, tb.bag(['admin', 'foo']))
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
-            ''')
-
-    async def test_server_permissions_role_07(self):
-        # Check that non-superusers cannot read Role data
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := default::perm_a;
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT n := sys::Role.name FILTER n in {'admin', 'foo'}
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [])
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
             ''')
 
     async def test_server_permissions_function_01(self):
@@ -376,7 +278,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'role foo does not have required permissions: '
-                'default::perm_b, default::perm_c'
+                'default::perm_b, default::perm_c',
             ):
                 await conn.query('select test2()')
 
@@ -420,9 +322,11 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 INSERT Widget { n := 1 };
             """)
 
-            result = json.loads(await conn.query_json("""
+            result = json.loads(
+                await conn.query_json("""
                 SELECT Widget { n } ORDER BY .n;
-            """))
+            """)
+            )
             self.assert_data_shape(result, [{'n': 1}])
 
         finally:
@@ -466,9 +370,11 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 INSERT Widget { n := 1 };
             """)
 
-            result = json.loads(await conn.query_json("""
+            result = json.loads(
+                await conn.query_json("""
                 SELECT Widget { n } ORDER BY .n;
-            """))
+            """)
+            )
             self.assert_data_shape(result, [{'n': 1}])
 
         finally:
@@ -509,7 +415,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
 
             with self.assertRaisesRegex(
                 edgedb.AccessPolicyError,
-                'access policy violation on insert of default::Widget'
+                'access policy violation on insert of default::Widget',
             ):
                 await conn.execute("""
                     INSERT Widget { n := 1 };
@@ -547,7 +453,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     INSERT Widget { n := 2 };
@@ -556,7 +462,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     UPDATE Widget SET { n := .n + 1 };
@@ -565,7 +471,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     DELETE Widget;
@@ -692,7 +598,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     INSERT Widget { n := 3 };
@@ -759,14 +665,16 @@ class TestServerPermissions(tb.EdgeQLTestCase):
 
             await conn.execute('SET MODULE custom')
 
-            result = json.loads(await conn.query_json("""
+            result = json.loads(
+                await conn.query_json("""
                 SELECT Widget { n } ORDER BY .n;
-            """))
+            """)
+            )
             self.assert_data_shape(result, [{'n': 1}])
 
             async with self.assertRaisesRegexTx(
                 edgedb.DisabledCapabilityError,
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute('''
                     CONFIGURE SESSION SET apply_access_policies := false
@@ -774,15 +682,17 @@ class TestServerPermissions(tb.EdgeQLTestCase):
 
             # Try configuring with client directly
             args = self.get_connect_args(database=self.con.dbname)
-            args.update(dict(
-                user='foo',
-                password='secret',
-            ))
+            args.update(
+                dict(
+                    user='foo',
+                    password='secret',
+                )
+            )
             conn2 = edgedb.create_async_client(**args)
             conn2a = conn2.with_config(apply_access_policies=False)
             async with self.assertRaisesRegexTx(
                 edgedb.DisabledCapabilityError,
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn2a.query('select 1')
 
@@ -820,9 +730,11 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 set global bar := 1;
             ''')
 
-            result = json.loads(await conn.query_json("""
+            result = json.loads(
+                await conn.query_json("""
                 SELECT GLOBAL bar;
-            """))
+            """)
+            )
             self.assert_data_shape(result, [1])
 
             await self.assert_query_result(
@@ -845,10 +757,12 @@ class TestServerPermissions(tb.EdgeQLTestCase):
 
             # Try configuring with client directly
             args = self.get_connect_args(database=self.con.dbname)
-            args.update(dict(
-                user='foo',
-                password='secret',
-            ))
+            args.update(
+                dict(
+                    user='foo',
+                    password='secret',
+                )
+            )
             conn2 = edgedb.create_async_client(**args)
             self.assertEqual(
                 await conn2.query_single('select count(T)'),
@@ -885,7 +799,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             async with self.assertRaisesRegexTx(
                 edgedb.DisabledCapabilityError,
                 'cannot execute instance configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute('''
                     CONFIGURE INSTANCE SET apply_access_policies := false
@@ -893,7 +807,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             async with self.assertRaisesRegexTx(
                 edgedb.DisabledCapabilityError,
                 'cannot execute database branch configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute('''
                     CONFIGURE CURRENT BRANCH SET apply_access_policies
@@ -934,7 +848,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute DDL commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     CREATE TYPE Widget;
@@ -970,7 +884,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute instance-wide DDL commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     CREATE SUPERUSER ROLE bar {
@@ -980,7 +894,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute instance-wide DDL commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     CREATE EMPTY BRANCH bar
@@ -1016,7 +930,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute ADMINISTER commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     ADMINISTER schema_repair();
@@ -1025,7 +939,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute DESCRIBE commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     DESCRIBE SCHEMA
@@ -1034,7 +948,7 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute ANALYZE commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     ANALYZE SELECT 1
@@ -1046,58 +960,8 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 DROP ROLE foo;
             ''')
 
-    async def test_server_permissions_current_permissions_01(self):
-        # Check that sys::current_permissions works
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    sys::perm::data_modification,
-                    default::perm_a,
-                    default::perm_b,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT global sys::current_permissions;
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [tb.bag([
-                'sys::perm::data_modification',
-                'default::perm_a',
-                'default::perm_b',
-            ])])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [tb.bag([
-                'sys::perm::data_modification',
-                'default::perm_a',
-                'default::perm_b',
-            ])])
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
-            ''')
-
 
 class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
-
     PARALLELISM_GRANULARITY = 'system'
     TRANSACTION_ISOLATION = False
 
@@ -1137,7 +1001,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InternalServerError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     insert into "Widget" (n) values (2);
@@ -1146,7 +1010,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InternalServerError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     with X as (
@@ -1237,7 +1101,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.query_sql("""
                     insert into "Widget" (n) values (2);
@@ -1246,7 +1110,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute data modification queries: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.query_sql("""
                     with X as (
@@ -1358,9 +1222,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_super,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([[1], [2], [3]])
-            )
+            self.assert_data_shape(res, tb.bag([[1], [2], [3]]))
 
             conn_with_perm = await self.create_sql_connection(
                 user='WithPerm',
@@ -1370,9 +1232,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_with_perm,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([[1], [2], [3]])
-            )
+            self.assert_data_shape(res, tb.bag([[1], [2], [3]]))
 
             conn_no_perm = await self.create_sql_connection(
                 user='NoPerm',
@@ -1382,9 +1242,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_no_perm,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([])
-            )
+            self.assert_data_shape(res, tb.bag([]))
 
         finally:
             if conn_super:
@@ -1445,9 +1303,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 user='Super',
                 password='secret',
             )
-            await conn_super.execute(
-                'INSERT INTO "Widget" ("n") VALUES (1)'
-            )
+            await conn_super.execute('INSERT INTO "Widget" ("n") VALUES (1)')
 
             conn_with_perm = await self.create_sql_connection(
                 user='WithPerm',
@@ -1463,7 +1319,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InsufficientPrivilegeError,
-                'access policy violation on insert of default::Widget'
+                'access policy violation on insert of default::Widget',
             ):
                 await conn_no_perm.execute(
                     'INSERT INTO "Widget" ("n") VALUES (3)',
@@ -1538,9 +1394,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_super,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([{'n': 1}, {'n': 2}, {'n': 3}])
-            )
+            self.assert_data_shape(res, tb.bag([{'n': 1}, {'n': 2}, {'n': 3}]))
 
             conn_with_perm = await self.connect(
                 user='WithPerm',
@@ -1550,9 +1404,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_with_perm,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([{'n': 1}, {'n': 2}, {'n': 3}])
-            )
+            self.assert_data_shape(res, tb.bag([{'n': 1}, {'n': 2}, {'n': 3}]))
 
             conn_no_perm = await self.connect(
                 user='NoPerm',
@@ -1562,9 +1414,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 conn_no_perm,
                 'SELECT "n" FROM "Widget" ORDER BY "n"',
             )
-            self.assert_data_shape(
-                res, tb.bag([])
-            )
+            self.assert_data_shape(res, tb.bag([]))
 
         finally:
             if conn_super:
@@ -1623,9 +1473,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 user='Super',
                 password='secret',
             )
-            await conn_super.query_sql(
-                'INSERT INTO "Widget" ("n") VALUES (1)'
-            )
+            await conn_super.query_sql('INSERT INTO "Widget" ("n") VALUES (1)')
 
             conn_with_perm = await self.connect(
                 user='WithPerm',
@@ -1641,7 +1489,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
             with self.assertRaisesRegex(
                 edgedb.AccessPolicyError,
-                'access policy violation on insert of default::Widget'
+                'access policy violation on insert of default::Widget',
             ):
                 await conn_no_perm.query_sql(
                     'INSERT INTO "Widget" ("n") VALUES (3)',
@@ -1761,7 +1609,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InternalServerError,
                 'cannot execute sql session configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     SET LOCAL transaction_isolation TO 'serializable'
@@ -1770,7 +1618,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InternalServerError,
                 'cannot execute sql session configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     SET SESSION transaction_isolation TO 'serializable'
@@ -1829,16 +1677,14 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
 
             with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                'not supported: VARIABLE SET'
+                edgedb.UnsupportedFeatureError, 'not supported: VARIABLE SET'
             ):
                 await conn.query_sql("""
                     SET LOCAL transaction_isolation TO 'serializable'
                 """)
 
             with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                'not supported: VARIABLE SET'
+                edgedb.UnsupportedFeatureError, 'not supported: VARIABLE SET'
             ):
                 await conn.query_sql("""
                     SET SESSION transaction_isolation TO 'serializable'
@@ -1867,16 +1713,14 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
 
             with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                'not supported: VARIABLE SET'
+                edgedb.UnsupportedFeatureError, 'not supported: VARIABLE SET'
             ):
                 await conn.query_sql("""
                     SET LOCAL transaction_isolation TO 'serializable'
                 """)
 
             with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                'not supported: VARIABLE SET'
+                edgedb.UnsupportedFeatureError, 'not supported: VARIABLE SET'
             ):
                 await conn.query_sql("""
                     SET SESSION transaction_isolation TO 'serializable'
@@ -1908,7 +1752,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 asyncpg.exceptions.InternalServerError,
                 'cannot execute sql session configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.execute("""
                     SELECT set_config('bytea_output', 'hex', false)
@@ -1965,7 +1809,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             with self.assertRaisesRegex(
                 edgedb.DisabledCapabilityError,
                 'cannot execute sql session configuration commands: '
-                'role foo does not have permission'
+                'role foo does not have permission',
             ):
                 await conn.query_sql("""
                     SELECT set_config('bytea_output', 'hex', false)
@@ -2002,81 +1846,4 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             await conn.aclose()
             await self.con.query('''
                 DROP ROLE foo;
-            ''')
-
-
-class TestServerPermissionsGraphql(tb.GraphQLTestCase):
-
-    PARALLELISM_GRANULARITY = 'system'
-    TRANSACTION_ISOLATION = False
-
-    async def test_server_permissions_graphql_01(self):
-        # Check that non-superuser has permissions
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    default::perm_a,
-                    cfg::perm::configure_allow_user_specified_id,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-            CREATE PERMISSION default::perm_b;
-
-            CREATE ALIAS GraphqlIsNotAQueryLanguage := {
-                perm_a := global perm_a,
-                perm_b := global perm_b,
-                role := global sys::current_role,
-            }
-        ''')
-
-        try:
-            qry = '''
-                query {
-                    GraphqlIsNotAQueryLanguage {
-                        perm_a
-                        perm_b
-                        role
-                    }
-                }
-            '''
-            result = self.graphql_query(
-                qry, user='foo', password='secret'
-            )
-            self.assert_data_shape(
-                result,
-                dict(GraphqlIsNotAQueryLanguage=[dict(
-                    perm_a=True,
-                    perm_b=False,
-                    role='foo',
-                )]),
-            )
-
-            # Check that we reject configuring apply_access_policies
-            with self.assertRaisesRegex(
-                edgedb.DisabledCapabilityError,
-                'to configure session config variable apply_access_policies',
-            ):
-                self.graphql_query(
-                    qry,
-                    user='foo',
-                    password='secret',
-                    config=dict(apply_access_policies=False),
-                )
-
-            # This one we said is OK though.
-            self.graphql_query(
-                qry,
-                user='foo',
-                password='secret',
-                config=dict(allow_user_specified_id=False),
-            )
-
-        finally:
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP ALIAS GraphqlIsNotAQueryLanguage;
-                DROP PERMISSION default::perm_a;
-                DROP PERMISSION default::perm_b;
             ''')

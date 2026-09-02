@@ -4,6 +4,7 @@ import pathlib
 from typing import TYPE_CHECKING, Iterable, Optional, Any
 
 if TYPE_CHECKING:
+
     class SigningCtx:
         def __init__(self) -> None: ...
         def set_issuer(self, issuer: str) -> None: ...
@@ -37,8 +38,8 @@ if TYPE_CHECKING:
         def add(self, **kwargs: Any) -> None: ...
         def load(self, keys: str) -> int: ...
         def load_json(self, keys: str) -> int: ...
-        def export_pem(self, *, private_keys: bool=True) -> bytes: ...
-        def export_json(self, *, private_keys: bool=True) -> bytes: ...
+        def export_pem(self, *, private_keys: bool = True) -> bytes: ...
+        def export_json(self, *, private_keys: bool = True) -> bytes: ...
         def can_sign(self) -> bool: ...
         def can_validate(self) -> bool: ...
         def has_public_keys(self) -> bool: ...
@@ -78,8 +79,17 @@ if TYPE_CHECKING:
         instance_name: str,
     ) -> str | None: ...
 else:
-    from edb.server._rust_native._jwt import (
-        JWKSet, JWKSetCache, generate_gel_token, validate_gel_token, SigningCtx, ValidationCtx  # noqa
+    # Re-exported: these mirror the TYPE_CHECKING declarations above and
+    # are the module's public surface, so they are imported but not used
+    # here. The noqa sits on the statement because the formatter puts each
+    # name on its own line.
+    from edb.server._rust_native._jwt import (  # noqa: F401
+        JWKSet,
+        JWKSetCache,
+        generate_gel_token,
+        validate_gel_token,
+        SigningCtx,
+        ValidationCtx,
     )
 
 
@@ -94,7 +104,8 @@ def load_secret_key(key_file: pathlib.Path) -> JWKSet:
         raise SecretKeyReadError(
             f"the cluster JWS key file {key_file} does not "
             f"contain a valid key for token validation (RSA, EC or "
-            f"HMAC-SHA256)")
+            f"HMAC-SHA256)"
+        )
 
     # TODO: We should also add a default issuer and add that to the allow-list.
 
@@ -118,8 +129,10 @@ def generate_jwk(keys_file: pathlib.Path) -> None:
         with keys_file.open("wb") as f:
             f.write(key.export_json())
     else:
-        raise ValueError(f"Unsupported key file extension {keys_file.suffix}. "
-                         "Use .pem or .json extension when generating a key.")
+        raise ValueError(
+            f"Unsupported key file extension {keys_file.suffix}. "
+            "Use .pem or .json extension when generating a key."
+        )
 
     keys_file.chmod(0o600)
 

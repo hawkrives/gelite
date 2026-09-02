@@ -28,12 +28,9 @@ from edb.tools import test
 
 
 class TestUpdate(tb.QueryTestCase):
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'updates.esdl')
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'updates.esdl')
-
-    SETUP = os.path.join(os.path.dirname(__file__), 'schemas',
-                         'updates.edgeql')
+    SETUP = os.path.join(os.path.dirname(__file__), 'schemas', 'updates.edgeql')
 
     @classmethod
     def setUpClass(cls):
@@ -65,7 +62,7 @@ class TestUpdate(tb.QueryTestCase):
                     status := (SELECT Status FILTER Status.name = 'Closed')
                 };
             """,
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -94,7 +91,7 @@ class TestUpdate(tb.QueryTestCase):
                     status := (SELECT Status FILTER Status.name = 'Closed')
                 };
             """,
-            [{}]
+            [{}],
         )
 
         await self.assert_query_result(
@@ -112,13 +109,11 @@ class TestUpdate(tb.QueryTestCase):
                 {
                     'id': orig1['id'],
                     'name': 'update-test1-updated',
-                    'status': {
-                        'name': 'Closed'
-                    }
+                    'status': {'name': 'Closed'},
                 },
                 orig2,
                 orig3,
-            ]
+            ],
         )
 
     async def test_edgeql_update_simple_03(self):
@@ -148,16 +143,18 @@ class TestUpdate(tb.QueryTestCase):
                     'id': orig1['id'],
                     'name': orig1['name'],
                     'comment': orig1['comment'],
-                }, {
+                },
+                {
                     'id': orig2['id'],
                     'name': 'update-test2',
                     'comment': 'updated second',
-                }, {
+                },
+                {
                     'id': orig3['id'],
                     'name': orig3['name'],
                     'comment': orig3['comment'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_simple_04(self):
@@ -190,25 +187,21 @@ class TestUpdate(tb.QueryTestCase):
                     'id': orig1['id'],
                     'name': 'update-test1',
                     'comment': None,
-                    'status': {
-                        'name': 'Closed'
-                    }
-                }, {
+                    'status': {'name': 'Closed'},
+                },
+                {
                     'id': orig2['id'],
                     'name': 'update-test2',
                     'comment': 'second!',
-                    'status': {
-                        'name': 'Closed'
-                    }
-                }, {
+                    'status': {'name': 'Closed'},
+                },
+                {
                     'id': orig3['id'],
                     'name': 'update-test3',
                     'comment': 'third!',
-                    'status': {
-                        'name': 'Closed'
-                    }
+                    'status': {'name': 'Closed'},
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_simple_05(self):
@@ -228,7 +221,7 @@ class TestUpdate(tb.QueryTestCase):
                     ))
                 };
             """,
-            [{}]
+            [{}],
         )
 
         await self.assert_query_result(
@@ -246,13 +239,11 @@ class TestUpdate(tb.QueryTestCase):
                 {
                     'id': orig1['id'],
                     'name': 'update-test1-updated',
-                    'status': {
-                        'name': 'Closed'
-                    }
+                    'status': {'name': 'Closed'},
                 },
                 orig2,
                 orig3,
-            ]
+            ],
         )
 
     async def test_edgeql_update_returning_01(self):
@@ -272,11 +263,13 @@ class TestUpdate(tb.QueryTestCase):
                     comment,
                 };
             """,
-            [{
-                'id': orig2['id'],
-                'name': 'update-test2',
-                'comment': 'updated second',
-            }]
+            [
+                {
+                    'id': orig2['id'],
+                    'name': 'update-test2',
+                    'comment': 'updated second',
+                }
+            ],
         )
 
     async def test_edgeql_update_returning_02(self):
@@ -304,26 +297,22 @@ class TestUpdate(tb.QueryTestCase):
                     'id': orig1['id'],
                     'name': 'update-test1',
                     'comment': None,
-                    'status': {
-                        'name': 'Closed'
-                    }
-                }, {
+                    'status': {'name': 'Closed'},
+                },
+                {
                     'id': orig2['id'],
                     'name': 'update-test2',
                     'comment': 'second!',
-                    'status': {
-                        'name': 'Closed'
-                    }
-                }, {
+                    'status': {'name': 'Closed'},
+                },
+                {
                     'id': orig3['id'],
                     'name': 'update-test3',
                     'comment': 'third!',
-                    'status': {
-                        'name': 'Closed'
-                    }
+                    'status': {'name': 'Closed'},
                 },
             ],
-            sort=lambda x: x['name']
+            sort=lambda x: x['name'],
         )
 
     async def test_edgeql_update_returning_03(self):
@@ -373,28 +362,26 @@ class TestUpdate(tb.QueryTestCase):
                 ORDER BY
                     Q.name;
             """,
-            [{
-                'id': orig1['id'],
-                'name': 'update-test1',
-                'comment': None,
-                'status': {
-                    'name': 'Closed'
-                }
-            }, {
-                'id': orig2['id'],
-                'name': 'update-test2',
-                'comment': 'second!',
-                'status': {
-                    'name': 'Closed'
-                }
-            }, {
-                'id': orig3['id'],
-                'name': 'update-test3',
-                'comment': 'third!',
-                'status': {
-                    'name': 'Closed'
-                }
-            }],
+            [
+                {
+                    'id': orig1['id'],
+                    'name': 'update-test1',
+                    'comment': None,
+                    'status': {'name': 'Closed'},
+                },
+                {
+                    'id': orig2['id'],
+                    'name': 'update-test2',
+                    'comment': 'second!',
+                    'status': {'name': 'Closed'},
+                },
+                {
+                    'id': orig3['id'],
+                    'name': 'update-test3',
+                    'comment': 'third!',
+                    'status': {'name': 'Closed'},
+                },
+            ],
         )
 
     async def test_edgeql_update_returning_05(self):
@@ -402,16 +389,20 @@ class TestUpdate(tb.QueryTestCase):
         # manipulated
         try:
             data = []
-            data.append(await self.con.query_single(r"""
+            data.append(
+                await self.con.query_single(r"""
                 INSERT UpdateTest {
                     name := 'ret5.1'
                 };
-            """))
-            data.append(await self.con.query_single(r"""
+            """)
+            )
+            data.append(
+                await self.con.query_single(r"""
                 INSERT UpdateTest {
                     name := 'ret5.2'
                 };
-            """))
+            """)
+            )
             data = [str(o.id) for o in data]
 
             await self.assert_query_result(
@@ -431,7 +422,7 @@ class TestUpdate(tb.QueryTestCase):
                     {
                         'id': data[1],
                         'name': 'ret5.2',
-                    }
+                    },
                 ],
             )
 
@@ -444,7 +435,7 @@ class TestUpdate(tb.QueryTestCase):
                     };
                 """,
                 [{'id': data_id} for data_id in sorted(data)],
-                sort=lambda x: x['id']
+                sort=lambda x: x['id'],
             )
 
             await self.assert_query_result(
@@ -464,7 +455,7 @@ class TestUpdate(tb.QueryTestCase):
                     {
                         'id': data[1],
                         'name': 'new ret5.2',
-                    }
+                    },
                 ],
             )
 
@@ -477,7 +468,7 @@ class TestUpdate(tb.QueryTestCase):
                     };
                 """,
                 __typenames__=True,
-                __typeids__=True
+                __typeids__=True,
             )
             self.assertTrue(hasattr(objs[0], '__tid__'))
             self.assertEqual(objs[0].__tname__, 'default::UpdateTest')
@@ -509,7 +500,7 @@ class TestUpdate(tb.QueryTestCase):
                     )
                 };
             """,
-            status=status
+            status=status,
         )
         self.assertGreater(len(updated), 0)
 
@@ -529,7 +520,7 @@ class TestUpdate(tb.QueryTestCase):
                         'name': 'Open',
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_bad_01(self):
@@ -619,15 +610,19 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'tags': [{
-                        'name': 'boring',
-                    }, {
-                        'name': 'fun',
-                    }, {
-                        'name': 'wow',
-                    }],
+                    'tags': [
+                        {
+                            'name': 'boring',
+                        },
+                        {
+                            'name': 'fun',
+                        },
+                        {
+                            'name': 'wow',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_multiple_02(self):
@@ -654,11 +649,13 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'tags': [{
-                        'name': 'wow',
-                    }],
+                    'tags': [
+                        {
+                            'name': 'wow',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_multiple_03(self):
@@ -685,13 +682,16 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'tags': [{
-                        'name': 'fun',
-                    }, {
-                        'name': 'wow',
-                    }],
+                    'tags': [
+                        {
+                            'name': 'fun',
+                        },
+                        {
+                            'name': 'wow',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_multiple_04(self):
@@ -719,12 +719,16 @@ class TestUpdate(tb.QueryTestCase):
                     } ORDER BY .name
                 } FILTER UpdateTest.name = 'update-test1';
             """,
-            [{
-                'name': 'update-test1',
-                'tags': [{
-                    'name': 'fun',
-                }],
-            }],
+            [
+                {
+                    'name': 'update-test1',
+                    'tags': [
+                        {
+                            'name': 'fun',
+                        }
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -751,14 +755,19 @@ class TestUpdate(tb.QueryTestCase):
                     } ORDER BY .name
                 } FILTER UpdateTest.name = 'update-test1';
             """,
-            [{
-                'name': 'update-test1',
-                'tags': [{
-                    'name': 'fun',
-                }, {
-                    'name': 'wow',
-                }],
-            }],
+            [
+                {
+                    'name': 'update-test1',
+                    'tags': [
+                        {
+                            'name': 'fun',
+                        },
+                        {
+                            'name': 'wow',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_update_multiple_05(self):
@@ -787,13 +796,16 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'related': [{
-                        'name': 'update-test2',
-                    }, {
-                        'name': 'update-test3',
-                    }],
+                    'related': [
+                        {
+                            'name': 'update-test2',
+                        },
+                        {
+                            'name': 'update-test3',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_multiple_06(self):
@@ -825,15 +837,18 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'annotated_tests': [{
-                        'name': 'update-test2',
-                        '@note': None,
-                    }, {
-                        'name': 'update-test3',
-                        '@note': None,
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test2',
+                            '@note': None,
+                        },
+                        {
+                            'name': 'update-test3',
+                            '@note': None,
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_multiple_07(self):
@@ -867,15 +882,18 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'annotated_tests': [{
-                        'name': 'update-test2',
-                        '@note': 'note2',
-                    }, {
-                        'name': 'update-test3',
-                        '@note': 'note3',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test2',
+                            '@note': 'note2',
+                        },
+                        {
+                            'name': 'update-test3',
+                            '@note': 'note3',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     @tb.ignore_warnings('more than one.* in a FILTER clause')
@@ -1269,18 +1287,22 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'boring',
-                        '@weight': 1,
-                    }, {
-                        'name': 'wow',
-                        '@weight': 2,
-                    }, {
-                        'name': 'fun',
-                        '@weight': 3,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'boring',
+                            '@weight': 1,
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 2,
+                        },
+                        {
+                            'name': 'fun',
+                            '@weight': 3,
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_02(self):
@@ -1309,12 +1331,14 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'wow',
-                        '@weight': 1,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'wow',
+                            '@weight': 1,
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_03(self):
@@ -1348,17 +1372,20 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'boring',
-                        '@weight': 1,
-                        '@note': 'boring!',
-                    }, {
-                        'name': 'wow',
-                        '@weight': 2,
-                        '@note': 'wow!',
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'boring',
+                            '@weight': 1,
+                            '@note': 'boring!',
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 2,
+                            '@note': 'wow!',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
         # Check that reassignment erases the link properties.
@@ -1389,17 +1416,20 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'boring',
-                        '@weight': 1,
-                        '@note': None,
-                    }, {
-                        'name': 'wow',
-                        '@weight': 2,
-                        '@note': None,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'boring',
+                            '@weight': 1,
+                            '@note': None,
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 2,
+                            '@note': None,
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_05(self):
@@ -1436,7 +1466,7 @@ class TestUpdate(tb.QueryTestCase):
                         '@note': 'Victor',
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_06(self):
@@ -1473,7 +1503,7 @@ class TestUpdate(tb.QueryTestCase):
                         '@note': 'Victor',
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_07(self):
@@ -1508,7 +1538,7 @@ class TestUpdate(tb.QueryTestCase):
                         '@note': None,
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_08(self):
@@ -1559,7 +1589,7 @@ class TestUpdate(tb.QueryTestCase):
                         '@note': None,
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_09(self):
@@ -1617,15 +1647,18 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'fun',
-                        '@weight': None,
-                    }, {
-                        'name': 'wow',
-                        '@weight': 1,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'fun',
+                            '@weight': None,
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 1,
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_10(self):
@@ -1680,37 +1713,45 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'fun',
-                        '@weight': 2,
-                        '@note': None,
-                    }, {
-                        'name': 'wow',
-                        '@weight': 2,
-                        '@note': None,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'fun',
+                            '@weight': 2,
+                            '@note': None,
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 2,
+                            '@note': None,
+                        },
+                    ],
                 },
                 {
                     'name': 'update-test2',
-                    'weighted_tags': [{
-                        'name': 'boring',
-                        '@weight': 6,
-                        '@note': None,
-                    }, {
-                        'name': 'fun',
-                        '@weight': 3,
-                        '@note': None,
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'boring',
+                            '@weight': 6,
+                            '@note': None,
+                        },
+                        {
+                            'name': 'fun',
+                            '@weight': 3,
+                            '@note': None,
+                        },
+                    ],
                 },
                 {
                     'name': 'update-test3',
-                    'weighted_tags': [{
-                        'name': 'fun',
-                        '@weight': 10,
-                        '@note': 'original',
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'fun',
+                            '@weight': 10,
+                            '@note': 'original',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         # Update the @weight, @note for some tags on all of the
@@ -1762,37 +1803,45 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': [{
-                        'name': 'fun',
-                        '@weight': 1,
-                        '@note': 'new fun',
-                    }, {
-                        'name': 'wow',
-                        '@weight': 7,
-                        '@note': 'new wow',
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'fun',
+                            '@weight': 1,
+                            '@note': 'new fun',
+                        },
+                        {
+                            'name': 'wow',
+                            '@weight': 7,
+                            '@note': 'new wow',
+                        },
+                    ],
                 },
                 {
                     'name': 'update-test2',
-                    'weighted_tags': [{
-                        'name': 'boring',
-                        '@weight': 4,
-                        '@note': 'new boring',
-                    }, {
-                        'name': 'fun',
-                        '@weight': 2,
-                        '@note': 'new fun',
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'boring',
+                            '@weight': 4,
+                            '@note': 'new boring',
+                        },
+                        {
+                            'name': 'fun',
+                            '@weight': 2,
+                            '@note': 'new fun',
+                        },
+                    ],
                 },
                 {
                     'name': 'update-test3',
-                    'weighted_tags': [{
-                        'name': 'fun',
-                        '@weight': 9,
-                        '@note': 'original',
-                    }],
+                    'weighted_tags': [
+                        {
+                            'name': 'fun',
+                            '@weight': 9,
+                            '@note': 'original',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_props_11(self):
@@ -1847,19 +1896,10 @@ class TestUpdate(tb.QueryTestCase):
                 } ORDER BY UpdateTest.name;
             """,
             [
-                {
-                    'name': 'update-test1',
-                    'comment': 'foo'
-                },
-                {
-                    'name': 'update-test2',
-                    'comment': 'bar'
-                },
-                {
-                    'name': 'update-test3',
-                    'comment': 'third'
-                },
-            ]
+                {'name': 'update-test1', 'comment': 'foo'},
+                {'name': 'update-test2', 'comment': 'bar'},
+                {'name': 'update-test3', 'comment': 'third'},
+            ],
         )
 
     async def test_edgeql_update_for_02(self):
@@ -1888,19 +1928,10 @@ class TestUpdate(tb.QueryTestCase):
                 } ORDER BY UpdateTest.name;
             """,
             [
-                {
-                    'name': 'update-test1',
-                    'comment': 'update-test1!'
-                },
-                {
-                    'name': 'update-test2',
-                    'comment': 'update-test2!'
-                },
-                {
-                    'name': 'update-test3',
-                    'comment': 'third'
-                },
-            ]
+                {'name': 'update-test1', 'comment': 'update-test1!'},
+                {'name': 'update-test2', 'comment': 'update-test2!'},
+                {'name': 'update-test3', 'comment': 'third'},
+            ],
         )
 
     async def test_edgeql_update_for_03(self):
@@ -1945,7 +1976,7 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'update-test3',
                     'str_tags': [],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_empty_01(self):
@@ -1969,8 +2000,9 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_empty_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid target for property.*std::int64.*expecting .*str'"):
+            edgedb.InvalidPropertyTargetError,
+            r"invalid target for property.*std::int64.*expecting .*str'",
+        ):
             await self.con.execute(r"""
                 # just clear all the comments
                 UPDATE UpdateTest
@@ -1981,8 +2013,8 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_empty_03(self):
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required property"):
+            edgedb.MissingRequiredError, r"missing value for required property"
+        ):
             await self.con.execute(r"""
                 # just clear all the comments
                 UPDATE UpdateTest
@@ -2012,9 +2044,10 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_empty_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link.*std::Object.*"
-                r"expecting 'default::Status'"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link.*std::Object.*"
+            r"expecting 'default::Status'",
+        ):
             await self.con.execute(r"""
                 # just clear all the statuses
                 UPDATE UpdateTest
@@ -2024,9 +2057,7 @@ class TestUpdate(tb.QueryTestCase):
             """)
 
     async def test_edgeql_update_cardinality_01(self):
-        with self.assertRaisesRegex(
-                edgedb.QueryError,
-                'single'):
+        with self.assertRaisesRegex(edgedb.QueryError, 'single'):
             await self.con.execute(r'''
 
                 UPDATE UpdateTest
@@ -2036,7 +2067,8 @@ class TestUpdate(tb.QueryTestCase):
             ''')
 
     async def test_edgeql_update_cardinality_02(self):
-        await self.assert_query_result(r'''
+        await self.assert_query_result(
+            r'''
             WITH
                 x1 := (
                     UPDATE UpdateTest
@@ -2060,9 +2092,9 @@ class TestUpdate(tb.QueryTestCase):
                     }
                 )
             };
-        ''', [{
-            'x0': [{'name': 'update-test1', 'status': None}]
-        }])
+        ''',
+            [{'x0': [{'name': 'update-test1', 'status': None}]}],
+        )
 
     async def test_edgeql_update_new_01(self):
         # test and UPDATE with a new object
@@ -2093,11 +2125,13 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'tags': [{
-                        'name': 'new tag',
-                    }],
+                    'tags': [
+                        {
+                            'name': 'new tag',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_new_02(self):
@@ -2133,7 +2167,7 @@ class TestUpdate(tb.QueryTestCase):
                         'name': 'new status',
                     },
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_collection_01(self):
@@ -2160,7 +2194,7 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'collection-test1',
                     'some_tuple': ['coll_01', 1],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_collection_02(self):
@@ -2187,13 +2221,13 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'collection-test1',
                     'str_array': ['coll_02', '2'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_correlated_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "possibly more than one element"):
+            edgedb.QueryError, "possibly more than one element"
+        ):
             await self.con.execute(r'''
                 SELECT (
                     Status,
@@ -2205,8 +2239,8 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_correlated_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "possibly more than one element"):
+            edgedb.QueryError, "possibly more than one element"
+        ):
             await self.con.execute(r'''
                 SELECT (
                     (UPDATE UpdateTest SET {
@@ -2218,8 +2252,9 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_correlated_bad_03(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "can not take cross product of volatile operation"):
+            edgedb.QueryError,
+            "can not take cross product of volatile operation",
+        ):
             await self.con.execute(r'''
                 SELECT (
                     UpdateTest,
@@ -2230,8 +2265,7 @@ class TestUpdate(tb.QueryTestCase):
     async def test_edgeql_update_protect_readonly_01(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            "cannot update link 'readonly_tag': "
-            "it is declared as read-only",
+            "cannot update link 'readonly_tag': it is declared as read-only",
             _position=148,
         ):
             await self.con.execute(r'''
@@ -2260,8 +2294,7 @@ class TestUpdate(tb.QueryTestCase):
     async def test_edgeql_update_protect_readonly_03(self):
         with self.assertRaisesRegex(
             edgedb.QueryError,
-            "cannot update property 'id': "
-            "it is declared as read-only",
+            "cannot update property 'id': it is declared as read-only",
         ):
             await self.con.execute(r'''
                 UPDATE UpdateTest
@@ -2328,12 +2361,14 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test-append-1',
-                    'annotated_tests': [{
-                        'name': 'update-test-append-2',
-                        '@note': None,
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-append-2',
+                            '@note': None,
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         await self.con.execute("""
@@ -2362,15 +2397,18 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test-append-1',
-                    'annotated_tests': [{
-                        'name': 'update-test-append-2',
-                        '@note': None,
-                    }, {
-                        'name': 'update-test-append-3',
-                        '@note': 'foo',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-append-2',
+                            '@note': None,
+                        },
+                        {
+                            'name': 'update-test-append-3',
+                            '@note': 'foo',
+                        },
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_append_02(self):
@@ -2489,13 +2527,16 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test-subtract-1',
-                    'annotated_tests': [{
-                        'name': 'update-test-subtract-2',
-                        '@note': 'one',
-                    }, {
-                        'name': 'update-test-subtract-3',
-                        '@note': 'two',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-subtract-2',
+                            '@note': 'one',
+                        },
+                        {
+                            'name': 'update-test-subtract-3',
+                            '@note': 'two',
+                        },
+                    ],
                 },
                 {
                     'name': 'update-test-subtract-2',
@@ -2503,12 +2544,14 @@ class TestUpdate(tb.QueryTestCase):
                 },
                 {
                     'name': 'update-test-subtract-3',
-                    'annotated_tests': [{
-                        'name': 'update-test-subtract-2',
-                        '@note': 'one',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-subtract-2',
+                            '@note': 'one',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         await self.con.execute("""
@@ -2539,10 +2582,12 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test-subtract-1',
-                    'annotated_tests': [{
-                        'name': 'update-test-subtract-3',
-                        '@note': 'two',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-subtract-3',
+                            '@note': 'two',
+                        }
+                    ],
                 },
                 {
                     'name': 'update-test-subtract-2',
@@ -2550,12 +2595,14 @@ class TestUpdate(tb.QueryTestCase):
                 },
                 {
                     'name': 'update-test-subtract-3',
-                    'annotated_tests': [{
-                        'name': 'update-test-subtract-2',
-                        '@note': 'one',
-                    }],
+                    'annotated_tests': [
+                        {
+                            'name': 'update-test-subtract-2',
+                            '@note': 'one',
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_subtract_02(self):
@@ -2899,7 +2946,7 @@ class TestUpdate(tb.QueryTestCase):
                 {
                     'str_tags': ['third'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_insert_multi_required_01(self):
@@ -3001,12 +3048,7 @@ class TestUpdate(tb.QueryTestCase):
                 FILTER .name = "new-test";
             """,
             [
-                {
-                    'name': 'new-test',
-                    'related': [{
-                        'name': 'new-test'
-                    }]
-                },
+                {'name': 'new-test', 'related': [{'name': 'new-test'}]},
             ],
         )
 
@@ -3060,18 +3102,14 @@ class TestUpdate(tb.QueryTestCase):
                 {
                     'name': 'update-test-inh-subtype-1',
                     'comment': 'updated',
-                    'related': [{
-                        'name': 'update-test2'
-                    }]
+                    'related': [{'name': 'update-test2'}],
                 },
                 {
                     'name': 'update-test-inh-supertype-1',
                     'comment': None,
-                    'related': [{
-                        'name': 'update-test1'
-                    }]
+                    'related': [{'name': 'update-test1'}],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_inheritance_02(self):
@@ -3134,25 +3172,19 @@ class TestUpdate(tb.QueryTestCase):
                 {
                     'name': 'update-test-inh-subsubtype-2',
                     'comment': 'updated',
-                    'related': [{
-                        'name': 'update-test2'
-                    }]
+                    'related': [{'name': 'update-test2'}],
                 },
                 {
                     'name': 'update-test-inh-subtype-2',
                     'comment': 'updated',
-                    'related': [{
-                        'name': 'update-test2'
-                    }]
+                    'related': [{'name': 'update-test2'}],
                 },
                 {
                     'name': 'update-test-inh-supertype-2',
                     'comment': None,
-                    'related': [{
-                        'name': 'update-test2'
-                    }]
+                    'related': [{'name': 'update-test2'}],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_inheritance_03(self):
@@ -3181,12 +3213,8 @@ class TestUpdate(tb.QueryTestCase):
                 FILTER .name = 'update-test-w-insert'
             """,
             [
-                {
-                    'tags': [{
-                        'name': 'new tag'
-                    }]
-                },
-            ]
+                {'tags': [{'name': 'new tag'}]},
+            ],
         )
 
     async def test_edgeql_update_add_dupes_01a(self):
@@ -3208,15 +3236,17 @@ class TestUpdate(tb.QueryTestCase):
                 )
                 SELECT _ { name, str_tags ORDER BY _.str_tags }
             """,
-            [{
-                'name': 'add-dupes-scalar',
-                'str_tags': ['bar', 'foo', 'foo'],
-            }]
+            [
+                {
+                    'name': 'add-dupes-scalar',
+                    'str_tags': ['bar', 'foo', 'foo'],
+                }
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_update_add_dupes_01b(self):
         await self.con.execute("""
@@ -3255,7 +3285,7 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'add-dupes-scalar-bar',
                     'str_tags': ['bar', 'bar', 'baz'],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -3283,7 +3313,7 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'add-dupes-scalar-bar',
                     'str_tags': ['bar', 'bar', 'bar', 'baz'],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -3313,7 +3343,7 @@ class TestUpdate(tb.QueryTestCase):
                     'name': 'add-dupes-scalar-foo',
                     'str_tags': ['baz', 'baz', 'foo', 'foo', 'foo', 'foo'],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_update_add_dupes_02(self):
@@ -3339,13 +3369,15 @@ class TestUpdate(tb.QueryTestCase):
                     tags: { name } ORDER BY .name
                 }
             """,
-            [{
-                'name': 'add-dupes',
-                'tags': [
-                    {'name': 'fun'},
-                    {'name': 'wow'},
-                ],
-            }]
+            [
+                {
+                    'name': 'add-dupes',
+                    'tags': [
+                        {'name': 'fun'},
+                        {'name': 'wow'},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_update_add_dupes_03(self):
@@ -3372,13 +3404,15 @@ class TestUpdate(tb.QueryTestCase):
                     tags: { name, flag } ORDER BY .name
                 }
             """,
-            [{
-                'name': 'add-dupes',
-                'tags': [
-                    {'name': 'fun', 'flag': 1},
-                    {'name': 'wow', 'flag': 2},
-                ],
-            }]
+            [
+                {
+                    'name': 'add-dupes',
+                    'tags': [
+                        {'name': 'fun', 'flag': 1},
+                        {'name': 'wow', 'flag': 2},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_update_add_dupes_04(self):
@@ -3405,13 +3439,15 @@ class TestUpdate(tb.QueryTestCase):
                     weighted_tags: { name, @weight } ORDER BY .name
                 }
             """,
-            [{
-                'name': 'add-dupes-lprop',
-                'weighted_tags': [
-                    {'name': 'fun', '@weight': 20},
-                    {'name': 'wow', '@weight': 10},
-                ],
-            }]
+            [
+                {
+                    'name': 'add-dupes-lprop',
+                    'weighted_tags': [
+                        {'name': 'fun', '@weight': 20},
+                        {'name': 'wow', '@weight': 10},
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_update_assert_calls_01(self):
@@ -3422,7 +3458,7 @@ class TestUpdate(tb.QueryTestCase):
                       set {comment := "test"}) { comment }
             )));
             """,
-            [{"comment": "test"}]
+            [{"comment": "test"}],
         )
 
     async def test_edgeql_update_covariant_01(self):
@@ -3444,10 +3480,11 @@ class TestUpdate(tb.QueryTestCase):
 
         # But fail if they don't
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'status' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'status' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3457,10 +3494,11 @@ class TestUpdate(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'status' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'status' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3489,10 +3527,11 @@ class TestUpdate(tb.QueryTestCase):
 
         # But fail if they don't
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'statuses' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'statuses' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3502,10 +3541,11 @@ class TestUpdate(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'statuses' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'statuses' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3537,10 +3577,11 @@ class TestUpdate(tb.QueryTestCase):
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'statuses' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'statuses' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3554,10 +3595,11 @@ class TestUpdate(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidLinkTargetError,
-                r"invalid target for link 'statuses' of object type "
-                r"'default::UpdateTestSubSubType': 'default::Status' "
-                r"\(expecting 'default::MajorLifeEvent'\)"):
+            edgedb.InvalidLinkTargetError,
+            r"invalid target for link 'statuses' of object type "
+            r"'default::UpdateTestSubSubType': 'default::Status' "
+            r"\(expecting 'default::MajorLifeEvent'\)",
+        ):
             await self.con.execute("""
                 UPDATE UpdateTestSubType
                 FILTER .name = "update-covariant"
@@ -3583,9 +3625,10 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_cardinality_assertion(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "possibly more than one element returned by an expression "
-                "for a link 'status' declared as 'single'"):
+            edgedb.QueryError,
+            "possibly more than one element returned by an expression "
+            "for a link 'status' declared as 'single'",
+        ):
             await self.con.query(r'''
                 UPDATE UpdateTest
                 SET {
@@ -3607,8 +3650,9 @@ class TestUpdate(tb.QueryTestCase):
         # Updating something that would violate a constraint while
         # fixing the violation is still supposed to be an error.
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    "violates exclusivity constraint"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError, "violates exclusivity constraint"
+        ):
             await self.con.execute('''
                 SELECT (
                     (DELETE Tag FILTER .name = 'fun'),
@@ -3620,9 +3664,11 @@ class TestUpdate(tb.QueryTestCase):
         # Assigning the result of a DELETE as a link during an UPDATE
         # should be an error.
 
-        with self.assertRaisesRegex(edgedb.ConstraintViolationError,
-                                    r"deletion of default::Tag.+ is "
-                                    r"prohibited by link target policy"):
+        with self.assertRaisesRegex(
+            edgedb.ConstraintViolationError,
+            r"deletion of default::Tag.+ is "
+            r"prohibited by link target policy",
+        ):
             await self.con.execute('''
                 UPDATE UpdateTest
                 FILTER .name = 'update-test1'
@@ -3660,11 +3706,11 @@ class TestUpdate(tb.QueryTestCase):
                     "statuses": [
                         {
                             "backlinks": ["update-test1"],
-                            "name": "Broke a Type System"
+                            "name": "Broke a Type System",
                         }
                     ]
                 }
-            ]
+            ],
         )
 
     async def test_edgeql_update_inject_intersection_01(self):
@@ -3689,7 +3735,7 @@ class TestUpdate(tb.QueryTestCase):
                     Depth := 11.3781298010066
                 };
             """,
-            __typenames__=True
+            __typenames__=True,
         )
 
         await self.con._fetchall(
@@ -3699,7 +3745,7 @@ class TestUpdate(tb.QueryTestCase):
                     obj3 := (select obj1.Items limit 1)[is S]
                 DELETE obj3
             """,
-            __typenames__=True
+            __typenames__=True,
         )
 
     async def test_edgeql_update_inject_intersection_02(self):
@@ -3761,7 +3807,7 @@ class TestUpdate(tb.QueryTestCase):
                   set { name := '!' }
                 ) { c1 := .name, c2 := [is UpdateTestSubType].name };
             """,
-            [{"c1": "!", "c2": "!"}]
+            [{"c1": "!", "c2": "!"}],
         )
 
     async def test_edgeql_update_poly_overlay_02(self):
@@ -3777,13 +3823,14 @@ class TestUpdate(tb.QueryTestCase):
                 ),
                 select X[is UpdateTestSubType] { name };
             """,
-            [{"name": "!"}]
+            [{"name": "!"}],
         )
 
     async def test_edgeql_update_where_order_dml(self):
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "INSERT statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "INSERT statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                     update UpdateTest
                     filter (INSERT UpdateTest {
@@ -3793,8 +3840,9 @@ class TestUpdate(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "UPDATE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "UPDATE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                     update UpdateTest
                     filter (UPDATE UpdateTest set {
@@ -3804,8 +3852,9 @@ class TestUpdate(tb.QueryTestCase):
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "DELETE statements cannot be used in a FILTER clause"):
+            edgedb.QueryError,
+            "DELETE statements cannot be used in a FILTER clause",
+        ):
             await self.con.query('''
                     update UpdateTest
                     filter (DELETE UpdateTest filter .name = 't1')
@@ -3826,7 +3875,7 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {"name": "update-test1", "comment": "!!!!!1!!!"},
                 {"name": "update-test2", "comment": "foo"},
-            ]
+            ],
         )
 
     @test.xfail("""
@@ -3846,7 +3895,7 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {"name": "update-test2", "comment": "foo"},
                 {"name": "update-test2", "comment": "second"},
-            ]
+            ],
         )
 
     async def test_edgeql_update_dunder_default_01(self):
@@ -3882,7 +3931,7 @@ class TestUpdate(tb.QueryTestCase):
             ''',
             [
                 {'a': 1, 'b': 2, 'c': 1},
-            ]
+            ],
         )
 
     async def test_edgeql_update_dunder_default_02(self):
@@ -3959,7 +4008,7 @@ class TestUpdate(tb.QueryTestCase):
             ''',
             [
                 {'a': [4]},
-            ]
+            ],
         )
 
     async def test_edgeql_update_dunder_default_03(self):
@@ -3982,7 +4031,7 @@ class TestUpdate(tb.QueryTestCase):
             r'''
                 SELECT DunderDefaultTest03_A { x };
             ''',
-            [{'x': 2}]
+            [{'x': 2}],
         )
 
         # prop has __default
@@ -3997,7 +4046,7 @@ class TestUpdate(tb.QueryTestCase):
             r'''
                 SELECT DunderDefaultTest03_B { x };
             ''',
-            [{'x': 2}]
+            [{'x': 2}],
         )
 
         # inner statement does not have __default
@@ -4033,13 +4082,12 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {'x': 2, 'l': {'x': 1}},
                 {'x': 3, 'l': {'x': 1}},
-            ]
+            ],
         )
 
     async def test_edgeql_update_empty_array_01(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            "expression returns value of indeterminate type"
+            edgedb.QueryError, "expression returns value of indeterminate type"
         ):
             await self.con.execute("""
                 update UpdateTest
@@ -4053,7 +4101,7 @@ class TestUpdate(tb.QueryTestCase):
             edgedb.InvalidPropertyTargetError,
             r"invalid target for property 'name' "
             r"of object type 'default::UpdateTest': 'array<std::str>' "
-            r"\(expecting 'std::str'\)"
+            r"\(expecting 'std::str'\)",
         ):
             await self.con.execute("""
                 update UpdateTest
@@ -4067,7 +4115,7 @@ class TestUpdate(tb.QueryTestCase):
             edgedb.InvalidPropertyTargetError,
             r"invalid target for property 'name' "
             r"of object type 'default::UpdateTest': 'std::int64' "
-            r"\(expecting 'std::str'\)"
+            r"\(expecting 'std::str'\)",
         ):
             await self.con.execute("""
                 insert UpdateTest {
@@ -4077,8 +4125,7 @@ class TestUpdate(tb.QueryTestCase):
 
     async def test_edgeql_update_empty_array_04(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            "expression returns value of indeterminate type"
+            edgedb.QueryError, "expression returns value of indeterminate type"
         ):
             await self.con.execute("""
                 update UpdateTest
@@ -4092,7 +4139,8 @@ class TestUpdate(tb.QueryTestCase):
             """)
 
     async def test_edgeql_update_empty_array_05(self):
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             select ( update UpdateTest
                 set {
                     weighted_tags := (
@@ -4106,43 +4154,45 @@ class TestUpdate(tb.QueryTestCase):
             [
                 {
                     'name': 'update-test1',
-                    'weighted_tags': tb.bag([
-                        {'name': 'fun', '@note': 'a'},
-                        {'name': 'boring', '@note': 'a'},
-                        {'name': 'wow', '@note': 'a'}
-                    ]),
+                    'weighted_tags': tb.bag(
+                        [
+                            {'name': 'fun', '@note': 'a'},
+                            {'name': 'boring', '@note': 'a'},
+                            {'name': 'wow', '@note': 'a'},
+                        ]
+                    ),
                 },
                 {
                     'name': 'update-test2',
-                    'weighted_tags': tb.bag([
-                        {'name': 'fun', '@note': 'a'},
-                        {'name': 'boring', '@note': 'a'},
-                        {'name': 'wow', '@note': 'a'}
-                    ]),
+                    'weighted_tags': tb.bag(
+                        [
+                            {'name': 'fun', '@note': 'a'},
+                            {'name': 'boring', '@note': 'a'},
+                            {'name': 'wow', '@note': 'a'},
+                        ]
+                    ),
                 },
                 {
                     'name': 'update-test3',
-                    'weighted_tags': tb.bag([
-                        {'name': 'fun', '@note': 'a'},
-                        {'name': 'boring', '@note': 'a'},
-                        {'name': 'wow', '@note': 'a'}
-                    ]),
+                    'weighted_tags': tb.bag(
+                        [
+                            {'name': 'fun', '@note': 'a'},
+                            {'name': 'boring', '@note': 'a'},
+                            {'name': 'wow', '@note': 'a'},
+                        ]
+                    ),
                 },
             ],
         )
 
     async def test_edgeql_update_read_only_tx_01(self):
-        con = (
-            edgedb.create_async_client(
-                **self.get_connect_args()
-            ).with_transaction_options(
-                edgedb.TransactionOptions(readonly=True)
-            )
-        )
+        con = edgedb.create_async_client(
+            **self.get_connect_args()
+        ).with_transaction_options(edgedb.TransactionOptions(readonly=True))
         try:
             with self.assertRaisesRegex(
                 edgedb.TransactionError,
-                r'Modifications not allowed in a read-only transaction'
+                r'Modifications not allowed in a read-only transaction',
             ):
                 async for tx in con.transaction():
                     async with tx:

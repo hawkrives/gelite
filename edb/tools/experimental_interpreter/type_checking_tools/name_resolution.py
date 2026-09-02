@@ -1,4 +1,3 @@
-
 from ..data import data_ops as e
 from ..data import module_ops as mops
 from ..data import path_factor as path_factor
@@ -20,9 +19,7 @@ def object_tp_comp_name_resolve(
                 name_ck = name
             resolved_tp = mops.try_resolve_type_name(root_ctx, name_ck)
             if not isinstance(resolved_tp, e.ObjectTp):
-                raise ValueError(
-                    "Scalar type cannot carry link props", tp_comp
-                )
+                raise ValueError("Scalar type cannot carry link props", tp_comp)
 
             linkprop_ck: dict[str, e.ResultTp] = {}
             for lbl, (t_comp_tp, t_comp_card) in l_prop.val.items():

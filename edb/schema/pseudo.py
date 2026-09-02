@@ -42,7 +42,6 @@ class PseudoType(
     s_types.Type,
     qlkind=qltypes.SchemaObjectClass.PSEUDO_TYPE,
 ):
-
     @classmethod
     def get(
         cls,
@@ -137,27 +136,24 @@ class PseudoType(
             else:
                 return concrete_type
         elif self.is_anytuple(schema):
-            if (not concrete_type.is_tuple(schema) or
-                    concrete_type.is_polymorphic(schema)):
+            if not concrete_type.is_tuple(
+                schema
+            ) or concrete_type.is_polymorphic(schema):
                 return None
             else:
                 return concrete_type
         else:
-            raise ValueError(
-                f'unexpected pseudo type: {self.get_name(schema)}')
+            raise ValueError(f'unexpected pseudo type: {self.get_name(schema)}')
 
 
 class PseudoTypeShell(s_types.TypeShell[PseudoType]):
-
     def __init__(
         self,
         *,
         name: sn.Name,
         span: Optional[parsing.Span] = None,
     ) -> None:
-        super().__init__(
-            name=name, schemaclass=PseudoType, span=span
-        )
+        super().__init__(name=name, schemaclass=PseudoType, span=span)
 
     def is_polymorphic(self, schema: s_schema.Schema) -> bool:
         return True
@@ -178,7 +174,6 @@ class PseudoTypeCommand(
 
 
 class CreatePseudoType(PseudoTypeCommand, sd.CreateObject[PseudoType]):
-
     astnode = qlast.CreatePseudoType
 
     @classmethod
@@ -190,8 +185,7 @@ class CreatePseudoType(PseudoTypeCommand, sd.CreateObject[PseudoType]):
     ) -> sd.Command:
         if not context.stdmode and not context.testmode:
             raise errors.UnsupportedFeatureError(
-                'user-defined pseudo types are not supported',
-                span=astnode.span
+                'user-defined pseudo types are not supported', span=astnode.span
             )
 
         return super()._cmd_tree_from_ast(schema, astnode, context)

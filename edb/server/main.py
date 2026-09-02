@@ -28,12 +28,12 @@ from typing import (
 )
 
 from edb.common.log import early_setup
+
 # ruff: noqa: E402
 early_setup()
 
 import asyncio
 import contextlib
-import json
 import logging
 import os
 import os.path
@@ -50,7 +50,6 @@ import setproctitle
 import uvloop
 
 from edb import buildmeta
-from edb import errors
 from edb.ir import statypes
 from edb.common import exceptions
 from edb.common import devmode
@@ -90,7 +89,7 @@ def abort(msg, *args, exit_code=1) -> NoReturn:
 @contextlib.contextmanager
 def _ensure_runstate_dir(
     default_runstate_dir: Optional[pathlib.Path],
-    specified_runstate_dir: Optional[pathlib.Path]
+    specified_runstate_dir: Optional[pathlib.Path],
 ) -> Iterator[pathlib.Path]:
     temp_runstate_dir = None
 
@@ -106,7 +105,8 @@ def _ensure_runstate_dir(
         except buildmeta.MetadataError:
             abort(
                 f'cannot determine the runstate directory location; '
-                f'please use --runstate-dir to specify the correct location')
+                f'please use --runstate-dir to specify the correct location'
+            )
     else:
         runstate_dir = specified_runstate_dir
 
@@ -119,11 +119,14 @@ def _ensure_runstate_dir(
             abort(
                 f'cannot create the runstate directory: '
                 f'{ex!s}; please use --runstate-dir to specify '
-                f'the correct location')
+                f'the correct location'
+            )
 
     if not os.path.isdir(runstate_dir):
-        abort(f'{str(runstate_dir)!r} is not a directory; please use '
-              f'--runstate-dir to specify the correct location')
+        abort(
+            f'{str(runstate_dir)!r} is not a directory; please use '
+            f'--runstate-dir to specify the correct location'
+        )
 
     try:
         yield runstate_dir
@@ -138,36 +141,29 @@ def _internal_state_dir(
 ) -> Iterator[tuple[pathlib.Path, srvargs.ServerConfig]]:
     try:
         with tempfile.TemporaryDirectory(prefix="", dir=runstate_dir) as td:
-            if (
-                args.tls_cert_file
-                and '<runstate>' in str(args.tls_cert_file)
-            ):
+            if args.tls_cert_file and '<runstate>' in str(args.tls_cert_file):
                 args = args._replace(
                     tls_cert_file=pathlib.Path(
-                        str(args.tls_cert_file).replace(
-                            '<runstate>', td)
+                        str(args.tls_cert_file).replace('<runstate>', td)
                     ),
                     tls_key_file=pathlib.Path(
-                        str(args.tls_key_file).replace(
-                            '<runstate>', td)
-                    )
+                        str(args.tls_key_file).replace('<runstate>', td)
+                    ),
                 )
-            if (
-                args.jws_key_file
-                and '<runstate>' in str(args.jws_key_file)
-            ):
+            if args.jws_key_file and '<runstate>' in str(args.jws_key_file):
                 args = args._replace(
                     jws_key_file=pathlib.Path(
-                        str(args.jws_key_file).replace(
-                            '<runstate>', td)
+                        str(args.jws_key_file).replace('<runstate>', td)
                     ),
                 )
             tdp = pathlib.Path(td)
             yield tdp, args
     except PermissionError as ex:
-        abort(f'cannot write to the runstate directory: '
-              f'{ex!s}; please fix the permissions or use '
-              f'--runstate-dir to specify the correct location')
+        abort(
+            f'cannot write to the runstate directory: '
+            f'{ex!s}; please fix the permissions or use '
+            f'--runstate-dir to specify the correct location'
+        )
 
 
 async def _init_cluster(
@@ -200,7 +196,6 @@ async def _run_server(
     compiler: edbcompiler.Compiler,
     init_con_data: list[config.ConState],
 ):
-
     sockets = service_manager.get_activation_listen_sockets()
 
     if sockets:
@@ -215,7 +210,6 @@ async def _run_server(
             cluster,
             instance_name=args.instance_name,
             max_backend_connections=args.max_backend_connections,
-            backend_adaptive_ha=args.backend_adaptive_ha,
             extensions_dir=args.extensions_dir,
         )
         tenant.set_init_con_data(init_con_data)
@@ -231,7 +225,6 @@ async def _run_server(
             compiler_pool_size=args.compiler_pool_size,
             compiler_worker_branch_limit=args.compiler_worker_branch_limit,
             compiler_pool_mode=args.compiler_pool_mode,
-            compiler_pool_addr=args.compiler_pool_addr,
             compiler_worker_max_rss=args.compiler_worker_max_rss,
             nethosts=args.bind_addresses,
             netport=args.port,
@@ -252,17 +245,12 @@ async def _run_server(
             disable_dynamic_system_config=args.disable_dynamic_system_config,
             compiler_state=compiler.state,
             tenant=tenant,
-            use_monitor_fs=args.reload_config_files in [
+            use_monitor_fs=args.reload_config_files
+            in [
                 srvargs.ReloadTrigger.Default,
                 srvargs.ReloadTrigger.FileSystemEvent,
             ],
-            net_worker_mode=args.net_worker_mode,
         )
-        magic_smtp = os.getenv('GELITE_MAGIC_SMTP_CONFIG')
-        if magic_smtp:
-            await tenant.load_sidechannel_configs(
-                json.loads(magic_smtp), compiler=compiler
-            )
         if args.config_file:
             await tenant.load_config_file(compiler)
         # This coroutine runs as long as the server,
@@ -272,7 +260,8 @@ async def _run_server(
         await sc.wait_for(ss.init())
 
         (
-            tls_cert_newly_generated, jws_keys_newly_generated
+            tls_cert_newly_generated,
+            jws_keys_newly_generated,
         ) = await ss.maybe_generate_pki(args, ss)
 
         if args.bootstrap_only:
@@ -295,9 +284,7 @@ async def _run_server(
                 srvargs.ReloadTrigger.Default,
                 srvargs.ReloadTrigger.Signal,
             ]:
-                logger.info(
-                    "SIGHUP received, but reload on signal is disabled"
-                )
+                logger.info("SIGHUP received, but reload on signal is disabled")
                 return
 
             logger.info("reloading configuration")
@@ -332,8 +319,7 @@ async def _run_server(
 
             with signalctl.SignalController(signal.SIGHUP) as reload_ctl:
                 reload_ctl.add_handler(
-                    load_configuration,
-                    signals=(signal.SIGHUP,)
+                    load_configuration, signals=(signal.SIGHUP,)
                 )
 
                 try:
@@ -357,11 +343,14 @@ async def _get_local_pgcluster(
         pg_max_connections = max_conns
         if args.testmode:
             max_conns = srvargs.adjust_testmode_max_connections(max_conns)
-            logger.info(f'Configuring Postgres max_connections='
-                        f'{pg_max_connections} under test mode.')
+            logger.info(
+                f'Configuring Postgres max_connections='
+                f'{pg_max_connections} under test mode.'
+            )
         args = args._replace(max_backend_connections=max_conns)
-        logger.info(f'Using {max_conns} max backend connections based on '
-                    f'total memory.')
+        logger.info(
+            f'Using {max_conns} max backend connections based on total memory.'
+        )
 
     cluster = await pgcluster.get_local_pg_cluster(
         args.data_dir,
@@ -376,7 +365,7 @@ async def _get_local_pgcluster(
         database='template1',
         server_settings={
             "application_name": f'edgedb_instance_{args.instance_name}',
-        }
+        },
     )
     return cluster, args
 
@@ -385,7 +374,6 @@ async def _get_remote_pgcluster(
     args: srvargs.ServerConfig,
     tenant_id: str,
 ) -> tuple[pgcluster.RemoteCluster, srvargs.ServerConfig]:
-
     cluster = await pgcluster.get_remote_pg_cluster(
         args.backend_dsn,
         tenant_id=tenant_id,
@@ -394,28 +382,33 @@ async def _get_remote_pgcluster(
 
     instance_params = cluster.get_runtime_params().instance_params
     max_conns = (
-        instance_params.max_connections -
-        instance_params.reserved_connections)
+        instance_params.max_connections - instance_params.reserved_connections
+    )
     if not args.max_backend_connections:
         logger.info(f'Detected {max_conns} backend connections available.')
         if args.testmode:
             max_conns = srvargs.adjust_testmode_max_connections(max_conns)
-            logger.info(f'Using max_backend_connections={max_conns} '
-                        f'under test mode.')
+            logger.info(
+                f'Using max_backend_connections={max_conns} under test mode.'
+            )
         args = args._replace(max_backend_connections=max_conns)
     elif args.max_backend_connections > max_conns:
-        abort(f'--max-backend-connections is too large for this backend; '
-              f'detected maximum available NUM: {max_conns}')
+        abort(
+            f'--max-backend-connections is too large for this backend; '
+            f'detected maximum available NUM: {max_conns}'
+        )
 
-    cluster.update_connection_params(server_settings={
-        'application_name': f'edgedb_instance_{args.instance_name}'
-    })
+    cluster.update_connection_params(
+        server_settings={
+            'application_name': f'edgedb_instance_{args.instance_name}'
+        }
+    )
 
     return cluster, args
 
 
 def _patch_stdlib_testmode(
-    stdlib: bootstrap.StdlibBits
+    stdlib: bootstrap.StdlibBits,
 ) -> bootstrap.StdlibBits:
     from edb import edgeql
     from edb.pgsql import delta as delta_cmds
@@ -461,20 +454,18 @@ def _patch_stdlib_testmode(
 async def run_server(
     args: srvargs.ServerConfig,
     *,
-    do_setproctitle: bool=False,
+    do_setproctitle: bool = False,
     runstate_dir: pathlib.Path,
 ) -> None:
     from . import server as server_mod
+
     global server
     server = server_mod
 
     logsetup.setup_logging(args.log_level, args.log_to)
 
     logger.info(f"starting Gel server {buildmeta.get_version_line()}")
-    if args.multitenant_config_file:
-        logger.info("configured as a multitenant instance")
-    else:
-        logger.info(f'instance name: {args.instance_name!r}')
+    logger.info(f'instance name: {args.instance_name!r}')
     if devmode.is_in_dev_mode():
         logger.info(f'development mode active')
 
@@ -492,6 +483,7 @@ async def run_server(
 
     if debug.flags.pydebug_listen:
         import debugpy
+
         debugpy.listen(38782)
 
     _init_parsers()
@@ -520,122 +512,20 @@ async def run_server(
             exit_code=11,
         )
 
-    if args.multitenant_config_file:
-        from edb.schema import reflection as s_refl
-        from . import bootstrap
-        from . import multitenant
-
-        try:
-            stdlib: bootstrap.StdlibBits | None
-            stdlib = bootstrap.read_data_cache(
-                bootstrap.STDLIB_CACHE_FILE_NAME, pickled=True
-            )
-            if stdlib is None:
-                abort(
-                    "Cannot run multi-tenant server "
-                    "without pre-compiled standard library"
-                )
-            if args.testmode:
-                # In multitenant mode, the server/compiler is started without a
-                # backend and will be connected to many backends. That means we
-                # cannot load the stdlib from a certain backend; instead, the
-                # pre-compiled stdlib is always in use. This means that we need
-                # to explicitly enable --testmode starting a multitenant server
-                # in order to handle backends with test-mode schema properly.
-                try:
-                    stdlib = _patch_stdlib_testmode(stdlib)
-                except errors.SchemaError:
-                    # The pre-compiled standard library already has test-mode
-                    # schema; ignore the patching error.
-                    pass
-
-            compiler = edbcompiler.new_compiler(
-                stdlib.stdschema,
-                stdlib.reflschema,
-                stdlib.classlayout,
-                config_spec=None,
-            )
-            reflection = s_refl.generate_structure(
-                stdlib.reflschema, make_funcs=False,
-            )
-            (
-                local_intro_sql, global_intro_sql
-            ) = bootstrap.compile_intro_queries_stdlib(
-                compiler=compiler,
-                user_schema=stdlib.reflschema,
-                reflection=reflection,
-            )
-            del reflection
-            compiler_state = edbcompiler.CompilerState(
-                std_schema=compiler.state.std_schema,
-                refl_schema=compiler.state.refl_schema,
-                schema_class_layout=stdlib.classlayout,
-                backend_runtime_params=(
-                    compiler.state.backend_runtime_params
-                ),
-                config_spec=compiler.state.config_spec,
-                local_intro_query=local_intro_sql,
-                global_intro_query=global_intro_sql,
-            )
-            del local_intro_sql, global_intro_sql
-            (
-                sys_queries,
-                report_configs_typedesc_1_0,
-                report_configs_typedesc_2_0,
-            ) = bootstrap.compile_sys_queries(
-                stdlib.reflschema,
-                compiler,
-                compiler_state.config_spec,
-            )
-
-            sys_config, backend_settings, init_con_data = (
-                initialize_static_cfg(
-                    args,
-                    is_remote_cluster=True,
-                    compiler=compiler,
-                )
-            )
-            del compiler
-            if backend_settings:
-                abort(
-                    'Static backend settings for remote backend are '
-                    'not supported'
-                )
-            with _internal_state_dir(runstate_dir, args) as (
-                int_runstate_dir,
-                args,
-            ):
-                return await multitenant.run_server(
-                    args,
-                    sys_config=sys_config,
-                    sys_queries={
-                        key: sql.encode("utf-8")
-                        for key, sql in sys_queries.items()
-                    },
-                    report_config_typedesc={
-                        (1, 0): report_configs_typedesc_1_0,
-                        (2, 0): report_configs_typedesc_2_0,
-                    },
-                    runstate_dir=runstate_dir,
-                    internal_runstate_dir=int_runstate_dir,
-                    do_setproctitle=do_setproctitle,
-                    compiler_state=compiler_state,
-                    init_con_data=init_con_data,
-                )
-        except server.StartupError as e:
-            abort(str(e))
-
     try:
         if args.data_dir:
             cluster, args = await _get_local_pgcluster(
-                args, runstate_dir, tenant_id)
+                args, runstate_dir, tenant_id
+            )
         elif args.backend_dsn:
             cluster, args = await _get_remote_pgcluster(args, tenant_id)
         else:
             # This should have been checked by main() already,
             # but be extra careful.
-            abort('neither the data directory nor the remote Postgres DSN '
-                  'have been specified')
+            abort(
+                'neither the data directory nor the remote Postgres DSN '
+                'have been specified'
+            )
     except pgcluster.ClusterError as e:
         abort(str(e))
 
@@ -659,8 +549,7 @@ async def run_server(
             elif cluster_status == 'stopped':
                 await cluster.start()
             else:
-                abort('could not initialize data directory "%s"',
-                      args.data_dir)
+                abort('could not initialize data directory "%s"', args.data_dir)
         else:
             # We expect the remote cluster to be running
             is_local_cluster = False
@@ -675,6 +564,7 @@ async def run_server(
             or args.inplace_upgrade_rollback
         ):
             from . import inplace_upgrade
+
             await inplace_upgrade.inplace_upgrade(cluster, args)
             return
 
@@ -701,20 +591,18 @@ async def run_server(
             not args.bootstrap_only
             or args.bootstrap_command_file
             or args.bootstrap_command
-            or (
-                args.tls_cert_mode
-                is srvargs.ServerTlsCertMode.SelfSigned
-            )
-            or (
-                args.jose_key_mode
-                is srvargs.JOSEKeyMode.Generate
-            )
+            or (args.tls_cert_mode is srvargs.ServerTlsCertMode.SelfSigned)
+            or (args.jose_key_mode is srvargs.JOSEKeyMode.Generate)
         ):
             instance_name = args.instance_name
-            database = pgcluster.get_database_backend_name(
-                defines.GELITE_TEMPLATE_DB,
-                tenant_id=tenant_id,
-            ) if args.data_dir else None
+            database = (
+                pgcluster.get_database_backend_name(
+                    defines.GELITE_TEMPLATE_DB,
+                    tenant_id=tenant_id,
+                )
+                if args.data_dir
+                else None
+            )
             server_settings = {
                 'application_name': f'edgedb_instance_{instance_name}',
                 'edgedb.instance_name': instance_name,
@@ -722,8 +610,7 @@ async def run_server(
             }
             if database:
                 cluster.update_connection_params(
-                    database=database,
-                    server_settings=server_settings
+                    database=database, server_settings=server_settings
                 )
             else:
                 cluster.update_connection_params(
@@ -752,7 +639,8 @@ async def run_server(
         if pg_cluster_init_by_us and not _server_initialized:
             logger.warning(
                 'server bootstrap did not complete successfully, '
-                'removing the data directory')
+                'removing the data directory'
+            )
             if await cluster.get_status() == 'running':
                 await cluster.stop()
             cluster.destroy()
@@ -777,8 +665,8 @@ def bump_rlimit_nofile() -> None:
             try:
                 resource.setrlimit(
                     resource.RLIMIT_NOFILE,
-                    (min(defines.GELITE_MIN_RLIMIT_NOFILE, fno_hard),
-                     fno_hard))
+                    (min(defines.GELITE_MIN_RLIMIT_NOFILE, fno_hard), fno_hard),
+                )
             except resource.error:
                 logger.warning('could not set RLIMIT_NOFILE')
 
@@ -829,22 +717,26 @@ def server_main(**kwargs: Any) -> None:
             if server_args.daemon_group:
                 daemon_opts['gid'] = server_args.daemon_group
             with daemon.DaemonContext(**daemon_opts):
-                asyncio.run(run_server(
-                    server_args,
-                    runstate_dir=runstate_dir,
-                ))
+                asyncio.run(
+                    run_server(
+                        server_args,
+                        runstate_dir=runstate_dir,
+                    )
+                )
         else:
             with devmode.CoverageConfig.enable_coverage_if_requested():
-                asyncio.run(run_server(
-                    server_args,
-                    runstate_dir=runstate_dir,
-                ))
+                asyncio.run(
+                    run_server(
+                        server_args,
+                        runstate_dir=runstate_dir,
+                    )
+                )
 
 
 @click.group(
     'Gel Server',
     invoke_without_command=True,
-    context_settings=dict(help_option_names=['-h', '--help'])
+    context_settings=dict(help_option_names=['-h', '--help']),
 )
 @srvargs.server_options
 @click.pass_context
@@ -858,14 +750,6 @@ def main(ctx, version=False, **kwargs):
         sys.exit(0)
     if ctx.invoked_subcommand is None:
         server_main(**kwargs)
-
-
-@main.command(hidden=True)
-@srvargs.compiler_options
-def compiler(**kwargs):
-    from edb.server.compiler_pool import server as compiler_server
-
-    asyncio.run(compiler_server.server_main(**kwargs))
 
 
 def main_dev():
@@ -906,11 +790,13 @@ def initialize_static_cfg(
                         f"Can't set config {name!r} {where} when using "
                         f"a remote Postgres cluster"
                     )
-            init_con_script_data.append({
-                "name": name,
-                "value": config.value_to_json_value(setting, value.value),
-                "type": source,
-            })
+            init_con_script_data.append(
+                {
+                    "name": name,
+                    "value": config.value_to_json_value(setting, value.value),
+                    "type": source,
+                }
+            )
             result[name] = value
             if setting.backend_setting:
                 backend_val = value.value

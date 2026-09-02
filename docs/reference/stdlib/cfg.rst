@@ -139,23 +139,6 @@ The ``cfg`` module contains a set of types and scalars used for configuring
   The :eql:type:`cfg::AbstractConfig` exposes a corresponding computed
   multi-backlink called ``extensions``.
 
-  For example, :ref:`ext::pgvector <ref_ext_pgvector>` extension exposes
-  ``probes`` as a configurable parameter via ``ext::pgvector::Config`` object:
-
-  .. code-block:: edgeql-repl
-
-    db> configure session
-    ... set ext::pgvector::Config::probes := 5;
-    OK: CONFIGURE SESSION
-    db> select cfg::Config.extensions[is ext::pgvector::Config]{*};
-    {
-      ext::pgvector::Config {
-        id: 12b5c70f-0bb8-508a-845f-ca3d41103b6f,
-        probes: 5,
-        ef_search: 40,
-      },
-    }
-
 
 ----------
 
@@ -211,8 +194,7 @@ The ``cfg`` module contains a set of types and scalars used for configuring
     - Gel binary protocol
       :ref:`tunneled over HTTP <ref_http_tunnelling>`
   * - ``cfg::ConnectionTransport.SIMPLE_HTTP``
-    - :ref:`EdgeQL over HTTP <ref_edgeql_http>`
-      and :ref:`GraphQL <ref_graphql_index>` endpoints
+    - the simple HTTP endpoint
 
 ---------
 

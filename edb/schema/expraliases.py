@@ -47,7 +47,6 @@ class Alias(
     qlkind=qltypes.SchemaObjectClass.ALIAS,
     data_safe=True,
 ):
-
     expr = so.SchemaField(
         s_expr.Expression,
         default=None,
@@ -67,8 +66,7 @@ class Alias(
 
 
 class AliasCommandContext(
-    sd.ObjectCommandContext[so.Object],
-    s_anno.AnnotationSubjectCommandContext
+    sd.ObjectCommandContext[so.Object], s_anno.AnnotationSubjectCommandContext
 ):
     pass
 
@@ -181,9 +179,7 @@ class AliasLikeCommand(
         include_module_in_name: bool,
     ) -> sn.QualName:
         base_name = (
-            type_name
-            if include_module_in_name else
-            type_name.get_local_name()
+            type_name if include_module_in_name else type_name.get_local_name()
         )
         quals = (cls.get_schema_metaclass().get_schema_class_displayname(),)
         pnn = sn.get_specialized_name(base_name, str(type_name), *quals)
@@ -226,7 +222,8 @@ class AliasLikeCommand(
         drop_old_types_cmd: Optional[sd.Command] = None
         if is_alter:
             drop_old_types_cmd = self._delete_alias_types(
-                self.scls, schema, context)
+                self.scls, schema, context
+            )
             with context.suspend_dep_verification():
                 pschema = drop_old_types_cmd.apply(pschema, context)
 
@@ -240,8 +237,10 @@ class AliasLikeCommand(
 
         expr = s_expr.Expression.from_ir(expr, ir, schema=schema)
 
-        is_global = (self.get_schema_metaclass().
-                     get_schema_class_displayname() == 'global')
+        is_global = (
+            self.get_schema_metaclass().get_schema_class_displayname()
+            == 'global'
+        )
         cmd, type_shell, created_types = _create_alias_types(
             expr=expr,
             classname=classname,
@@ -288,12 +287,11 @@ class AliasCommand(
         context: sd.CommandContext,
         field: so.Field[Any],
         value: s_expr.Expression,
-        track_schema_ref_exprs: bool=False,
+        track_schema_ref_exprs: bool = False,
     ) -> s_expr.CompiledExpression:
         assert field.name == 'expr'
         classname = sn.shortname_from_fullname(self.classname)
-        assert isinstance(classname, sn.QualName), \
-            "expected qualified name"
+        assert isinstance(classname, sn.QualName), "expected qualified name"
         return value.compiled(
             schema=schema,
             options=qlcompiler.CompilerOptions(
@@ -334,7 +332,8 @@ class CreateAliasLike(
             self.add_prerequisite(type_cmd)
             self.set_attribute_value('expr', expr)
             self.set_attribute_value(
-                self.TYPE_FIELD_NAME, type_shell, computed=True)
+                self.TYPE_FIELD_NAME, type_shell, computed=True
+            )
             self.set_attribute_value('created_types', created_types)
 
         return super()._create_begin(schema, context)
@@ -351,7 +350,6 @@ class RenameAliasLike(
     AliasLikeCommand[so.QualifiedObject_T],
     sd.RenameObject[so.QualifiedObject_T],
 ):
-
     def _alter_begin(
         self,
         schema: s_schema.Schema,
@@ -410,7 +408,8 @@ class AlterAliasLike(
 
                 self.set_attribute_value('expr', expr)
                 self.set_attribute_value(
-                    self.TYPE_FIELD_NAME, type_shell, computed=True)
+                    self.TYPE_FIELD_NAME, type_shell, computed=True
+                )
 
                 self.set_attribute_value('created_types', created_tys)
 
@@ -421,8 +420,7 @@ class AlterAliasLike(
                 # the type has to be done as a prereq, since it needs
                 # to precede the creation of the replacement type
                 # with the same name.)
-                schema = schema.unset_field(
-                    self.scls, self.TYPE_FIELD_NAME)
+                schema = schema.unset_field(self.scls, self.TYPE_FIELD_NAME)
             else:
                 # there is no expr
 
@@ -474,8 +472,7 @@ def compile_alias_expr(
     context: sd.CommandContext,
     span: Optional[parsing.Span] = None,
 ) -> irast.Statement:
-    cached: Optional[irast.Statement] = (
-        context.get_cached((expr, classname)))
+    cached: Optional[irast.Statement] = context.get_cached((expr, classname))
     if cached is not None:
         return cached
 
@@ -539,19 +536,17 @@ def _create_alias_types(
             # Add any existing collection types to the `create_types` of aliases
             # and computed globals. This adds a reference which prevents their
             # deletion as other types are deleted.
-            if (
-                not ty.get_from_alias(schema)
-                and isinstance(ty, s_types.Collection)
+            if not ty.get_from_alias(schema) and isinstance(
+                ty, s_types.Collection
             ):
                 created_type_shells.add(
                     so.ObjectShell(name=name, schemaclass=type(ty))
                 )
             continue
 
-        if (
-            not isinstance(ty, s_types.Collection)
-            and not _has_alias_name_prefix(classname, name)
-        ):
+        if not isinstance(
+            ty, s_types.Collection
+        ) and not _has_alias_name_prefix(classname, name):
             # not all created types are visible from the root, so they don't
             # need to be created in the schema
             continue
@@ -567,9 +562,8 @@ def _create_alias_types(
         # an alias expression may be used in other places and should be
         # not be created as `from_alias` or other alias/global associated
         # fields.
-        if (
-            not isinstance(ty, s_types.Collection)
-            or isinstance(ty, s_types.CollectionExprAlias)
+        if not isinstance(ty, s_types.Collection) or isinstance(
+            ty, s_types.CollectionExprAlias
         ):
             new_schema = ty.update(
                 new_schema,

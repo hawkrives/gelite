@@ -23,36 +23,37 @@ from edb import errors
 
 
 class TestErrorsClasses(unittest.TestCase):
-
     def test_api_errors_01(self):
         # Test that "edb genexc" tool generates correct
         # class hierarchy.
 
         self.assertTrue(
-            issubclass(errors.InternalServerError, errors.EdgeDBError))
+            issubclass(errors.InternalServerError, errors.EdgeDBError)
+        )
 
         self.assertEqual(
-            errors.InternalServerError('error').get_code(), 0x_01_00_00_00)
+            errors.InternalServerError('error').get_code(), 0x_01_00_00_00
+        )
+
+        self.assertTrue(issubclass(errors.ProtocolError, errors.EdgeDBError))
 
         self.assertTrue(
-            issubclass(errors.ProtocolError, errors.EdgeDBError))
+            issubclass(errors.BinaryProtocolError, errors.ProtocolError)
+        )
 
+        self.assertTrue(issubclass(errors.QueryError, errors.EdgeDBError))
+        self.assertTrue(issubclass(errors.InvalidTypeError, errors.QueryError))
         self.assertTrue(
-            issubclass(errors.BinaryProtocolError, errors.ProtocolError))
-
+            issubclass(errors.InvalidTargetError, errors.InvalidTypeError)
+        )
         self.assertTrue(
-            issubclass(errors.QueryError, errors.EdgeDBError))
-        self.assertTrue(
-            issubclass(errors.InvalidTypeError, errors.QueryError))
-        self.assertTrue(
-            issubclass(errors.InvalidTargetError, errors.InvalidTypeError))
-        self.assertTrue(
-            issubclass(
-                errors.InvalidLinkTargetError, errors.InvalidTargetError))
+            issubclass(errors.InvalidLinkTargetError, errors.InvalidTargetError)
+        )
         self.assertFalse(
             issubclass(
-                errors.InvalidLinkTargetError,
-                errors.InvalidPropertyTargetError))
+                errors.InvalidLinkTargetError, errors.InvalidPropertyTargetError
+            )
+        )
 
     def test_api_errors_02(self):
         # Test that "edb genexc" tool doesn't generate errors

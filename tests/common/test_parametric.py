@@ -35,19 +35,16 @@ B = TypeVar("B")
 
 
 class ParametricTypeTests(unittest.TestCase):
-
     def test_common_parametric_basics(self) -> None:
-        with self.assertRaisesRegex(
-            TypeError,
-            'must be declared as Generic'
-        ):
+        with self.assertRaisesRegex(TypeError, 'must be declared as Generic'):
+
             class Foo(ParametricType):
                 pass
 
         with self.assertRaisesRegex(
-            TypeError,
-            'P1: missing ClassVar for generic parameter ~T'
+            TypeError, 'P1: missing ClassVar for generic parameter ~T'
         ):
+
             class P1(ParametricType, Generic[T]):
                 pass
 
@@ -60,15 +57,14 @@ class ParametricTypeTests(unittest.TestCase):
         self.assertTrue(issubclass(P2[int].t, int))  # type: ignore
 
         with self.assertRaisesRegex(
-            TypeError,
-            "type 'P2' expects 1 type parameter, got 2"
+            TypeError, "type 'P2' expects 1 type parameter, got 2"
         ):
             P2[int, str]  # type: ignore
 
         with self.assertRaisesRegex(
-            TypeError,
-            "P3: missing one or more type arguments for base 'P2'"
+            TypeError, "P3: missing one or more type arguments for base 'P2'"
         ):
+
             class P3(P2, Generic[K]):
                 pass
 
@@ -89,9 +85,9 @@ class ParametricTypeTests(unittest.TestCase):
         # rely on __orig_bases__ in the subclass check and that elides
         # P5.
         with self.assertRaisesRegex(
-            TypeError,
-            "P6: missing one or more type arguments for base 'P4'"
+            TypeError, "P6: missing one or more type arguments for base 'P4'"
         ):
+
             class P6(P5):
                 pass
 

@@ -238,8 +238,8 @@ GraphQL and HTTP authentication
 ..
    We'll drop the rc1 mention after the real release
 
-Starting in rc1, the :ref:`EdgeQL over HTTP <ref_edgeql_http>`
-and :ref:`GraphQL <ref_graphql_index>` endpoints support
+Starting in rc1, the EdgeQL over HTTP
+and GraphQL endpoints support
 (and by default require) authentication.
 
 .. lint-off
@@ -250,8 +250,7 @@ By default,
 
 .. lint-on
 
-Full details are available in the :ref:`EdgeQL over HTTP documentation
-<ref_http_auth>`.
+Full details are available in the EdgeQL over HTTP documentation.
 
 This is a backwards-incompatible change. It is possible to opt-in to
 the old behavior, but not recommended.
@@ -334,7 +333,7 @@ Here's an example query using the TypeScript client:
 pgcrypto
 --------
 
-We've added :ref:`pgcrypto <ref_ext_pgcrypto>` to our extensions. This exposes
+We've added pgcrypto to our extensions. This exposes
 ``digest``, ``hmac``, ``gen_salt`` and ``crypt`` functions for your hashing,
 encrypting and salting needs.
 
@@ -353,7 +352,7 @@ picked up.
 pg_trgm
 -------
 
-The :ref:`pg_trgm <ref_ext_pgtrgm>` extension provides functionality used to
+The pg_trgm extension provides functionality used to
 determine string similarity, which makes it a good text search alternative for
 some use cases:
 

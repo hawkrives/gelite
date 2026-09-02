@@ -49,7 +49,6 @@ class AccessPolicy(
     qlkind=qltypes.SchemaObjectClass.ACCESS_POLICY,
     data_safe=True,
 ):
-
     condition = so.SchemaField(
         s_expr.Expression,
         default=None,
@@ -80,9 +79,8 @@ class AccessPolicy(
     )
 
     subject = so.SchemaField(
-        so.InheritingObject,
-        compcoef=None,
-        inheritable=False)
+        so.InheritingObject, compcoef=None, inheritable=False
+    )
 
     errmessage = so.SchemaField(
         str, default=None, compcoef=0.971, allow_ddl_set=True
@@ -155,7 +153,8 @@ class AccessPolicyCommand(
             vname = 'when' if field == 'condition' else 'using'
 
             expression = self.compile_expr_field(
-                schema, context,
+                schema,
+                context,
                 field=AccessPolicy.get_field(field),
                 value=expr,
             )
@@ -166,21 +165,21 @@ class AccessPolicyCommand(
                 raise errors.SchemaDefinitionError(
                     f'possibly an empty set returned by {vname} '
                     f'expression for the {pol_name} ',
-                    span=span
+                    span=span,
                 )
 
             if expression.irast.cardinality.is_multi():
                 raise errors.SchemaDefinitionError(
                     f'possibly more than one element returned by {vname} '
                     f'expression for the {pol_name} ',
-                    span=span
+                    span=span,
                 )
 
             if expression.irast.volatility.is_volatile():
                 raise errors.SchemaDefinitionError(
                     f'{pol_name} has a volatile {vname} expression, '
                     f'which is not allowed',
-                    span=span
+                    span=span,
                 )
 
             target = schema.get(sn.QualName('std', 'bool'), type=s_types.Type)
@@ -202,7 +201,7 @@ class AccessPolicyCommand(
         context: sd.CommandContext,
         field: so.Field[Any],
         value: s_expr.Expression,
-        track_schema_ref_exprs: bool=False,
+        track_schema_ref_exprs: bool = False,
     ) -> s_expr.CompiledExpression:
         if field.name in {'expr', 'condition'}:
             parent_ctx = self.get_referrer_context_or_die(context)
@@ -232,7 +231,8 @@ class AccessPolicyCommand(
             )
         else:
             return super().compile_expr_field(
-                schema, context, field, value, track_schema_ref_exprs)
+                schema, context, field, value, track_schema_ref_exprs
+            )
 
     def get_dummy_expr_field_value(
         self,
@@ -271,7 +271,8 @@ class AccessPolicyCommand(
                     )
                 ):
                     pol_name = self.get_verbosename(
-                        parent=subject.get_verbosename(schema))
+                        parent=subject.get_verbosename(schema)
+                    )
                     obj_name = obj.get_verbosename(schema, with_parent=True)
                     raise errors.UnsupportedFeatureError(
                         f'insert and update write access policies may not '
@@ -292,10 +293,12 @@ class CreateAccessPolicy(
         field: str,
         astnode: type[qlast.DDLOperation],
     ) -> Optional[str]:
-        if (
-            field in ('expr', 'condition', 'action', 'access_kinds')
-            and issubclass(astnode, qlast.CreateAccessPolicy)
-        ):
+        if field in (
+            'expr',
+            'condition',
+            'action',
+            'access_kinds',
+        ) and issubclass(astnode, qlast.CreateAccessPolicy):
             return field
         else:
             return super().get_ast_attr_for_field(field, astnode)
@@ -316,7 +319,9 @@ class CreateAccessPolicy(
             cmd.set_attribute_value(
                 'condition',
                 s_expr.Expression.from_ast(
-                    astnode.condition, schema, context.modaliases,
+                    astnode.condition,
+                    schema,
+                    context.modaliases,
                     context.localnames,
                 ),
                 span=astnode.condition.span,
@@ -326,7 +331,9 @@ class CreateAccessPolicy(
             cmd.set_attribute_value(
                 'expr',
                 s_expr.Expression.from_ast(
-                    astnode.expr, schema, context.modaliases,
+                    astnode.expr,
+                    schema,
+                    context.modaliases,
                     context.localnames,
                 ),
                 span=astnode.expr.span,
@@ -368,28 +375,26 @@ class AlterAccessPolicy(
         # If either action or access_kinds appears, make sure the
         # other one does as well, so that _apply_field_ast has
         # a canonical setup to work with.
-        if (
-            self.has_attribute_value('action')
-            and not self.has_attribute_value('access_kinds')
+        if self.has_attribute_value('action') and not self.has_attribute_value(
+            'access_kinds'
         ):
             self.set_attribute_value(
-                'access_kinds', self.scls.get_access_kinds(schema))
-        elif (
-            self.has_attribute_value('access_kinds')
-            and not self.has_attribute_value('action')
-        ):
+                'access_kinds', self.scls.get_access_kinds(schema)
+            )
+        elif self.has_attribute_value(
+            'access_kinds'
+        ) and not self.has_attribute_value('action'):
             self.set_attribute_value('action', self.scls.get_action(schema))
 
         # TODO: We may wish to support this in the future but it will
         # take some thought.
-        if (
-            self.get_attribute_value('owned')
-            and not self.get_orig_attribute_value('owned')
-        ):
+        if self.get_attribute_value(
+            'owned'
+        ) and not self.get_orig_attribute_value('owned'):
             raise errors.SchemaDefinitionError(
                 f'cannot alter the definition of inherited access policy '
                 f'{self.scls.get_displayname(schema)}',
-                span=self.span
+                span=self.span,
             )
 
         return schema

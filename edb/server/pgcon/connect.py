@@ -91,7 +91,8 @@ RESET_STATIC_CFG_SCRIPT: bytes = b'''
 
 def _build_init_con_script(*, check_pg_is_in_recovery: bool) -> bytes:
     if check_pg_is_in_recovery:
-        pg_is_in_recovery = ('''
+        pg_is_in_recovery = (
+            '''
         SELECT CASE WHEN pg_is_in_recovery() THEN
             edgedb.raise(
                 NULL::bigint,
@@ -99,12 +100,14 @@ def _build_init_con_script(*, check_pg_is_in_recovery: bool) -> bytes:
                 msg => 'cannot use a hot standby'
             )
         END;
-        ''').strip()
+        '''
+        ).strip()
     else:
         pg_is_in_recovery = ''
 
     edgedb_schema = versioned_schema('edgedb')
-    return textwrap.dedent(f'''
+    return (
+        textwrap.dedent(f'''
         {pg_is_in_recovery}
 
         {SETUP_TEMP_TABLE_SCRIPT}
@@ -186,7 +189,10 @@ def _build_init_con_script(*, check_pg_is_in_recovery: bool) -> bytes:
                 _edgecon_state
             WHERE
                 type = 'S' OR type = 'L';
-    ''').strip().encode('utf-8')
+    ''')
+        .strip()
+        .encode('utf-8')
+    )
 
 
 async def pg_connect(

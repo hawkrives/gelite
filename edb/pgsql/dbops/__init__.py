@@ -32,7 +32,7 @@ from .functions import *  # NOQA
 from .indexes import *  # NOQA
 from .operators import *  # NOQA
 from .ranges import *  # NOQA
-from .roles import * # NOQA
+from .roles import *  # NOQA
 from .schemas import *  # NOQA
 from .sequences import *  # NOQA
 from .tables import *  # NOQA

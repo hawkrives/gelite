@@ -26,7 +26,6 @@ from typing import (
     Sequence,
     Coroutine,
     Unpack,
-    cast,
     TYPE_CHECKING,
 )
 
@@ -55,7 +54,6 @@ from edb.common import uuidgen
 from edb.server import args as srvargs
 from edb.server import defines
 from edb.server import pgconnparams
-from edb.server.ha import base as ha_base
 from edb.pgsql import common as pgcommon
 from edb.pgsql import params as pgparams
 
@@ -96,20 +94,23 @@ class PostgresPidFileNotReadyError(Exception):
 
 
 class BaseCluster:
-
     def __init__(
         self,
         *,
         instance_params: Optional[pgparams.BackendInstanceParams] = None,
     ) -> None:
         self._connection_addr: Optional[tuple[str, int]] = None
-        self._connection_params: pgconnparams.ConnectionParams = \
-            pgconnparams.ConnectionParams(server_settings=GELITE_SERVER_SETTINGS)
+        self._connection_params: pgconnparams.ConnectionParams = (
+            pgconnparams.ConnectionParams(
+                server_settings=GELITE_SERVER_SETTINGS
+            )
+        )
         self._pg_config_data: dict[str, str] = {}
         self._pg_bin_dir: Optional[pathlib.Path] = None
         if instance_params is None:
             self._instance_params = (
-                pgparams.get_default_runtime_params().instance_params)
+                pgparams.get_default_runtime_params().instance_params
+            )
         else:
             self._instance_params = instance_params
 
@@ -118,9 +119,9 @@ class BaseCluster:
             not self._instance_params.capabilities
             & pgparams.BackendCapabilities.CREATE_DATABASE
         ):
-            assert (
-                db_name == defines.GELITE_SUPERUSER_DB
-            ), f"db_name={db_name} is not allowed"
+            assert db_name == defines.GELITE_SUPERUSER_DB, (
+                f"db_name={db_name} is not allowed"
+            )
             rv = self.get_connection_params().database
             assert rv is not None
             return rv
@@ -134,9 +135,9 @@ class BaseCluster:
             not self._instance_params.capabilities
             & pgparams.BackendCapabilities.CREATE_ROLE
         ):
-            assert (
-                role_name == defines.GELITE_SUPERUSER
-            ), f"role_name={role_name} is not allowed"
+            assert role_name == defines.GELITE_SUPERUSER, (
+                f"role_name={role_name} is not allowed"
+            )
             rv = self.get_connection_params().user
             assert rv is not None
             return rv
@@ -161,11 +162,12 @@ class BaseCluster:
     def destroy(self) -> None:
         raise NotImplementedError
 
-    async def connect(self,
-                      *,
-                      source_description: str,
-                      apply_init_script: bool = False,
-                      **kwargs: Unpack[pgconnparams.CreateParamsKwargs]
+    async def connect(
+        self,
+        *,
+        source_description: str,
+        apply_init_script: bool = False,
+        **kwargs: Unpack[pgconnparams.CreateParamsKwargs],
     ) -> pgcon.PGConnection:
         """Connect to this cluster, with optional overriding parameters. If
         overriding parameters are specified, they are applied to a copy of the
@@ -184,14 +186,6 @@ class BaseCluster:
             apply_init_script=apply_init_script,
         )
         return conn
-
-    async def start_watching(
-        self, failover_cb: Optional[Callable[[], None]] = None
-    ) -> None:
-        pass
-
-    def stop_watching(self) -> None:
-        pass
 
     def get_runtime_params(self) -> pgparams.BackendRuntimeParams:
         params = self.get_connection_params()
@@ -339,12 +333,8 @@ class BaseCluster:
         src_conn_args, src_env = self._dump_restore_conn_args(src_dbname)
         tgt_conn_args, _tgt_env = self._dump_restore_conn_args(tgt_dbname)
 
-        dump_args = [
-            pg_dump, '--verbose', *src_conn_args, *src_args
-        ]
-        restore_args = [
-            pg_restore, *tgt_conn_args, *tgt_args
-        ]
+        dump_args = [pg_dump, '--verbose', *src_conn_args, *src_args]
+        restore_args = [pg_restore, *tgt_conn_args, *tgt_args]
 
         rpipe, wpipe = os.pipe()
         wpipef = os.fdopen(wpipe, "wb")
@@ -377,8 +367,12 @@ class BaseCluster:
             os.close(rpipe)
 
         dump_exit_code, _, _, restore_exit_code, _, _ = await asyncio.gather(
-            dump_p.wait(), dump_out_r, dump_err_r,
-            res_p.wait(), res_out_r, res_err_r,
+            dump_p.wait(),
+            dump_out_r,
+            dump_err_r,
+            res_p.wait(),
+            res_out_r,
+            res_err_r,
         )
 
         if dump_exit_code != 0 and dump_exit_code != -signal.SIGPIPE:
@@ -397,8 +391,9 @@ class BaseCluster:
         bpath = self._pg_bin_dir / binary
         if not bpath.is_file():
             raise ClusterError(
-                'could not find {} executable: '.format(binary) +
-                '{!r} does not exist or is not a file'.format(bpath))
+                'could not find {} executable: '.format(binary)
+                + '{!r} does not exist or is not a file'.format(bpath)
+            )
 
         return str(bpath)
 
@@ -437,7 +432,8 @@ class Cluster(BaseCluster):
         super().__init__(instance_params=instance_params)
         self._data_dir = data_dir
         self._runstate_dir = (
-            runstate_dir if runstate_dir is not None else data_dir)
+            runstate_dir if runstate_dir is not None else data_dir
+        )
         self._daemon_pid: Optional[int] = None
         self._daemon_process: Optional[asyncio.subprocess.Process] = None
         self._daemon_supervisor: Optional[supervisor.Supervisor] = None
@@ -453,12 +449,14 @@ class Cluster(BaseCluster):
         return self._daemon_pid
 
     async def get_status(self) -> str:
-        stdout_lines, stderr_lines, exit_code = (
-            await _run_logged_text_subprocess(
-                [self._pg_ctl, 'status', '-D', str(self._data_dir)],
-                logger=pg_ctl_logger,
-                check=False,
-            )
+        (
+            stdout_lines,
+            stderr_lines,
+            exit_code,
+        ) = await _run_logged_text_subprocess(
+            [self._pg_ctl, 'status', '-D', str(self._data_dir)],
+            logger=pg_ctl_logger,
+            check=False,
         )
 
         if (
@@ -474,7 +472,8 @@ class Cluster(BaseCluster):
             r = re.match(r'.*PID\s?:\s+(\d+).*', output)
             if not r:
                 raise ClusterError(
-                    f'could not parse pg_ctl status output: {output}')
+                    f'could not parse pg_ctl status output: {output}'
+                )
             self._daemon_pid = int(r.group(1))
             if self._connection_addr is None:
                 self._connection_addr = self._connection_addr_from_pidfile()
@@ -490,8 +489,7 @@ class Cluster(BaseCluster):
         cluster_status = await self.get_status()
 
         if cluster_status == 'not-initialized':
-            logger.info(
-                'Initializing database cluster in %s', self._data_dir)
+            logger.info('Initializing database cluster in %s', self._data_dir)
 
             have_c_utf8 = self.get_runtime_params().has_c_utf8_locale
             await self.init(
@@ -505,13 +503,13 @@ class Cluster(BaseCluster):
                 type='local',
                 database='all',
                 user='postgres',
-                auth_method='trust'
+                auth_method='trust',
             )
             self.add_hba_entry(
                 type='local',
                 database='replication',
                 user='postgres',
-                auth_method='trust'
+                auth_method='trust',
             )
             return True
         else:
@@ -522,11 +520,15 @@ class Cluster(BaseCluster):
         if await self.get_status() != 'not-initialized':
             raise ClusterError(
                 'cluster in {!r} has already been initialized'.format(
-                    self._data_dir))
+                    self._data_dir
+                )
+            )
 
         if settings:
-            settings_args = ['--{}={}'.format(k.replace('_', '-'), v)
-                             for k, v in settings.items()]
+            settings_args = [
+                '--{}={}'.format(k.replace('_', '-'), v)
+                for k, v in settings.items()
+            ]
             extra_args = ['-o'] + [' '.join(settings_args)]
         else:
             extra_args = []
@@ -550,7 +552,9 @@ class Cluster(BaseCluster):
         elif status == 'not-initialized':
             raise ClusterError(
                 'cluster in {!r} has not been initialized'.format(
-                    self._data_dir))
+                    self._data_dir
+                )
+            )
 
         extra_args = ['--{}={}'.format(k, v) for k, v in opts.items()]
 
@@ -644,15 +648,20 @@ class Cluster(BaseCluster):
         await _run_logged_subprocess(
             [
                 self._pg_ctl,
-                'stop', '-D', str(self._data_dir),
-                '-t', str(wait), '-m', 'fast'
+                'stop',
+                '-D',
+                str(self._data_dir),
+                '-t',
+                str(wait),
+                '-m',
+                'fast',
             ],
             logger=pg_ctl_logger,
         )
 
         if (
-            self._daemon_process is not None and
-            self._daemon_process.returncode is None
+            self._daemon_process is not None
+            and self._daemon_process.returncode is None
         ):
             self._daemon_process.terminate()
             await asyncio.wait_for(self._daemon_process.wait(), timeout=wait)
@@ -672,8 +681,7 @@ class Cluster(BaseCluster):
             with open(pg_hba, 'w'):
                 pass
         except IOError as e:
-            raise ClusterError(
-                'cannot modify HBA records: {}'.format(e)) from e
+            raise ClusterError('cannot modify HBA records: {}'.format(e)) from e
 
     def add_hba_entry(
         self,
@@ -696,7 +704,8 @@ class Cluster(BaseCluster):
         if type != 'local':
             if address is None:
                 raise ValueError(
-                    '{!r} entry requires a valid address'.format(type))
+                    '{!r} entry requires a valid address'.format(type)
+                )
             else:
                 record += ' {}'.format(address)
 
@@ -704,26 +713,35 @@ class Cluster(BaseCluster):
 
         if auth_options is not None:
             record += ' ' + ' '.join(
-                '{}={}'.format(k, v) for k, v in auth_options.items())
+                '{}={}'.format(k, v) for k, v in auth_options.items()
+            )
 
         try:
             with open(pg_hba, 'a') as f:
                 print(record, file=f)
         except IOError as e:
-            raise ClusterError(
-                'cannot modify HBA records: {}'.format(e)) from e
+            raise ClusterError('cannot modify HBA records: {}'.format(e)) from e
 
     async def trust_local_connections(self) -> None:
         self.reset_hba()
 
-        self.add_hba_entry(type='local', database='all',
-                           user='all', auth_method='trust')
-        self.add_hba_entry(type='host', address='127.0.0.1/32',
-                           database='all', user='all',
-                           auth_method='trust')
-        self.add_hba_entry(type='host', address='::1/128',
-                           database='all', user='all',
-                           auth_method='trust')
+        self.add_hba_entry(
+            type='local', database='all', user='all', auth_method='trust'
+        )
+        self.add_hba_entry(
+            type='host',
+            address='127.0.0.1/32',
+            database='all',
+            user='all',
+            auth_method='trust',
+        )
+        self.add_hba_entry(
+            type='host',
+            address='::1/128',
+            database='all',
+            user='all',
+            auth_method='trust',
+        )
         status = await self.get_status()
         if status == 'running':
             await self.reload()
@@ -768,7 +786,8 @@ class Cluster(BaseCluster):
             if sockdir[0] != '/':
                 # Relative sockdir
                 sockdir = os.path.normpath(
-                    os.path.join(self._data_dir, sockdir))
+                    os.path.join(self._data_dir, sockdir)
+                )
             host_str = sockdir
         elif hostaddr:
             host_str = hostaddr
@@ -791,8 +810,8 @@ class Cluster(BaseCluster):
         connected = False
 
         params = pgconnparams.ConnectionParams(
-            user="postgres",
-            database="postgres")
+            user="postgres", database="postgres"
+        )
 
         for n in range(timeout + 9):
             # pg usually comes up pretty quickly, but not so quickly
@@ -807,8 +826,7 @@ class Cluster(BaseCluster):
                 try:
                     assert self._daemon_process is not None
                     code = await asyncio.wait_for(
-                        self._daemon_process.wait(),
-                        sleep_time
+                        self._daemon_process.wait(), sleep_time
                     )
                 except asyncio.TimeoutError:
                     # means that the postgres process is still alive
@@ -836,8 +854,11 @@ class Cluster(BaseCluster):
                 pgcon.BackendConnectionError,
             ) as e:
                 if n % 10 == 0 and 0 < n < timeout + 9 - 1:
-                    logger.error("cannot connect to the backend cluster:"
-                                 " %s, retrying...", e)
+                    logger.error(
+                        "cannot connect to the backend cluster:"
+                        " %s, retrying...",
+                        e,
+                    )
                 await asyncio.sleep(sleep_time)
                 continue
             except pgcon.BackendError:
@@ -863,19 +884,13 @@ class RemoteCluster(BaseCluster):
         connection_addr: tuple[str, int],
         connection_params: pgconnparams.ConnectionParams,
         instance_params: Optional[pgparams.BackendInstanceParams] = None,
-        ha_backend: Optional[ha_base.HABackend] = None,
     ):
         super().__init__(instance_params=instance_params)
         self._connection_params = connection_params
-        self._connection_params.update(
-            server_settings=GELITE_SERVER_SETTINGS
-        )
+        self._connection_params.update(server_settings=GELITE_SERVER_SETTINGS)
         self._connection_addr = connection_addr
-        self._ha_backend = ha_backend
 
     def _get_connection_addr(self) -> Optional[tuple[str, int]]:
-        if self._ha_backend is not None:
-            return self._ha_backend.get_master_addr()
         return self._connection_addr
 
     async def ensure_initialized(self, **settings: Any) -> bool:
@@ -920,28 +935,14 @@ class RemoteCluster(BaseCluster):
     ) -> None:
         raise ClusterError('cannot modify HBA records of unmanaged cluster')
 
-    async def start_watching(
-        self, failover_cb: Optional[Callable[[], None]] = None
-    ) -> None:
-        if self._ha_backend is not None:
-            self._ha_backend.set_failover_callback(failover_cb)
-            await self._ha_backend.start_watching()
-
-    def stop_watching(self) -> None:
-        if self._ha_backend is not None:
-            self._ha_backend.stop_watching()
-
     @lru.method_cache
     def get_client_id(self) -> int:
         tenant_id = self._instance_params.tenant_id
-        if self._ha_backend is not None:
-            backend_dsn = self._ha_backend.dsn
-        else:
-            assert self._connection_addr is not None
-            assert self._connection_params is not None
-            host, port = self._connection_addr
-            database = self._connection_params.database
-            backend_dsn = f"postgres://{host}:{port}/{database}"
+        assert self._connection_addr is not None
+        assert self._connection_params is not None
+        host, port = self._connection_addr
+        database = self._connection_params.database
+        backend_dsn = f"postgres://{host}:{port}/{database}"
         data = f"{backend_dsn}|{tenant_id}".encode("utf-8")
         digest = hashlib.blake2b(data, digest_size=8).digest()
         rv: int = struct.unpack("q", digest)[0]
@@ -952,8 +953,7 @@ async def get_pg_bin_dir() -> pathlib.Path:
     pg_config_data = await get_pg_config()
     pg_bin_dir = pg_config_data.get('bindir')
     if not pg_bin_dir:
-        raise ClusterError(
-            'pg_config output did not provide the BINDIR value')
+        raise ClusterError('pg_config output did not provide the BINDIR value')
     return pathlib.Path(pg_bin_dir)
 
 
@@ -1007,37 +1007,14 @@ async def get_remote_pg_cluster(
     specified_capabilities: Optional[srvargs.BackendCapabilitySets] = None,
 ) -> RemoteCluster:
     from edb.server import pgcon
+
     parsed = urllib.parse.urlparse(dsn)
-    ha_backend = None
 
     if parsed.scheme not in {'postgresql', 'postgres'}:
-        ha_backend = ha_base.get_backend(parsed)
-        if ha_backend is None:
-            raise ValueError(
-                'invalid DSN: scheme is expected to be "postgresql", '
-                '"postgres" or one of the supported HA backend, '
-                'got {!r}'.format(parsed.scheme))
-
-        addr = await ha_backend.get_cluster_consensus()
-        dsn = 'postgresql://{}:{}'.format(*addr)
-
-        if parsed.query:
-            # Allow passing through Postgres connection parameters from the HA
-            # backend DSN as "pg" prefixed query strings. For example, an HA
-            # backend DSN with `?pgpassword=123` will result an actual backend
-            # DSN with `?password=123`. They have higher priority than the `PG`
-            # prefixed environment variables like `PGPASSWORD`.
-            pq = urllib.parse.parse_qs(parsed.query, strict_parsing=True)
-            query = {}
-            for k, v in pq.items():
-                if k.startswith("pg") and k not in ["pghost", "pgport"]:
-                    if isinstance(v, list):
-                        val = v[-1]
-                    else:
-                        val = cast(str, v)
-                    query[k[2:]] = val
-            if query:
-                dsn += f"?{urllib.parse.urlencode(query)}"
+        raise ValueError(
+            'invalid DSN: scheme is expected to be "postgresql" or '
+            '"postgres", got {!r}'.format(parsed.scheme)
+        )
 
     if tenant_id is None:
         t_id = buildmeta.get_default_tenant_id()
@@ -1048,9 +1025,9 @@ async def get_remote_pg_cluster(
         conn: pgcon.PGConnection,
     ) -> tuple[type[RemoteCluster], Optional[str]]:
         managed_clouds = {
-            'rds_superuser': RemoteCluster,    # Amazon RDS
-            'cloudsqlsuperuser': RemoteCluster,    # GCP Cloud SQL
-            'azure_pg_admin': RemoteCluster,    # Azure Postgres
+            'rds_superuser': RemoteCluster,  # Amazon RDS
+            'cloudsqlsuperuser': RemoteCluster,  # GCP Cloud SQL
+            'azure_pg_admin': RemoteCluster,  # Azure Postgres
         }
 
         managed_cloud_super = await conn.sql_fetch_val(
@@ -1106,9 +1083,9 @@ async def get_remote_pg_cluster(
             except pgcon.BackendPrivilegeError:
                 configfile_access = False
             except pgcon.BackendError as e:
-                # Stolon keeper symlinks postgresql.auto.conf to /dev/null
-                # making ALTER SYSTEM fail with InternalServerError,
-                # see https://github.com/sorintlab/stolon/pull/343
+                # A backend that symlinks postgresql.auto.conf to
+                # /dev/null makes ALTER SYSTEM fail with
+                # InternalServerError rather than a privilege error.
                 if 'could not fsync file "postgresql.auto.conf"' in e.args[0]:
                     configfile_access = False
                 else:
@@ -1118,7 +1095,8 @@ async def get_remote_pg_cluster(
 
                 if cur_cluster_name:
                     cn = pgcommon.quote_literal(
-                        cur_cluster_name.decode("utf-8"))
+                        cur_cluster_name.decode("utf-8")
+                    )
                     await conn.sql_execute(
                         f"""
                         ALTER SYSTEM SET cluster_name = {cn}
@@ -1139,8 +1117,9 @@ async def get_remote_pg_cluster(
 
         try:
             await conn.sql_execute(
-                f"CREATE ROLE {pgcommon.quote_ident(rname)} WITH SUPERUSER"
-                .encode("utf-8"),
+                f"CREATE ROLE {pgcommon.quote_ident(rname)} WITH SUPERUSER".encode(
+                    "utf-8"
+                ),
             )
         except pgcon.BackendPrivilegeError:
             can_make_superusers = False
@@ -1169,8 +1148,9 @@ async def get_remote_pg_cluster(
         if coll is not None:
             caps |= pgparams.BackendCapabilities.C_UTF8_LOCALE
 
-        roles = json.loads(await conn.sql_fetch_val(
-            b"""
+        roles = json.loads(
+            await conn.sql_fetch_val(
+                b"""
             SELECT json_build_object(
                 'rolcreaterole', rolcreaterole,
                 'rolcreatedb', rolcreatedb
@@ -1178,7 +1158,8 @@ async def get_remote_pg_cluster(
             FROM pg_roles
             WHERE rolname = (SELECT current_user);
             """,
-        ))
+            )
+        )
 
         if roles['rolcreaterole']:
             caps |= pgparams.BackendCapabilities.CREATE_ROLE
@@ -1206,9 +1187,7 @@ async def get_remote_pg_cluster(
     async def _get_reserved_connections(
         conn: pgcon.PGConnection,
     ) -> int:
-        rv = int(
-            await _get_pg_settings(conn, 'superuser_reserved_connections')
-        )
+        rv = int(await _get_pg_settings(conn, 'superuser_reserved_connections'))
         for name in [
             'rds.rds_superuser_reserved_connections',
         ]:
@@ -1222,14 +1201,15 @@ async def get_remote_pg_cluster(
         probe_connection,
         source_description="remote cluster probe",
         backend_params=pgparams.get_default_runtime_params(),
-        apply_init_script=False
+        apply_init_script=False,
     )
     params = conn.connection
     addr = conn.addr
 
     try:
-        data = json.loads(await conn.sql_fetch_val(
-            b"""
+        data = json.loads(
+            await conn.sql_fetch_val(
+                b"""
             SELECT json_build_object(
                 'user', current_user,
                 'dbname', current_database(),
@@ -1239,11 +1219,9 @@ async def get_remote_pg_cluster(
                     where rolname = current_user
                 )
             )""",
-        ))
-        params.update(
-            user=data["user"],
-            database=data["dbname"]
+            )
         )
+        params.update(user=data["user"], database=data["dbname"])
         cluster_type, superuser_name = await _get_cluster_type(conn)
         max_connections = data["connlimit"]
         pg_max_connections = await _get_pg_settings(conn, 'max_connections')
@@ -1288,8 +1266,8 @@ async def get_remote_pg_cluster(
         pg_ver_string = conn.get_server_parameter_status("server_version")
         if pg_ver_string is None:
             raise ClusterError(
-                "remote server did not report its version "
-                "in ParameterStatus")
+                "remote server did not report its version in ParameterStatus"
+            )
 
         if capabilities & pgparams.BackendCapabilities.CREATE_DATABASE:
             # If we can create databases, assume we're free to create
@@ -1297,14 +1275,16 @@ async def get_remote_pg_cluster(
             ext_schema = "edgedbext"
             existing_exts = {}
         else:
-            ext_schema = (await conn.sql_fetch_val(
-                b'''
+            ext_schema = (
+                await conn.sql_fetch_val(
+                    b'''
                 SELECT COALESCE(
                     (SELECT schema_name FROM information_schema.schemata
                     WHERE schema_name = 'heroku_ext'),
                     'edgedbext')
                 ''',
-            )).decode("utf-8")
+                )
+            ).decode("utf-8")
 
             existing_exts_data = await conn.sql_fetch(
                 b"""
@@ -1340,7 +1320,6 @@ async def get_remote_pg_cluster(
         connection_addr=addr,
         connection_params=params,
         instance_params=instance_params,
-        ha_backend=ha_backend,
     )
 
 
@@ -1432,10 +1411,7 @@ async def _start_logged_subprocess(
     Coroutine[Any, Any, list[bytes]],
     Coroutine[Any, Any, list[bytes]],
 ]:
-    logger.log(
-        level,
-        f'running `{" ".join(shlex.quote(arg) for arg in args)}`'
-    )
+    logger.log(level, f'running `{" ".join(shlex.quote(arg) for arg in args)}`')
 
     process = await asyncio.create_subprocess_exec(
         *args,
@@ -1454,7 +1430,7 @@ async def _start_logged_subprocess(
             if log_stderr or capture_stderr
             else asyncio.subprocess.DEVNULL
         ),
-        limit=2 ** 20,  # 1 MiB
+        limit=2**20,  # 1 MiB
         **kwargs,
     )
 

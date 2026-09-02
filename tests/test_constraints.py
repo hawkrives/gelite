@@ -26,16 +26,17 @@ from edb.testbase import server as tb
 
 
 class TestConstraintsSchema(tb.QueryTestCase):
-
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'constraints.esdl')
+    SCHEMA = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'constraints.esdl'
+    )
 
     SETUP = '''
     administer _remove_pointless_triggers();
     '''
 
-    async def _run_link_tests(self, cases, objtype, link, *,
-                              values_as_str=True):
+    async def _run_link_tests(
+        self, cases, objtype, link, *, values_as_str=True
+    ):
         qry = f"""
             INSERT {objtype} {{{{
                 {link} := {{value}}
@@ -56,39 +57,40 @@ class TestConstraintsSchema(tb.QueryTestCase):
                         raise AssertionError(f'{expr!r} failed') from ex
                 else:
                     with self.assertRaisesRegex(
-                            edgedb.ConstraintViolationError, expected):
+                        edgedb.ConstraintViolationError, expected
+                    ):
                         await self.con.execute(expr)
 
     async def test_constraints_scalar_length(self):
         data = {
             # max-length is 10
-            (10 ** 10,
-             'constraint_length must be no longer than 10 characters.'),
-            (10 ** 10 - 1, 'good'),
-            (10 ** 7 - 1,
-             'constraint_length must be no shorter than 8 characters'),
-            (10 ** 7, 'good'),
+            (10**10, 'constraint_length must be no longer than 10 characters.'),
+            (10**10 - 1, 'good'),
+            (
+                10**7 - 1,
+                'constraint_length must be no shorter than 8 characters',
+            ),
+            (10**7, 'good'),
         }
 
         await self._run_link_tests(data, 'default::Object', 'c_length')
 
         data = {
-            (10 ** 10,
-             'constraint_length must be no longer than 10 characters.'),
-            (10 ** 10 - 1, 'good'),
-
-            (10 ** 8 - 1,
-             'constraint_length_2 must be no shorter than 9 characters'),
-            (10 ** 8, 'good'),
+            (10**10, 'constraint_length must be no longer than 10 characters.'),
+            (10**10 - 1, 'good'),
+            (
+                10**8 - 1,
+                'constraint_length_2 must be no shorter than 9 characters',
+            ),
+            (10**8, 'good'),
         }
 
         await self._run_link_tests(data, 'default::Object', 'c_length_2')
 
         data = {
-            (10 ** 10,
-             'constraint_length must be no longer than 10 characters.'),
-            (10 ** 10 - 1, 'good'),
-            (10 ** 9 - 1, 'c_length_3 must be no shorter than 10 characters'),
+            (10**10, 'constraint_length must be no longer than 10 characters.'),
+            (10**10 - 1, 'good'),
+            (10**9 - 1, 'c_length_3 must be no shorter than 10 characters'),
         }
 
         await self._run_link_tests(data, 'default::Object', 'c_length_3')
@@ -96,13 +98,11 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_scalar_minmax_01(self):
         data = {
             # max-value is "9999999989"
-            (10 ** 9 - 1, "Maximum allowed value for .* is '9999999989'."),
-            (10 ** 9 - 11, 'good'),
-
+            (10**9 - 1, "Maximum allowed value for .* is '9999999989'."),
+            (10**9 - 11, 'good'),
             # min-value is "99990000"
-            (10 ** 8 - 10 ** 4 - 1,
-             "Minimum allowed value for .* is '99990000'."),
-            (10 ** 8 - 21, 'good'),
+            (10**8 - 10**4 - 1, "Minimum allowed value for .* is '99990000'."),
+            (10**8 - 21, 'good'),
         }
 
         await self._run_link_tests(data, 'default::Object', 'c_minmax')
@@ -114,7 +114,6 @@ class TestConstraintsSchema(tb.QueryTestCase):
             (100, ".* must be less than 100."),
             (99.9999, 'good'),
             (99, 'good'),
-
             # exclusive min-value is "13"
             (56, 'good'),
             (13.0001, "good"),
@@ -122,20 +121,18 @@ class TestConstraintsSchema(tb.QueryTestCase):
             (0, ".* must be greater than 13."),
         }
 
-        await self._run_link_tests(data, 'default::Object', 'c_ex_minmax',
-                                   values_as_str=False)
+        await self._run_link_tests(
+            data, 'default::Object', 'c_ex_minmax', values_as_str=False
+        )
 
     async def test_constraints_scalar_strvalue(self):
         data = {
             # last digit is 9
-            (10 ** 9 - 12, 'invalid .*'),
-
+            (10**9 - 12, 'invalid .*'),
             # and the first is 9 too
-            (10 ** 9 - 10 ** 8 - 1, 'invalid .*'),
-
+            (10**9 - 10**8 - 1, 'invalid .*'),
             # and that all characters are digits
             ('99900~0009', 'invalid .*'),
-
             # and that first three chars are nines
             ('9900000009', 'invalid .*'),
             ('9999000009', 'good'),
@@ -164,8 +161,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_exclusive_simple(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT UniqueName {
                         name := 'Test'
@@ -179,8 +177,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_exclusive_inherited(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT UniqueNameInherited {
                         name := 'Test'
@@ -194,9 +193,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_exclusive_across_ancestry(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
-
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT UniqueName {
                         name := 'exclusive_name_across'
@@ -209,9 +208,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
-
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT UniqueNameInherited {
                         name := 'exclusive_name_across'
@@ -234,8 +233,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     UPDATE
                         UniqueNameInherited
@@ -250,8 +250,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_exclusive_case_insensitive(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT UniqueName_3 {
                         name := 'TeSt'
@@ -288,8 +289,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Not OK, abstract constraint materializes into a real one
                 await self.con.execute("""
                     INSERT AbstractConstraintPureChild {
@@ -303,8 +305,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Not OK, abstract constraint materializes into a real one
                 await self.con.execute("""
                     INSERT AbstractConstraintMixedChild {
@@ -341,8 +344,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Not OK, yet
                 await self.con.execute("""
                     INSERT BecomingAbstractConstraint {
@@ -367,8 +371,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT LosingAbstractConstraintParent {
                         name := 'exclusive_name_ap7'
@@ -381,8 +386,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 await self.con.execute("""
                     INSERT AbstractConstraintMultipleParentsFlattening{
                         name := 'exclusive_name_ap8'
@@ -401,9 +407,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
                         select Pair {x, y} filter .x = 'a' and .y = 'b')
                 }
             ''',
-            [
-                {"z": None}
-            ],
+            [{"z": None}],
         )
 
     async def test_constraints_exclusive_multi_property_distinct(self):
@@ -449,8 +453,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
     async def test_constraints_objects(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    "ObjCnstr violates exclusivity constraint"):
+                edgedb.ConstraintViolationError,
+                "ObjCnstr violates exclusivity constraint",
+            ):
                 await self.con.execute("""
                     INSERT ObjCnstr {
                         first_name := "foo", last_name := "bar" };
@@ -468,8 +473,9 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    "ObjCnstr violates exclusivity constraint"):
+                edgedb.ConstraintViolationError,
+                "ObjCnstr violates exclusivity constraint",
+            ):
                 await self.con.execute("""
                     INSERT ObjCnstr {
                         first_name := "emarg", last_name := "hatch",
@@ -534,8 +540,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
         """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueName {
@@ -544,8 +549,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueNameInherited {
@@ -579,8 +583,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
         """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueName {
@@ -590,8 +593,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueNameInherited {
@@ -601,8 +603,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 update UniqueName
@@ -653,8 +654,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
         """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueName {
@@ -664,8 +664,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueNameInherited {
@@ -675,8 +674,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 insert UniqueNameInherited {
@@ -687,8 +685,7 @@ class TestConstraintsSchema(tb.QueryTestCase):
             """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.ConstraintViolationError,
-            'violates exclusivity constraint'
+            edgedb.ConstraintViolationError, 'violates exclusivity constraint'
         ):
             await self.con.execute("""
                 update UniqueName
@@ -708,15 +705,20 @@ class TestConstraintsSchema(tb.QueryTestCase):
 
 
 class TestConstraintsSchemaMigration(tb.QueryTestCase):
-
-    SCHEMA = os.path.join(os.path.dirname(__file__),
-                          'schemas', 'constraints_migration',
-                          'schema.esdl')
+    SCHEMA = os.path.join(
+        os.path.dirname(__file__),
+        'schemas',
+        'constraints_migration',
+        'schema.esdl',
+    )
 
     async def test_constraints_exclusive_migration(self):
-        new_schema_f = os.path.join(os.path.dirname(__file__),
-                                    'schemas', 'constraints_migration',
-                                    'updated_schema.esdl')
+        new_schema_f = os.path.join(
+            os.path.dirname(__file__),
+            'schemas',
+            'constraints_migration',
+            'updated_schema.esdl',
+        )
 
         with open(new_schema_f) as f:
             new_schema = f.read()
@@ -748,8 +750,9 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Not OK, abstract constraint materializes into a real one
                 await self.con.execute("""
                     INSERT AbstractConstraintPureChild {
@@ -763,8 +766,9 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Not OK, abstract constraint materializes into a real one
                 await self.con.execute("""
                     INSERT AbstractConstraintMixedChild {
@@ -814,8 +818,9 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Constraint is no longer abstract
                 await self.con.execute("""
                     INSERT BecomingConcreteConstraint {
@@ -829,8 +834,9 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Constraint is no longer abstract
                 await self.con.execute("""
                     INSERT LosingAbstractConstraintParent {
@@ -855,8 +861,9 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    'name violates exclusivity constraint'):
+                edgedb.ConstraintViolationError,
+                'name violates exclusivity constraint',
+            ):
                 # Constraint is no longer abstract
                 await self.con.execute("""
                     INSERT AbstractConstraintMultipleParentsFlattening{
@@ -870,8 +877,8 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.ConstraintViolationError,
-                    "nope!"):
+                edgedb.ConstraintViolationError, "nope!"
+            ):
                 await self.con.execute("""
                     INSERT ObjCnstr {
                         first_name := "foo", last_name := "bar" };
@@ -882,7 +889,6 @@ class TestConstraintsSchemaMigration(tb.QueryTestCase):
 
 
 class TestConstraintsDDL(tb.DDLTestCase):
-
     async def test_constraints_ddl_01(self):
         qry = """
             CREATE ABSTRACT LINK translated_label {
@@ -1021,11 +1027,11 @@ class TestConstraintsDDL(tb.DDLTestCase):
                             "name": 'max',
                             "type": {"name": 'std::int64'},
                             "@value": '3',
-                            "typemod": 'SingletonType'
+                            "typemod": 'SingletonType',
                         }
                     ],
                 },
-            ]
+            ],
         )
 
         await self.assert_query_result(
@@ -1056,11 +1062,11 @@ class TestConstraintsDDL(tb.DDLTestCase):
                             "kind": 'PositionalParam',
                             "name": 'max',
                             "type": {"name": 'std::int64'},
-                            "typemod": 'SingletonType'
+                            "typemod": 'SingletonType',
                         }
                     ],
                 },
-            ]
+            ],
         )
 
         # making sure the constraint was applied successfully
@@ -1425,8 +1431,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::EXISTS' "
-            "in a constraint",
+            "cannot use SET OF operator 'std::EXISTS' in a constraint",
         ):
             await self.con.execute("""
                 ALTER TYPE ObjCnstr2 {
@@ -1436,8 +1441,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::EXISTS' "
-            "in a constraint",
+            "cannot use SET OF operator 'std::EXISTS' in a constraint",
         ):
             await self.con.execute("""
                 ALTER TYPE ObjCnstr2 {
@@ -1853,7 +1857,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
     async def test_constraints_ddl_error_07(self):
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r'Constant sets not allowed in singleton mode'
+            r'Constant sets not allowed in singleton mode',
         ):
             await self.con.execute(r"""
                 CREATE TYPE ConstraintOnTest_err_07 {
@@ -2079,14 +2083,14 @@ class TestConstraintsDDL(tb.DDLTestCase):
         )
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            "messages violates exclusivity constraint"
+            "messages violates exclusivity constraint",
         ):
             await self.con.execute("""
                 update ChatBase set { messages += 'hello world' };
             """)
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            "messages violates exclusivity constraint"
+            "messages violates exclusivity constraint",
         ):
             await self.con.execute("""
                 analyze
@@ -2094,7 +2098,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
             """)
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            "messages violates exclusivity constraint"
+            "messages violates exclusivity constraint",
         ):
             await self.con.execute("""
                 update ChatBase set { messages := 'hello world' };
@@ -2117,7 +2121,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
         )
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            "messages violates exclusivity constraint"
+            "messages violates exclusivity constraint",
         ):
             await self.con.execute("""
                 update ChatBase set { messages := 'hello world' };
@@ -2146,7 +2150,7 @@ class TestConstraintsDDL(tb.DDLTestCase):
         )
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            "messages violates exclusivity constraint"
+            "messages violates exclusivity constraint",
         ):
             await self.con.execute("""
                 update ChatBase set { messages := 'hello world' };
@@ -2162,12 +2166,12 @@ class TestConstraintsDDL(tb.DDLTestCase):
                     );
                 }
             };
-        """)
+        """
+        )
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::IN' "
-            "in a constraint"
+            "cannot use SET OF operator 'std::IN' in a constraint",
         ):
             await self.con.execute(
                 """
@@ -2178,7 +2182,8 @@ class TestConstraintsDDL(tb.DDLTestCase):
                         );
                     }
                 };
-            """)
+            """
+            )
 
     async def test_constraints_singleton_set_ops_02(self):
         await self.con.execute(
@@ -2190,12 +2195,12 @@ class TestConstraintsDDL(tb.DDLTestCase):
                     );
                 }
             };
-        """)
+        """
+        )
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::NOT IN' "
-            "in a constraint"
+            "cannot use SET OF operator 'std::NOT IN' in a constraint",
         ):
             await self.con.execute(
                 """
@@ -2206,7 +2211,8 @@ class TestConstraintsDDL(tb.DDLTestCase):
                         );
                     }
                 };
-            """)
+            """
+            )
 
     async def test_constraints_singleton_set_ops_03(self):
         await self.con.execute(
@@ -2218,12 +2224,12 @@ class TestConstraintsDDL(tb.DDLTestCase):
                     );
                 }
             };
-        """)
+        """
+        )
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::EXISTS' "
-            "in a constraint"
+            "cannot use SET OF operator 'std::EXISTS' in a constraint",
         ):
             await self.con.execute(
                 """
@@ -2234,7 +2240,8 @@ class TestConstraintsDDL(tb.DDLTestCase):
                         );
                     }
                 };
-            """)
+            """
+            )
 
     async def test_constraints_singleton_set_ops_04(self):
         await self.con.execute(
@@ -2246,12 +2253,13 @@ class TestConstraintsDDL(tb.DDLTestCase):
                     );
                 }
             };
-        """)
+        """
+        )
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
             r"cannot use SET OF operator 'std::\?\?' "
-            r"in a constraint"
+            r"in a constraint",
         ):
             await self.con.execute(
                 """
@@ -2262,7 +2270,8 @@ class TestConstraintsDDL(tb.DDLTestCase):
                         );
                     }
                 };
-            """)
+            """
+            )
 
     async def test_constraints_singleton_set_ops_05(self):
         await self.con.execute(
@@ -2276,12 +2285,12 @@ class TestConstraintsDDL(tb.DDLTestCase):
                     );
                 }
             };
-        """)
+        """
+        )
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            "cannot use SET OF operator 'std::IF' "
-            "in a constraint"
+            "cannot use SET OF operator 'std::IF' in a constraint",
         ):
             await self.con.execute(
                 """
@@ -2294,24 +2303,20 @@ class TestConstraintsDDL(tb.DDLTestCase):
                         );
                     }
                 };
-            """)
+            """
+            )
 
 
 class TestConstraintsInheritance(tb.DDLTestCase):
-
     async def _check_constraint_inheritance(
-        self,
-        constraint_groups: list[list[tuple[str, ...]]]
+        self, constraint_groups: list[list[tuple[str, ...]]]
     ) -> None:
-        all_constrained_entries = list(set(
-            entry
-            for group in constraint_groups
-            for entry in group
-        ))
+        all_constrained_entries = list(
+            set(entry for group in constraint_groups for entry in group)
+        )
 
         relatives: dict[tuple[str, ...], set[str]] = {
-            entry: set()
-            for entry in all_constrained_entries
+            entry: set() for entry in all_constrained_entries
         }
         for group in constraint_groups:
             for entry in group:
@@ -2333,7 +2338,7 @@ class TestConstraintsInheritance(tb.DDLTestCase):
                     if other_name in relatives[entry]:
                         async with self.assertRaisesRegexTx(
                             edgedb.ConstraintViolationError,
-                            f"violates exclusivity constraint"
+                            f"violates exclusivity constraint",
                         ):
                             await self.con.execute(
                                 f"insert {name} {{"
@@ -2360,7 +2365,7 @@ class TestConstraintsInheritance(tb.DDLTestCase):
                     if other_name in relatives[entry]:
                         async with self.assertRaisesRegexTx(
                             edgedb.ConstraintViolationError,
-                            f"violates exclusivity constraint"
+                            f"violates exclusivity constraint",
                         ):
                             await self.con.execute(
                                 f"insert {name} {{"
@@ -2416,9 +2421,16 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name'), ('XXX', 'name'), ('CCC', 'name')]
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                    ('XXX', 'name'),
+                    ('CCC', 'name'),
+                ]
+            ]
+        )
 
     async def test_constraints_inheritance_single_object_02(self):
         await self._apply_schema_inheritance_single_object()
@@ -2441,10 +2453,12 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name'), ('XXX', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name'), ('XXX', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_single_object_03(self):
         await self._apply_schema_inheritance_single_object()
@@ -2468,10 +2482,12 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_single_object_04(self):
         await self._apply_schema_inheritance_single_object()
@@ -2485,10 +2501,12 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name')],
-            [('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name')],
+                [('XXX', 'name')],
+            ]
+        )
 
     async def _apply_schema_inheritance_mutli_object(self):
         # - multiple inheritance
@@ -2522,19 +2540,21 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('BBB', 'name'),
-                ('XXX', 'name'),
-                ('EEE', 'name'),
-            ],
-            [
-                ('CCC', 'name'),
-                ('DDD', 'name'),
-                ('XXX', 'name'),
-                ('EEE', 'name'),
-            ],
-        ])
+                [
+                    ('BBB', 'name'),
+                    ('XXX', 'name'),
+                    ('EEE', 'name'),
+                ],
+                [
+                    ('CCC', 'name'),
+                    ('DDD', 'name'),
+                    ('XXX', 'name'),
+                    ('EEE', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_object_02(self):
         await self._apply_schema_inheritance_mutli_object()
@@ -2557,11 +2577,13 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('BBB', 'name'), ('XXX', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-            [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('BBB', 'name'), ('XXX', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+                [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_object_03(self):
         await self._apply_schema_inheritance_mutli_object()
@@ -2585,11 +2607,13 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-            [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+                [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_object_04(self):
         await self._apply_schema_inheritance_mutli_object()
@@ -2602,10 +2626,12 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def _apply_schema_inheritance_single_pointer(self):
         # - single inheritance
@@ -2633,14 +2659,16 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'name'),
-                ('BBB', 'name'),
-                ('XXX', 'name'),
-                ('CCC', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                    ('XXX', 'name'),
+                    ('CCC', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_pointer_02(self):
         await self._apply_schema_inheritance_single_pointer()
@@ -2664,18 +2692,20 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'name'),
-                ('BBB', 'name'),
-                ('XXX', 'name'),
-            ],
-            [
-                ('CCC', 'name'),
-                ('DDD', 'name'),
-                ('XXX', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                    ('XXX', 'name'),
+                ],
+                [
+                    ('CCC', 'name'),
+                    ('DDD', 'name'),
+                    ('XXX', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_pointer_03(self):
         await self._apply_schema_inheritance_single_pointer()
@@ -2700,17 +2730,19 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'name'),
-                ('BBB', 'name'),
-            ],
-            [
-                ('CCC', 'name'),
-                ('DDD', 'name'),
-                ('XXX', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                ],
+                [
+                    ('CCC', 'name'),
+                    ('DDD', 'name'),
+                    ('XXX', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_pointer_04(self):
         await self._apply_schema_inheritance_single_pointer()
@@ -2728,15 +2760,17 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'name'),
-                ('BBB', 'name'),
-            ],
-            [
-                ('XXX', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                ],
+                [
+                    ('XXX', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_multi_pointer(self):
         # - multiple inheritance
@@ -2774,20 +2808,22 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'name'),
-                ('BBB', 'name'),
-                ('XXX', 'name'),
-                ('EEE', 'name'),
-            ],
-            [
-                ('CCC', 'name'),
-                ('DDD', 'name'),
-                ('XXX', 'name'),
-                ('EEE', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'name'),
+                    ('BBB', 'name'),
+                    ('XXX', 'name'),
+                    ('EEE', 'name'),
+                ],
+                [
+                    ('CCC', 'name'),
+                    ('DDD', 'name'),
+                    ('XXX', 'name'),
+                    ('EEE', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_pointer_02(self):
         await self._apply_schema_inheritance_multi_pointer()
@@ -2811,11 +2847,13 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name'), ('XXX', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-            [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name'), ('XXX', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+                [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_pointer_03(self):
         await self._apply_schema_inheritance_multi_pointer()
@@ -2840,11 +2878,13 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-            [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+                [('EEE', 'name'), ('FFF', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_pointer_04(self):
         await self._apply_schema_inheritance_multi_pointer()
@@ -2857,10 +2897,12 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name'), ('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name'), ('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name'), ('XXX', 'name')],
+            ]
+        )
 
     async def _apply_schema_inheritance_single_abstract_link(self):
         # - single inheritance
@@ -2900,14 +2942,16 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('CCC', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('CCC', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_02(self):
         await self._apply_schema_inheritance_single_abstract_link()
@@ -2936,18 +2980,20 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_03(self):
         await self._apply_schema_inheritance_single_abstract_link()
@@ -2977,17 +3023,19 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_04(self):
         await self._apply_schema_inheritance_single_abstract_link()
@@ -3004,15 +3052,17 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_multi_abstract_link(self):
         # - multiple inheritance
@@ -3066,20 +3116,22 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_02(self):
         await self._apply_schema_inheritance_multi_abstract_link()
@@ -3108,23 +3160,25 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_03(self):
         await self._apply_schema_inheritance_multi_abstract_link()
@@ -3154,22 +3208,24 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_04(self):
         await self._apply_schema_inheritance_multi_abstract_link()
@@ -3182,17 +3238,19 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_multi_mixed_link(self):
         # - multiple inheritance
@@ -3236,19 +3294,21 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_02(self):
         await self._apply_schema_inheritance_multi_mixed_link()
@@ -3277,22 +3337,24 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_03(self):
         await self._apply_schema_inheritance_multi_mixed_link()
@@ -3322,21 +3384,23 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_04(self):
         await self._apply_schema_inheritance_multi_mixed_link()
@@ -3349,16 +3413,18 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_single_abstract_link_prop(self):
         # - single inheritance
@@ -3399,14 +3465,16 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('CCC', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('CCC', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_prop_02(self):
         await self._apply_schema_inheritance_single_abstract_link_prop()
@@ -3436,18 +3504,20 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_prop_03(self):
         await self._apply_schema_inheritance_single_abstract_link_prop()
@@ -3478,17 +3548,19 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_single_abstract_link_prop_04(self):
         await self._apply_schema_inheritance_single_abstract_link_prop()
@@ -3506,15 +3578,17 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_multi_abstract_link_prop(self):
         # - multiple inheritance
@@ -3570,20 +3644,22 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_prop_02(self):
         await self._apply_schema_inheritance_multi_abstract_link_prop()
@@ -3613,23 +3689,25 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_prop_03(self):
         await self._apply_schema_inheritance_multi_abstract_link_prop()
@@ -3660,22 +3738,24 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_abstract_link_prop_04(self):
         await self._apply_schema_inheritance_multi_abstract_link_prop()
@@ -3688,17 +3768,19 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('CCC', 'tag', 'Tag', 'name'),
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('YYY', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('CCC', 'tag', 'Tag', 'name'),
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('YYY', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def _apply_schema_inheritance_multi_mixed_link_prop(self):
         # - multiple inheritance
@@ -3744,19 +3826,21 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-                ('EEE', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                    ('EEE', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_prop_02(self):
         await self._apply_schema_inheritance_multi_mixed_link_prop()
@@ -3786,22 +3870,24 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_prop_03(self):
         await self._apply_schema_inheritance_multi_mixed_link_prop()
@@ -3832,21 +3918,23 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-            [
-                ('EEE', 'tag', 'Tag', 'name'),
-                ('FFF', 'tag2', 'Tag2', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+                [
+                    ('EEE', 'tag', 'Tag', 'name'),
+                    ('FFF', 'tag2', 'Tag2', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_multi_mixed_link_prop_04(self):
         await self._apply_schema_inheritance_multi_mixed_link_prop()
@@ -3859,16 +3947,18 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
+        await self._check_constraint_inheritance(
             [
-                ('AAA', 'tag', 'Tag', 'name'),
-                ('BBB', 'tag2', 'Tag2', 'name'),
-            ],
-            [
-                ('DDD', 'tag', 'Tag', 'name'),
-                ('XXX', 'tag', 'Tag', 'name'),
-            ],
-        ])
+                [
+                    ('AAA', 'tag', 'Tag', 'name'),
+                    ('BBB', 'tag2', 'Tag2', 'name'),
+                ],
+                [
+                    ('DDD', 'tag', 'Tag', 'name'),
+                    ('XXX', 'tag', 'Tag', 'name'),
+                ],
+            ]
+        )
 
     async def test_constraints_inheritance_abstract_constraint_01(self):
         # Abstract constraints do not share their exclusiveness with descendants
@@ -3902,8 +3992,10 @@ class TestConstraintsInheritance(tb.DDLTestCase):
         """)
 
         # Check constraints
-        await self._check_constraint_inheritance([
-            [('AAA', 'name')],
-            [('BBB', 'name')],
-            [('CCC', 'name'), ('DDD', 'name')],
-        ])
+        await self._check_constraint_inheritance(
+            [
+                [('AAA', 'name')],
+                [('BBB', 'name')],
+                [('CCC', 'name'), ('DDD', 'name')],
+            ]
+        )

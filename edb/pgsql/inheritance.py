@@ -68,7 +68,8 @@ def get_inheritance_view(
     descendants = [
         child
         for child in obj.descendants(schema)
-        if types.has_table(child, schema) and child not in exclude_children
+        if types.has_table(child, schema)
+        and child not in exclude_children
         # XXX: Exclude sys/cfg tables from non sys/cfg views. This
         # probably isn't *really* what we want to do, but until we
         # figure that out, do *something* so that DDL isn't
@@ -169,10 +170,7 @@ def _get_select_from(
                     type_name=pgast.TypeName(name=('uuid',)),
                 )
 
-            elif ptr_name == sn.UnqualName('__fts_document__') or (
-                ptr_name.name.startswith('__ext_ai_')
-                and ptr_name.name.endswith('__')
-            ):
+            elif ptr_name == sn.UnqualName('__fts_document__'):
                 # an addon column
                 val = pgast.ColumnRef(name=(table_rvar_name, ptr_name.name))
 

@@ -25,12 +25,10 @@ from edb.common import lru
 
 @dataclasses.dataclass(frozen=True)
 class Key:
-
     name: str
 
 
 class TestLRU(unittest.TestCase):
-
     def test_lru_1(self):
         l = lru.LRUMapping(maxsize=3)  # noqa
 

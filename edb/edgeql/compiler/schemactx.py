@@ -19,7 +19,6 @@
 
 """EdgeQL compiler schema helpers."""
 
-
 from __future__ import annotations
 
 from typing import (
@@ -56,15 +55,14 @@ from . import context
 
 def get_schema_object(
     ref: qlast.BaseObjectRef,
-    module: Optional[str]=None,
+    module: Optional[str] = None,
     *,
-    item_type: Optional[type[s_obj.Object]]=None,
-    condition: Optional[Callable[[s_obj.Object], bool]]=None,
-    label: Optional[str]=None,
+    item_type: Optional[type[s_obj.Object]] = None,
+    condition: Optional[Callable[[s_obj.Object], bool]] = None,
+    label: Optional[str] = None,
     ctx: context.ContextLevel,
     span: Optional[parsing.Span] = None,
 ) -> s_obj.Object:
-
     if isinstance(ref, qlast.ObjectRef):
         if span is None:
             span = ref.span
@@ -108,8 +106,8 @@ def get_schema_object(
         # stype is the view in process of being defined and as such is
         # not yet a valid schema object
         raise errors.SchemaDefinitionError(
-            f'illegal self-reference in definition of {str(name)!r}',
-            span=span)
+            f'illegal self-reference in definition of {str(name)!r}', span=span
+        )
 
     return stype
 
@@ -139,9 +137,15 @@ def get_schema_type(
 ) -> s_types.Type:
     if item_type is None:
         item_type = s_types.Type
-    obj = get_schema_object(name, module, item_type=item_type,
-                            condition=condition, label=label,
-                            ctx=ctx, span=span)
+    obj = get_schema_object(
+        name,
+        module,
+        item_type=item_type,
+        condition=condition,
+        label=label,
+        ctx=ctx,
+        span=span,
+    )
     assert isinstance(obj, s_types.Type)
     return obj
 
@@ -170,13 +174,17 @@ def preserve_view_shape(
         target = ptr.get_target(ctx.env.schema)
         assert target
         schema, nptr = ptr.get_derived(
-            schema, cast(s_sources.Source, derived), target,
-            derived_name_base=derived_name_base)
+            schema,
+            cast(s_sources.Source, derived),
+            target,
+            derived_name_base=derived_name_base,
+        )
         new.append((nptr, op))
     ctx.env.view_shapes[derived] = new
     if isinstance(base, s_types.Type) and isinstance(derived, s_types.Type):
         ctx.env.view_shapes_metadata[derived] = (
-            ctx.env.view_shapes_metadata[base]).replace()
+            ctx.env.view_shapes_metadata[base]
+        ).replace()
 
     # All of the pointers should already exist, so nothing should have
     # been created.
@@ -194,12 +202,11 @@ def derive_view(
     attrs: Optional[dict[str, Any]] = None,
     ctx: context.ContextLevel,
 ) -> s_types.Type:
-
     if derived_name is None:
         if isinstance(stype, s_obj.DerivableObject):
             derived_name = derive_view_name(
-                stype=stype, derived_name_quals=derived_name_quals,
-                ctx=ctx)
+                stype=stype, derived_name_quals=derived_name_quals, ctx=ctx
+            )
         else:
             derived_name = sn.QualName('__derived__', ctx.aliases.get('v'))
 
@@ -221,7 +228,8 @@ def derive_view(
 
     elif isinstance(stype, (s_objtypes.ObjectType, s_scalars.ScalarType)):
         existing = ctx.env.schema.get(
-            derived_name, default=None, type=type(stype))
+            derived_name, default=None, type=type(stype)
+        )
         if existing is not None:
             if ctx.recompiling_schema_alias:
                 # When recompiling schema alias, we, essentially
@@ -279,7 +287,8 @@ def derive_view(
                 # computable expressions for pointers are carried over.
                 src_ptr = scls_pointers.get(ctx.env.schema, pn)
                 computable_data = (
-                    ctx.env.source_map.get(src_ptr) if src_ptr else None)
+                    ctx.env.source_map.get(src_ptr) if src_ptr else None
+                )
                 if computable_data is not None:
                     ctx.env.source_map[ptr] = computable_data
 
@@ -310,10 +319,10 @@ def derive_ptr(
     attrs: Optional[dict[str, Any]] = None,
     ctx: context.ContextLevel,
 ) -> s_pointers.Pointer:
-
     if derived_name is None and ctx.derived_target_module:
         derived_name = derive_view_name(
-            stype=ptr, derived_name_quals=derived_name_quals, ctx=ctx)
+            stype=ptr, derived_name_quals=derived_name_quals, ctx=ctx
+        )
 
     if ptr.get_name(ctx.env.schema) == derived_name:
         qualifiers = qualifiers + (ctx.aliases.get('d'),)
@@ -398,32 +407,27 @@ def get_union_type[TypeT: s_types.Type](
     ctx: context.ContextLevel,
     span: Optional[parsing.Span] = None,
 ) -> TypeT:
-
     targets: Sequence[s_types.Type]
     if preserve_derived:
         targets = s_utils.simplify_union_types_preserve_derived(
             ctx.env.schema, types
         )
     else:
-        targets = s_utils.simplify_union_types(
-            ctx.env.schema, types
-        )
+        targets = s_utils.simplify_union_types(ctx.env.schema, types)
 
     try:
         ctx.env.schema, union, _ = s_utils.ensure_union_type(
-            ctx.env.schema, targets,
-            opaque=opaque, transient=True)
+            ctx.env.schema, targets, opaque=opaque, transient=True
+        )
     except errors.SchemaError as e:
         union_name = (
-            '(' + ' | '.join(sorted(
-            t.get_displayname(ctx.env.schema)
-            for t in types
-            )) + ')'
+            '('
+            + ' | '.join(
+                sorted(t.get_displayname(ctx.env.schema) for t in types)
+            )
+            + ')'
         )
-        e.args = (
-            (f'cannot create union {union_name} {e.args[0]}',)
-            + e.args[1:]
-        )
+        e.args = (f'cannot create union {union_name} {e.args[0]}',) + e.args[1:]
         e.set_span(span)
         raise e
 
@@ -441,7 +445,6 @@ def get_intersection_type[TypeT: s_types.Type](
     *,
     ctx: context.ContextLevel,
 ) -> TypeT:
-
     targets: Sequence[s_types.Type]
     targets = s_utils.simplify_intersection_types(ctx.env.schema, types)
     ctx.env.schema, intersection, _ = s_utils.ensure_intersection_type(
@@ -462,7 +465,6 @@ def get_material_type[TypeT: s_types.Type](
     *,
     ctx: context.ContextLevel,
 ) -> TypeT:
-
     ctx.env.schema, mtype = t.material_type(ctx.env.schema)
     return mtype
 
@@ -498,18 +500,20 @@ def get_all_concrete(
             for x in get_all_concrete(t, ctx=ctx)
         }
     elif intersection := stype.get_intersection_of(ctx.env.schema):
-        return set.intersection(*(
-            get_all_concrete(t, ctx=ctx)
-            for t in intersection.objects(ctx.env.schema)
-        ))
+        return set.intersection(
+            *(
+                get_all_concrete(t, ctx=ctx)
+                for t in intersection.objects(ctx.env.schema)
+            )
+        )
     return {stype} | {
-        x for x in stype.descendants(ctx.env.schema)
+        x
+        for x in stype.descendants(ctx.env.schema)
         if x.is_material_object_type(ctx.env.schema)
     }
 
 
 class TypeIntersectionResult(NamedTuple):
-
     stype: s_types.Type
     is_empty: bool = False
     is_subtype: bool = False
@@ -541,9 +545,8 @@ def apply_intersection(
             is_subtype=True,
         )
 
-    if (
-        left.get_is_opaque_union(ctx.env.schema)
-        and (left_union := left.get_union_of(ctx.env.schema))
+    if left.get_is_opaque_union(ctx.env.schema) and (
+        left_union := left.get_union_of(ctx.env.schema)
     ):
         # Expose any opaque union types before continuing with the intersection.
         # The schema does not yet fully implement type intersections since there
@@ -552,8 +555,8 @@ def apply_intersection(
         left = get_union_type(left_union.objects(ctx.env.schema), ctx=ctx)
 
     int_type: s_types.Type = get_intersection_type([left, right], ctx=ctx)
-    is_empty: bool = (
-        not s_utils.expand_type_expr_descendants(int_type, ctx.env.schema)
+    is_empty: bool = not s_utils.expand_type_expr_descendants(
+        int_type, ctx.env.schema
     )
     is_subtype: bool = int_type.issubclass(ctx.env.schema, left)
 
@@ -571,15 +574,17 @@ def derive_dummy_ptr(
 ) -> s_pointers.Pointer:
     stdobj = ctx.env.schema.get('std::BaseObject', type=s_objtypes.ObjectType)
     derived_obj_name = stdobj.get_derived_name(
-        ctx.env.schema, stdobj, module='__derived__')
+        ctx.env.schema, stdobj, module='__derived__'
+    )
     derived_obj = ctx.env.schema.get(
-        derived_obj_name, None, type=s_obj.QualifiedObject)
+        derived_obj_name, None, type=s_obj.QualifiedObject
+    )
     if derived_obj is None:
         ctx.env.schema, derived_obj = stdobj.derive_subtype(
-            ctx.env.schema, name=derived_obj_name)
+            ctx.env.schema, name=derived_obj_name
+        )
 
-    derived_name = ptr.get_derived_name(
-        ctx.env.schema, derived_obj)
+    derived_name = ptr.get_derived_name(ctx.env.schema, derived_obj)
 
     derived: s_pointers.Pointer
     derived = cast(s_pointers.Pointer, ctx.env.schema.get(derived_name, None))
@@ -608,7 +613,6 @@ def get_union_pointer(
     modname: Optional[str] = None,
     ctx: context.ContextLevel,
 ) -> s_pointers.Pointer:
-
     ctx.env.schema, ptr = s_pointers.get_or_create_union_pointer(
         ctx.env.schema,
         ptrname,

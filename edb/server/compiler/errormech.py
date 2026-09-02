@@ -29,7 +29,6 @@ from edb import errors
 from edb.common import value_dispatch
 from edb.common import uuidgen
 
-from edb.graphql import types as gql_types
 
 from edb.pgsql.parser import exceptions as parser_errors
 
@@ -52,12 +51,14 @@ class SchemaRequired:
 # Error codes that always require the schema to be resolved. There are
 # other error codes that only require the schema under certain
 # circumstances.
-SCHEMA_CODES = frozenset({
-    pgerrors.ERROR_INVALID_TEXT_REPRESENTATION,
-    pgerrors.ERROR_NUMERIC_VALUE_OUT_OF_RANGE,
-    pgerrors.ERROR_INVALID_DATETIME_FORMAT,
-    pgerrors.ERROR_DATETIME_FIELD_OVERFLOW,
-})
+SCHEMA_CODES = frozenset(
+    {
+        pgerrors.ERROR_INVALID_TEXT_REPRESENTATION,
+        pgerrors.ERROR_NUMERIC_VALUE_OUT_OF_RANGE,
+        pgerrors.ERROR_INVALID_DATETIME_FORMAT,
+        pgerrors.ERROR_DATETIME_FIELD_OVERFLOW,
+    }
+)
 
 
 class ErrorDetails(NamedTuple):
@@ -72,15 +73,17 @@ class ErrorDetails(NamedTuple):
     errcls: Optional[type[errors.EdgeDBError]] = None
 
 
-constraint_errors = frozenset({
-    pgerrors.ERROR_INTEGRITY_CONSTRAINT_VIOLATION,
-    pgerrors.ERROR_RESTRICT_VIOLATION,
-    pgerrors.ERROR_NOT_NULL_VIOLATION,
-    pgerrors.ERROR_FOREIGN_KEY_VIOLATION,
-    pgerrors.ERROR_UNIQUE_VIOLATION,
-    pgerrors.ERROR_CHECK_VIOLATION,
-    pgerrors.ERROR_EXCLUSION_VIOLATION,
-})
+constraint_errors = frozenset(
+    {
+        pgerrors.ERROR_INTEGRITY_CONSTRAINT_VIOLATION,
+        pgerrors.ERROR_RESTRICT_VIOLATION,
+        pgerrors.ERROR_NOT_NULL_VIOLATION,
+        pgerrors.ERROR_FOREIGN_KEY_VIOLATION,
+        pgerrors.ERROR_UNIQUE_VIOLATION,
+        pgerrors.ERROR_CHECK_VIOLATION,
+        pgerrors.ERROR_EXCLUSION_VIOLATION,
+    }
+)
 
 branch_errors = {
     pgerrors.ERROR_INVALID_CATALOG_NAME: errors.UnknownDatabaseError,
@@ -92,17 +95,17 @@ directly_mappable: dict[str, type | tuple[type, str]] = {
     pgerrors.ERROR_INTERVAL_FIELD_OVERFLOW: errors.NumericOutOfRangeError,
     pgerrors.ERROR_READ_ONLY_SQL_TRANSACTION: (
         errors.TransactionError,
-        "Modifications not allowed in a read-only transaction"
+        "Modifications not allowed in a read-only transaction",
     ),
     pgerrors.ERROR_SERIALIZATION_FAILURE: errors.TransactionSerializationError,
     pgerrors.ERROR_DEADLOCK_DETECTED: errors.TransactionDeadlockError,
     pgerrors.ERROR_OBJECT_IN_USE: errors.ExecutionError,
-    pgerrors.ERROR_IDLE_IN_TRANSACTION_TIMEOUT:
-        errors.IdleTransactionTimeoutError,
+    pgerrors.ERROR_IDLE_IN_TRANSACTION_TIMEOUT: errors.IdleTransactionTimeoutError,
     pgerrors.ERROR_QUERY_CANCELLED: errors.QueryTimeoutError,
     pgerrors.ERROR_INVALID_ROW_COUNT_IN_LIMIT_CLAUSE: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_ROW_COUNT_IN_RESULT_OFFSET_CLAUSE: (
-        errors.InvalidValueError),
+        errors.InvalidValueError
+    ),
     pgerrors.ERROR_INVALID_REGULAR_EXPRESSION: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_LOGARITHM_ARGUMENT: errors.InvalidValueError,
     pgerrors.ERROR_INVALID_POWER_ARGUMENT: errors.InvalidValueError,
@@ -127,67 +130,25 @@ constraint_res = {
 }
 
 
-range_constraints = frozenset({
-    'timestamptz_t_check',
-    'timestamp_t_check',
-    'date_t_check',
-})
+range_constraints = frozenset(
+    {
+        'timestamptz_t_check',
+        'timestamp_t_check',
+        'date_t_check',
+    }
+)
 
 
 pgtype_re = re.compile(
-    '|'.join(fr'\b{key}\b' for key in types.base_type_name_map_r))
+    '|'.join(rf'\b{key}\b' for key in types.base_type_name_map_r)
+)
 enum_re = re.compile(
-    r'(?P<p>enum) (?P<v>edgedb([\w-]+)."(?P<id>[\w-]+)_domain")')
+    r'(?P<p>enum) (?P<v>edgedb([\w-]+)."(?P<id>[\w-]+)_domain")'
+)
 
-cache_function_re = re.compile(
-    r'^function edgedb_.*\.__qh_.* does not exist$')
+cache_function_re = re.compile(r'^function edgedb_.*\.__qh_.* does not exist$')
 
 type_in_access_policy_re = re.compile(r'(\w+|`.+?`)::(\w+|`.+?`)')
-
-
-def gql_translate_pgtype_inner(schema, msg):
-    """Try to replace any internal pg type name with a GraphQL type name"""
-
-    # Mapping base types
-    def base_type_map(name: str) -> str:
-        result = gql_types.EDB_TO_GQL_SCALARS_MAP.get(
-            str(types.base_type_name_map_r.get(name))
-        )
-
-        if result is None:
-            return name
-        else:
-            return result.name
-
-    translated = pgtype_re.sub(
-        lambda r: base_type_map(r.group(0)),
-        msg,
-    )
-
-    if translated != msg:
-        return translated
-
-    def replace(r):
-        type_id = uuidgen.UUID(r.group('id'))
-        stype = schema.get_by_id(type_id, None)
-        gql_name = gql_types.GQLCoreSchema.get_gql_name(
-            stype.get_name(schema))
-        if stype:
-            return f'{r.group("p")} {gql_name!r}'
-        else:
-            return f'{r.group("p")} {r.group("v")}'
-
-    translated = enum_re.sub(replace, msg)
-
-    return translated
-
-
-def gql_replace_type_names_in_text(msg):
-    return type_in_access_policy_re.sub(
-        lambda m: gql_types.GQLCoreSchema.get_gql_name(
-            sn.QualName.from_string(m.group(0))),
-        msg,
-    )
 
 
 def eql_translate_pgtype_inner(schema, msg):
@@ -213,7 +174,7 @@ def eql_translate_pgtype_inner(schema, msg):
     return translated
 
 
-def translate_pgtype(schema, msg, from_graphql=False):
+def translate_pgtype(schema, msg):
     """Try to translate a message that might refer to internal pg types.
 
     We *want* to replace internal pg type names with edgedb names, but only
@@ -225,10 +186,7 @@ def translate_pgtype(schema, msg, from_graphql=False):
     """
 
     leading, *rest = msg.split(':')
-    if from_graphql:
-        leading_translated = gql_translate_pgtype_inner(schema, leading)
-    else:
-        leading_translated = eql_translate_pgtype_inner(schema, leading)
+    leading_translated = eql_translate_pgtype_inner(schema, leading)
     return ':'.join([leading_translated, *rest])
 
 
@@ -248,12 +206,14 @@ def get_error_details(fields):
         if errcode:
             try:
                 errcls = type(errors.EdgeDBError).get_error_class_from_code(
-                    errcode)
+                    errcode
+                )
             except LookupError:
                 pass
             else:
                 return ErrorDetails(
-                    errcls=errcls, message=message, detail_json=detail_json)
+                    errcls=errcls, message=message, detail_json=detail_json
+                )
 
     code = fields['C']
     schema_name = fields.get('s')
@@ -262,9 +222,14 @@ def get_error_details(fields):
     constraint_name = fields.get('n')
 
     return ErrorDetails(
-        message=message, detail=detail, detail_json=detail_json, code=code,
-        schema_name=schema_name, table_name=table_name,
-        column_name=column_name, constraint_name=constraint_name
+        message=message,
+        detail=detail,
+        detail_json=detail_json,
+        code=code,
+        schema_name=schema_name,
+        table_name=table_name,
+        column_name=column_name,
+        constraint_name=constraint_name,
     )
 
 
@@ -275,7 +240,8 @@ def get_generic_exception_from_err_details(err_details):
         if err_details.errcls is not errors.InternalServerError:
             err.set_linecol(
                 err_details.detail_json.get('line', -1),
-                err_details.detail_json.get('column', -1))
+                err_details.detail_json.get('column', -1),
+            )
     return err
 
 
@@ -284,22 +250,20 @@ def get_generic_exception_from_err_details(err_details):
 #########################################################################
 
 
-def static_interpret_backend_error(fields, from_graphql=False):
+def static_interpret_backend_error(fields):
     err_details = get_error_details(fields)
     # handle some generic errors if possible
     err = get_generic_exception_from_err_details(err_details)
     if err is not None:
         return err
 
-    return static_interpret_by_code(
-        err_details.code, err_details, from_graphql=from_graphql)
+    return static_interpret_by_code(err_details.code, err_details)
 
 
 @value_dispatch.value_dispatch
 def static_interpret_by_code(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     return errors.InternalServerError(err_details.message)
 
@@ -308,7 +272,6 @@ def static_interpret_by_code(
 def _static_interpret_branch_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     errcls = branch_errors[code]
 
@@ -321,7 +284,6 @@ def _static_interpret_branch_errors(
 def _static_interpret_directly_mappable(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     mapped = directly_mappable[code]
     if isinstance(mapped, type):
@@ -330,10 +292,7 @@ def _static_interpret_directly_mappable(
     else:
         errcls, err_message = mapped
 
-    if from_graphql:
-        msg = gql_replace_type_names_in_text(err_message)
-    else:
-        msg = err_message
+    msg = err_message
 
     return errcls(msg)
 
@@ -342,7 +301,6 @@ def _static_interpret_directly_mappable(
 def _static_interpret_constraint_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if code == pgerrors.ERROR_NOT_NULL_VIOLATION:
         if err_details.table_name or err_details.column_name:
@@ -386,13 +344,9 @@ def _static_interpret_constraint_errors(
         return errors.UnknownLinkError(msg)
 
     elif error_type == 'link_target_del':
-        if from_graphql:
-            msg = gql_replace_type_names_in_text(err_details.message)
-        else:
-            msg = err_details.message
+        msg = err_details.message
 
-        return errors.ConstraintViolationError(
-            msg, details=err_details.detail)
+        return errors.ConstraintViolationError(msg, details=err_details.detail)
 
     elif error_type == 'constraint':
         if err_details.constraint_name is None:
@@ -425,8 +379,11 @@ def _static_interpret_constraint_errors(
         # table_name, and column_name. But we don't expect
         # constraint_name to be present (because the constraint is
         # not yet present in the schema?).
-        if (err_details.schema_name and err_details.table_name and
-                err_details.column_name):
+        if (
+            err_details.schema_name
+            and err_details.table_name
+            and err_details.column_name
+        ):
             return SchemaRequired
 
         else:
@@ -437,14 +394,14 @@ def _static_interpret_constraint_errors(
 
     elif error_type == 'id':
         return errors.ConstraintViolationError(
-            'unique link constraint violation')
+            'unique link constraint violation'
+        )
 
 
 @static_interpret_by_code.register_for_all(SCHEMA_CODES)
 def _static_interpret_schema_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if code == pgerrors.ERROR_INVALID_DATETIME_FORMAT:
         hint = None
@@ -463,7 +420,6 @@ def _static_interpret_schema_errors(
 def _static_interpret_undefined_function(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if cache_function_re.match(err_details.message):
         return errors.QueryCacheInvalidationError(
@@ -477,12 +433,11 @@ def _static_interpret_undefined_function(
 def _static_interpret_invalid_param_value(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     error_message_context = ''
     if err_details.detail_json:
-        error_message_context = (
-            err_details.detail_json.get('error_message_context', '')
+        error_message_context = err_details.detail_json.get(
+            'error_message_context', ''
         )
 
     return errors.InvalidValueError(
@@ -495,7 +450,6 @@ def _static_interpret_invalid_param_value(
 def _static_interpret_wrong_object_type(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if err_details.column_name:
         return SchemaRequired
@@ -504,8 +458,8 @@ def _static_interpret_wrong_object_type(
     error_message_context = ''
     if err_details.detail_json:
         hint = err_details.detail_json.get('hint')
-        error_message_context = (
-            err_details.detail_json.get('error_message_context', '')
+        error_message_context = err_details.detail_json.get(
+            'error_message_context', ''
         )
 
     return errors.InvalidValueError(
@@ -519,11 +473,11 @@ def _static_interpret_wrong_object_type(
 def _static_interpret_cardinality_violation(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
-
-    if (err_details.constraint_name == 'std::assert_single'
-            or err_details.constraint_name == 'std::assert_exists'):
+    if (
+        err_details.constraint_name == 'std::assert_single'
+        or err_details.constraint_name == 'std::assert_exists'
+    ):
         return errors.CardinalityViolationError(err_details.message)
 
     elif err_details.constraint_name == 'std::assert_distinct':
@@ -542,7 +496,6 @@ def _static_interpret_cardinality_violation(
 def _static_interpret_feature_not_supported(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     return errors.UnsupportedBackendFeatureError(err_details.message)
 
@@ -552,7 +505,7 @@ def _static_interpret_feature_not_supported(
 #########################################################################
 
 
-def interpret_backend_error(schema, fields, from_graphql=False):
+def interpret_backend_error(schema, fields):
     # all generic errors are static and have been handled by this point
 
     err_details = get_error_details(fields)
@@ -560,12 +513,11 @@ def interpret_backend_error(schema, fields, from_graphql=False):
     if err_details.detail_json:
         hint = err_details.detail_json.get('hint')
 
-    return interpret_by_code(err_details.code, schema, err_details, hint,
-                             from_graphql=from_graphql)
+    return interpret_by_code(err_details.code, schema, err_details, hint)
 
 
 @value_dispatch.value_dispatch
-def interpret_by_code(code, schema, err_details, hint, from_graphql=False):
+def interpret_by_code(code, schema, err_details, hint):
     return errors.InternalServerError(err_details.message)
 
 
@@ -575,7 +527,6 @@ def _interpret_constraint_errors(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     details = None
     if code == pgerrors.ERROR_NOT_NULL_VIOLATION:
@@ -605,9 +556,6 @@ def _interpret_constraint_errors(
                 object_id = err_details.detail_json.get('object_id')
                 if object_id is not None:
                     details = f'Failing object id is {str(object_id)!r}.'
-
-            if from_graphql:
-                pname = gql_replace_type_names_in_text(pname)
 
             return errors.MissingRequiredError(
                 f'missing value for required {pname}',
@@ -661,10 +609,6 @@ def _interpret_constraint_errors(
         constraint_description = constraint.get_verbosename(schema)
         details = f'violated {constraint_description} on {subject_description}'
 
-        if from_graphql:
-            msg = gql_replace_type_names_in_text(msg)
-            details = gql_replace_type_names_in_text(details)
-
         return errors.ConstraintViolationError(msg, details=details)
     elif error_type == 'newconstraint':
         # If we're here, it means that we already validated that
@@ -673,15 +617,18 @@ def _interpret_constraint_errors(
         # NOTE: this should never occur in GraphQL mode.
         tabname = (err_details.schema_name, err_details.table_name)
         source = common.get_object_from_backend_name(
-            schema, s_objtypes.ObjectType, tabname)
+            schema, s_objtypes.ObjectType, tabname
+        )
         source_name = source.get_displayname(schema)
         pointer = common.get_object_from_backend_name(
-            schema, s_pointers.Pointer, err_details.column_name)
+            schema, s_pointers.Pointer, err_details.column_name
+        )
         pointer_name = pointer.get_shortname(schema).name
 
         return errors.ConstraintViolationError(
             f'Existing {source_name}.{pointer_name} '
-            f'values violate the new constraint')
+            f'values violate the new constraint'
+        )
     elif error_type == 'scalar':
         assert match
         domain_name = match.group(1)
@@ -707,11 +654,12 @@ def _interpret_invalid_text_repr(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql)
+        translate_pgtype(
+            schema,
+            err_details.message,
+        )
     )
 
 
@@ -721,11 +669,12 @@ def _interpret_numeric_out_of_range(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.NumericOutOfRangeError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql)
+        translate_pgtype(
+            schema,
+            err_details.message,
+        )
     )
 
 
@@ -736,11 +685,12 @@ def _interpret_invalid_datetime(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql),
+        translate_pgtype(
+            schema,
+            err_details.message,
+        ),
         hint=hint,
     )
 
@@ -751,15 +701,14 @@ def _interpret_wrong_object_type(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     # NOTE: this should never occur in GraphQL mode due to schema/query
     # validation.
 
     if (
-        err_details.message == 'covariance error' and
-        err_details.column_name is not None and
-        err_details.table_name is not None
+        err_details.message == 'covariance error'
+        and err_details.column_name is not None
+        and err_details.table_name is not None
     ):
         ptr = schema.get_by_id(uuidgen.UUID(err_details.column_name))
         wrong_obj = schema.get_by_id(uuidgen.UUID(err_details.table_name))
@@ -777,7 +726,7 @@ def _interpret_wrong_object_type(
 
 
 def static_interpret_psql_parse_error(
-    exc: parser_errors.PSqlParseError
+    exc: parser_errors.PSqlParseError,
 ) -> errors.EdgeDBError:
     res: errors.EdgeDBError
     if isinstance(exc, parser_errors.PSqlSyntaxError):

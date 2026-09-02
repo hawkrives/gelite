@@ -33,7 +33,6 @@ from typing import cast
 
 
 class TestEdgeQLDDL(tb.DDLTestCase):
-
     async def test_edgeql_ddl_04(self):
         await self.con.execute("""
             CREATE TYPE A;
@@ -79,17 +78,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 }
                 FILTER .name = 'default::Object5';
             """,
-            [{
-                'links': [{
-                    'name': 'a',
-                    'required': True,
-                }],
-
-                'properties': [{
-                    'name': 'b',
-                    'required': True,
-                }],
-            }],
+            [
+                {
+                    'links': [
+                        {
+                            'name': 'a',
+                            'required': True,
+                        }
+                    ],
+                    'properties': [
+                        {
+                            'name': 'b',
+                            'required': True,
+                        }
+                    ],
+                }
+            ],
         )
 
         await self.con.execute("""
@@ -121,17 +125,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 }
                 FILTER .name = 'default::Object5';
             """,
-            [{
-                'links': [{
-                    'name': 'a',
-                    'required': False,
-                }],
-
-                'properties': [{
-                    'name': 'b',
-                    'required': False,
-                }],
-            }],
+            [
+                {
+                    'links': [
+                        {
+                            'name': 'a',
+                            'required': False,
+                        }
+                    ],
+                    'properties': [
+                        {
+                            'name': 'b',
+                            'required': False,
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_type_06(self):
@@ -172,17 +181,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 }
                 FILTER .name = 'default::Object6';
             """,
-            [{
-                'links': [{
-                    'name': 'a',
-                    'cardinality': 'One',
-                }],
-
-                'properties': [{
-                    'name': 'b',
-                    'cardinality': 'One',
-                }],
-            }],
+            [
+                {
+                    'links': [
+                        {
+                            'name': 'a',
+                            'cardinality': 'One',
+                        }
+                    ],
+                    'properties': [
+                        {
+                            'name': 'b',
+                            'cardinality': 'One',
+                        }
+                    ],
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -192,10 +206,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 b,
             } FILTER EXISTS .a
             """,
-            [{
-                'a': {'name': 'a6'},
-                'b': 'foo',
-            }]
+            [
+                {
+                    'a': {'name': 'a6'},
+                    'b': 'foo',
+                }
+            ],
         )
 
         await self.con.execute("""
@@ -227,17 +243,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 }
                 FILTER .name = 'default::Object6';
             """,
-            [{
-                'links': [{
-                    'name': 'a',
-                    'cardinality': 'Many',
-                }],
-
-                'properties': [{
-                    'name': 'b',
-                    'cardinality': 'Many',
-                }],
-            }],
+            [
+                {
+                    'links': [
+                        {
+                            'name': 'a',
+                            'cardinality': 'Many',
+                        }
+                    ],
+                    'properties': [
+                        {
+                            'name': 'b',
+                            'cardinality': 'Many',
+                        }
+                    ],
+                }
+            ],
         )
 
         # Check that the data has been migrated correctly.
@@ -248,10 +269,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 b,
             } FILTER EXISTS .a
             """,
-            [{
-                'a': [{'name': 'a6'}],
-                'b': ['foo'],
-            }]
+            [
+                {
+                    'a': [{'name': 'a6'}],
+                    'b': ['foo'],
+                }
+            ],
         )
 
         # Change it back.
@@ -284,17 +307,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 }
                 FILTER .name = 'default::Object6';
             """,
-            [{
-                'links': [{
-                    'name': 'a',
-                    'cardinality': 'One',
-                }],
-
-                'properties': [{
-                    'name': 'b',
-                    'cardinality': 'One',
-                }],
-            }],
+            [
+                {
+                    'links': [
+                        {
+                            'name': 'a',
+                            'cardinality': 'One',
+                        }
+                    ],
+                    'properties': [
+                        {
+                            'name': 'b',
+                            'cardinality': 'One',
+                        }
+                    ],
+                }
+            ],
         )
 
         # Check that the data has been migrated correctly.
@@ -305,15 +333,17 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 b,
             } FILTER EXISTS .a
             """,
-            [{
-                'a': {'name': 'a6'},
-                'b': 'foo',
-            }]
+            [
+                {
+                    'a': {'name': 'a6'},
+                    'b': 'foo',
+                }
+            ],
         )
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_ddl_rename_type_and_add_01(self):
         await self.con.execute("""
@@ -365,7 +395,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres",
     )
     async def test_edgeql_ddl_rename_type_and_add_02(self):
         await self.con.execute("""
@@ -538,9 +568,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_12(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                r"backtick-quoted names surrounded by double underscores "
-                r"are forbidden"):
+            edgedb.EdgeQLSyntaxError,
+            r"backtick-quoted names surrounded by double underscores "
+            r"are forbidden",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE TestBadContainerLinkObjectType {
                     CREATE PROPERTY foo -> std::str {
@@ -552,8 +583,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_13(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                "object type or alias 'default::self' does not exist"):
+            edgedb.InvalidReferenceError,
+            "object type or alias 'default::self' does not exist",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE TestBadContainerLinkObjectType {
                     CREATE PROPERTY foo -> std::str {
@@ -609,7 +641,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {'bar2': [], 'foo2': 'Alice'},
                 {'bar2': {'Alice'}, 'foo2': 'Bob'},
-                {'bar2': {'Alice', 'Bob'}, 'foo2': 'Carol'}
+                {'bar2': {'Alice', 'Bob'}, 'foo2': 'Carol'},
             ],
         )
 
@@ -664,13 +696,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {'name': 'bar::bar_t', 'constraints': []},
-                {'name': 'foo::foo_t', 'constraints': [
-                    {
-                        'name': 'std::expression',
-                        'subjectexpr': '(__subject__ > 0)',
-                    },
-                ]},
-            ]
+                {
+                    'name': 'foo::foo_t',
+                    'constraints': [
+                        {
+                            'name': 'std::expression',
+                            'subjectexpr': '(__subject__ > 0)',
+                        },
+                    ],
+                },
+            ],
         )
 
         await self.con.execute("""
@@ -725,25 +760,31 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {
                     'foo': 'obj1',
-                    'connected': [{
-                        'foo': 'obj1',
-                        'bar': 9,
-                    }, {
-                        'foo': 'obj2',
-                        'bar': 9,
-                    }],
+                    'connected': [
+                        {
+                            'foo': 'obj1',
+                            'bar': 9,
+                        },
+                        {
+                            'foo': 'obj2',
+                            'bar': 9,
+                        },
+                    ],
                 },
                 {
                     'foo': 'obj2',
-                    'connected': [{
-                        'foo': 'obj1',
-                        'bar': 9,
-                    }, {
-                        'foo': 'obj2',
-                        'bar': 9,
-                    }],
-                }
-            ]
+                    'connected': [
+                        {
+                            'foo': 'obj1',
+                            'bar': 9,
+                        },
+                        {
+                            'foo': 'obj2',
+                            'bar': 9,
+                        },
+                    ],
+                },
+            ],
         )
 
         # Make sure @source/@target are correct in created alias
@@ -757,7 +798,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {"pnames": {'source', 'target'}},
                 {"pnames": {'source', 'target'}},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_20(self):
@@ -787,14 +828,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'links': [{
-                        'name': 'l',
-                        'bases': [{
-                            'name': 'std::link',
-                        }],
-                    }],
+                    'links': [
+                        {
+                            'name': 'l',
+                            'bases': [
+                                {
+                                    'name': 'std::link',
+                                }
+                            ],
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         await self.con.execute("""
@@ -821,14 +866,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'links': [{
-                        'name': 'l',
-                        'bases': [{
-                            'name': 'default::l20',
-                        }],
-                    }],
+                    'links': [
+                        {
+                            'name': 'l',
+                            'bases': [
+                                {
+                                    'name': 'default::l20',
+                                }
+                            ],
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
         await self.con.execute("""
@@ -853,14 +902,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'links': [{
-                        'name': 'l',
-                        'bases': [{
-                            'name': 'std::link',
-                        }],
-                    }],
+                    'links': [
+                        {
+                            'name': 'l',
+                            'bases': [
+                                {
+                                    'name': 'std::link',
+                                }
+                            ],
+                        }
+                    ],
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_23(self):
@@ -890,11 +943,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     C.pointers.name = 'awards'
             """,
             [
-                {
-                    'target': {
-                        'name': 'std::BaseObject'
-                    }
-                },
+                {'target': {'name': 'std::BaseObject'}},
             ],
         )
 
@@ -922,11 +971,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'pointers': [{
-                        '@owned': False,
-                    }, {
-                        '@owned': False,
-                    }],
+                    'pointers': [
+                        {
+                            '@owned': False,
+                        },
+                        {
+                            '@owned': False,
+                        },
+                    ],
                 },
             ],
         )
@@ -951,11 +1003,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'pointers': [{
-                        '@owned': True,
-                    }, {
-                        '@owned': True,
-                    }],
+                    'pointers': [
+                        {
+                            '@owned': True,
+                        },
+                        {
+                            '@owned': True,
+                        },
+                    ],
                 },
             ],
         )
@@ -993,19 +1048,26 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'pointers': [{
-                        '@owned': True,
-                        'required': True,
-                        'constraints': [{
-                            'name': 'std::exclusive',
-                        }],
-                    }, {
-                        '@owned': True,
-                        'required': True,
-                        'constraints': [{
-                            'name': 'std::exclusive',
-                        }],
-                    }],
+                    'pointers': [
+                        {
+                            '@owned': True,
+                            'required': True,
+                            'constraints': [
+                                {
+                                    'name': 'std::exclusive',
+                                }
+                            ],
+                        },
+                        {
+                            '@owned': True,
+                            'required': True,
+                            'constraints': [
+                                {
+                                    'name': 'std::exclusive',
+                                }
+                            ],
+                        },
+                    ],
                 },
             ],
         )
@@ -1037,15 +1099,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'pointers': [{
-                        '@owned': False,
-                        'required': False,
-                        'constraints': [],
-                    }, {
-                        '@owned': False,
-                        'required': False,
-                        'constraints': [],
-                    }],
+                    'pointers': [
+                        {
+                            '@owned': False,
+                            'required': False,
+                            'constraints': [],
+                        },
+                        {
+                            '@owned': False,
+                            'required': False,
+                            'constraints': [],
+                        },
+                    ],
                 },
             ],
         )
@@ -1106,11 +1171,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'links': [{
-                        '@owned': False,
-                        'required': False,
-                        'properties': [{"name": "source"}, {"name": "target"}],
-                    }],
+                    'links': [
+                        {
+                            '@owned': False,
+                            'required': False,
+                            'properties': [
+                                {"name": "source"},
+                                {"name": "target"},
+                            ],
+                        }
+                    ],
                 },
             ],
         )
@@ -1138,17 +1208,23 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'links': [{
-                        '@owned': True,
-                        'required': True,
-                        'properties': [{
-                            'name': 'foo',
+                    'links': [
+                        {
                             '@owned': True,
-                            'constraints': [{
-                                'name': 'std::exclusive',
-                            }]
-                        }],
-                    }],
+                            'required': True,
+                            'properties': [
+                                {
+                                    'name': 'foo',
+                                    '@owned': True,
+                                    'constraints': [
+                                        {
+                                            'name': 'std::exclusive',
+                                        }
+                                    ],
+                                }
+                            ],
+                        }
+                    ],
                 },
             ],
         )
@@ -1180,15 +1256,17 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'properties': [{
-                        '@owned': True,
-                        'required': True,
-                        'inherited_fields': {
-                            'cardinality',
-                            'readonly',
-                            'target',
-                        },
-                    }],
+                    'properties': [
+                        {
+                            '@owned': True,
+                            'required': True,
+                            'inherited_fields': {
+                                'cardinality',
+                                'readonly',
+                                'target',
+                            },
+                        }
+                    ],
                 },
             ],
         )
@@ -1214,11 +1292,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             """,
             [
                 {
-                    'properties': [{
-                        '@owned': True,
-                        'required': True,
-                        'inherited_fields': [],
-                    }],
+                    'properties': [
+                        {
+                            '@owned': True,
+                            'required': True,
+                            'inherited_fields': [],
+                        }
+                    ],
                 },
             ],
         )
@@ -1310,8 +1390,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     test_object_link: { @test_link_prop, @computed_prop },
                 };
             """,
-            [{"test_object_link":
-              {"@computed_prop": 84, "@test_link_prop": 42}}]
+            [
+                {
+                    "test_object_link": {
+                        "@computed_prop": 84,
+                        "@test_link_prop": 42,
+                    }
+                }
+            ],
         )
 
     async def test_edgeql_ddl_drop_extending_01(self):
@@ -1562,8 +1648,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                "has no link or property 'note'"):
+            edgedb.QueryError, "has no link or property 'note'"
+        ):
             await self.con.execute(r"""
                 SELECT Foo.note;
             """)
@@ -1643,9 +1729,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_default_01(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'default expression is of invalid type: std::int64, '
-                'expected std::str'):
+            edgedb.SchemaDefinitionError,
+            'default expression is of invalid type: std::int64, '
+            'expected std::str',
+        ):
             await self.con.execute(r"""
                 CREATE TYPE TestDefault01 {
                     CREATE PROPERTY def01 -> str {
@@ -1657,9 +1744,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_default_02(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'default expression is of invalid type: std::int64, '
-                'expected std::str'):
+            edgedb.SchemaDefinitionError,
+            'default expression is of invalid type: std::int64, '
+            'expected std::str',
+        ):
             await self.con.execute(r"""
                 CREATE TYPE TestDefault02 {
                     CREATE PROPERTY def02 -> str {
@@ -1706,8 +1794,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # `assert_query_result` is used instead of `execute` to
         # highlight the issue #1721
         await self.assert_query_result(
-            r"""INSERT TestDefault03;""",
-            [{'id': uuid.UUID}]
+            r"""INSERT TestDefault03;""", [{'id': uuid.UUID}]
         )
 
         await self.assert_query_result(
@@ -1726,11 +1813,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     def03
                 };
             """,
-            [{
-                'def03': {
-                    'id': uuid.UUID
-                }
-            }],
+            [{'def03': {'id': uuid.UUID}}],
         )
 
     async def test_edgeql_ddl_default_04(self):
@@ -1769,12 +1852,15 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             {'def04', 'notdef04'},
         )
 
-        await self.assert_query_result(r"""
+        await self.assert_query_result(
+            r"""
             SELECT {
                 (INSERT TestDefault04),
                 (INSERT TestDefault04)
             };
-        """, [{'id': uuid.UUID}, {'id': uuid.UUID}])
+        """,
+            [{'id': uuid.UUID}, {'id': uuid.UUID}],
+        )
 
         await self.assert_query_result(
             r"""
@@ -1791,13 +1877,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     }
                 } ORDER BY .def04.val EMPTY FIRST;
             """,
-            [{
-                'def04': None
-            }, {
-                'def04': {
-                    'val': 'def04!'
-                }
-            }],
+            [{'def04': None}, {'def04': {'val': 'def04!'}}],
         )
 
     async def test_edgeql_ddl_default_05(self):
@@ -1850,11 +1930,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     def05
                 } ORDER BY .def05 EMPTY FIRST;
             """,
-            [{
-                'def05': None
-            }, {
-                'def05': 'def05'
-            }],
+            [{'def05': None}, {'def05': 'def05'}],
         )
 
     async def test_edgeql_ddl_default_06(self):
@@ -1887,8 +1963,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         )
 
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required link 'def06'"):
+            edgedb.MissingRequiredError,
+            r"missing value for required link 'def06'",
+        ):
             await self.con.execute(r"""
                 INSERT TestDefault06;
             """)
@@ -1940,7 +2017,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.UnsupportedFeatureError,
             "default value for property 'x' of link 'asdf' of object type "
             "'default::Bar' is too complicated; "
-            "link property defaults must not depend on database contents"
+            "link property defaults must not depend on database contents",
         ):
             await self.con.execute('''
                 create type Bar {
@@ -1954,9 +2031,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_default_10(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'default expression is of invalid type: array<std::int32>, '
-                'expected array<std::int16>'):
+            edgedb.SchemaDefinitionError,
+            'default expression is of invalid type: array<std::int32>, '
+            'expected array<std::int16>',
+        ):
             await self.con.execute(r"""
                 CREATE TYPE X {
                     CREATE PROPERTY y -> array<int16> {
@@ -1967,9 +2045,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_default_11(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'default expression is of invalid type: array<std::int32>, '
-                'expected array<std::int16>'):
+            edgedb.SchemaDefinitionError,
+            'default expression is of invalid type: array<std::int32>, '
+            'expected array<std::int16>',
+        ):
             await self.con.execute(r"""
                 CREATE GLOBAL y -> array<int16> {
                     SET default := <array<int32>>[]
@@ -1978,8 +2057,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_default_12(self):
         with self.assertRaisesRegex(
-            edgedb.QueryError,
-            'is part of a default cycle'
+            edgedb.QueryError, 'is part of a default cycle'
         ):
             await self.con.execute(
                 r"""
@@ -2143,7 +2221,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         with self.assertRaisesRegex(
             edgedb.SchemaError,
             "inherited link 'foo' of object type 'default::Derived' has a "
-            "type conflict"
+            "type conflict",
         ):
             await self.con.execute('''
                 CREATE TYPE Derived EXTENDING Base0, Base1;
@@ -2167,7 +2245,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         with self.assertRaisesRegex(
             edgedb.SchemaError,
             "inherited link 'foo' of object type 'default::Derived' "
-            "has a type conflict"
+            "has a type conflict",
         ):
             await self.con.execute('''
                 CREATE TYPE Derived EXTENDING Base0, Base1;
@@ -2183,17 +2261,19 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                "cannot RESET TYPE of link 'a' of object type 'default::Foo' "
-                "because it is not inherited"):
+            edgedb.SchemaError,
+            "cannot RESET TYPE of link 'a' of object type 'default::Foo' "
+            "because it is not inherited",
+        ):
             await self.con.execute('''
                 ALTER TYPE Foo ALTER LINK a RESET TYPE;
             ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                "cannot RESET TYPE of property 'b' of object type "
-                "'default::Foo' because it is not inherited"):
+            edgedb.SchemaError,
+            "cannot RESET TYPE of property 'b' of object type "
+            "'default::Foo' because it is not inherited",
+        ):
             await self.con.execute('''
                 ALTER TYPE Foo ALTER PROPERTY b RESET TYPE;
             ''')
@@ -2206,7 +2286,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         with self.assertRaisesRegex(
             edgedb.UnsupportedFeatureError,
-            "unsupported type intersection in schema"
+            "unsupported type intersection in schema",
         ):
             await self.con.execute('''
                 CREATE TYPE Spam {
@@ -2312,16 +2392,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     C.pointers.name = 'foo'
             """,
             [
-                {
-                    'target': {
-                        'name': 'std::int16'
-                    }
-                },
-                {
-                    'target': {
-                        'name': 'std::int16'
-                    }
-                },
+                {'target': {'name': 'std::int16'}},
+                {'target': {'name': 'std::int16'}},
             ],
         )
 
@@ -2420,11 +2492,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     C.pointers.name = 'bar'
             """,
             [
-                {
-                    'target': {
-                        'name': 'std::int16'
-                    }
-                },
+                {'target': {'name': 'std::int16'}},
             ],
         )
 
@@ -2464,7 +2532,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.ConstraintViolationError,
-            'must be no longer than 5 characters'
+            'must be no longer than 5 characters',
         ):
             await self.con.execute('INSERT Bar { a := "123456" }')
 
@@ -2690,7 +2758,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required property 'r_p'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY r_p {
@@ -2701,7 +2769,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required property 'rm_p'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY rm_p {
@@ -2761,7 +2829,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required link 'r_l'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK r_l {
@@ -2772,7 +2840,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required link 'rm_l'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK rm_l {
@@ -2826,7 +2894,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             'SELECT Child { name }',
             [
                 {'name': 10},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_ptr_set_type_using_03(self):
@@ -2939,7 +3007,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"property 'p' of object type 'default::Foo' cannot be cast"
             r" automatically from scalar type 'std::str' to scalar"
-            r" type 'std::int64'"
+            r" type 'std::int64'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p SET TYPE int64;
@@ -2950,7 +3018,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"result of USING clause for the alteration of"
             r" property 'p' of object type 'default::Foo' cannot be cast"
             r" automatically from scalar type 'std::float64' to scalar"
-            r" type 'std::int64'"
+            r" type 'std::int64'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p
@@ -2961,7 +3029,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"possibly more than one element returned by the USING clause for"
             r" the alteration of property 'p' of object type 'default::Foo',"
-            r" while a singleton is expected"
+            r" while a singleton is expected",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p SET TYPE int64 USING ({1, 2})
@@ -2971,7 +3039,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"link 'l' of object type 'default::Foo' cannot be cast"
             r" automatically from object type 'default::Bar' to object"
-            r" type 'default::Spam'"
+            r" type 'default::Spam'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l SET TYPE Spam;
@@ -2982,7 +3050,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"result of USING clause for the alteration of"
             r" link 'l' of object type 'default::Foo' cannot be cast"
             r" automatically from object type '\(default::Bar & default::Egg\)'"
-            r" to object type 'default::Spam'"
+            r" to object type 'default::Spam'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l SET TYPE Spam USING (.l[IS Egg])
@@ -2992,7 +3060,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"possibly more than one element returned by the USING clause for"
             r" the alteration of link 'l' of object type 'default::Foo', while"
-            r" a singleton is expected"
+            r" a singleton is expected",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l SET TYPE Spam USING (SELECT Spam)
@@ -3039,11 +3107,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             "SELECT World { hell: { id }, heaven: { id } }"
         )
         self.assertEqual(len(res), 2)
-        set_of_hellos = {
-            world.hell.id for world in res
-        }.union({
-            world.heaven.id for world in res
-        })
+        set_of_hellos = {world.hell.id for world in res}.union(
+            {world.heaven.id for world in res}
+        )
         self.assertEqual(len(set_of_hellos), 4)
 
     async def test_edgeql_ddl_ptr_using_dml_02(self):
@@ -3085,10 +3151,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 """
             )
 
-            await self.assert_query_result(
-                'select Goodbye',
-                [{}, {}]
-            )
+            await self.assert_query_result('select Goodbye', [{}, {}])
 
     async def test_edgeql_ddl_ptr_using_dml_04(self):
         await self.con.execute(
@@ -3151,9 +3214,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"""
                 SELECT Foo { bar }
             """,
-            [
-                {'bar': "foo"}
-            ]
+            [{'bar': "foo"}],
         )
 
         # Make sure the delete triggers get cleaned up
@@ -3161,9 +3222,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"""
                 DELETE Foo
             """,
-            [
-                {}
-            ]
+            [{}],
         )
 
     async def test_edgeql_ddl_ptr_set_cardinality_02(self):
@@ -3251,7 +3310,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.SchemaError,
             r"cannot automatically convert property 'p' of object type"
-            r" 'default::Foo' to 'single' cardinality"
+            r" 'default::Foo' to 'single' cardinality",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p SET SINGLE;
@@ -3262,7 +3321,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"result of USING clause for the alteration of"
             r" property 'p' of object type 'default::Foo' cannot be cast"
             r" automatically from scalar type 'std::float64' to scalar"
-            r" type 'std::int64'"
+            r" type 'std::int64'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p
@@ -3273,7 +3332,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"possibly more than one element returned by the USING clause for"
             r" the alteration of property 'p' of object type 'default::Foo',"
-            r" while a singleton is expected"
+            r" while a singleton is expected",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p SET SINGLE USING ({1, 2})
@@ -3282,7 +3341,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.SchemaError,
             r"cannot automatically convert link 'l' of object type"
-            r" 'default::Foo' to 'single' cardinality"
+            r" 'default::Foo' to 'single' cardinality",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l SET SINGLE;
@@ -3293,7 +3352,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"result of USING clause for the alteration of"
             r" link 'l' of object type 'default::Foo' cannot be cast"
             r" automatically from object type 'default::Egg'"
-            r" to object type 'default::Bar'"
+            r" to object type 'default::Bar'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l
@@ -3304,7 +3363,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaError,
             r"possibly more than one element returned by the USING clause for"
             r" the alteration of link 'l' of object type 'default::Foo', while"
-            r" a singleton is expected"
+            r" a singleton is expected",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l SET SINGLE USING (SELECT Bar)
@@ -3508,7 +3567,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required property 'p'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY p {
@@ -3519,7 +3578,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required property 'm_p'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY m_p {
@@ -3566,7 +3625,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required link 'l'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK l {
@@ -3577,7 +3636,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             r"missing value for required link 'm_l'"
-            r" of object type 'default::Foo'"
+            r" of object type 'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK m_l {
@@ -3705,8 +3764,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_property_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyDefinitionError,
-                r"multi properties aren't supported for links"):
+            edgedb.InvalidPropertyDefinitionError,
+            r"multi properties aren't supported for links",
+        ):
             await self.con.execute("""
                 CREATE TYPE TestLinkPropType_02 {
                     CREATE LINK test_linkprop_link_02 -> std::Object {
@@ -3717,8 +3777,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_property_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyDefinitionError,
-                r"multi properties aren't supported for links"):
+            edgedb.InvalidPropertyDefinitionError,
+            r"multi properties aren't supported for links",
+        ):
             await self.con.execute("""
                 CREATE TYPE TestLinkPropType_04 {
                     CREATE LINK test_linkprop_link_04 -> std::Object;
@@ -3733,8 +3794,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_property_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyDefinitionError,
-                r"multi properties aren't supported for links"):
+            edgedb.InvalidPropertyDefinitionError,
+            r"multi properties aren't supported for links",
+        ):
             await self.con.execute("""
                 CREATE TYPE TestLinkPropType_06 {
                     CREATE LINK test_linkprop_link_06 -> std::Object {
@@ -3832,13 +3894,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"""
                 select Survey { recipients: {@destination} };
             """,
-            [{"recipients": [{"@destination": "email"}]}]
+            [{"recipients": [{"@destination": "email"}]}],
         )
 
     async def test_edgeql_ddl_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                r"type 'default::array' does not exist"):
+            edgedb.InvalidReferenceError,
+            r"type 'default::array' does not exist",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar -> array;
@@ -3847,8 +3910,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                r"type 'default::tuple' does not exist"):
+            edgedb.InvalidReferenceError,
+            r"type 'default::tuple' does not exist",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar -> tuple;
@@ -3857,8 +3921,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_03(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'unexpected number of subtypes, expecting 1'):
+            edgedb.SchemaError, r'unexpected number of subtypes, expecting 1'
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar -> array<int64, int64, int64>;
@@ -3867,8 +3931,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_04(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'nested arrays are not supported'):
+            edgedb.UnsupportedFeatureError, r'nested arrays are not supported'
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar -> array<array<int64>>;
@@ -3877,9 +3941,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_05(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                r'mixing named and unnamed subtype declarations is not '
-                r'supported'):
+            edgedb.EdgeQLSyntaxError,
+            r'mixing named and unnamed subtype declarations is not '
+            r'supported',
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar -> tuple<int64, foo:int64>;
@@ -3888,8 +3953,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_07(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in computed link 'foo'"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in computed link 'foo'",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3901,8 +3967,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_08(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in computed link 'foo'"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in computed link 'foo'",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3917,8 +3984,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_09(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in computed property 'foo'"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in computed property 'foo'",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3930,8 +3998,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_10(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in alias definition"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in alias definition",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3944,8 +4013,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_11(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in alias definition"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in alias definition",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3958,8 +4028,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_12(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in alias definition"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in alias definition",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -3976,8 +4047,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_bad_13(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                r"mutations are invalid in alias definition"):
+            edgedb.SchemaDefinitionError,
+            r"mutations are invalid in alias definition",
+        ):
             async with self.con.transaction():
                 await self.con.execute(r"""
                     CREATE TYPE Foo;
@@ -4014,8 +4086,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                f'unexpected fully-qualified name'):
+            edgedb.EdgeQLSyntaxError, f'unexpected fully-qualified name'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE TYPE Foo {
@@ -4025,8 +4097,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_bad_03(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                f"'default' is not a valid field for an abstract link"):
+            edgedb.SchemaDefinitionError,
+            f"'default' is not a valid field for an abstract link",
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE ABSTRACT LINK bar {
@@ -4036,8 +4109,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_bad_04(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                f"'default' is not a valid field for an abstract link"):
+            edgedb.SchemaDefinitionError,
+            f"'default' is not a valid field for an abstract link",
+        ):
             async with self.con.transaction():
                 await self.migrate("""
                     abstract link bar {
@@ -4047,8 +4121,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_link_bad_05(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                f'specifying EXTENDING twice is not allowed'):
+            edgedb.EdgeQLSyntaxError,
+            f'specifying EXTENDING twice is not allowed',
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE ABSTRACT LINK Foo extending Bar {
@@ -4075,8 +4150,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_property_bad_02(self):
         with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                f'unexpected fully-qualified name'):
+            edgedb.EdgeQLSyntaxError, f'unexpected fully-qualified name'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE TYPE Foo {
@@ -4086,8 +4161,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_property_bad_03(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                f"'default' is not a valid field for an abstract property"):
+            edgedb.SchemaDefinitionError,
+            f"'default' is not a valid field for an abstract property",
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE ABSTRACT PROPERTY bar {
@@ -4097,8 +4173,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_property_bad_04(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                f"'default' is not a valid field for an abstract property"):
+            edgedb.SchemaDefinitionError,
+            f"'default' is not a valid field for an abstract property",
+        ):
             async with self.con.transaction():
                 await self.migrate("""
                     abstract property currency_fallback {
@@ -4112,9 +4189,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 USING SQL FUNCTION 'lower';
         """)
 
-        with self.assertRaisesRegex(edgedb.DuplicateFunctionDefinitionError,
-                                    r'cannot create.*my_lower.*func'):
-
+        with self.assertRaisesRegex(
+            edgedb.DuplicateFunctionDefinitionError,
+            r'cannot create.*my_lower.*func',
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE FUNCTION my_lower(s: SET OF std::str)
@@ -4136,9 +4214,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             };
         """)
 
-        with self.assertRaisesRegex(edgedb.DuplicateFunctionDefinitionError,
-                                    r'cannot create.*my_lower.*func'):
-
+        with self.assertRaisesRegex(
+            edgedb.DuplicateFunctionDefinitionError,
+            r'cannot create.*my_lower.*func',
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE FUNCTION my_lower(s: anytype) -> std::str
@@ -4209,7 +4288,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             ['fizz-buzz'],
         )
         await self.assert_query_result(
-            fr"""
+            rf"""
                 SELECT {long_func_name}();
             """,
             [long_func_name],
@@ -4243,8 +4322,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
 
     async def test_edgeql_ddl_function_03(self):
-        with self.assertRaisesRegex(edgedb.InvalidFunctionDefinitionError,
-                                    r'invalid default value'):
+        with self.assertRaisesRegex(
+            edgedb.InvalidFunctionDefinitionError, r'invalid default value'
+        ):
             await self.con.execute(f"""
                 CREATE FUNCTION broken_sql_func1(
                     a: std::int64=(SELECT schema::ObjectType))
@@ -4312,7 +4392,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"""
                 SELECT my_edgeql_func4(42);
             """,
-            [[42, 1, 2, 3]]
+            [[42, 1, 2, 3]],
         )
 
         await self.con.execute(f"""
@@ -4338,11 +4418,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     } FILTER .name = 'std::description'
                 } FILTER .name = 'default::attr_func_1';
             """,
-            [{
-                'annotations': [{
-                    '@value': 'hello'
-                }]
-            }],
+            [{'annotations': [{'@value': 'hello'}]}],
         )
 
         await self.con.execute("""
@@ -4365,9 +4441,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_07(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*my_agg.*function:.+anytype.+cannot '
-                r'have a non-empty default'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*my_agg.*function:.+anytype.+cannot '
+            r'have a non-empty default',
+        ):
             await self.con.execute(r"""
                 CREATE FUNCTION my_agg(
                         s: anytype = [1]) -> array<anytype>
@@ -4376,18 +4453,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidFunctionDefinitionError,
-                r'invalid declaration.*unexpected type of the default'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'invalid declaration.*unexpected type of the default',
+        ):
             await self.con.execute("""
                 CREATE FUNCTION ddlf_08(s: std::str = 1) -> std::str
                     USING EdgeQL $$ SELECT "1" $$;
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidFunctionDefinitionError,
-                r'invalid declaration.*unexpected type of the default'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'invalid declaration.*unexpected type of the default',
+        ):
             await self.con.execute("""
                 CREATE FUNCTION ddlf_08(s: std::str = ()) -> std::str
                     USING EdgeQL $$ SELECT "1" $$;
@@ -4403,9 +4480,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
 
         with self.assertRaisesRegex(
-                edgedb.DuplicateFunctionDefinitionError,
-                r'already defined'):
-
+            edgedb.DuplicateFunctionDefinitionError, r'already defined'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     CREATE FUNCTION ddlf_09(
@@ -4438,10 +4514,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_10(self):
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r'parameter `sum` is not callable',
-                _line=6, _col=39):
-
+            edgedb.QueryError,
+            r'parameter `sum` is not callable',
+            _line=6,
+            _col=39,
+        ):
             await self.con.execute('''
                 CREATE FUNCTION ddlf_10(
                     sum: int64
@@ -4497,10 +4574,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_12(self):
         with self.assertRaisesRegex(
-                edgedb.DuplicateFunctionDefinitionError,
-                r'cannot create.*ddlf_12\(a: std::int64\).*'
-                r'function with the same signature is already defined'):
-
+            edgedb.DuplicateFunctionDefinitionError,
+            r'cannot create.*ddlf_12\(a: std::int64\).*'
+            r'function with the same signature is already defined',
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_12(a: int64) -> int64
                     USING EdgeQL $$ SELECT 11 $$;
@@ -4511,11 +4588,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_13(self):
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'cannot create.*ddlf_13\(a: SET OF std::int64\).*'
-                r'SET OF parameters in user-defined EdgeQL functions are '
-                r'not supported'):
-
+            edgedb.UnsupportedFeatureError,
+            r'cannot create.*ddlf_13\(a: SET OF std::int64\).*'
+            r'SET OF parameters in user-defined EdgeQL functions are '
+            r'not supported',
+        ):
             async with self.con.transaction():
                 await self.con.execute(r'''
                     CREATE FUNCTION ddlf_13(a: SET OF int64) -> int64
@@ -4559,10 +4636,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_15(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*ddlf_15.*NAMED ONLY h:.*'
-                r'different named only parameters'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*ddlf_15.*NAMED ONLY h:.*'
+            r'different named only parameters',
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_15(
                         a: int64, NAMED ONLY f: int64) -> int64
@@ -4575,10 +4652,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_16(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create the polymorphic.*ddlf_16.*'
-                r'function with different return type'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create the polymorphic.*ddlf_16.*'
+            r'function with different return type',
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_16(
                         a: anytype, b: int64) -> OPTIONAL int64
@@ -4595,10 +4672,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*ddlf_17.*'
-                r'overloading "USING SQL FUNCTION"'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*ddlf_17.*'
+            r'overloading "USING SQL FUNCTION"',
+        ):
             async with self.con.transaction():
                 await self.con.execute(r'''
                     CREATE FUNCTION ddlf_17(str: std::int64) -> int32
@@ -4611,11 +4688,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_18(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*ddlf_18.*'
-                r'function returns a generic type but has no '
-                r'generic parameters'):
-
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*ddlf_18.*'
+            r'function returns a generic type but has no '
+            r'generic parameters',
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_18(str: std::str) -> anytype
                     USING EdgeQL $$ SELECT 1 $$;
@@ -4623,19 +4700,15 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_19(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                r"type 'std::anytype' does not exist"):
-
+            edgedb.InvalidReferenceError, r"type 'std::anytype' does not exist"
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_19(f: std::anytype) -> int64
                     USING EdgeQL $$ SELECT 1 $$;
             ''')
 
     async def test_edgeql_ddl_function_20(self):
-        with self.assertRaisesRegex(
-                edgedb.EdgeQLSyntaxError,
-                "Unexpected ';'"):
-
+        with self.assertRaisesRegex(edgedb.EdgeQLSyntaxError, "Unexpected ';'"):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_20(f: int64) -> int64
                     USING EdgeQL $$ SELECT 1; SELECT f; $$;
@@ -4644,7 +4717,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
     async def test_edgeql_ddl_function_22(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return type mismatch.*scalar type 'std::int64'"
+            r"return type mismatch.*scalar type 'std::int64'",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func22(
@@ -4657,7 +4730,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
     async def test_edgeql_ddl_function_23(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return type mismatch.*scalar type 'std::int64'"
+            r"return type mismatch.*scalar type 'std::int64'",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func23(
@@ -4670,7 +4743,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
     async def test_edgeql_ddl_function_24(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return type mismatch.*scalar type 'std::str'"
+            r"return type mismatch.*scalar type 'std::str'",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func24(
@@ -4683,7 +4756,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
     async def test_edgeql_ddl_function_25(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return cardinality mismatch"
+            r"return cardinality mismatch",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func25(
@@ -4719,9 +4792,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
                 SELECT edgeql_func26('b')
             ''',
-            [
-                'baaa'
-            ],
+            ['baaa'],
         )
 
         await self.assert_query_result(
@@ -4749,7 +4820,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     ],
                     'vol': 'Immutable',
                 },
-            ]
+            ],
         )
 
         await self.con.execute(r"""
@@ -4776,7 +4847,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     'name': 'default::edgeql_func26',
                     'annotations': [],
                 },
-            ]
+            ],
         )
 
         await self.con.execute(r"""
@@ -4791,9 +4862,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
                 SELECT edgeql_func26('b')
             ''',
-            [
-                'bbbb'
-            ],
+            ['bbbb'],
         )
 
         await self.con.execute(r"""
@@ -4808,9 +4877,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
                 SELECT edgeql_func26('b')
             ''',
-            [
-                'bzzz'
-            ],
+            ['bzzz'],
         )
 
     async def test_edgeql_ddl_function_27(self):
@@ -4840,18 +4907,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                         decimal := constant_decimal(),
                     )
                 ''',
-                [{
-                    "int": 1024,
-                    "bigint": 1024,
-                    "float": 1024.125,
-                    "decimal": 1024.1024,
-                }],
-                [{
-                    "int": 1024,
-                    "bigint": 1024,
-                    "float": 1024.125,
-                    "decimal": decimal.Decimal('1024.1024'),
-                }],
+                [
+                    {
+                        "int": 1024,
+                        "bigint": 1024,
+                        "float": 1024.125,
+                        "decimal": 1024.1024,
+                    }
+                ],
+                [
+                    {
+                        "int": 1024,
+                        "bigint": 1024,
+                        "float": 1024.125,
+                        "decimal": decimal.Decimal('1024.1024'),
+                    }
+                ],
             )
         finally:
             await self.con.execute("""
@@ -4863,9 +4934,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_28(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"'default::foo' already exists"):
-
+            edgedb.SchemaError, r"'default::foo' already exists"
+        ):
             await self.con.execute('''\
                 CREATE TYPE foo;
                 CREATE FUNCTION foo() -> str USING ('a');
@@ -4873,9 +4943,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_29(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"'default::foo\(\)' already exists"):
-
+            edgedb.SchemaError, r"'default::foo\(\)' already exists"
+        ):
             await self.con.execute('''\
                 CREATE FUNCTION foo() -> str USING ('a');
                 CREATE TYPE foo;
@@ -4885,7 +4954,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         with self.assertRaisesRegex(
             edgedb.InternalServerError,
             r'declared to return SQL type "int8", but the underlying '
-            r'SQL function returns "integer"'
+            r'SQL function returns "integer"',
         ):
             await self.con.execute(r'''
                 CREATE FUNCTION ddlf_30(str: std::str) -> int64
@@ -4898,8 +4967,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r"return type mismatch"):
+            edgedb.InvalidFunctionDefinitionError, r"return type mismatch"
+        ):
             await self.con.execute(r'''
                 ALTER FUNCTION foo() USING (1);
             ''')
@@ -4942,14 +5011,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     str_str_str := func32_ok("a", "b", "c"),
                 }
             """,
-            [{
-                "Foo_int64": "Foo int64",
-                "Bar_int64": "Bar int64",
-                "str_int64": "str int64",
-                "str_Foo": "str Foo",
-                "str_Bar": "str Bar",
-                "str_str_str": "str str str",
-            }]
+            [
+                {
+                    "Foo_int64": "Foo int64",
+                    "Bar_int64": "Bar int64",
+                    "str_int64": "str int64",
+                    "str_Foo": "str Foo",
+                    "str_Bar": "str Bar",
+                    "str_str_str": "str str str",
+                }
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -5021,7 +5092,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.UnsupportedFeatureError,
             r"cannot create the .* function: object "
             r"type-receiving functions may not be overloaded on an OPTIONAL "
-            r"parameter"
+            r"parameter",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION func32_a(obj: OPTIONAL Foo) -> str
@@ -5049,10 +5120,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     bar := assert_single(func33(Bar)),
                 }
             """,
-            [{
-                "foo": "foo",
-                "bar": "bar",
-            }],
+            [
+                {
+                    "foo": "foo",
+                    "bar": "bar",
+                }
+            ],
         )
 
         await self.con.execute(r'''
@@ -5068,9 +5141,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     baz := assert_single(func33(Baz)),
                 }
             """,
-            [{
-                "baz": "parent",
-            }],
+            [
+                {
+                    "baz": "parent",
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -5084,9 +5159,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     baz := assert_single(func33(Baz)),
                 }
             """,
-            [{
-                "baz": "baz",
-            }],
+            [
+                {
+                    "baz": "baz",
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -5102,11 +5179,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     baz := assert_single(func33(Baz)),
                 }
             """,
-            [{
-                "foo": "foo",
-                "bar": "bar",
-                "baz": "parent",
-            }],
+            [
+                {
+                    "foo": "foo",
+                    "bar": "bar",
+                    "baz": "parent",
+                }
+            ],
         )
 
         await self.con.execute(r'''
@@ -5125,11 +5204,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     baz := assert_single(func33(Baz)),
                 }
             """,
-            [{
-                "foo": "foo",
-                "bar": "bar",
-                "baz": "priority parent",
-            }],
+            [
+                {
+                    "foo": "foo",
+                    "bar": "bar",
+                    "baz": "priority parent",
+                }
+            ],
         )
 
         # Test that named-only stuff works just as well.
@@ -5152,17 +5233,19 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     baz := assert_single(func33_no(obj := Baz)),
                 }
             """,
-            [{
-                "foo": "foo",
-                "bar": "bar",
-                "baz": "parent",
-            }],
+            [
+                {
+                    "foo": "foo",
+                    "bar": "bar",
+                    "baz": "parent",
+                }
+            ],
         )
 
     async def test_edgeql_ddl_function_34(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return cardinality mismatch"
+            r"return cardinality mismatch",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func25(
@@ -5175,7 +5258,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
     async def test_edgeql_ddl_function_35(self):
         with self.assertRaisesRegex(
             edgedb.InvalidFunctionDefinitionError,
-            r"return cardinality mismatch"
+            r"return cardinality mismatch",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func35(
@@ -5191,7 +5274,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r"cannot create the `default::broken_edgeql_func36\("
             r"VARIADIC foo: OPTIONAL array<std::int64>\)` function: "
             r"variadic argument `foo` illegally declared with "
-            r"optional type in user-defined function"
+            r"optional type in user-defined function",
         ):
             await self.con.execute(r"""
                 CREATE FUNCTION broken_edgeql_func36(
@@ -5249,7 +5332,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 select get_singleton([range(1, 3), range(1, 2)]) =
                     [range(1, 3)];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_ddl_function_40(self):
@@ -5435,9 +5518,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"can not rename function to 'default::foo' because "
-                r"a function with the same name already exists"):
+            edgedb.SchemaError,
+            r"can not rename function to 'default::foo' because "
+            r"a function with the same name already exists",
+        ):
             await self.con.execute("""
                 ALTER FUNCTION bar(s: int64)
                 RENAME TO foo;
@@ -5455,8 +5539,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"renaming an overloaded function is not allowed"):
+            edgedb.SchemaError,
+            r"renaming an overloaded function is not allowed",
+        ):
             await self.con.execute("""
                 ALTER FUNCTION foo(s: int64)
                 RENAME TO bar;
@@ -5540,14 +5625,15 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             SELECT schema::Function { volatility }
             FILTER .name = 'default::foo';
             ''',
-            [{
-                "volatility": "Immutable",
-            }]
+            [
+                {
+                    "volatility": "Immutable",
+                }
+            ],
         )
 
         await self.assert_query_result(
-            '''SELECT (foo(), {1,2})''',
-            [[1, 1], [1, 2]]
+            '''SELECT (foo(), {1,2})''', [[1, 1], [1, 2]]
         )
 
     async def test_edgeql_ddl_function_volatility_02(self):
@@ -5562,17 +5648,18 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             SELECT schema::Function {volatility}
             FILTER .name = 'default::foo';
             ''',
-            [{
-                "volatility": "Volatile",
-            }]
+            [
+                {
+                    "volatility": "Volatile",
+                }
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"can not take cross product of volatile operation"):
-            await self.con.query(
-                '''SELECT (foo(), {1,2})'''
-            )
+            edgedb.QueryError,
+            r"can not take cross product of volatile operation",
+        ):
+            await self.con.query('''SELECT (foo(), {1,2})''')
 
     async def test_edgeql_ddl_function_volatility_03(self):
         await self.con.execute('''
@@ -5587,22 +5674,24 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             SELECT schema::Function {volatility}
             FILTER .name = 'default::foo';
             ''',
-            [{
-                "volatility": "Volatile",
-            }]
+            [
+                {
+                    "volatility": "Volatile",
+                }
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.QueryError,
-                r"can not take cross product of volatile operation"):
-            await self.con.query(
-                '''SELECT (foo(), {1,2})'''
-            )
+            edgedb.QueryError,
+            r"can not take cross product of volatile operation",
+        ):
+            await self.con.query('''SELECT (foo(), {1,2})''')
 
     async def test_edgeql_ddl_function_volatility_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r"(?s)volatility mismatch in function declared as stable"):
+            edgedb.InvalidFunctionDefinitionError,
+            r"(?s)volatility mismatch in function declared as stable",
+        ):
             await self.con.execute('''
                 CREATE FUNCTION foo() -> int64 {
                     USING (SELECT <int64>random());
@@ -5612,8 +5701,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_function_volatility_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r"(?s)volatility mismatch in function declared as immutable"):
+            edgedb.InvalidFunctionDefinitionError,
+            r"(?s)volatility mismatch in function declared as immutable",
+        ):
             await self.con.execute('''
                 CREATE FUNCTION foo() -> int64 {
                     USING (SELECT count(Object));
@@ -5640,7 +5730,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {"name": "default::bar", "volatility": "Immutable"},
                 {"name": "default::foo", "volatility": "Immutable"},
-            ]
+            ],
         )
 
         await self.con.execute('''
@@ -5654,11 +5744,17 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             ORDER BY .name;
             ''',
             [
-                {"name": "default::bar", "volatility": "Stable",
-                 "computed_fields": ["volatility"]},
-                {"name": "default::foo", "volatility": "Stable",
-                 "computed_fields": []},
-            ]
+                {
+                    "name": "default::bar",
+                    "volatility": "Stable",
+                    "computed_fields": ["volatility"],
+                },
+                {
+                    "name": "default::foo",
+                    "volatility": "Stable",
+                    "computed_fields": [],
+                },
+            ],
         )
 
         await self.con.execute('''
@@ -5674,11 +5770,17 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             ORDER BY .name;
             ''',
             [
-                {"name": "default::bar", "volatility": "Immutable",
-                 "computed_fields": ["volatility"]},
-                {"name": "default::foo", "volatility": "Immutable",
-                 "computed_fields": ["volatility"]},
-            ]
+                {
+                    "name": "default::bar",
+                    "volatility": "Immutable",
+                    "computed_fields": ["volatility"],
+                },
+                {
+                    "name": "default::foo",
+                    "volatility": "Immutable",
+                    "computed_fields": ["volatility"],
+                },
+            ],
         )
 
         await self.con.execute('''
@@ -5697,7 +5799,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {"name": "default::bar", "volatility": "Volatile"},
                 {"name": "default::foo", "volatility": "Volatile"},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_function_volatility_07(self):
@@ -5728,7 +5830,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 {"name": "default::bar", "volatility": "Stable"},
                 {"name": "default::baz", "volatility": "Stable"},
                 {"name": "default::foo", "volatility": "Stable"},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_function_volatility_08(self):
@@ -5746,7 +5848,6 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             edgedb.SchemaDefinitionError,
             r"cannot alter function 'default::foo\(\)' because this affects "
             r".*function 'default::bar\(\)'",
-
         ):
             await self.con.execute('''
                 ALTER FUNCTION foo() SET volatility := "volatile";
@@ -5779,27 +5880,33 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             FILTER .name LIKE 'default::obj_func%'
             ORDER BY .name;
             ''',
-            [{
-                "name": "default::obj_func",
-                "volatility": "Stable",
-            }, {
-                "name": "default::obj_func_const",
-                "volatility": "Immutable",
-            }, {
-                "name": "default::obj_func_tuple",
-                "volatility": "Stable",
-            }, {
-                "name": "default::obj_func_tuple_not_referring",
-                "volatility": "Immutable",
-            }]
+            [
+                {
+                    "name": "default::obj_func",
+                    "volatility": "Stable",
+                },
+                {
+                    "name": "default::obj_func_const",
+                    "volatility": "Immutable",
+                },
+                {
+                    "name": "default::obj_func_tuple",
+                    "volatility": "Stable",
+                },
+                {
+                    "name": "default::obj_func_tuple_not_referring",
+                    "volatility": "Immutable",
+                },
+            ],
         )
 
     async def test_edgeql_ddl_function_fallback_01(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot create.*foo\(a: anytype\).*'
-                r'only one generic fallback per polymorphic function '
-                r'is allowed'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot create.*foo\(a: anytype\).*'
+            r'only one generic fallback per polymorphic function '
+            r'is allowed',
+        ):
             await self.con.execute(r'''
                 CREATE FUNCTION foo(a: int64) -> str {
                     USING (SELECT 'foo' ++ <str>(a + 1));
@@ -5839,10 +5946,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidFunctionDefinitionError,
-                r'cannot alter.*foo\(a: anytype\).*'
-                r'only one generic fallback per polymorphic function '
-                r'is allowed'):
+            edgedb.InvalidFunctionDefinitionError,
+            r'cannot alter.*foo\(a: anytype\).*'
+            r'only one generic fallback per polymorphic function '
+            r'is allowed',
+        ):
             await self.con.execute(r'''
                 ALTER FUNCTION foo(a: anytype) {
                     SET fallback := true;
@@ -5881,54 +5989,36 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             create function test() -> set of str using (inner());
         ''')
 
-        await self.assert_query_result(
-            'select test()',
-            ['12345']
-        )
+        await self.assert_query_result('select test()', ['12345'])
 
         await self.con.execute('''
             alter alias X0 using ('A');
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['A2345']
-        )
+        await self.assert_query_result('select test()', ['A2345'])
 
         await self.con.execute('''
             alter global Y { set default := 'B' };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['AB345']
-        )
+        await self.assert_query_result('select test()', ['AB345'])
 
         await self.con.execute('''
             alter type Z alter property p using ('C');
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABC45']
-        )
+        await self.assert_query_result('select test()', ['ABC45'])
 
         await self.con.execute('''
             alter function W() {
                 using ('D')
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCD5']
-        )
+        await self.assert_query_result('select test()', ['ABCD5'])
 
         await self.con.execute('''
             alter function V0() {
                 using ('E')
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCDE']
-        )
+        await self.assert_query_result('select test()', ['ABCDE'])
 
         # Check changing inner function to inlined
         await self.con.execute('''
@@ -5937,10 +6027,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 using (X ++ (global Y) ++ Z.p ++ W() ++ V() ++ '!');
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCDE!']
-        )
+        await self.assert_query_result('select test()', ['ABCDE!'])
 
     async def test_edgeql_ddl_function_recompile_02(self):
         # Test that we recompile functions as things change
@@ -5964,54 +6051,36 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             create function test() -> set of str using (inner());
         ''')
 
-        await self.assert_query_result(
-            'select test()',
-            ['12345']
-        )
+        await self.assert_query_result('select test()', ['12345'])
 
         await self.con.execute('''
             alter alias X0 using ('A');
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['A2345']
-        )
+        await self.assert_query_result('select test()', ['A2345'])
 
         await self.con.execute('''
             alter global Y { set default := 'B' };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['AB345']
-        )
+        await self.assert_query_result('select test()', ['AB345'])
 
         await self.con.execute('''
             alter type Z alter property p using ('C');
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABC45']
-        )
+        await self.assert_query_result('select test()', ['ABC45'])
 
         await self.con.execute('''
             alter function W() {
                 using ('D')
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCD5']
-        )
+        await self.assert_query_result('select test()', ['ABCD5'])
 
         await self.con.execute('''
             alter function V0() {
                 using ('E')
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCDE']
-        )
+        await self.assert_query_result('select test()', ['ABCDE'])
 
         # Check changing inner function from inlined
         await self.con.execute('''
@@ -6020,10 +6089,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 using (X ++ (global Y) ++ Z.p ++ W() ++ V() ++ '!');
             };
         ''')
-        await self.assert_query_result(
-            'select test()',
-            ['ABCDE!']
-        )
+        await self.assert_query_result('select test()', ['ABCDE!'])
 
     async def test_edgeql_ddl_function_recompile_03(self):
         # Check that modifying functions are recompiled
@@ -6061,9 +6127,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_module_01(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"'spam' already exists"):
-
+            edgedb.SchemaError, r"'spam' already exists"
+        ):
             await self.con.execute('''\
                 CREATE MODULE spam;
                 CREATE MODULE spam;
@@ -6084,22 +6149,22 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
             select _test::abs(-1)
             ''',
-            [1]
+            [1],
         )
         await self.con.execute('''\
             CREATE MODULE _test
         ''')
         with self.assertRaisesRegex(
-                edgedb.InvalidReferenceError,
-                "'_test::abs' does not exist"):
+            edgedb.InvalidReferenceError, "'_test::abs' does not exist"
+        ):
             await self.con.execute('''\
             select _test::abs(-1)
             ''')
 
     async def test_edgeql_ddl_module_04(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnknownModuleError,
-                "module 'foo' is not in this schema"):
+            edgedb.UnknownModuleError, "module 'foo' is not in this schema"
+        ):
             await self.con.execute('''\
                 CREATE MODULE foo::bar;
             ''')
@@ -6115,14 +6180,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
             select foo::bar::Baz
             ''',
-            []
+            [],
         )
         await self.assert_query_result(
             r'''
             with module foo::bar
             select Baz
             ''',
-            []
+            [],
         )
         await self.con.execute('''\
             SET MODULE foo::bar;
@@ -6131,13 +6196,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
             select foo::bar::Baz
             ''',
-            []
+            [],
         )
         await self.assert_query_result(
             r'''
             select Baz
             ''',
-            []
+            [],
         )
 
         await self.con.execute('''\
@@ -6145,8 +6210,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
         # We *don't* support relative references of submodules
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidReferenceError,
-                "'bar::Baz' does not exist"):
+            edgedb.InvalidReferenceError, "'bar::Baz' does not exist"
+        ):
             await self.con.execute('''\
                 SELECT bar::Baz
             ''')
@@ -6154,7 +6219,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
             select Foo
             ''',
-            []
+            [],
         )
         await self.con.execute('''\
             RESET MODULE;
@@ -6162,8 +6227,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         # We *don't* support relative references of submodules
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidReferenceError,
-                "'bar::Baz' does not exist"):
+            edgedb.InvalidReferenceError, "'bar::Baz' does not exist"
+        ):
             await self.con.execute('''\
                 WITH MODULE foo
                 SELECT bar::Baz
@@ -6174,7 +6239,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             with m as module foo::bar
             select m::Baz
             ''',
-            []
+            [],
         )
 
         await self.assert_query_result(
@@ -6182,7 +6247,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             with m as module foo
             select m::bar::Baz
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_module_05(self):
@@ -6197,7 +6262,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
             select foo::bar::Baz
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_operator_01(self):
@@ -6228,26 +6293,25 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::+++';
             ''',
-            [{
-                'name': 'default::+++',
-                'params': [
-                    {
-                        'name': 'left',
-                        'type': {
-                            'name': 'std::int64'
+            [
+                {
+                    'name': 'default::+++',
+                    'params': [
+                        {
+                            'name': 'left',
+                            'type': {'name': 'std::int64'},
+                            'typemod': 'SingletonType',
                         },
-                        'typemod': 'SingletonType'
-                    },
-                    {
-                        'name': 'right',
-                        'type': {
-                            'name': 'std::int64'
+                        {
+                            'name': 'right',
+                            'type': {'name': 'std::int64'},
+                            'typemod': 'SingletonType',
                         },
-                        'typemod': 'SingletonType'}
-                ],
-                'operator_kind': 'Infix',
-                'return_typemod': 'SingletonType'
-            }]
+                    ],
+                    'operator_kind': 'Infix',
+                    'return_typemod': 'SingletonType',
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -6269,9 +6333,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                         AND .annotations@value = 'my plus'
                     );
             ''',
-            [{
-                'name': 'default::+++',
-            }]
+            [
+                {
+                    'name': 'default::+++',
+                }
+            ],
         )
 
         await self.con.execute("""
@@ -6296,7 +6362,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::+++';
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_operator_02(self):
@@ -6336,8 +6402,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     {
                         'name': 'default::!',
                         'operator_kind': 'Prefix',
-                    }
-                ]
+                    },
+                ],
             )
 
         finally:
@@ -6351,9 +6417,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'cannot create the `default::NOT\(\)` operator: '
-                r'an operator must have operands'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'cannot create the `default::NOT\(\)` operator: '
+            r'an operator must have operands',
+        ):
             await self.con.execute('''
                 CREATE PREFIX OPERATOR `NOT`() -> bool
                     USING SQL EXPRESSION;
@@ -6361,11 +6428,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'cannot create the '
-                r'`default::=\(l: array<anytype>, r: std::str\)` operator: '
-                r'operands of a recursive operator must either be '
-                r'all arrays or all tuples'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'cannot create the '
+            r'`default::=\(l: array<anytype>, r: std::str\)` operator: '
+            r'operands of a recursive operator must either be '
+            r'all arrays or all tuples',
+        ):
             await self.con.execute('''
                 CREATE INFIX OPERATOR
                 `=` (l: array<anytype>, r: str) -> std::bool {
@@ -6376,11 +6444,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'cannot create the '
-                r'`default::=\(l: array<anytype>, r: anytuple\)` operator: '
-                r'operands of a recursive operator must either be '
-                r'all arrays or all tuples'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'cannot create the '
+            r'`default::=\(l: array<anytype>, r: anytuple\)` operator: '
+            r'operands of a recursive operator must either be '
+            r'all arrays or all tuples',
+        ):
             await self.con.execute('''
                 CREATE INFIX OPERATOR
                 `=` (l: array<anytype>, r: anytuple) -> std::bool {
@@ -6391,13 +6460,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_06(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'cannot create the non-recursive '
-                r'`default::=\(l: array<std::int64>, '
-                r'r: array<std::int64>\)` operator: '
-                r'overloading a recursive operator '
-                r'`array<anytype> = array<anytype>` with a non-recursive one '
-                r'is not allowed'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'cannot create the non-recursive '
+            r'`default::=\(l: array<std::int64>, '
+            r'r: array<std::int64>\)` operator: '
+            r'overloading a recursive operator '
+            r'`array<anytype> = array<anytype>` with a non-recursive one '
+            r'is not allowed',
+        ):
             # attempt to overload a recursive `=` from std with a
             # non-recursive version
             await self.con.execute('''
@@ -6415,13 +6485,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_07(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'cannot create the recursive '
-                r'`default::=\(l: array<std::int64>, '
-                r'r: array<std::int64>\)` operator: '
-                r'overloading a non-recursive operator '
-                r'`array<anytype> = array<anytype>` with a recursive one '
-                r'is not allowed'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'cannot create the recursive '
+            r'`default::=\(l: array<std::int64>, '
+            r'r: array<std::int64>\)` operator: '
+            r'overloading a non-recursive operator '
+            r'`array<anytype> = array<anytype>` with a recursive one '
+            r'is not allowed',
+        ):
             # create 2 operators in test: non-recursive first, then a
             # recursive one
             await self.con.execute('''
@@ -6460,7 +6531,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                         'name': 'default::>',
                         'abstract': True,
                     },
-                ]
+                ],
             )
 
         finally:
@@ -6471,8 +6542,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_09(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidOperatorDefinitionError,
-                r'unexpected USING clause in abstract operator definition'):
+            edgedb.InvalidOperatorDefinitionError,
+            r'unexpected USING clause in abstract operator definition',
+        ):
             await self.con.execute('''
                 CREATE ABSTRACT INFIX OPERATOR
                 `=` (l: array<anytype>, r: array<anytype>) -> std::bool {
@@ -6482,10 +6554,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_10(self):
         with self.assertRaisesRegex(
-                edgedb.DuplicateOperatorDefinitionError,
-                r'cannot create the '
-                r'`default::IN\(l: std::int64, r: std::int64\)` operator: '
-                r'there exists a derivative operator of the same name'):
+            edgedb.DuplicateOperatorDefinitionError,
+            r'cannot create the '
+            r'`default::IN\(l: std::int64, r: std::int64\)` operator: '
+            r'there exists a derivative operator of the same name',
+        ):
             # create 2 operators in test: derivative first, then a
             # non-derivative one
             await self.con.execute('''
@@ -6503,11 +6576,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_operator_11(self):
         with self.assertRaisesRegex(
-                edgedb.DuplicateOperatorDefinitionError,
-                r'cannot create '
-                r'`default::IN\(l: std::int64, r: std::int64\)` as a '
-                r'derivative operator: there already exists an operator '
-                r'of the same name'):
+            edgedb.DuplicateOperatorDefinitionError,
+            r'cannot create '
+            r'`default::IN\(l: std::int64, r: std::int64\)` as a '
+            r'derivative operator: there already exists an operator '
+            r'of the same name',
+        ):
             # create 2 operators in test: non-derivative first, then a
             # derivative one
             await self.con.execute('''
@@ -6538,8 +6612,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_scalar_01(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'may not have more than one concrete base type'):
+            edgedb.SchemaError, r'may not have more than one concrete base type'
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE myint EXTENDING std::int64, std::str;
             ''')
@@ -6551,8 +6625,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'may not have more than one concrete base type'):
+            edgedb.SchemaError, r'may not have more than one concrete base type'
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE myint EXTENDING a, b;
             ''')
@@ -6565,8 +6639,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'scalar type may not have more than one concrete base type'):
+            edgedb.SchemaError,
+            r'scalar type may not have more than one concrete base type',
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE myint EXTENDING b;
             ''')
@@ -6578,8 +6653,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'scalar type may not have more than one concrete base type'):
+            edgedb.SchemaError,
+            r'scalar type may not have more than one concrete base type',
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE a EXTENDING str;
             ''')
@@ -6605,8 +6681,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         # I think we want to prohibit this kind of diamond pattern
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'may not have more than one concrete base type'):
+            edgedb.SchemaError, r'may not have more than one concrete base type'
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE myint EXTENDING a, b;
             ''')
@@ -6645,8 +6721,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         self.assertEqual(await self.con.query_single(count_query), orig_count)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                'myint must be one of'):
+            edgedb.ConstraintViolationError, 'myint must be one of'
+        ):
             await self.con.execute('''
                 INSERT Foo { a4 := (10, "oops") };
             ''')
@@ -6656,8 +6732,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                'myint must be one of:'):
+            edgedb.ConstraintViolationError, 'myint must be one of:'
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE myint DROP CONSTRAINT std::one_of(1, 2);
                 ALTER SCALAR TYPE myint CREATE CONSTRAINT std::one_of(1);
@@ -6671,16 +6747,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                r'FINAL is not supported'):
+            edgedb.UnsupportedFeatureError, r'FINAL is not supported'
+        ):
             await self.con.execute('''
                 CREATE FINAL SCALAR TYPE myint EXTENDING std::int64;
             ''')
 
     async def test_edgeql_ddl_scalar_10(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'scalar type must have a concrete base type'):
+            edgedb.SchemaError, r'scalar type must have a concrete base type'
+        ):
             await self.con.execute('''
                 create scalar type Foo;
             ''')
@@ -6690,8 +6766,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             create scalar type Foo extending str;
         ''')
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'scalar type must have a concrete base type'):
+            edgedb.SchemaError, r'scalar type must have a concrete base type'
+        ):
             await self.con.execute('''
                 alter scalar type Foo drop extending str;
             ''')
@@ -6701,9 +6777,10 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             create scalar type Foo extending str;
         ''')
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r'cannot change concrete base of scalar type '
-                r'default::Foo from std::str to std::int64'):
+            edgedb.SchemaError,
+            r'cannot change concrete base of scalar type '
+            r'default::Foo from std::str to std::int64',
+        ):
             await self.con.execute('''
                 alter scalar type Foo {
                     drop extending str;
@@ -6713,8 +6790,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_scalar_13(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                r'scalar type may not have a collection base type'):
+            edgedb.SchemaError,
+            r'scalar type may not have a collection base type',
+        ):
             await self.con.execute('''
                 create scalar type Foo extending array<str>;
             ''')
@@ -6824,8 +6902,8 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     'to_type': {'name': 'default::type_b'},
                     'allow_implicit': True,
                     'allow_assignment': False,
-                }
-            ]
+                },
+            ],
         )
 
         await self.con.execute("""
@@ -6847,7 +6925,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 ORDER BY
                     .allow_implicit;
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_policies_01(self):
@@ -6872,50 +6950,58 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     sname := .subject.name, root := not exists .bases }
                 filter .sname like 'default::%'
             ''',
-            tb.bag([
-                {
-                    "access_kinds": {
-                        "Select", "UpdateRead", "UpdateWrite", "Delete",
-                        "Insert"
+            tb.bag(
+                [
+                    {
+                        "access_kinds": {
+                            "Select",
+                            "UpdateRead",
+                            "UpdateWrite",
+                            "Delete",
+                            "Insert",
+                        },
+                        "action": "Allow",
+                        "condition": None,
+                        "expr": "true",
+                        "name": "all_on",
+                        "sname": "default::User",
+                        "root": True,
                     },
-                    "action": "Allow",
-                    "condition": None,
-                    "expr": "true",
-                    "name": "all_on",
-                    "sname": "default::User",
-                    "root": True,
-                },
-                {
-                    "access_kinds": {"Select", "Delete"},
-                    "action": "Deny",
-                    "condition": "global default::filtering",
-                    "expr": "(.name ?!= global default::cur)",
-                    "name": "filtering",
-                    "sname": "default::User",
-                    "root": True,
-                },
-                {
-                    "access_kinds": {
-                        "Select", "UpdateRead", "UpdateWrite", "Delete",
-                        "Insert"
+                    {
+                        "access_kinds": {"Select", "Delete"},
+                        "action": "Deny",
+                        "condition": "global default::filtering",
+                        "expr": "(.name ?!= global default::cur)",
+                        "name": "filtering",
+                        "sname": "default::User",
+                        "root": True,
                     },
-                    "action": "Allow",
-                    "condition": None,
-                    "expr": "true",
-                    "name": "all_on",
-                    "sname": "default::Bot",
-                    "root": False,
-                },
-                {
-                    "access_kinds": {"Select", "Delete"},
-                    "action": "Deny",
-                    "condition": "global default::filtering",
-                    "expr": "(.name ?!= global default::cur)",
-                    "name": "filtering",
-                    "sname": "default::Bot",
-                    "root": False,
-                },
-            ])
+                    {
+                        "access_kinds": {
+                            "Select",
+                            "UpdateRead",
+                            "UpdateWrite",
+                            "Delete",
+                            "Insert",
+                        },
+                        "action": "Allow",
+                        "condition": None,
+                        "expr": "true",
+                        "name": "all_on",
+                        "sname": "default::Bot",
+                        "root": False,
+                    },
+                    {
+                        "access_kinds": {"Select", "Delete"},
+                        "action": "Deny",
+                        "condition": "global default::filtering",
+                        "expr": "(.name ?!= global default::cur)",
+                        "name": "filtering",
+                        "sname": "default::Bot",
+                        "root": False,
+                    },
+                ]
+            ),
         )
 
         await self.con.execute(r"""
@@ -6945,7 +7031,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     "sname": "default::User",
                     "root": True,
                 },
-            ]
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -7039,7 +7125,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         """)
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r"may not refer to link properties with default values"
+            r"may not refer to link properties with default values",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK tgt ALTER property foo
@@ -7262,11 +7348,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "required": False,
-                "typ": "std::str",
-                "default": None,
-            }]
+            [
+                {
+                    "required": False,
+                    "typ": "std::str",
+                    "default": None,
+                }
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -7284,11 +7372,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "required": True,
-                "typ": "std::str",
-                "default": "''",
-            }]
+            [
+                {
+                    "required": True,
+                    "typ": "std::str",
+                    "default": "''",
+                }
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -7315,11 +7405,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "required": False,
-                "typ": "array<std::int64>",
-                "default": None,
-            }]
+            [
+                {
+                    "required": False,
+                    "typ": "array<std::int64>",
+                    "default": None,
+                }
+            ],
         )
 
     async def test_edgeql_ddl_global_02(self):
@@ -7393,7 +7485,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-            r"global variables cannot be referenced from constraint"
+            r"global variables cannot be referenced from constraint",
         ):
             await self.con.execute("""
                 create type X {
@@ -7406,7 +7498,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-            r"global variables cannot be referenced from index"
+            r"global variables cannot be referenced from index",
         ):
             await self.con.execute("""
                 create type X {
@@ -7435,7 +7527,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
                 select Y.foo
             ''',
-            ['test']
+            ['test'],
         )
 
         # And when adding a default to an existing column
@@ -7456,7 +7548,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             r'''
                 select X.foo
             ''',
-            ['test']
+            ['test'],
         )
 
     async def test_edgeql_ddl_global_04(self):
@@ -7469,7 +7561,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
             r"functions that reference global variables cannot be called "
-            r"from constraint"
+            r"from constraint",
         ):
             await self.con.execute("""
                 create type X {
@@ -7483,7 +7575,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
             r"functions that reference global variables cannot be called "
-            r"from index"
+            r"from index",
         ):
             await self.con.execute("""
                 create type X {
@@ -7526,14 +7618,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "computed": True,
-                "card_comp": True,
-                "req_comp": True,
-                "required": True,
-                "cardinality": "One",
-                "typ": "default::foo",
-            }]
+            [
+                {
+                    "computed": True,
+                    "card_comp": True,
+                    "req_comp": True,
+                    "required": True,
+                    "cardinality": "One",
+                    "typ": "default::foo",
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -7543,14 +7637,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "computed": True,
-                "card_comp": False,
-                "req_comp": False,
-                "required": False,
-                "cardinality": "Many",
-                "typ": "default::foo",
-            }]
+            [
+                {
+                    "computed": True,
+                    "card_comp": False,
+                    "req_comp": False,
+                    "required": False,
+                    "cardinality": "Many",
+                    "typ": "default::foo",
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -7559,14 +7655,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "computed": True,
-                "card_comp": False,
-                "req_comp": True,
-                "required": True,
-                "cardinality": "Many",
-                "typ": "default::foo",
-            }]
+            [
+                {
+                    "computed": True,
+                    "card_comp": False,
+                    "req_comp": True,
+                    "required": True,
+                    "cardinality": "Many",
+                    "typ": "default::foo",
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -7579,14 +7677,16 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             INTRO_Q,
-            [{
-                "computed": False,
-                "card_comp": False,
-                "req_comp": False,
-                "required": False,
-                "cardinality": "One",
-                "typ": "std::str",
-            }]
+            [
+                {
+                    "computed": False,
+                    "card_comp": False,
+                    "req_comp": False,
+                    "required": False,
+                    "cardinality": "One",
+                    "typ": "std::str",
+                }
+            ],
         )
 
     async def test_edgeql_ddl_global_07(self):
@@ -7626,14 +7726,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         await self.con.execute('''
             alter global foo set type int64 reset to default;
         ''')
-        await self.assert_query_result(
-            r'''select global foo''',
-            []
-        )
+        await self.assert_query_result(r'''select global foo''', [])
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-            r"SET TYPE on global must explicitly reset the global's value"
+            r"SET TYPE on global must explicitly reset the global's value",
         ):
             await self.con.execute("""
                 alter global foo set type str;
@@ -7641,7 +7738,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
-            r"USING casts for SET TYPE on globals are not supported"
+            r"USING casts for SET TYPE on globals are not supported",
         ):
             await self.con.execute("""
                 alter global foo set type str using ('lol');
@@ -7769,8 +7866,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         # Should fail because there is data
         async with self.assertRaisesRegexTx(
-            edgedb.MissingRequiredError,
-            r"missing value for required property"
+            edgedb.MissingRequiredError, r"missing value for required property"
         ):
             await self.con.execute('''
                 alter type Foo { create required property name2 -> str {
@@ -7820,7 +7916,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     order by .name
                 ''',
                 expected_types,
-                variables={'existing_types': existing_types}
+                variables={'existing_types': existing_types},
             )
 
     async def test_edgeql_ddl_global_type_changes_01(self):
@@ -7828,299 +7924,321 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete computed global
 
         # int64
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := 1',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ScalarType',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := 1',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ScalarType',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_02(self):
         # Create computed global
         # Delete computed global
 
         # array<int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := [1]',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := [1]',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_03(self):
         # Create computed global
         # Delete computed global
 
         # tuple<int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_04(self):
         # Create computed global
         # Delete computed global
 
         # tuple<f:int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (f := 1)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<f:std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (f := 1)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<f:std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_05(self):
         # Create computed global
         # Delete computed global
 
         # array<tuple<int64>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_06(self):
         # Create computed global
         # Delete computed global
 
         # array<tuple<f:array<int64>>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := [(f := [1])]',
-                [
-                    {
-                        'name': 'array<tuple<f:array<std::int64>>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<f:array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := [(f := [1])]',
+                    [
+                        {
+                            'name': 'array<tuple<f:array<std::int64>>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<f:array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_07(self):
         # Create computed global
         # Delete computed global
 
         # tuple<array<int64>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := ([1],)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := ([1],)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_08(self):
         # Create non-computed global
         # Delete non-computed global
 
         # int64
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: int64',
-                []
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                ('create global foo: int64', []),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_09(self):
         # Create non-computed global
         # Delete non-computed global
 
         # array<int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: array<int64>',
-                []
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                ('create global foo: array<int64>', []),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_10(self):
         # Create non-computed global
         # Delete non-computed global
 
         # tuple<int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<int64>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<int64>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_11(self):
         # Create non-computed global
         # Delete non-computed global
 
         # tuple<f:int64>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<f:int64>',
-                [
-                    {
-                        'name': 'tuple<f:std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<f:int64>',
+                    [
+                        {
+                            'name': 'tuple<f:std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_12(self):
         # Create non-computed global
         # Delete non-computed global
 
         # array<tuple<int64>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: array<tuple<int64>>',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: array<tuple<int64>>',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_13(self):
         # Create non-computed global
         # Delete non-computed global
 
         # array<tuple<f:array<int64>>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: array<tuple<f:array<int64>>>',
-                [
-                    {
-                        'name': 'array<tuple<f:array<std::int64>>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<f:array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: array<tuple<f:array<int64>>>',
+                    [
+                        {
+                            'name': 'array<tuple<f:array<std::int64>>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<f:array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_14(self):
         # Create non-computed global
         # Delete non-computed global
 
         # tuple<array<int64>>
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<array<int64>>',
-                [
-                    {
-                        'name': 'tuple<array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<array<int64>>',
+                    [
+                        {
+                            'name': 'tuple<array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_15(self):
         # Create computed global
@@ -8128,69 +8246,71 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete computed global
         # Delete non-computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global foo',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global bar', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global foo',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_16(self):
         # Create computed global
@@ -8198,74 +8318,76 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete non-computed global
         # Delete computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global bar',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global bar',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_17(self):
         # Create non-computed global
@@ -8273,64 +8395,66 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete computed global
         # Delete non-computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global bar',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global bar',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_18(self):
         # Create non-computed global
@@ -8338,69 +8462,71 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete non-computed global
         # Delete computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global foo',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global bar', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global foo',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_19(self):
         # Create computed global
@@ -8408,69 +8534,71 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete computed global
         # Delete reference to type
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := ((1,),)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create function bar() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global foo',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop function bar()', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := ((1,),)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create function bar() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global foo',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop function bar()', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_20(self):
         # Create reference to type
@@ -8478,69 +8606,71 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete reference to type
         # Delete computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create function foo() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar := ((1,),)',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop function foo()',
-                [
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global bar', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create function foo() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar := ((1,),)',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop function foo()',
+                    [
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_21(self):
         # Create non-computed global
@@ -8548,59 +8678,61 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete non-computed global
         # Delete reference to type
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create function bar() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop global foo',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop function bar()', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create function bar() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop global foo',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop function bar()', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_22(self):
         # Create reference to type
@@ -8608,248 +8740,260 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         # Delete reference to type
         # Delete non-computed global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create function foo() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create global bar: tuple<tuple<int64>>',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop function foo()',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global bar', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create function foo() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create global bar: tuple<tuple<int64>>',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop function foo()',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_23(self):
         # Create computed global
         # Alter expr, same type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'alter global foo {using ((2,))}',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'alter global foo {using ((2,))}',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_24(self):
         # Create computed global
         # Alter expr, different type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'alter global foo {using (("a",))}',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::str>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'alter global foo {using (("a",))}',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::str>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_25(self):
         # Create computed global
         # Alter to non-computed, same type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                '''
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    '''
                 alter global foo {
                     reset expression;
                     set type tuple<std::int64> reset to default;
                 }
                 ''',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_26(self):
         # Create computed global
         # Alter to non-computed, different type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                '''
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    '''
                 alter global foo {
                     reset expression;
                     set type tuple<std::str> reset to default;
                 }
                 ''',
-                [
-                    {
-                        'name': 'tuple<std::str>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+                    [
+                        {
+                            'name': 'tuple<std::str>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_27(self):
         # Create non-computed global
         # Alter target type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<std::int64>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                '''
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<std::int64>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    '''
                 alter global foo {
                     set type tuple<std::str> reset to default;
                 }
                 ''',
-                [
-                    {
-                        'name': 'tuple<std::str>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+                    [
+                        {
+                            'name': 'tuple<std::str>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_28(self):
         # Create non-computed global
@@ -8858,78 +9002,82 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         # This works for now, but breaks while fixing globals tidying up.
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<std::int64>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                '''
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<std::int64>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    '''
                 alter global foo {
                     reset type;
                     using ((1,))
                 }
                 ''',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_global_type_changes_29(self):
         # Create non-computed global
         # Alter to computed, different type
         # Delete global
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create global foo: tuple<std::int64>',
-                [
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                '''
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create global foo: tuple<std::int64>',
+                    [
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    '''
                 alter global foo {
                     reset type;
                     using (("a",))
                 }
                 ''',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::str>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop global foo', []),
-        ])
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::str>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop global foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_permissions_01(self):
         await self.con.execute(r"""
@@ -8968,9 +9116,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {
                     'name': 'default::foo',
-                    'annotations': tb.bag([
-                        {'n': 'std::title', 'v': 'A'},
-                    ]),
+                    'annotations': tb.bag(
+                        [
+                            {'n': 'std::title', 'v': 'A'},
+                        ]
+                    ),
                 }
             ],
         )
@@ -8990,10 +9140,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {
                     'name': 'default::foo',
-                    'annotations': tb.bag([
-                        {'n': 'std::title', 'v': 'A'},
-                        {'n': 'std::description', 'v': 'B'},
-                    ]),
+                    'annotations': tb.bag(
+                        [
+                            {'n': 'std::title', 'v': 'A'},
+                            {'n': 'std::description', 'v': 'B'},
+                        ]
+                    ),
                 }
             ],
         )
@@ -9013,10 +9165,12 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {
                     'name': 'default::foo',
-                    'annotations': tb.bag([
-                        {'n': 'std::title', 'v': 'A'},
-                        {'n': 'std::description', 'v': 'C'},
-                    ]),
+                    'annotations': tb.bag(
+                        [
+                            {'n': 'std::title', 'v': 'A'},
+                            {'n': 'std::description', 'v': 'C'},
+                        ]
+                    ),
                 }
             ],
         )
@@ -9036,9 +9190,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             [
                 {
                     'name': 'default::foo',
-                    'annotations': tb.bag([
-                        {'n': 'std::title', 'v': 'A'},
-                    ]),
+                    'annotations': tb.bag(
+                        [
+                            {'n': 'std::title', 'v': 'A'},
+                        ]
+                    ),
                 }
             ],
         )
@@ -9085,9 +9241,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     prop
                 };
             ''',
-            [{
-                'prop': 'I am a computable',
-            }],
+            [
+                {
+                    'prop': 'I am a computable',
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -9104,14 +9262,13 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::CompProp';
             ''',
-            [{
-                'properties': [{
-                    'name': 'prop',
-                    'target': {
-                        'name': 'std::str'
-                    }
-                }]
-            }]
+            [
+                {
+                    'properties': [
+                        {'name': 'prop', 'target': {'name': 'std::str'}}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_property_computable_02(self):
@@ -9128,9 +9285,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     prop
                 };
             ''',
-            [{
-                'prop': 'I am a computable',
-            }],
+            [
+                {
+                    'prop': 'I am a computable',
+                }
+            ],
         )
 
         await self.con.execute('''\
@@ -9147,9 +9306,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     prop
                 };
             ''',
-            [{
-                'prop': None,
-            }],
+            [
+                {
+                    'prop': None,
+                }
+            ],
         )
 
     async def test_edgeql_ddl_property_computable_03(self):
@@ -9187,8 +9348,9 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     async def test_edgeql_ddl_property_computable_bad_01(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid property type: expected.* got .* 'std::Object'"):
+            edgedb.InvalidPropertyTargetError,
+            r"invalid property type: expected.* got .* 'std::Object'",
+        ):
             await self.con.execute('''\
                 CREATE TYPE CompPropBad;
                 ALTER TYPE CompPropBad {
@@ -9214,11 +9376,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     }
                 };
             ''',
-            [{
-                'l': [{
-                    'id': uuid.UUID
-                }],
-            }],
+            [
+                {
+                    'l': [{'id': uuid.UUID}],
+                }
+            ],
         )
 
         await self.con.execute('''\
@@ -9236,9 +9398,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                     }
                 };
             ''',
-            [{
-                'l': [],
-            }],
+            [
+                {
+                    'l': [],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_link_computable_02(self):
@@ -9251,7 +9415,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
             r"including a shape on schema-defined computed links "
-            r"is not yet supported"
+            r"is not yet supported",
         ):
             await self.con.execute("""
                 CREATE TYPE X { CREATE LINK x := LinkTarget { z := 1 } };
@@ -9295,7 +9459,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestAttrType1';
             ''',
-            [{"annotations": [{"name": "default::attr1", "@value": "aaaa"}]}]
+            [{"annotations": [{"name": "default::attr1", "@value": "aaaa"}]}],
         )
 
         await self.migrate("""
@@ -9318,7 +9482,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestAttrType1';
             ''',
-            [{"annotations": [{"name": "default::attr2", "@value": "aaaa"}]}]
+            [{"annotations": [{"name": "default::attr2", "@value": "aaaa"}]}],
         )
 
     async def test_edgeql_ddl_annotation_02(self):
@@ -9350,7 +9514,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestAttrType2';
             ''',
-            [{"annotations": [{"name": "default::attr2", "@value": "aaaa"}]}]
+            [{"annotations": [{"name": "default::attr2", "@value": "aaaa"}]}],
         )
 
     async def test_edgeql_ddl_annotation_03(self):
@@ -9383,22 +9547,30 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 ORDER BY
                     .name;
             ''',
-            [{
-                "annotations": [{
-                    "name": "default::inh",
-                    "inheritable": True,
-                    "@value": "inherit me",
-                }, {
-                    "name": "default::noninh",
-                    "@value": "no inherit",
-                }]
-            }, {
-                "annotations": [{
-                    "name": "default::inh",
-                    "inheritable": True,
-                    "@value": "inherit me",
-                }]
-            }]
+            [
+                {
+                    "annotations": [
+                        {
+                            "name": "default::inh",
+                            "inheritable": True,
+                            "@value": "inherit me",
+                        },
+                        {
+                            "name": "default::noninh",
+                            "@value": "no inherit",
+                        },
+                    ]
+                },
+                {
+                    "annotations": [
+                        {
+                            "name": "default::inh",
+                            "inheritable": True,
+                            "@value": "inherit me",
+                        }
+                    ]
+                },
+            ],
         )
 
     async def test_edgeql_ddl_annotation_04(self):
@@ -9430,13 +9602,17 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 ORDER BY
                     .name;
             ''',
-            [{
-                "annotations": [{
-                    "name": "default::inh_anno",
-                    "inheritable": True,
-                    "@value": "2",
-                }]
-            }]
+            [
+                {
+                    "annotations": [
+                        {
+                            "name": "default::inh_anno",
+                            "inheritable": True,
+                            "@value": "2",
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_annotation_05(self):
@@ -9464,15 +9640,21 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno05';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "name index",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "indexes": [
+                        {
+                            "expr": ".name",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "name index",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_annotation_06(self):
@@ -9506,15 +9688,21 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno06';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "name index",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "indexes": [
+                        {
+                            "expr": ".name",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "name index",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
         await self.con.execute(r'''
@@ -9540,12 +9728,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno06';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": []
-                }]
-            }]
+            [{"indexes": [{"expr": ".name", "annotations": []}]}],
         )
 
     async def test_edgeql_ddl_annotation_07(self):
@@ -9574,15 +9757,21 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno07';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "name index",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "indexes": [
+                        {
+                            "expr": ".name",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "name index",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
         await self.migrate(r'''
@@ -9607,12 +9796,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno07';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": []
-                }]
-            }]
+            [{"indexes": [{"expr": ".name", "annotations": []}]}],
         )
 
     async def test_edgeql_ddl_annotation_08(self):
@@ -9639,12 +9823,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno08';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": []
-                }]
-            }]
+            [{"indexes": [{"expr": ".name", "annotations": []}]}],
         )
 
         await self.migrate(r'''
@@ -9672,21 +9851,27 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::BaseAnno08';
             ''',
-            [{
-                "indexes": [{
-                    "expr": ".name",
-                    "annotations": tb.bag([
+            [
+                {
+                    "indexes": [
                         {
-                            "name": "std::title",
-                            "@value": "name index",
-                        },
-                        {
-                            "name": "std::lang::py::type",
-                            "@value": "asdf",
-                        },
-                    ])
-                }]
-            }]
+                            "expr": ".name",
+                            "annotations": tb.bag(
+                                [
+                                    {
+                                        "name": "std::title",
+                                        "@value": "name index",
+                                    },
+                                    {
+                                        "name": "std::lang::py::type",
+                                        "@value": "asdf",
+                                    },
+                                ]
+                            ),
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_annotation_09(self):
@@ -9710,7 +9895,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestTypeAnno09';
             ''',
-            [{"annotations": [{"name": "default::anno09", "@value": "A"}]}]
+            [{"annotations": [{"name": "default::anno09", "@value": "A"}]}],
         )
 
         # Alter the annotation.
@@ -9732,7 +9917,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestTypeAnno09';
             ''',
-            [{"annotations": [{"name": "default::anno09", "@value": "B"}]}]
+            [{"annotations": [{"name": "default::anno09", "@value": "B"}]}],
         )
 
     async def test_edgeql_ddl_annotation_10(self):
@@ -9783,7 +9968,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                         {"name": "default::anno10_inh", "@value": "A"},
                     ]
                 },
-            ]
+            ],
         )
 
         # Drop the non-inherited annotation from subtype.
@@ -9805,7 +9990,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name = 'default::TestSubTypeAnno10';
             ''',
-            [{"annotations": [{"name": "default::anno10_inh", "@value": "B"}]}]
+            [{"annotations": [{"name": "default::anno10_inh", "@value": "B"}]}],
         )
 
         with self.assertRaisesRegex(
@@ -9832,7 +10017,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name LIKE 'default::anno11%';
             ''',
-            [{"name": "default::anno11"}]
+            [{"name": "default::anno11"}],
         )
 
         await self.con.execute("""
@@ -9849,7 +10034,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name LIKE 'default::anno11%';
             ''',
-            [{"name": "default::anno11_new_name"}]
+            [{"name": "default::anno11_new_name"}],
         )
 
         await self.con.execute("""
@@ -9868,7 +10053,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name LIKE 'foo::anno11%';
             ''',
-            [{"name": "foo::anno11_new_name"}]
+            [{"name": "foo::anno11_new_name"}],
         )
 
         await self.con.execute("""
@@ -9884,7 +10069,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
                 FILTER
                     .name LIKE 'foo::anno11%';
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_annotation_12(self):
@@ -9924,12 +10109,14 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
         await self.assert_query_result(
             "DESCRIBE MODULE default as sdl",
-            ["""
+            [
+                """
 abstract annotation default::anno_new_name;
 type default::Foo {
     annotation default::anno_new_name := 'test';
 };
-            """.strip()]
+            """.strip()
+            ],
         )
 
         await self.con.execute("""
@@ -9969,19 +10156,25 @@ type default::Foo {
             [
                 {
                     "annotations": [
-                        {"@value": "child", "@owned": True,
-                         "name": "default::anno"}
+                        {
+                            "@value": "child",
+                            "@owned": True,
+                            "name": "default::anno",
+                        }
                     ],
-                    "obj": "default::Bar"
+                    "obj": "default::Bar",
                 },
                 {
                     "annotations": [
-                        {"@value": "parent", "@owned": True,
-                         "name": "default::anno"}
+                        {
+                            "@value": "parent",
+                            "@owned": True,
+                            "name": "default::anno",
+                        }
                     ],
-                    "obj": "default::Foo"
-                }
-            ]
+                    "obj": "default::Foo",
+                },
+            ],
         )
 
         await self.con.execute("""
@@ -9997,19 +10190,25 @@ type default::Foo {
             [
                 {
                     "annotations": [
-                        {"@value": "parent", "@owned": False,
-                         "name": "default::anno"}
+                        {
+                            "@value": "parent",
+                            "@owned": False,
+                            "name": "default::anno",
+                        }
                     ],
-                    "obj": "default::Bar"
+                    "obj": "default::Bar",
                 },
                 {
                     "annotations": [
-                        {"@value": "parent", "@owned": True,
-                         "name": "default::anno"}
+                        {
+                            "@value": "parent",
+                            "@owned": True,
+                            "name": "default::anno",
+                        }
                     ],
-                    "obj": "default::Foo"
-                }
-            ]
+                    "obj": "default::Foo",
+                },
+            ],
         )
 
     async def test_edgeql_ddl_annotation_16(self):
@@ -10017,9 +10216,10 @@ type default::Foo {
             CREATE ABSTRACT ANNOTATION attr1;
         """)
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"annotation values must be 'std::str', "
-                r"got scalar type 'std::int64'"):
+            edgedb.InvalidValueError,
+            r"annotation values must be 'std::str', "
+            r"got scalar type 'std::int64'",
+        ):
             await self.con.execute("""
                 CREATE SCALAR TYPE TestAttrType1 EXTENDING std::str {
                     CREATE ANNOTATION attr1 := 10;
@@ -10034,9 +10234,10 @@ type default::Foo {
             };
         """)
         with self.assertRaisesRegex(
-                edgedb.InvalidValueError,
-                r"annotation values must be 'std::str', "
-                r"got scalar type 'std::int64'"):
+            edgedb.InvalidValueError,
+            r"annotation values must be 'std::str', "
+            r"got scalar type 'std::int64'",
+        ):
             await self.con.execute("""
                 ALTER SCALAR TYPE TestAttrType1 {
                     ALTER ANNOTATION attr1 := 10;
@@ -10061,7 +10262,7 @@ type default::Foo {
 
         await self.assert_query_result(
             qry,
-            [{"annotations": [{"@value": "foo", "name": "std::description"}]}]
+            [{"annotations": [{"@value": "foo", "name": "std::description"}]}],
         )
 
         await self.con.execute("""
@@ -10072,7 +10273,7 @@ type default::Foo {
 
         await self.assert_query_result(
             qry,
-            [{"annotations": [{"@value": "bar", "name": "std::description"}]}]
+            [{"annotations": [{"@value": "bar", "name": "std::description"}]}],
         )
 
         await self.con.execute("""
@@ -10081,16 +10282,12 @@ type default::Foo {
             };
         """)
 
-        await self.assert_query_result(
-            qry,
-            [{"annotations": []}]
-        )
+        await self.assert_query_result(qry, [{"annotations": []}])
 
     async def test_edgeql_ddl_anytype_01(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid property type"):
-
+            edgedb.InvalidPropertyTargetError, r"invalid property type"
+        ):
             await self.con.execute("""
                 CREATE ABSTRACT LINK test_object_link_prop {
                     CREATE PROPERTY link_prop1 -> anytype;
@@ -10099,9 +10296,8 @@ type default::Foo {
 
     async def test_edgeql_ddl_anytype_02(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidLinkTargetError,
-                r"invalid link target"):
-
+            edgedb.InvalidLinkTargetError, r"invalid link target"
+        ):
             await self.con.execute("""
                 CREATE TYPE AnyObject2 {
                     CREATE LINK a -> anytype;
@@ -10110,9 +10306,8 @@ type default::Foo {
 
     async def test_edgeql_ddl_anytype_03(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid property type"):
-
+            edgedb.InvalidPropertyTargetError, r"invalid property type"
+        ):
             await self.con.execute("""
                 CREATE TYPE AnyObject3 {
                     CREATE PROPERTY a -> anytype;
@@ -10121,9 +10316,8 @@ type default::Foo {
 
     async def test_edgeql_ddl_anytype_04(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid property type"):
-
+            edgedb.InvalidPropertyTargetError, r"invalid property type"
+        ):
             await self.con.execute("""
                 CREATE TYPE AnyObject4 {
                     CREATE PROPERTY a -> anyscalar;
@@ -10132,9 +10326,8 @@ type default::Foo {
 
     async def test_edgeql_ddl_anytype_05(self):
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                r"invalid property type"):
-
+            edgedb.InvalidPropertyTargetError, r"invalid property type"
+        ):
             await self.con.execute("""
                 CREATE TYPE AnyObject5 {
                     CREATE PROPERTY a -> anyint;
@@ -10143,9 +10336,8 @@ type default::Foo {
 
     async def test_edgeql_ddl_anytype_06(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"'anytype' cannot be a parent type"):
-
+            edgedb.SchemaError, r"'anytype' cannot be a parent type"
+        ):
             await self.con.execute("""
                 CREATE TYPE AnyObject6 EXTENDING anytype {
                     CREATE REQUIRED LINK a -> AnyObject6;
@@ -10155,10 +10347,10 @@ type default::Foo {
 
     async def test_edgeql_ddl_extending_01(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"could not find consistent ancestor order for "
-                r"object type 'default::Merged1'"):
-
+            edgedb.SchemaError,
+            r"could not find consistent ancestor order for "
+            r"object type 'default::Merged1'",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE ExtA1;
                 CREATE TYPE ExtB1;
@@ -10171,9 +10363,10 @@ type default::Foo {
 
     async def test_edgeql_ddl_extending_02(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"could not find consistent ancestor order for "
-                r"object type 'default::ExtD2'"):
+            edgedb.SchemaError,
+            r"could not find consistent ancestor order for "
+            r"object type 'default::ExtD2'",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE ExtA2;
                 CREATE TYPE ExtC2 EXTENDING ExtA2, Object;
@@ -10199,17 +10392,24 @@ type default::Foo {
                 }
                 FILTER .name = 'default::ExtC3'
             """,
-            [{
-                'ancestors': [{
-                    'name': 'default::ExtB3',
-                }, {
-                    'name': 'default::ExtA3',
-                }, {
-                    'name': 'std::Object',
-                }, {
-                    'name': 'std::BaseObject',
-                }],
-            }]
+            [
+                {
+                    'ancestors': [
+                        {
+                            'name': 'default::ExtB3',
+                        },
+                        {
+                            'name': 'default::ExtA3',
+                        },
+                        {
+                            'name': 'std::Object',
+                        },
+                        {
+                            'name': 'std::BaseObject',
+                        },
+                    ],
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -10225,15 +10425,21 @@ type default::Foo {
                 }
                 FILTER .name = 'default::ExtC3'
             """,
-            [{
-                'ancestors': [{
-                    'name': 'default::ExtB3',
-                }, {
-                    'name': 'std::Object',
-                }, {
-                    'name': 'std::BaseObject',
-                }],
-            }]
+            [
+                {
+                    'ancestors': [
+                        {
+                            'name': 'default::ExtB3',
+                        },
+                        {
+                            'name': 'std::Object',
+                        },
+                        {
+                            'name': 'std::BaseObject',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_extending_04(self):
@@ -10266,7 +10472,7 @@ type default::Foo {
                     FILTER .name = 'default::Ext4Child'
                 ).properties.name;
             """,
-            {'id', 'a'}
+            {'id', 'a'},
         )
 
         await self.con.execute(r"""
@@ -10281,7 +10487,7 @@ type default::Foo {
                         FILTER .name = 'default::{name}'
                     ).properties.name;
                 """,
-                {'id', 'a', 'b'}
+                {'id', 'a', 'b'},
             )
 
         await self.assert_query_result(
@@ -10295,7 +10501,7 @@ type default::Foo {
                     (SELECT ggc.properties FILTER .name = 'a')
                         .annotations@value;
             """,
-            {'anno'}
+            {'anno'},
         )
 
         await self.con.execute(r"""
@@ -10310,7 +10516,7 @@ type default::Foo {
                         FILTER .name = 'default::{name}'
                     ).properties.name;
                 """,
-                {'id', 'a'}
+                {'id', 'a'},
             )
 
         await self.assert_query_result(
@@ -10324,7 +10530,7 @@ type default::Foo {
                     (SELECT ggc.properties FILTER .name = 'a')
                         .annotations@value;
             """,
-            []
+            [],
         )
 
     @test.xfail('''
@@ -10361,7 +10567,7 @@ type default::Foo {
                     (SELECT C5.properties FILTER .name = 'a')
                         .default;
             """,
-            {'2'}
+            {'2'},
         )
 
         await self.con.execute(r"""
@@ -10379,7 +10585,7 @@ type default::Foo {
                     (SELECT C5.properties FILTER .name = 'a')
                         .default;
             """,
-            {'1'}
+            {'1'},
         )
 
         await self.con.execute(r"""
@@ -10397,7 +10603,7 @@ type default::Foo {
                     (SELECT C5.properties FILTER .name = 'a')
                         .default;
             """,
-            {'2'}
+            {'2'},
         )
 
         await self.con.execute(r"""
@@ -10416,7 +10622,7 @@ type default::Foo {
                     (SELECT C5.properties FILTER .name = 'a')
                         .default;
             """,
-            []
+            [],
         )
 
     async def test_edgeql_ddl_extending_06(self):
@@ -10443,8 +10649,8 @@ type default::Foo {
             create type B extending A;
         """)
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                r"could not find consistent ancestor order"):
+            edgedb.SchemaError, r"could not find consistent ancestor order"
+        ):
             await self.con.execute(r"""
                 create type C extending A, B;
             """)
@@ -10507,8 +10713,11 @@ type default::Foo {
                 SELECT Named.name;
             """,
             {
-                'one', 'two', 'open', 'closed',
-            }
+                'one',
+                'two',
+                'open',
+                'closed',
+            },
         )
 
         await self.assert_query_result(
@@ -10517,8 +10726,9 @@ type default::Foo {
                 SELECT UniquelyNamed.name;
             """,
             {
-                'open', 'closed',
-            }
+                'open',
+                'closed',
+            },
         )
 
         await self.con.execute("""
@@ -10555,9 +10765,12 @@ type default::Foo {
 
         try:
             async with self.con.transaction():
-                await self.migrate(r"""
+                await self.migrate(
+                    r"""
                     type Status extending test_other::UniquelyNamed;
-                """, module=None)
+                """,
+                    module=None,
+                )
 
             await self.con.execute("""
                 DROP TYPE Status;
@@ -10635,13 +10848,13 @@ type default::Foo {
                 FILTER .name LIKE 'foo_%'
                 ORDER BY .name
             """,
-            [{
-                'name': 'foo_01',
-                'script': (
-                    "CREATE MODULE foo_ext;;"
-                ),
-                'ver': [1, 0],
-            }]
+            [
+                {
+                    'name': 'foo_01',
+                    'script': ("CREATE MODULE foo_ext;;"),
+                    'ver': [1, 0],
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -10660,19 +10873,18 @@ type default::Foo {
                 FILTER .name LIKE 'foo_%'
                 ORDER BY .name THEN .version
             """,
-            [{
-                'name': 'foo_01',
-                'script': (
-                    "CREATE MODULE foo_ext;;"
-                ),
-                'ver': [1, 0, 'final'],
-            }, {
-                'name': 'foo_01',
-                'script': (
-                    "SELECT 1/0;"
-                ),
-                'ver': [2, 0, 'beta'],
-            }]
+            [
+                {
+                    'name': 'foo_01',
+                    'script': ("CREATE MODULE foo_ext;;"),
+                    'ver': [1, 0, 'final'],
+                },
+                {
+                    'name': 'foo_01',
+                    'script': ("SELECT 1/0;"),
+                    'ver': [2, 0, 'beta'],
+                },
+            ],
         )
 
         await self.con.execute(r"""
@@ -10688,12 +10900,12 @@ type default::Foo {
                 FILTER .name LIKE 'foo_%'
                 ORDER BY .name
             """,
-            [{
-                'name': 'foo_01',
-                'script': (
-                    "SELECT 1/0;"
-                ),
-            }]
+            [
+                {
+                    'name': 'foo_01',
+                    'script': ("SELECT 1/0;"),
+                }
+            ],
         )
 
     async def test_edgeql_ddl_extension_01(self):
@@ -10717,12 +10929,14 @@ type default::Foo {
                 }
                 FILTER .name = 'MyExtension'
             """,
-            [{
-                'name': 'MyExtension',
-                'package': {
-                    'ver': [2, 0],
+            [
+                {
+                    'name': 'MyExtension',
+                    'package': {
+                        'ver': [2, 0],
+                    },
                 }
-            }]
+            ],
         )
 
         await self.con.execute(r"""
@@ -10756,12 +10970,14 @@ type default::Foo {
                 }
                 FILTER .name = 'MyExtension'
             """,
-            [{
-                'name': 'MyExtension',
-                'package': {
-                    'ver': [1, 0],
+            [
+                {
+                    'name': 'MyExtension',
+                    'package': {
+                        'ver': [1, 0],
+                    },
                 }
-            }]
+            ],
         )
 
         async with self.assertRaisesRegexTx(
@@ -10847,11 +11063,13 @@ type default::Foo {
                     password,
                 } FILTER .name = 'foo_01'
             """,
-            [{
-                'name': 'foo_01',
-                'superuser': False,
-                'password': None,
-            }]
+            [
+                {
+                    'name': 'foo_01',
+                    'superuser': False,
+                    'password': None,
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_02(self):
@@ -10871,10 +11089,12 @@ type default::Foo {
                     superuser,
                 } FILTER .name = 'foo2'
             """,
-            [{
-                'name': 'foo2',
-                'superuser': True,
-            }]
+            [
+                {
+                    'name': 'foo2',
+                    'superuser': True,
+                }
+            ],
         )
 
         role = await self.con.query_single('''
@@ -10922,14 +11142,14 @@ type default::Foo {
                     },
                 } FILTER .name = 'foo4'
             """,
-            [{
-                'name': 'foo4',
-                'superuser': False,
-                'password': None,
-                'member_of': [{
-                    'name': 'foo3'
-                }]
-            }]
+            [
+                {
+                    'name': 'foo4',
+                    'superuser': False,
+                    'password': None,
+                    'member_of': [{'name': 'foo3'}],
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -10945,10 +11165,12 @@ type default::Foo {
                     },
                 } FILTER .name = 'foo4'
             """,
-            [{
-                'name': 'foo4',
-                'member_of': [],
-            }]
+            [
+                {
+                    'name': 'foo4',
+                    'member_of': [],
+                }
+            ],
         )
 
         await self.con.execute(r"""
@@ -10964,12 +11186,16 @@ type default::Foo {
                     },
                 } FILTER .name = 'foo4'
             """,
-            [{
-                'name': 'foo4',
-                'member_of': [{
-                    'name': 'foo3',
-                }],
-            }]
+            [
+                {
+                    'name': 'foo4',
+                    'member_of': [
+                        {
+                            'name': 'foo3',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_04(self):
@@ -11002,14 +11228,14 @@ type default::Foo {
                     },
                 } FILTER .name = 'foo6'
             """,
-            [{
-                'name': 'foo6',
-                'superuser': False,
-                'password': None,
-                'member_of': [{
-                    'name': 'foo5'
-                }]
-            }]
+            [
+                {
+                    'name': 'foo6',
+                    'superuser': False,
+                    'password': None,
+                    'member_of': [{'name': 'foo5'}],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_05(self):
@@ -11056,10 +11282,12 @@ type default::Foo {
                     permissions,
                 } FILTER .name = 'foo_06'
             """,
-            [{
-                'name': 'foo_06',
-                'permissions': [],
-            }]
+            [
+                {
+                    'name': 'foo_06',
+                    'permissions': [],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_07(self):
@@ -11079,10 +11307,12 @@ type default::Foo {
                     permissions,
                 } FILTER .name = 'foo_07'
             """,
-            [{
-                'name': 'foo_07',
-                'permissions': ['default::foo'],
-            }]
+            [
+                {
+                    'name': 'foo_07',
+                    'permissions': ['default::foo'],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_08(self):
@@ -11104,15 +11334,17 @@ type default::Foo {
                     permissions,
                 } FILTER .name = 'foo_08'
             """,
-            [{
-                'name': 'foo_08',
-                # permissions get alphabetically sorted
-                'permissions': [
-                    'custom::bar',
-                    'default::foo',
-                    'sys::perm::data_modification',
-                ],
-            }]
+            [
+                {
+                    'name': 'foo_08',
+                    # permissions get alphabetically sorted
+                    'permissions': [
+                        'custom::bar',
+                        'default::foo',
+                        'sys::perm::data_modification',
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_09(self):
@@ -11135,10 +11367,12 @@ type default::Foo {
                     permissions,
                 } FILTER .name = 'foo_09'
             """,
-            [{
-                'name': 'foo_09',
-                'permissions': ['default::foo'],
-            }]
+            [
+                {
+                    'name': 'foo_09',
+                    'permissions': ['default::foo'],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_10(self):
@@ -11163,15 +11397,17 @@ type default::Foo {
                     permissions,
                 } FILTER .name = 'foo_10'
             """,
-            [{
-                'name': 'foo_10',
-                # permissions get alphabetically sorted
-                'permissions': [
-                    'custom::bar',
-                    'default::foo',
-                    'sys::perm::data_modification',
-                ],
-            }]
+            [
+                {
+                    'name': 'foo_10',
+                    # permissions get alphabetically sorted
+                    'permissions': [
+                        'custom::bar',
+                        'default::foo',
+                        'sys::perm::data_modification',
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_role_11(self):
@@ -11308,74 +11544,92 @@ type default::Foo {
                 {
                     'name': 'perm_inh_01_a',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_b',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_c',
                     'permissions': ['custom::bar', 'custom::baz'],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                        'custom::baz',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                            'custom::baz',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_d',
                     'permissions': [],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_e',
                     'permissions': [],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_f',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_g',
                     'permissions': [],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                        'custom::baz',
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                            'custom::baz',
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_h',
                     'permissions': ['sys::perm::data_modification'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                        'sys::perm::data_modification',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                            'sys::perm::data_modification',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_01_i',
                     'permissions': [],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                        'custom::baz',
-                        'default::foo',
-                        'sys::perm::data_modification',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                            'custom::baz',
+                            'default::foo',
+                            'sys::perm::data_modification',
+                        ]
+                    ),
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_role_permission_inheritance_02(self):
@@ -11411,24 +11665,30 @@ type default::Foo {
                 {
                     'name': 'perm_inh_02_a',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_b',
                     'permissions': ['custom::bar'],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_c',
                     'permissions': ['custom::baz'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                        'custom::baz',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                            'custom::baz',
+                        ]
+                    ),
                 },
             ],
         )
@@ -11444,23 +11704,29 @@ type default::Foo {
                 {
                     'name': 'perm_inh_02_a',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_b',
                     'permissions': ['custom::bar'],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_c',
                     'permissions': ['custom::baz'],
-                    'all_permissions': tb.bag([
-                        'custom::baz',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::baz',
+                        ]
+                    ),
                 },
             ],
         )
@@ -11476,24 +11742,30 @@ type default::Foo {
                 {
                     'name': 'perm_inh_02_a',
                     'permissions': ['default::foo'],
-                    'all_permissions': tb.bag([
-                        'default::foo',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'default::foo',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_b',
                     'permissions': ['custom::bar'],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                        ]
+                    ),
                 },
                 {
                     'name': 'perm_inh_02_c',
                     'permissions': ['custom::baz'],
-                    'all_permissions': tb.bag([
-                        'custom::bar',
-                        'custom::baz',
-                    ]),
+                    'all_permissions': tb.bag(
+                        [
+                            'custom::bar',
+                            'custom::baz',
+                        ]
+                    ),
                 },
             ],
         )
@@ -11537,47 +11809,41 @@ type default::Foo {
 
         base1 = _look_for(r"CREATE SUPERUSER ROLE `base1`;")
         base2 = _look_for(r"CREATE SUPERUSER ROLE `base 2`;")
-        child1 = _look_for(
-            r"CREATE SUPERUSER ROLE `child1` EXTENDING `base1`;"
-        )
+        child1 = _look_for(r"CREATE SUPERUSER ROLE `child1` EXTENDING `base1`;")
         child2 = _look_for(
             r"CREATE SUPERUSER ROLE `child2` EXTENDING `base 2`;"
         )
         child3 = _look_for(
             r"CREATE SUPERUSER ROLE `child3` EXTENDING `base1`, `child2` { "
-                r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
+            r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
             r"};"
         )
-        subuser1 = _look_for(
-            r"CREATE ROLE `subuser1`;"
-        )
+        subuser1 = _look_for(r"CREATE ROLE `subuser1`;")
         subuser2 = _look_for(
             r"CREATE ROLE `subuser2` EXTENDING `subuser1` { "
-                r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
+            r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
             r"};"
         )
         subuser3 = _look_for(
             r"CREATE ROLE `subuser3` EXTENDING `subuser1` { "
-                r"SET permissions := { default::foo }; "
+            r"SET permissions := { default::foo }; "
             r"};"
         )
         subuser4 = _look_for(
             r"CREATE ROLE `subuser4` EXTENDING `subuser1` { "
-                r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
-                # permissions get alphabetically sorted
-                r"SET permissions := { "
-                    r"custom::bar, "
-                    r"default::foo, "
-                    r"sys::perm::data_modification "
-                r"}; "
+            r"SET password_hash := 'SCRAM-SHA-256\$4096:.{114}'; "
+            # permissions get alphabetically sorted
+            r"SET permissions := { "
+            r"custom::bar, "
+            r"default::foo, "
+            r"sys::perm::data_modification "
+            r"}; "
             r"};"
         )
-        subuser5 = _look_for(
-            r"CREATE ROLE `subuser5` EXTENDING `subuser3`;"
-        )
+        subuser5 = _look_for(r"CREATE ROLE `subuser5` EXTENDING `subuser3`;")
         subuser6 = _look_for(
             r"CREATE ROLE `subuser6` EXTENDING `subuser3` { "
-                r"SET permissions := { custom::bar }; "
+            r"SET permissions := { custom::bar }; "
             r"};"
         )
         self.assertGreater(child1, base1, roles)
@@ -11602,10 +11868,10 @@ type default::Foo {
         result_stripped = re_filter.sub('', result).lower()
 
         for expected in [
-                '''
+            '''
                 CREATE SCALAR TYPE std::float32 EXTENDING std::anyfloat;
                 ''',
-                '''
+            '''
                 CREATE FUNCTION
                 std::str_lower(s: std::str) -> std::str
                 {
@@ -11615,7 +11881,7 @@ type default::Foo {
                     USING SQL FUNCTION 'lower';
                 };
                 ''',
-                '''
+            '''
                 CREATE INFIX OPERATOR
                 std::`AND`(a: std::bool, b: std::bool) -> std::bool {
                     SET volatility := 'Immutable';
@@ -11624,27 +11890,28 @@ type default::Foo {
                     USING SQL EXPRESSION;
                 };
                 ''',
-                '''
+            '''
                 CREATE ABSTRACT INFIX OPERATOR
                 std::`>=`(l: anytype, r: anytype) -> std::bool;
                 ''',
-                '''
+            '''
                 CREATE CAST FROM std::str TO std::bool {
                     SET volatility := 'Immutable';
                     USING SQL FUNCTION 'edgedb.str_to_bool';
                 };
                 ''',
-                '''
+            '''
                 CREATE CAST FROM std::int64 TO std::int16 {
                     SET volatility := 'Immutable';
                     USING SQL CAST;
                     ALLOW ASSIGNMENT;
                 };
-                ''']:
+                ''',
+        ]:
             expected_stripped = re_filter.sub('', expected).lower()
             self.assertTrue(
                 expected_stripped in result_stripped,
-                f'`DESCRIBE MODULE std` is missing the following: "{expected}"'
+                f'`DESCRIBE MODULE std` is missing the following: "{expected}"',
             )
 
     async def test_edgeql_ddl_rename_01(self):
@@ -11664,7 +11931,7 @@ type default::Foo {
             r'''
                 SELECT NewNameObj01.name;
             ''',
-            ['rename 01']
+            ['rename 01'],
         )
 
     async def test_edgeql_ddl_rename_02(self):
@@ -11686,7 +11953,7 @@ type default::Foo {
             r'''
                 SELECT RenameObj02.new_name_02;
             ''',
-            ['rename 02']
+            ['rename 02'],
         )
 
     async def test_edgeql_ddl_rename_03(self):
@@ -11711,7 +11978,7 @@ type default::Foo {
             r'''
                 SELECT RenameObj03.new_name_03;
             ''',
-            ['rename 03']
+            ['rename 03'],
         )
 
     async def test_edgeql_ddl_rename_04(self):
@@ -11742,7 +12009,7 @@ type default::Foo {
             r'''
                 SELECT RenameObj04.rename_link_04@new_prop_04;
             ''',
-            [123]
+            [123],
         )
 
     async def test_edgeql_ddl_rename_05(self):
@@ -11765,13 +12032,14 @@ type default::Foo {
             r'''
                 SELECT Child.renamed;
             ''',
-            []
+            [],
         )
 
     async def test_edgeql_ddl_rename_06(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot rename inherited property 'foo'"):
+            edgedb.SchemaDefinitionError,
+            "cannot rename inherited property 'foo'",
+        ):
             await self.con.execute("""
                 CREATE TYPE Parent01 {
                     CREATE PROPERTY foo -> int64;
@@ -11829,7 +12097,7 @@ type default::Foo {
             r'''
                 SELECT RenameObj.link@prop;
             ''',
-            [123]
+            [123],
         )
 
         # Check we can create a new type that uses it
@@ -11957,11 +12225,13 @@ type default::Foo {
                     }
                 }
             ''',
-            [{
-                'user2': {
-                    'name2': 'Corvo!',
-                },
-            }],
+            [
+                {
+                    'user2': {
+                        'name2': 'Corvo!',
+                    },
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -11972,11 +12242,13 @@ type default::Foo {
                     }
                 }
             ''',
-            [{
-                'user2': {
-                    'name2': 'Corvo!',
-                },
-            }],
+            [
+                {
+                    'user2': {
+                        'name2': 'Corvo!',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_ddl_alias_02(self):
@@ -12009,11 +12281,13 @@ type default::Foo {
                     }
                 }
             ''',
-            [{
-                'a_user': {
-                    'name': 'Corvo',
-                },
-            }],
+            [
+                {
+                    'a_user': {
+                        'name': 'Corvo',
+                    },
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -12024,11 +12298,13 @@ type default::Foo {
                     }
                 }
             ''',
-            [{
-                'a_user': {
-                    'name': 'Corvo',
-                },
-            }],
+            [
+                {
+                    'a_user': {
+                        'name': 'Corvo',
+                    },
+                }
+            ],
         )
 
     async def test_edgeql_ddl_alias_03(self):
@@ -12048,7 +12324,7 @@ type default::Foo {
             r'''
                 SELECT NewAlias03.alias_computable LIMIT 1;
             ''',
-            ['rename alias 03']
+            ['rename alias 03'],
         )
 
         await self.con.execute(r"""
@@ -12063,7 +12339,7 @@ type default::Foo {
             r'''
                 SELECT foo::NewAlias03.alias_computable LIMIT 1;
             ''',
-            ['rename alias 03']
+            ['rename alias 03'],
         )
 
         await self.con.execute(r"""
@@ -12086,14 +12362,14 @@ type default::Foo {
             r'''
                 SELECT DupAlias04_1.foo LIMIT 1;
             ''',
-            ['hello world 04']
+            ['hello world 04'],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT DupAlias04_2.foo LIMIT 1;
             ''',
-            ['hello world 04']
+            ['hello world 04'],
         )
 
     async def test_edgeql_ddl_alias_05(self):
@@ -12119,21 +12395,25 @@ type default::Foo {
             r'''
                 SELECT BT05Alias1 {name, a};
             ''',
-            [{
-                'name': 'bt05',
-                'a': 'bt05_more',
-            }]
+            [
+                {
+                    'name': 'bt05',
+                    'a': 'bt05_more',
+                }
+            ],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT BT05Alias2 {name, a, b};
             ''',
-            [{
-                'name': 'bt05',
-                'a': 'bt05_more',
-                'b': 'bt05_more_stuff',
-            }]
+            [
+                {
+                    'name': 'bt05',
+                    'a': 'bt05_more',
+                    'b': 'bt05_more_stuff',
+                }
+            ],
         )
 
     async def test_edgeql_ddl_alias_06(self):
@@ -12169,21 +12449,25 @@ type default::Foo {
             r'''
                 SELECT BT06Alias1 {name, a} FILTER .name = 'bt06';
             ''',
-            [{
-                'name': 'bt06',
-                'a': 'bt06_a',
-            }],
+            [
+                {
+                    'name': 'bt06',
+                    'a': 'bt06_a',
+                }
+            ],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT BT06Alias2 {name, a, b} FILTER .name = 'bt06';
             ''',
-            [{
-                'name': 'bt06',
-                'a': 'bt06_a',
-                'b': 'bt06_a_b',
-            }],
+            [
+                {
+                    'name': 'bt06',
+                    'a': 'bt06_a',
+                    'b': 'bt06_a_b',
+                }
+            ],
         )
 
         await self.assert_query_result(
@@ -12194,25 +12478,29 @@ type default::Foo {
                 }
                 FILTER .name = 'bt06';
             ''',
-            [{
-                'name': 'bt06',
-                'b': [{
+            [
+                {
                     'name': 'bt06',
-                    'a': 'bt06_a',
-                }, {
-                    'name': 'bt06_1',
-                    'a': 'bt06_1_a',
-                }],
-            }],
+                    'b': [
+                        {
+                            'name': 'bt06',
+                            'a': 'bt06_a',
+                        },
+                        {
+                            'name': 'bt06_1',
+                            'a': 'bt06_1_a',
+                        },
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_alias_07(self):
         # Issue #1187
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "illegal self-reference in definition of "
-                "'default::IllegalAlias07'"):
-
+            edgedb.SchemaDefinitionError,
+            "illegal self-reference in definition of 'default::IllegalAlias07'",
+        ):
             await self.con.execute(r"""
                 CREATE ALIAS IllegalAlias07 := Object {a := IllegalAlias07};
             """)
@@ -12250,21 +12538,25 @@ type default::Foo {
             r'''
                 SELECT BT08Alias1 {name, a} FILTER .name = 'bt08';
             ''',
-            [{
-                'name': 'bt08',
-                'a': 'bt08_a',
-            }],
+            [
+                {
+                    'name': 'bt08',
+                    'a': 'bt08_a',
+                }
+            ],
         )
 
         await self.assert_query_result(
             r'''
                 SELECT BT08Alias2 {name, a, b} FILTER .name = 'bt08';
             ''',
-            [{
-                'name': 'bt08',
-                'a': 'bt08_a',
-                'b': 'bt08_a_bb',
-            }],
+            [
+                {
+                    'name': 'bt08',
+                    'a': 'bt08_a',
+                    'b': 'bt08_a_bb',
+                }
+            ],
         )
 
     async def test_edgeql_ddl_alias_09(self):
@@ -12357,7 +12649,7 @@ type default::Foo {
             r'''
                 select ArrAlias = [range(0, 1)];
             ''',
-            [True]
+            [True],
         )
 
     async def test_edgeql_ddl_alias_14(self):
@@ -12389,7 +12681,7 @@ type default::Foo {
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
             "cannot alter alias 'default::MyAlias' because this affects "
-            "expression of index of object type 'default::Foo'"
+            "expression of index of object type 'default::Foo'",
         ):
             await self.con.execute(
                 r"""
@@ -12417,7 +12709,7 @@ type default::Foo {
                     order by .name
                 ''',
                 expected_types,
-                variables={'existing_types': existing_types}
+                variables={'existing_types': existing_types},
             )
 
     async def test_edgeql_ddl_alias_type_changes_01(self):
@@ -12425,168 +12717,182 @@ type default::Foo {
         # Delete alias
 
         # int64
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := 1',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ScalarType',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := 1',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ScalarType',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_02(self):
         # Create alias
         # Delete alias
 
         # array<int64>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := [1]',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := [1]',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_03(self):
         # Create alias
         # Delete alias
 
         # tuple<int64>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_04(self):
         # Create alias
         # Delete alias
 
         # tuple<f:int64>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := (f := 1)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<f:std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := (f := 1)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<f:std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_05(self):
         # Create alias
         # Delete alias
 
         # array<tuple<int64>>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_06(self):
         # Create alias
         # Delete alias
 
         # array<tuple<f:array<int64>>>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := [(f := [1])]',
-                [
-                    {
-                        'name': 'array<tuple<f:array<std::int64>>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<f:array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := [(f := [1])]',
+                    [
+                        {
+                            'name': 'array<tuple<f:array<std::int64>>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<f:array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_07(self):
         # Create alias
         # Delete alias
 
         # tuple<array<int64>>
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := ([1],)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<array<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := ([1],)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<array<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_08(self):
         # Create alias 1
@@ -12594,79 +12900,81 @@ type default::Foo {
         # Delete alias 1
         # Delete alias 2
 
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create alias bar := ((1,),)',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop alias foo',
-                [
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias bar', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create alias bar := ((1,),)',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop alias foo',
+                    [
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_09(self):
         # Create alias 1
@@ -12674,79 +12982,81 @@ type default::Foo {
         # Delete alias 2
         # Delete alias 1
 
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := [(1,)]',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create alias bar := ((1,),)',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop alias bar',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::ArrayExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := [(1,)]',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create alias bar := ((1,),)',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop alias bar',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::ArrayExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_10(self):
         # Create alias
@@ -12754,69 +13064,71 @@ type default::Foo {
         # Delete alias
         # Delete reference to type
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create alias foo := ((1,),)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create function bar() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop alias foo',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop function bar()', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create alias foo := ((1,),)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create function bar() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop alias foo',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop function bar()', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_11(self):
         # Create reference to type
@@ -12824,147 +13136,153 @@ type default::Foo {
         # Delete reference to type
         # Delete alias
 
-        await self._check_ddl_global_type_changes([
-            (
-                'create function foo() -> array<tuple<int64>> using([(1,)])',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'create alias bar := ((1,),)',
-                [
-                    {
-                        'name': 'array<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Array',
-                    },
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'drop function foo()',
-                [
-                    {
-                        'name': 'default::bar',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                    {
-                        'name': 'tuple<tuple<std::int64>>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias bar', []),
-        ])
+        await self._check_ddl_global_type_changes(
+            [
+                (
+                    'create function foo() -> array<tuple<int64>> using([(1,)])',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'create alias bar := ((1,),)',
+                    [
+                        {
+                            'name': 'array<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Array',
+                        },
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'drop function foo()',
+                    [
+                        {
+                            'name': 'default::bar',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                        {
+                            'name': 'tuple<tuple<std::int64>>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias bar', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_12(self):
         # Create alias
         # Alter expr, same type
         # Delete alias
 
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'alter alias foo {using ((2,))}',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'alter alias foo {using ((2,))}',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_alias_type_changes_13(self):
         # Create alias
         # Alter expr, different type
         # Delete alias
 
-        await self._check_ddl_alias_type_changes([
-            (
-                'create alias foo := (1,)',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::int64>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            (
-                'alter alias foo {using (("a",))}',
-                [
-                    {
-                        'name': 'default::foo',
-                        'from_alias': True,
-                        'type_name': 'schema::TupleExprAlias',
-                    },
-                    {
-                        'name': 'tuple<std::str>',
-                        'from_alias': False,
-                        'type_name': 'schema::Tuple',
-                    },
-                ]
-            ),
-            ('drop alias foo', []),
-        ])
+        await self._check_ddl_alias_type_changes(
+            [
+                (
+                    'create alias foo := (1,)',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::int64>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                (
+                    'alter alias foo {using (("a",))}',
+                    [
+                        {
+                            'name': 'default::foo',
+                            'from_alias': True,
+                            'type_name': 'schema::TupleExprAlias',
+                        },
+                        {
+                            'name': 'tuple<std::str>',
+                            'from_alias': False,
+                            'type_name': 'schema::Tuple',
+                        },
+                    ],
+                ),
+                ('drop alias foo', []),
+            ]
+        )
 
     async def test_edgeql_ddl_inheritance_alter_01(self):
         await self.con.execute(r"""
@@ -12991,9 +13309,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                "cannot drop inherited property 'testp'"):
-
+            edgedb.SchemaError, "cannot drop inherited property 'testp'"
+        ):
             await self.con.execute("""
                 ALTER TYPE InhTest01_child {
                     DROP PROPERTY testp;
@@ -13015,9 +13332,12 @@ type default::Foo {
             };
         """)
 
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             SELECT Owner.<owner;
-        """, [])
+        """,
+            [],
+        )
 
     async def test_edgeql_ddl_inheritance_alter_04(self):
         await self.con.execute(r"""
@@ -13047,12 +13367,16 @@ type default::Foo {
                 }
                 FILTER .name = 'default::InhTest04_child';
             """,
-            [{
-                'properties': [{
-                    'name': 'testp',
-                    'default': '42',
-                }],
-            }],
+            [
+                {
+                    'properties': [
+                        {
+                            'name': 'testp',
+                            'default': '42',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_constraint_01(self):
@@ -13070,7 +13394,8 @@ type default::Foo {
                     CREATE DELEGATED CONSTRAINT exclusive;
         """)
 
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             WITH MODULE schema
             SELECT ObjectType {
                 name,
@@ -13084,34 +13409,43 @@ type default::Foo {
             }
             FILTER .name LIKE 'default::%TypeCon01'
             ORDER BY .name;
-        """, [
-            {
-                'name': 'default::BaseTypeCon01',
-                'properties': [{
-                    'name': 'name',
-                    'constraints': [{
-                        'name': 'std::exclusive',
-                        'delegated': True,
-                    }],
-                }]
-            },
-            {
-                'name': 'default::TypeCon01',
-                'properties': [{
-                    'name': 'name',
-                    'constraints': [{
-                        'name': 'std::exclusive',
-                        'delegated': False,
-                    }],
-                }]
-            }
-        ])
+        """,
+            [
+                {
+                    'name': 'default::BaseTypeCon01',
+                    'properties': [
+                        {
+                            'name': 'name',
+                            'constraints': [
+                                {
+                                    'name': 'std::exclusive',
+                                    'delegated': True,
+                                }
+                            ],
+                        }
+                    ],
+                },
+                {
+                    'name': 'default::TypeCon01',
+                    'properties': [
+                        {
+                            'name': 'name',
+                            'constraints': [
+                                {
+                                    'name': 'std::exclusive',
+                                    'delegated': False,
+                                }
+                            ],
+                        }
+                    ],
+                },
+            ],
+        )
 
     async def test_edgeql_ddl_constraint_02(self):
         # Regression test for #1441.
         with self.assertRaisesRegex(
-            edgedb.InvalidConstraintDefinitionError,
-            "must define parameters"
+            edgedb.InvalidConstraintDefinitionError, "must define parameters"
         ):
             async with self._run_and_rollback():
                 await self.con.execute('''
@@ -13138,8 +13472,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid name'):
+            edgedb.ConstraintViolationError, r'invalid name'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon03;
@@ -13164,16 +13498,16 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid name'):
+            edgedb.ConstraintViolationError, r'invalid name'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon04 {name := {}};
                 """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid name'):
+            edgedb.ConstraintViolationError, r'invalid name'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon04;
@@ -13197,8 +13531,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid child'):
+            edgedb.ConstraintViolationError, r'invalid child'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon05;
@@ -13225,8 +13559,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid children'):
+            edgedb.ConstraintViolationError, r'invalid children'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon06;
@@ -13253,8 +13587,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid child'):
+            edgedb.ConstraintViolationError, r'invalid child'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT TypeCon07 {
@@ -13277,8 +13611,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'violates exclusivity constraint'):
+            edgedb.ConstraintViolationError, r'violates exclusivity constraint'
+        ):
             await self.con.execute(r"""
                 INSERT Foo { x := "a" };
             """)
@@ -13308,8 +13642,8 @@ type default::Foo {
                     "name": "std::max_len_value",
                     "params": [
                         {"name": "__subject__", "@index": 0},
-                        {"name": "max", "@index": 1}
-                    ]
+                        {"name": "max", "@index": 1},
+                    ],
                 }
             ],
         )
@@ -13358,9 +13692,10 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_12(self):
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"constraint 'std::max_len_value' of property 'firstname' "
-                r"of object type 'default::Base' already exists"):
+            edgedb.errors.SchemaError,
+            r"constraint 'std::max_len_value' of property 'firstname' "
+            r"of object type 'default::Base' already exists",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Base {
                     CREATE PROPERTY firstname -> str {
@@ -13410,8 +13745,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid lprop'):
+            edgedb.ConstraintViolationError, r'invalid lprop'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT Bar { children := Foo };
@@ -13437,8 +13772,8 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r'invalid lprop'):
+            edgedb.ConstraintViolationError, r'invalid lprop'
+        ):
             async with self.con.transaction():
                 await self.con.execute("""
                     INSERT Bar { children := Foo };
@@ -13458,8 +13793,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'x violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'x violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 INSERT Foo { x := ('1', '2') };
             """)
@@ -13477,8 +13813,8 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'invalid Post'):
+            edgedb.ConstraintViolationError, r'invalid Post'
+        ):
             await self.con.execute("""
                 update Post set { original := Post };
             """)
@@ -13511,8 +13847,8 @@ type default::Foo {
                 fail = flag is False and ex is not True
                 if fail:
                     async with self.assertRaisesRegexTx(
-                            edgedb.ConstraintViolationError,
-                            r'invalid Foo'):
+                        edgedb.ConstraintViolationError, r'invalid Foo'
+                    ):
                         await op
                 else:
                     await op
@@ -13539,22 +13875,22 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'invalid l'):
+            edgedb.ConstraintViolationError, r'invalid l'
+        ):
             await self.con.execute("""
                 insert OnTest { l := (insert Foo) { @flag := false } }
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'invalid l'):
+            edgedb.ConstraintViolationError, r'invalid l'
+        ):
             await self.con.execute("""
                 insert OnTest { l := (insert Foo) { @flag := true } }
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'invalid l'):
+            edgedb.ConstraintViolationError, r'invalid l'
+        ):
             await self.con.execute("""
                 insert ExceptTest { l := (insert Foo) { @flag := false } }
             """)
@@ -13565,8 +13901,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_20(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidConstraintDefinitionError,
-                r'constraints cannot contain paths with more than one hop'):
+            edgedb.InvalidConstraintDefinitionError,
+            r'constraints cannot contain paths with more than one hop',
+        ):
             await self.con.execute("""
                 create type Foo {
                     create constraint expression on (false)
@@ -13587,16 +13924,17 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'violates exclusivity constraint'):
+            edgedb.ConstraintViolationError, r'violates exclusivity constraint'
+        ):
             await self.con.execute("""
                 insert B { x := "!" }
             """)
 
     async def test_edgeql_ddl_constraint_22(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidConstraintDefinitionError,
-                r'expected to return a bool value, got collection'):
+            edgedb.InvalidConstraintDefinitionError,
+            r'expected to return a bool value, got collection',
+        ):
             await self.con.execute("""
                 create type X {
                     create property y -> str {
@@ -13607,8 +13945,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_23(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidConstraintDefinitionError,
-                r"constraints on object types must have an 'on' clause"):
+            edgedb.InvalidConstraintDefinitionError,
+            r"constraints on object types must have an 'on' clause",
+        ):
             await self.con.execute("""
                 create type X {
                     create constraint exclusive;
@@ -13617,8 +13956,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_24(self):
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidConstraintDefinitionError,
-                r"constraint expressions must be immutable"):
+            edgedb.InvalidConstraintDefinitionError,
+            r"constraint expressions must be immutable",
+        ):
             await self.con.execute("""
                 create type X {
                     create constraint exclusive on (random());
@@ -13684,31 +14024,34 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'val violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'val violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 insert Foo { val := (1, -1), x := -1 };
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'Foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'Foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 insert Foo { val := (-1, 2), x := -1 };
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'Foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'Foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 insert Foo { val := (-1, -2), x := 3 };
             """)
 
     async def test_edgeql_ddl_constraint_27(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "cannot use SET OF operator 'std::DISTINCT' "
-                "in a constraint"):
+            edgedb.UnsupportedFeatureError,
+            "cannot use SET OF operator 'std::DISTINCT' in a constraint",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::ConstraintNonSingletonTest {
                     CREATE PROPERTY has_bad_constraint: std::str {
@@ -13721,9 +14064,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_28(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "cannot use SET OF operator 'std::DISTINCT' "
-                "in a constraint"):
+            edgedb.UnsupportedFeatureError,
+            "cannot use SET OF operator 'std::DISTINCT' in a constraint",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::ConstraintNonSingletonTest {
                     CREATE PROPERTY has_bad_constraint: std::str {
@@ -13736,9 +14079,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_29(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "cannot use SET OF operator 'std::DISTINCT' "
-                "in a constraint"):
+            edgedb.UnsupportedFeatureError,
+            "cannot use SET OF operator 'std::DISTINCT' in a constraint",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::ConstraintNonSingletonTest {
                     CREATE PROPERTY has_bad_constraint: std::str;
@@ -13750,9 +14093,10 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_30(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "set returning operator 'std::DISTINCT' is not supported "
-                "in singleton expressions"):
+            edgedb.UnsupportedFeatureError,
+            "set returning operator 'std::DISTINCT' is not supported "
+            "in singleton expressions",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::ConstraintNonSingletonTest {
                     CREATE PROPERTY has_bad_constraint: std::str;
@@ -13763,9 +14107,10 @@ type default::Foo {
 
     async def test_edgeql_ddl_constraint_31(self):
         async with self.assertRaisesRegexTx(
-                edgedb.UnsupportedFeatureError,
-                "set returning operator 'std::DISTINCT' is not supported "
-                "in singleton expressions"):
+            edgedb.UnsupportedFeatureError,
+            "set returning operator 'std::DISTINCT' is not supported "
+            "in singleton expressions",
+        ):
             await self.con.execute(r"""
                 CREATE ABSTRACT CONSTRAINT default::bad_constraint {
                     USING ((DISTINCT __subject__ = __subject__));
@@ -13776,17 +14121,13 @@ type default::Foo {
         We should reject this but I don't want to do it in a point release
     ''')
     async def test_edgeql_ddl_constraint_32(self):
-        async with self.assertRaisesRegexTx(
-            edgedb.UnsupportedFeatureError, ''
-        ):
+        async with self.assertRaisesRegexTx(edgedb.UnsupportedFeatureError, ''):
             await self.con.execute(r"""
                 create type S {
                     create constraint expression on (((0, 0)).0 = 0);
                 };
             """)
-        async with self.assertRaisesRegexTx(
-            edgedb.UnsupportedFeatureError, ''
-        ):
+        async with self.assertRaisesRegexTx(edgedb.UnsupportedFeatureError, ''):
             await self.con.execute(r"""
                 create type S {
                     create constraint expression on (((true, 0)).0);
@@ -13805,8 +14146,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter property foo {
                     create constraint exclusive
@@ -13827,8 +14169,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Bar extending Foo;
             """)
@@ -13845,8 +14188,8 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'violates exclusivity constraint'):
+            edgedb.ConstraintViolationError, r'violates exclusivity constraint'
+        ):
             await self.con.execute("""
                 alter type Foo {
                     create constraint exclusive on (.foo);
@@ -13869,8 +14212,8 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'violates exclusivity constraint'):
+            edgedb.ConstraintViolationError, r'violates exclusivity constraint'
+        ):
             await self.con.execute("""
                 alter type Bar extending Foo;
             """)
@@ -13887,8 +14230,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter property foo {
                     create constraint exclusive
@@ -13909,8 +14253,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Bar extending Foo;
             """)
@@ -13929,8 +14274,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter link foo {
                     create constraint exclusive
@@ -13951,8 +14297,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter link foo {
                     create constraint exclusive
@@ -13973,8 +14320,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'x violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'x violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter link foo alter property x {
                     create constraint exclusive
@@ -13995,8 +14343,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'foo violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'foo violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter type Foo alter link foo  {
                     create constraint exclusive on (__subject__@x)
@@ -14018,8 +14367,9 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.ConstraintViolationError,
-                r'x violates exclusivity constraint'):
+            edgedb.ConstraintViolationError,
+            r'x violates exclusivity constraint',
+        ):
             await self.con.execute("""
                 alter abstract link Lnk alter property x {
                     create constraint exclusive
@@ -14047,15 +14397,17 @@ type default::Foo {
         for t1, t2 in ["SV", "TV", "VT", "VS"]:
             with self.annotate(tables=(t1, t2)):
                 async with self.assertRaisesRegexTx(
-                        edgedb.ConstraintViolationError,
-                        r'violates exclusivity constraint'):
+                    edgedb.ConstraintViolationError,
+                    r'violates exclusivity constraint',
+                ):
                     await self.con.execute(f"""
                         insert {t1} {{ name := "{t2}" }}
                     """)
 
                 async with self.assertRaisesRegexTx(
-                        edgedb.ConstraintViolationError,
-                        r'violates exclusivity constraint'):
+                    edgedb.ConstraintViolationError,
+                    r'violates exclusivity constraint',
+                ):
                     await self.con.execute(f"""
                         select {{
                             (insert {t1} {{ name := "!" }}),
@@ -14094,15 +14446,17 @@ type default::Foo {
         for t1, t2 in ["SV", "TV", "VT", "VS"]:
             with self.annotate(tables=(t1, t2)):
                 async with self.assertRaisesRegexTx(
-                        edgedb.ConstraintViolationError,
-                        r'violates exclusivity constraint'):
+                    edgedb.ConstraintViolationError,
+                    r'violates exclusivity constraint',
+                ):
                     await self.con.execute(f"""
                         insert {t1} {{ name := "{t2}" }}
                     """)
 
                 async with self.assertRaisesRegexTx(
-                        edgedb.ConstraintViolationError,
-                        r'violates exclusivity constraint'):
+                    edgedb.ConstraintViolationError,
+                    r'violates exclusivity constraint',
+                ):
                     await self.con.execute(f"""
                         select {{
                             (insert {t1} {{ name := "!" }}),
@@ -14127,7 +14481,8 @@ type default::Foo {
                     DROP CONSTRAINT min_value(0);
         """)
 
-        await self.assert_query_result("""
+        await self.assert_query_result(
+            """
             WITH MODULE schema
             SELECT ObjectType {
                 name,
@@ -14137,15 +14492,19 @@ type default::Foo {
                 } FILTER .name = 'con_test'
             }
             FILTER .name = 'default::ConTest01';
-        """, [
-            {
-                'name': 'default::ConTest01',
-                'properties': [{
-                    'name': 'con_test',
-                    'constraints': [],
-                }]
-            }
-        ])
+        """,
+            [
+                {
+                    'name': 'default::ConTest01',
+                    'properties': [
+                        {
+                            'name': 'con_test',
+                            'constraints': [],
+                        }
+                    ],
+                }
+            ],
+        )
 
     async def test_edgeql_ddl_constraint_alter_02(self):
         # Create constraint, then add and drop annotation for it. This
@@ -14179,15 +14538,21 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest2_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "my constraint 2",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {
+                            "subjectexpr": "(__subject__ > 0)",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "my constraint 2",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
         await self.con.execute(r'''
@@ -14213,12 +14578,13 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest2_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": []
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {"subjectexpr": "(__subject__ > 0)", "annotations": []}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_constraint_alter_03(self):
@@ -14247,15 +14613,21 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest3_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "my constraint 3",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {
+                            "subjectexpr": "(__subject__ > 0)",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "my constraint 3",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
         await self.migrate(r'''
@@ -14279,12 +14651,13 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest3_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": []
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {"subjectexpr": "(__subject__ > 0)", "annotations": []}
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_constraint_alter_04(self):
@@ -14312,12 +14685,13 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest4_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": []
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {"subjectexpr": "(__subject__ > 0)", "annotations": []}
+                    ]
+                }
+            ],
         )
 
         await self.migrate(r'''
@@ -14343,15 +14717,21 @@ type default::Foo {
                 FILTER
                     .name = 'default::contest4_t';
             ''',
-            [{
-                "constraints": [{
-                    "subjectexpr": "(__subject__ > 0)",
-                    "annotations": [{
-                        "name": "std::title",
-                        "@value": "my constraint 5",
-                    }]
-                }]
-            }]
+            [
+                {
+                    "constraints": [
+                        {
+                            "subjectexpr": "(__subject__ > 0)",
+                            "annotations": [
+                                {
+                                    "name": "std::title",
+                                    "@value": "my constraint 5",
+                                }
+                            ],
+                        }
+                    ]
+                }
+            ],
         )
 
     async def test_edgeql_ddl_constraint_alter_05(self):
@@ -14364,9 +14744,10 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"constraint 'std::max_len_value' of property 'firstname' "
-                r"of object type 'default::Base' already exists"):
+            edgedb.errors.SchemaError,
+            r"constraint 'std::max_len_value' of property 'firstname' "
+            r"of object type 'default::Base' already exists",
+        ):
             await self.con.execute(r"""
                 ALTER TYPE Base {
                     ALTER PROPERTY firstname {
@@ -14384,15 +14765,17 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Bar { foo := "x" }; insert Foo { foo := "x" };
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Foo { foo := "x" }; insert Bar { foo := "x" };
             """)
@@ -14409,15 +14792,17 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Bar { foo := "x" }; insert Foo { foo := "x" };
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Foo { foo := "x" }; insert Bar { foo := "x" };
             """)
@@ -14434,15 +14819,17 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Bar { foo := "x" }; insert Foo { foo := "x" };
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.ConstraintViolationError,
-                "violates exclusivity constraint"):
+            edgedb.errors.ConstraintViolationError,
+            "violates exclusivity constraint",
+        ):
             await self.con.execute(r"""
                 insert Foo { foo := "x" }; insert Bar { foo := "x" };
             """)
@@ -14517,7 +14904,7 @@ type default::Foo {
                     AND .annotations@value = 'test_delta_drop_01_constraint'
                 )
             """,
-            []
+            [],
         )
 
     async def test_edgeql_ddl_drop_02(self):
@@ -14560,7 +14947,7 @@ type default::Foo {
                     AND .annotations@value = 'test_delta_drop_02_link'
                 )
             """,
-            []
+            [],
         )
 
     async def test_edgeql_ddl_drop_03(self):
@@ -14598,23 +14985,25 @@ type default::Foo {
         """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                'cannot drop object type.*DropA.*other objects'):
+            edgedb.SchemaError, 'cannot drop object type.*DropA.*other objects'
+        ):
             await self.con.execute('DROP TYPE DropA')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                'cannot drop abstract anno.*dropattr.*other objects'):
+            edgedb.SchemaError,
+            'cannot drop abstract anno.*dropattr.*other objects',
+        ):
             await self.con.execute('DROP ABSTRACT ANNOTATION dropattr')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                'cannot drop abstract link.*l1_parent.*other objects'):
+            edgedb.SchemaError,
+            'cannot drop abstract link.*l1_parent.*other objects',
+        ):
             await self.con.execute('DROP ABSTRACT LINK l1_parent')
 
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaError,
-                'cannot drop.*dropint.*other objects'):
+            edgedb.SchemaError, 'cannot drop.*dropint.*other objects'
+        ):
             await self.con.execute('DROP SCALAR TYPE dropint')
 
     async def test_edgeql_ddl_drop_refuse_02(self):
@@ -14641,7 +15030,8 @@ type default::Foo {
 
         async with self.assertRaisesRegexTx(
             edgedb.SchemaDefinitionError,
-                r"cannot drop .+ because this affects expression of access"):
+            r"cannot drop .+ because this affects expression of access",
+        ):
             await self.con.execute('drop type Player;')
 
     async def test_edgeql_ddl_unicode_01(self):
@@ -14669,7 +15059,7 @@ type default::Foo {
                 ORDER BY
                     Пример.номер;
             """,
-            [{'номер': 456}, {'номер': 987}]
+            [{'номер': 456}, {'номер': 987}],
         )
 
     async def test_edgeql_ddl_tuple_properties(self):
@@ -14741,9 +15131,9 @@ type default::Foo {
         await self.con.query('DECLARE SAVEPOINT t0')
 
         with self.assertRaisesRegex(
-                edgedb.InvalidPropertyTargetError,
-                'expected a scalar type, or a scalar collection'):
-
+            edgedb.InvalidPropertyTargetError,
+            'expected a scalar type, or a scalar collection',
+        ):
             await self.con.execute(r"""
                 ALTER TYPE TupProp02 {
                     CREATE PROPERTY p6 -> tuple<TupProp02>;
@@ -14765,9 +15155,11 @@ type default::Foo {
                 }
                 FILTER .name = 'default::my_enum';
             """,
-            [{
-                'enum_values': ['foo', 'bar'],
-            }],
+            [
+                {
+                    'enum_values': ['foo', 'bar'],
+                }
+            ],
         )
 
         await self.con.execute('''
@@ -14779,8 +15171,9 @@ type default::Foo {
         await self.con.query('DECLARE SAVEPOINT t0')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                'enumeration must be the only supertype specified'):
+            edgedb.SchemaError,
+            'enumeration must be the only supertype specified',
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE my_enum_2
                     EXTENDING enum<'foo', 'bar'>,
@@ -14797,8 +15190,9 @@ type default::Foo {
         await self.con.query('DECLARE SAVEPOINT t1')
 
         with self.assertRaisesRegex(
-                edgedb.UnsupportedFeatureError,
-                'constraints cannot be defined on enumerated type.*'):
+            edgedb.UnsupportedFeatureError,
+            'constraints cannot be defined on enumerated type.*',
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE my_enum_3
                     EXTENDING enum<'foo', 'bar', 'baz'> {
@@ -14850,8 +15244,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_enum_03(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'enums cannot contain duplicate values'):
+            edgedb.SchemaDefinitionError,
+            'enums cannot contain duplicate values',
+        ):
             await self.con.execute('''
                 CREATE SCALAR TYPE Color
                     EXTENDING enum<Red, Green, Blue, Red>;
@@ -14914,8 +15309,8 @@ type default::Foo {
         )
 
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidValueError,
-                'invalid input value for enum'):
+            edgedb.InvalidValueError, 'invalid input value for enum'
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color
                     EXTENDING enum<Green>;
@@ -14925,12 +15320,12 @@ type default::Foo {
         await self.con.execute(
             "CREATE SCALAR TYPE default::LongLabel EXTENDING enum<\n"
             "    AAAAAAAAAA"
-                "BBBBBBBBBB"
-                "CCCCCCCCCC"
-                "DDDDDDDDDD"
-                "EEEEEEEEEE"
-                "FFFFFFFFFF"
-                "GGG\n"
+            "BBBBBBBBBB"
+            "CCCCCCCCCC"
+            "DDDDDDDDDD"
+            "EEEEEEEEEE"
+            "FFFFFFFFFF"
+            "GGG\n"
             ">"
         )
 
@@ -14938,46 +15333,46 @@ type default::Foo {
         await self.con.execute(
             "CREATE SCALAR TYPE default::LongLabel EXTENDING enum<\n"
             "    'AAAAAAAAAA"
-                "BBBBBBBBBB"
-                "CCCCCCCCCC"
-                "DDDDDDDDDD"
-                "EEEEEEEEEE"
-                "FFFFFFFFFF"
-                "GGG'\n"
+            "BBBBBBBBBB"
+            "CCCCCCCCCC"
+            "DDDDDDDDDD"
+            "EEEEEEEEEE"
+            "FFFFFFFFFF"
+            "GGG'\n"
             ">"
         )
 
     async def test_edgeql_ddl_enum_08(self):
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
-            r'enum labels cannot exceed 63 characters'
+            r'enum labels cannot exceed 63 characters',
         ):
             await self.con.execute(
                 "CREATE SCALAR TYPE default::LongLabel EXTENDING enum<\n"
                 "    AAAAAAAAAA"
-                    "BBBBBBBBBB"
-                    "CCCCCCCCCC"
-                    "DDDDDDDDDD"
-                    "EEEEEEEEEE"
-                    "FFFFFFFFFF"
-                    "GGGG\n"
+                "BBBBBBBBBB"
+                "CCCCCCCCCC"
+                "DDDDDDDDDD"
+                "EEEEEEEEEE"
+                "FFFFFFFFFF"
+                "GGGG\n"
                 ">"
             )
 
     async def test_edgeql_ddl_enum_09(self):
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
-            r'enum labels cannot exceed 63 characters'
+            r'enum labels cannot exceed 63 characters',
         ):
             await self.con.execute(
                 "CREATE SCALAR TYPE default::LongLabel EXTENDING enum<\n"
                 "    'AAAAAAAAAA"
-                    "BBBBBBBBBB"
-                    "CCCCCCCCCC"
-                    "DDDDDDDDDD"
-                    "EEEEEEEEEE"
-                    "FFFFFFFFFF"
-                    "GGGG'\n"
+                "BBBBBBBBBB"
+                "CCCCCCCCCC"
+                "DDDDDDDDDD"
+                "EEEEEEEEEE"
+                "FFFFFFFFFF"
+                "GGGG'\n"
                 ">"
             )
 
@@ -14990,17 +15385,17 @@ type default::Foo {
 
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
-            r'enum labels cannot exceed 63 characters'
+            r'enum labels cannot exceed 63 characters',
         ):
             await self.con.execute(
                 "ALTER SCALAR TYPE default::LongLabel EXTENDING enum<\n"
                 "    AAAAAAAAAA"
-                    "BBBBBBBBBB"
-                    "CCCCCCCCCC"
-                    "DDDDDDDDDD"
-                    "EEEEEEEEEE"
-                    "FFFFFFFFFF"
-                    "GGGG\n"
+                "BBBBBBBBBB"
+                "CCCCCCCCCC"
+                "DDDDDDDDDD"
+                "EEEEEEEEEE"
+                "FFFFFFFFFF"
+                "GGGG\n"
                 ">"
             )
 
@@ -15013,17 +15408,17 @@ type default::Foo {
 
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
-            r'enum labels cannot exceed 63 characters'
+            r'enum labels cannot exceed 63 characters',
         ):
             await self.con.execute(
                 "ALTER SCALAR TYPE default::LongLabel EXTENDING enum<\n"
                 "    'AAAAAAAAAA"
-                    "BBBBBBBBBB"
-                    "CCCCCCCCCC"
-                    "DDDDDDDDDD"
-                    "EEEEEEEEEE"
-                    "FFFFFFFFFF"
-                    "GGGG'\n"
+                "BBBBBBBBBB"
+                "CCCCCCCCCC"
+                "DDDDDDDDDD"
+                "EEEEEEEEEE"
+                "FFFFFFFFFF"
+                "GGGG'\n"
                 ">"
             )
 
@@ -15041,14 +15436,16 @@ type default::Foo {
                 }
                 FILTER .name = 'default::ExID';
             """,
-            [{
-                'id': '00000000-0000-0000-0000-0000feedbeef',
-            }],
+            [
+                {
+                    'id': '00000000-0000-0000-0000-0000feedbeef',
+                }
+            ],
         )
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                'cannot alter object id'):
+            edgedb.SchemaDefinitionError, 'cannot alter object id'
+        ):
             await self.con.execute('''
                 ALTER TYPE ExID {
                     SET id := <uuid>'00000000-0000-0000-0000-0000feedbeef'
@@ -15077,10 +15474,7 @@ type default::Foo {
                     `n ame`
                 };
             """,
-            [{
-                '__type__': {'name': 'default::U S`E R'},
-                'n ame': 'quoting_01'
-            }],
+            [{'__type__': {'name': 'default::U S`E R'}, 'n ame': 'quoting_01'}],
         )
 
         await self.con.execute("""
@@ -15089,10 +15483,11 @@ type default::Foo {
 
     async def test_edgeql_ddl_prop_overload_01(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the computed property 'val' "
-                "of object type 'default::UniqueName_2' to overload "
-                "an existing property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the computed property 'val' "
+            "of object type 'default::UniqueName_2' to overload "
+            "an existing property",
+        ):
             await self.con.execute("""
                 CREATE TYPE UniqueName {
                     CREATE PROPERTY val -> str;
@@ -15106,10 +15501,11 @@ type default::Foo {
 
     async def test_edgeql_ddl_prop_overload_02(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the computed property 'val' "
-                "of object type 'default::UniqueName_2' to overload "
-                "an existing property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the computed property 'val' "
+            "of object type 'default::UniqueName_2' to overload "
+            "an existing property",
+        ):
             await self.con.execute("""
                 CREATE TYPE UniqueName {
                     CREATE PROPERTY val := 'bad';
@@ -15123,10 +15519,11 @@ type default::Foo {
 
     async def test_edgeql_ddl_prop_overload_03(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the property 'val' of object "
-                "type 'default::UniqueName_3' to extend both a computed "
-                "and a non-computed property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the property 'val' of object "
+            "type 'default::UniqueName_3' to extend both a computed "
+            "and a non-computed property",
+        ):
             await self.con.execute("""
                 CREATE TYPE UniqueName {
                     CREATE PROPERTY val := 'ok';
@@ -15139,10 +15536,11 @@ type default::Foo {
 
     async def test_edgeql_ddl_prop_overload_04(self):
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the property 'val' of object "
-                "type 'default::UniqueName_3' to extend more than one "
-                "computed property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the property 'val' of object "
+            "type 'default::UniqueName_3' to extend more than one "
+            "computed property",
+        ):
             await self.con.execute("""
                 CREATE TYPE UniqueName {
                     CREATE PROPERTY val := 'ok';
@@ -15165,10 +15563,11 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the property 'val' of object "
-                "type 'default::UniqueName_3' to extend both a computed "
-                "and a non-computed property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the property 'val' of object "
+            "type 'default::UniqueName_3' to extend both a computed "
+            "and a non-computed property",
+        ):
             await self.con.execute("""
                 ALTER TYPE UniqueName {
                     ALTER PROPERTY val {
@@ -15192,10 +15591,11 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the property 'val' of object "
-                "type 'default::UniqueName_4' to extend both a computed "
-                "and a non-computed property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the property 'val' of object "
+            "type 'default::UniqueName_4' to extend both a computed "
+            "and a non-computed property",
+        ):
             await self.con.execute("""
                 ALTER TYPE UniqueName_4 EXTENDING UniqueName_3;
             """)
@@ -15213,10 +15613,11 @@ type default::Foo {
         """)
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "it is illegal for the property 'val' of object "
-                "type 'default::UniqueName_4' to extend both a computed "
-                "and a non-computed property"):
+            edgedb.SchemaDefinitionError,
+            "it is illegal for the property 'val' of object "
+            "type 'default::UniqueName_4' to extend both a computed "
+            "and a non-computed property",
+        ):
             await self.con.execute("""
                 ALTER TYPE UniqueName_3 EXTENDING UniqueName_2;
             """)
@@ -15240,20 +15641,23 @@ type default::Foo {
             r"""
             SELECT A { ct := count(.t) };
             """,
-            [{
-                'ct': 1,
-            }]
+            [
+                {
+                    'ct': 1,
+                }
+            ],
         )
 
     async def test_edgeql_ddl_readonly_01(self):
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'foo' of "
-                "object type 'default::Derived': it is defined as True in "
-                "property 'foo' of object type 'default::Derived' and as "
-                "False in property 'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'foo' of "
+            "object type 'default::Derived': it is defined as True in "
+            "property 'foo' of object type 'default::Derived' and as "
+            "False in property 'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15270,11 +15674,12 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "property 'foo' of object type 'default::Derived' and as "
-                "True in property 'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "property 'foo' of object type 'default::Derived' and as "
+            "True in property 'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15293,11 +15698,12 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "property 'foo' of object type 'default::Base0' and as "
-                "True in property 'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "property 'foo' of object type 'default::Base0' and as "
+            "True in property 'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base0 {
@@ -15326,11 +15732,12 @@ type default::Foo {
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "property 'foo' of object type 'default::Base0' and as "
-                "True in property 'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "property 'foo' of object type 'default::Base0' and as "
+            "True in property 'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
                 ALTER TYPE Base1 {
                     ALTER PROPERTY foo {
@@ -15343,11 +15750,12 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of link 'foo' of "
-                "object type 'default::Derived': it is defined as True in "
-                "link 'foo' of object type 'default::Derived' and as "
-                "False in link 'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of link 'foo' of "
+            "object type 'default::Derived': it is defined as True in "
+            "link 'foo' of object type 'default::Derived' and as "
+            "False in link 'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15364,11 +15772,12 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of link 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "link 'foo' of object type 'default::Derived' and as "
-                "True in link 'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of link 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "link 'foo' of object type 'default::Derived' and as "
+            "True in link 'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15387,11 +15796,12 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of link 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "link 'foo' of object type 'default::Base0' and as "
-                "True in link 'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of link 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "link 'foo' of object type 'default::Base0' and as "
+            "True in link 'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base0 {
@@ -15420,11 +15830,12 @@ type default::Foo {
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of link 'foo' of "
-                "object type 'default::Derived': it is defined as False in "
-                "link 'foo' of object type 'default::Base0' and as "
-                "True in link 'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of link 'foo' of "
+            "object type 'default::Derived': it is defined as False in "
+            "link 'foo' of object type 'default::Base0' and as "
+            "True in link 'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
                 ALTER TYPE Base1 {
                     ALTER LINK foo {
@@ -15437,12 +15848,13 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'bar' of "
-                "link 'foo' of object type 'default::Derived': it is defined "
-                "as True in property 'bar' of link 'foo' of object type "
-                "'default::Derived' and as False in property 'bar' of link "
-                "'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'bar' of "
+            "link 'foo' of object type 'default::Derived': it is defined "
+            "as True in property 'bar' of link 'foo' of object type "
+            "'default::Derived' and as False in property 'bar' of link "
+            "'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15463,12 +15875,13 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'bar' of "
-                "link 'foo' of object type 'default::Derived': it is defined "
-                "as False in property 'bar' of link 'foo' of object type "
-                "'default::Derived' and as True in property 'bar' of link "
-                "'foo' of object type 'default::Base'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'bar' of "
+            "link 'foo' of object type 'default::Derived': it is defined "
+            "as False in property 'bar' of link 'foo' of object type "
+            "'default::Derived' and as True in property 'bar' of link "
+            "'foo' of object type 'default::Base'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base {
@@ -15491,12 +15904,13 @@ type default::Foo {
         # Test that read-only flag must be consistent in the
         # inheritance hierarchy.
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'bar' of "
-                "link 'foo' of object type 'default::Derived': it is defined "
-                "as False in property 'bar' of link 'foo' of object type "
-                "'default::Base0' and as True in property 'bar' of link "
-                "'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'bar' of "
+            "link 'foo' of object type 'default::Derived': it is defined "
+            "as False in property 'bar' of link 'foo' of object type "
+            "'default::Base0' and as True in property 'bar' of link "
+            "'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
 
                 CREATE TYPE Base0 {
@@ -15533,12 +15947,13 @@ type default::Foo {
         ''')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaDefinitionError,
-                "cannot redefine the readonly flag of property 'bar' of "
-                "link 'foo' of object type 'default::Derived': it is defined "
-                "as False in property 'bar' of link 'foo' of object type "
-                "'default::Base0' and as True in property 'bar' of link "
-                "'foo' of object type 'default::Base1'."):
+            edgedb.SchemaDefinitionError,
+            "cannot redefine the readonly flag of property 'bar' of "
+            "link 'foo' of object type 'default::Derived': it is defined "
+            "as False in property 'bar' of link 'foo' of object type "
+            "'default::Base0' and as True in property 'bar' of link "
+            "'foo' of object type 'default::Base1'.",
+        ):
             await self.con.execute('''
                 ALTER TYPE Base1 {
                     ALTER LINK foo {
@@ -15852,7 +16267,7 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.MissingRequiredError,
             r"missing value for required link 'children'"
-            r" of object type 'default::Base'"
+            r" of object type 'default::Base'",
         ):
             async with self.con.transaction():
                 await self.con.execute("""
@@ -15862,7 +16277,7 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.MissingRequiredError,
             r"missing value for required link 'children'"
-            r" of object type 'default::Base'"
+            r" of object type 'default::Base'",
         ):
             async with self.con.transaction():
                 await self.con.execute("""
@@ -15872,7 +16287,7 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.MissingRequiredError,
             r"missing value for required link 'children'"
-            r" of object type 'default::Base'"
+            r" of object type 'default::Base'",
         ):
             async with self.con.transaction():
                 await self.con.execute("""
@@ -15893,7 +16308,8 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
             r"possibly more than one element returned by the index expression",
-            _line=4, _col=38
+            _line=4,
+            _col=38,
         ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
@@ -15906,7 +16322,8 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
             r"possibly more than one element returned by the index expression",
-            _line=5, _col=38
+            _line=5,
+            _col=38,
         ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
@@ -15920,7 +16337,8 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
             r"possibly more than one element returned by the index expression",
-            _line=5, _col=38
+            _line=5,
+            _col=38,
         ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
@@ -15932,8 +16350,7 @@ type default::Foo {
 
     async def test_edgeql_ddl_index_04(self):
         with self.assertRaisesRegex(
-            edgedb.SchemaDefinitionError,
-            r"index expressions must be immutable"
+            edgedb.SchemaDefinitionError, r"index expressions must be immutable"
         ):
             await self.con.execute(r"""
                 create function f(s: str) -> str {
@@ -15973,7 +16390,7 @@ type default::Foo {
                 indexes: {expr, except_expr}
             } FILTER .name = 'default::Foo'
             ''',
-            [{"indexes": [{"except_expr": ".exclude", "expr": ".name"}]}]
+            [{"indexes": [{"except_expr": ".exclude", "expr": ".name"}]}],
         )
 
     async def test_edgeql_ddl_index_07(self):
@@ -15988,9 +16405,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_index_08(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                "cannot use SET OF operator 'std::DISTINCT' "
-                "in an index expression"):
+            edgedb.SchemaDefinitionError,
+            "cannot use SET OF operator 'std::DISTINCT' in an index expression",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::IndexNonSingletonTest {
                     CREATE PROPERTY has_bad_index: std::str;
@@ -16000,9 +16417,9 @@ type default::Foo {
 
     async def test_edgeql_ddl_index_09(self):
         async with self.assertRaisesRegexTx(
-                edgedb.SchemaDefinitionError,
-                "cannot use SET OF function 'std::count' "
-                "in an index expression"):
+            edgedb.SchemaDefinitionError,
+            "cannot use SET OF function 'std::count' in an index expression",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE default::IndexNonSingletonTest {
                     CREATE PROPERTY has_bad_index: std::str;
@@ -16044,7 +16461,7 @@ type default::Foo {
             filter exists .<indexes[is schema::ObjectType]
             and .name like '%index';
             ''',
-            [{"name": "std::fts::index"}, {"name": "std::fts::index"}]
+            [{"name": "std::fts::index"}, {"name": "std::fts::index"}],
         )
 
     async def test_edgeql_ddl_abstract_index_01(self):
@@ -16082,15 +16499,23 @@ type default::Foo {
             select schema::Index { name, kwargs }
             filter .name = 'default::test'
             ''',
-            tb.bag([
-                {'name': 'default::test', 'kwargs': []},
-                {'name': 'default::test',
-                 'kwargs': [{'name': 'lists', 'expr': '5'}]},
-                {'name': 'default::test',
-                 'kwargs': [{'name': 'lists', 'expr': '5'}]},
-                {'name': 'default::test',
-                 'kwargs': [{'name': 'lists', 'expr': '5'}]},
-            ])
+            tb.bag(
+                [
+                    {'name': 'default::test', 'kwargs': []},
+                    {
+                        'name': 'default::test',
+                        'kwargs': [{'name': 'lists', 'expr': '5'}],
+                    },
+                    {
+                        'name': 'default::test',
+                        'kwargs': [{'name': 'lists', 'expr': '5'}],
+                    },
+                    {
+                        'name': 'default::test',
+                        'kwargs': [{'name': 'lists', 'expr': '5'}],
+                    },
+                ]
+            ),
         )
 
         await self.con.execute('''
@@ -16102,7 +16527,8 @@ type default::Foo {
         with self.assertRaisesRegex(
             edgedb.SchemaDefinitionError,
             r"cannot be declared as deferred",
-            _line=8, _col=21
+            _line=8,
+            _col=21,
         ):
             await self.con.execute('''
                 create abstract index test() {
@@ -16213,13 +16639,17 @@ type default::Foo {
                 }
             } FILTER .name = 'default::Foo'
             ''',
-            [{
-                'name': 'default::Foo',
-                'indexes': [{
-                    'deferred': True,
-                    'deferrability': 'Permitted',
-                }]
-            }]
+            [
+                {
+                    'name': 'default::Foo',
+                    'indexes': [
+                        {
+                            'deferred': True,
+                            'deferrability': 'Permitted',
+                        }
+                    ],
+                }
+            ],
         )
 
     async def test_edgeql_ddl_errors_01(self):
@@ -16234,8 +16664,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "property 'b' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "property 'b' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER PROPERTY b
                     CREATE CONSTRAINT std::regexp(r'b');
@@ -16243,16 +16674,18 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "property 'b' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "property 'b' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 DROP PROPERTY b
                 ''')
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "constraint 'default::a' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "constraint 'default::a' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER PROPERTY foo
                     DROP CONSTRAINT a;
@@ -16260,8 +16693,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "constraint 'default::a' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "constraint 'default::a' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER PROPERTY foo
                     ALTER CONSTRAINT a ON (foo > 0) {
@@ -16271,8 +16705,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "annotation 'std::title' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "annotation 'std::title' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER PROPERTY foo
                     ALTER ANNOTATION title := 'aaa'
@@ -16280,8 +16715,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "annotation 'std::title' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "annotation 'std::title' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER PROPERTY foo
                     DROP ANNOTATION title;
@@ -16289,8 +16725,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "annotation 'std::title' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "annotation 'std::title' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1
                     ALTER ANNOTATION title := 'aaa'
@@ -16298,8 +16735,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "annotation 'std::title' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "annotation 'std::title' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1
                     DROP ANNOTATION title
@@ -16329,9 +16767,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "object type 'default::Err1' has no link or "
-                    "property 'zz'"):
+                edgedb.errors.InvalidReferenceError,
+                "object type 'default::Err1' has no link or property 'zz'",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1
                     CREATE INDEX ON (.zz)
@@ -16339,9 +16777,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "object type 'default::Err1' has no link or "
-                    "property 'zz'"):
+                edgedb.errors.InvalidReferenceError,
+                "object type 'default::Err1' has no link or property 'zz'",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1
                     CREATE INDEX ON ((.foo, .zz))
@@ -16349,8 +16787,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "object type 'default::blah' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "object type 'default::blah' does not exist",
+            ):
                 await self.con.execute('''
                     CREATE TYPE Err1 EXTENDING blah {
                         CREATE PROPERTY foo -> str;
@@ -16359,8 +16798,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "object type 'default::blah' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "object type 'default::blah' does not exist",
+            ):
                 await self.con.execute('''
                     CREATE TYPE Err2 EXTENDING blah {
                         CREATE PROPERTY foo -> str;
@@ -16369,8 +16809,8 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "link 'b' does not exist"):
+                edgedb.errors.InvalidReferenceError, "link 'b' does not exist"
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER LINK b
                     CREATE CONSTRAINT std::regexp(r'b');
@@ -16378,16 +16818,17 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "link 'b' does not exist"):
+                edgedb.errors.InvalidReferenceError, "link 'b' does not exist"
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 DROP LINK b;
                 ''')
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "annotation 'std::title' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "annotation 'std::title' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER LINK bar
                     DROP ANNOTATION title;
@@ -16395,8 +16836,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "constraint 'std::min_value' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "constraint 'std::min_value' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1 ALTER LINK bar
                     DROP CONSTRAINT min_value(0);
@@ -16404,8 +16846,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "property 'spam' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "property 'spam' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err1
                     ALTER LINK bar
@@ -16430,8 +16873,8 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "link 'foo' does not exist"):
+                edgedb.errors.InvalidReferenceError, "link 'foo' does not exist"
+            ):
                 await self.con.execute('''
                     ALTER TYPE Err2
                     ALTER LINK foo
@@ -16441,8 +16884,9 @@ type default::Foo {
     async def test_edgeql_ddl_errors_03(self):
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "function 'default::foo___1' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "function 'default::foo___1' does not exist",
+            ):
                 await self.con.execute('''
                     ALTER FUNCTION foo___1(a: int64)
                     SET volatility := 'Stable';
@@ -16450,8 +16894,9 @@ type default::Foo {
 
         async with self._run_and_rollback():
             with self.assertRaisesRegex(
-                    edgedb.errors.InvalidReferenceError,
-                    "function 'default::foo___1' does not exist"):
+                edgedb.errors.InvalidReferenceError,
+                "function 'default::foo___1' does not exist",
+            ):
                 await self.con.execute('''
                     DROP FUNCTION foo___1(a: int64);
                 ''')
@@ -16464,9 +16909,7 @@ type default::Foo {
 
         # Find initial migration with no parents.
         ordered = [
-            migration
-            for migration in migrations
-            if not migration['parents']
+            migration for migration in migrations if not migration['parents']
         ]
 
         # Repeatedly find descendents until no more can be found.
@@ -16476,8 +16919,7 @@ type default::Foo {
                 migration
                 for migration in migrations
                 if any(
-                    parent['id'] in prev_ids
-                    for parent in migration['parents']
+                    parent['id'] in prev_ids for parent in migration['parents']
                 )
             ]
             ordered.extend(curr_migrations)
@@ -16518,20 +16960,18 @@ type default::Foo {
         ''')
 
         migrations = TestEdgeQLDDL.order_migrations(
-            json.loads(await self.con.query_json('''
+            json.loads(
+                await self.con.query_json('''
                 select schema::Migration { id, parents: { id }, sdl }
-            '''))
+            ''')
+            )
         )
         sdl = [migration['sdl'] for migration in migrations]
 
         self.assert_data_shape(
             sdl,
             [
-                (
-                    'module default {\n'
-                    '    type A;\n'
-                    '};'
-                ),
+                ('module default {\n    type A;\n};'),
                 (
                     'module default {\n'
                     '    type A;\n'
@@ -16580,12 +17020,8 @@ type default::Foo {
                     '    type B;\n'
                     '};'
                 ),
-                (
-                    'module default {\n'
-                    '    type B;\n'
-                    '};'
-                ),
-            ]
+                ('module default {\n    type B;\n};'),
+            ],
         )
 
     async def test_edgeql_ddl_create_migration_01(self):
@@ -16609,17 +17045,21 @@ type default::Foo {
                 name
             } FILTER .name = 'default::Type1'
             ''',
-            [{
-                'name': 'default::Type1',
-            }]
+            [
+                {
+                    'name': 'default::Type1',
+                }
+            ],
         )
 
         migrations = TestEdgeQLDDL.order_migrations(
-            json.loads(await self.con.query_json('''
+            json.loads(
+                await self.con.query_json('''
                 select schema::Migration {
                     id, parents: { id }, script, sdl
                 }
-            '''))
+            ''')
+            )
         )
         self.assert_data_shape(
             migrations,
@@ -16638,7 +17078,7 @@ type default::Foo {
                         '\n};'
                     ),
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_create_migration_02(self):
@@ -16670,11 +17110,13 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         migrations = TestEdgeQLDDL.order_migrations(
-            json.loads(await self.con.query_json('''
+            json.loads(
+                await self.con.query_json('''
                 select schema::Migration {
                     id, parents: { id }, script, sdl
                 }
-            '''))
+            ''')
+            )
         )
         self.assert_data_shape(
             migrations,
@@ -16685,8 +17127,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                         'CREATE TYPE default::Foo {\n'
                         '    CREATE ACCESS POLICY foo\n'
                         '        ALLOW ALL USING ('
-                                    '(GLOBAL default::foo ?? true)'
-                                ');\n'
+                        '(GLOBAL default::foo ?? true)'
+                        ');\n'
                         '};'
                     ),
                     'sdl': (
@@ -16695,30 +17137,26 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                         '    type Foo {\n'
                         '        access policy foo\n'
                         '            allow all using '
-                                        '((global default::foo ?? true));\n'
+                        '((global default::foo ?? true));\n'
                         '    };\n'
                         '};'
                     ),
                 },
                 {
-                    'script': (
-                        'CREATE TYPE default::X;\n'
-                        '\n'
-                        'INSERT Foo;'
-                    ),
+                    'script': ('CREATE TYPE default::X;\n\nINSERT Foo;'),
                     'sdl': (
                         'module default {\n'
                         '    global foo -> std::bool;\n'
                         '    type Foo {\n'
                         '        access policy foo\n'
                         '            allow all using '
-                                        '((global default::foo ?? true));\n'
+                        '((global default::foo ?? true));\n'
                         '    };\n'
                         '    type X;\n'
                         '};'
                     ),
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_create_migration_03(self):
@@ -16739,7 +17177,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         migrations = TestEdgeQLDDL.order_migrations(
-            json.loads(await self.con.query_json('''
+            json.loads(
+                await self.con.query_json('''
                 select schema::Migration {
                     id,
                     parents: { id },
@@ -16748,7 +17187,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     script,
                     sdl,
                 }
-            '''))
+            ''')
+            )
         )
         self.assert_data_shape(
             migrations,
@@ -16759,7 +17199,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     'script': (
                         'SET message := "migration2";\n'
                         'SET generated_by := '
-                            'schema::MigrationGeneratedBy.DevMode;\n'
+                        'schema::MigrationGeneratedBy.DevMode;\n'
                         'CREATE TYPE Type2 {\n'
                         '    CREATE PROPERTY field2 -> int32;\n'
                         '};'
@@ -16772,7 +17212,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                         '};'
                     ),
                 },
-            ]
+            ],
         )
 
         await self.con.execute(f'''
@@ -16780,7 +17220,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         migrations = TestEdgeQLDDL.order_migrations(
-            json.loads(await self.con.query_json('''
+            json.loads(
+                await self.con.query_json('''
                 select schema::Migration {
                     id,
                     parents: { id },
@@ -16789,7 +17230,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     script,
                     sdl,
                 }
-            '''))
+            ''')
+            )
         )
         self.assert_data_shape(
             migrations,
@@ -16800,7 +17242,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     'script': (
                         'SET message := "migration2";\n'
                         'SET generated_by := '
-                            'schema::MigrationGeneratedBy.DevMode;\n'
+                        'schema::MigrationGeneratedBy.DevMode;\n'
                         'CREATE TYPE Type2 {\n'
                         '    CREATE PROPERTY field2 -> int32;\n'
                         '};'
@@ -16818,7 +17260,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     'message': None,
                     'script': (
                         'SET generated_by := '
-                            '(schema::MigrationGeneratedBy.DDLStatement);\n'
+                        '(schema::MigrationGeneratedBy.DDLStatement);\n'
                         'CREATE TYPE Type3;'
                     ),
                     'sdl': (
@@ -16830,7 +17272,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                         '};'
                     ),
                 },
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_create_migration_04(self):
@@ -16849,8 +17291,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         # Once we make it allowed, we will need to make it actually
         # work, and there is a commented bit below to test that.
         async with self.assertRaisesRegexTx(
-                edgedb.QueryError,
-                "Unexpected keyword 'GLOBAL'"):
+            edgedb.QueryError, "Unexpected keyword 'GLOBAL'"
+        ):
             await self.con.execute('''
                 CREATE MIGRATION
                 {
@@ -16874,8 +17316,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             create type X { create property x -> str; };
         ''')
         async with self.assertRaisesRegexTx(
-                edgedb.InvalidReferenceError,
-                "property 'x' does not"):
+            edgedb.InvalidReferenceError, "property 'x' does not"
+        ):
             await self.con.execute('''
                 CREATE MIGRATION
                 {
@@ -16923,11 +17365,13 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             FILTER
                 .name = 'authored'
             ''',
-            [{
-                'target': {
-                    'name': 'std::BaseObject',
+            [
+                {
+                    'target': {
+                        'name': 'std::BaseObject',
+                    }
                 }
-            }]
+            ],
         )
 
         await self.assert_query_result(
@@ -16935,7 +17379,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             SELECT _ := User.authored.__type__.name
             ORDER BY _
             ''',
-            ['default::Post', 'default::Video']
+            ['default::Post', 'default::Video'],
         )
 
     async def test_edgeql_ddl_change_module_01(self):
@@ -17062,7 +17506,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
 
         type_rename = "RENAME TO Remark;" if rename_type else ""
         prop_rename = (
-            "ALTER PROPERTY note RENAME TO remark;" if rename_prop else "")
+            "ALTER PROPERTY note RENAME TO remark;" if rename_prop else ""
+        )
 
         await self.con.execute(f"""
             ALTER TYPE Note {{
@@ -17105,24 +17550,40 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         """Do the three interesting invocations of _simple_rename_ref_test"""
         async with self._run_and_rollback():
             await self._simple_rename_ref_test(
-                ddl, cleanup,
-                rename_type=False, rename_prop=True, rename_module=False,
-                **kwargs)
+                ddl,
+                cleanup,
+                rename_type=False,
+                rename_prop=True,
+                rename_module=False,
+                **kwargs,
+            )
         async with self._run_and_rollback():
             await self._simple_rename_ref_test(
-                ddl, cleanup,
-                rename_type=True, rename_prop=False, rename_module=False,
-                **kwargs)
+                ddl,
+                cleanup,
+                rename_type=True,
+                rename_prop=False,
+                rename_module=False,
+                **kwargs,
+            )
         async with self._run_and_rollback():
             await self._simple_rename_ref_test(
-                ddl, cleanup,
-                rename_type=True, rename_prop=True, rename_module=False,
-                **kwargs)
+                ddl,
+                cleanup,
+                rename_type=True,
+                rename_prop=True,
+                rename_module=False,
+                **kwargs,
+            )
         async with self._run_and_rollback():
             await self._simple_rename_ref_test(
-                ddl, cleanup,
-                rename_type=False, rename_prop=False, rename_module=True,
-                **kwargs)
+                ddl,
+                cleanup,
+                rename_type=False,
+                rename_prop=False,
+                rename_module=True,
+                **kwargs,
+            )
 
     async def test_edgeql_ddl_rename_ref_function_01(self):
         await self._simple_rename_ref_tests(
@@ -17279,7 +17740,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         )
 
     async def test_edgeql_ddl_rename_ref_default_02(self):
-        await self._simple_rename_ref_tests("""
+        await self._simple_rename_ref_tests(
+            """
             CREATE TYPE Uses {
                 CREATE REQUIRED PROPERTY x -> str {
                     SET default := (SELECT Note.note LIMIT 1)
@@ -17291,7 +17753,10 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     SET default := (SELECT Note.note LIMIT 1)
                 }
             };
-        """, prop_refs=2, type_refs=2)
+        """,
+            prop_refs=2,
+            type_refs=2,
+        )
 
     async def test_edgeql_ddl_rename_ref_computable_01(self):
         await self._simple_rename_ref_tests(
@@ -17674,8 +18139,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         self.assertEqual(
             await self.con.query_single(count_query),
             orig_count + 2 + 2,  # one for tuple<str, str>
-                                 # one for TupleExprAlias,
-                                 # two for implicit array<a> and array<b>
+            # one for TupleExprAlias,
+            # two for implicit array<a> and array<b>
         )
 
         await self.con.execute(r"""
@@ -17905,7 +18370,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     has_required := contains(.computed_fields, "required")
                 } FILTER .name = "foo"
             """,
-            [{"required": True, "has_required": True}]
+            [{"required": True, "has_required": True}],
         )
 
         await self.con.execute(r"""
@@ -17921,7 +18386,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     has_required := contains(.computed_fields, "required")
                 } FILTER .name = "foo"
             """,
-            [{"required": False, "has_required": False}]
+            [{"required": False, "has_required": False}],
         )
 
         await self.con.execute(r"""
@@ -17937,7 +18402,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     has_required := contains(.computed_fields, "required")
                 } FILTER .name = "foo"
             """,
-            [{"required": True, "has_required": True}]
+            [{"required": True, "has_required": True}],
         )
 
         await self.con.execute(r"""
@@ -17953,7 +18418,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                     has_required := contains(.computed_fields, "required")
                 } FILTER .name = "foo"
             """,
-            [{"required": True, "has_required": False}]
+            [{"required": True, "has_required": False}],
         )
 
     async def test_edgeql_ddl_adjust_computed_04(self):
@@ -17973,8 +18438,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required property"):
+            edgedb.MissingRequiredError, r"missing value for required property"
+        ):
             # Should fail because there is missing data
             # TODO: ask for fill_expr?
             await self.con.execute(r'''
@@ -17988,8 +18453,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required property"):
+            edgedb.MissingRequiredError, r"missing value for required property"
+        ):
             await self.con.execute(r'''
                 INSERT Foo;
             ''')
@@ -18015,8 +18480,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required link"):
+            edgedb.MissingRequiredError, r"missing value for required link"
+        ):
             # Should fail because there is missing data
             await self.con.execute(r'''
                 ALTER TYPE Foo { ALTER LINK bar RESET EXPRESSION };
@@ -18029,8 +18494,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required link"):
+            edgedb.MissingRequiredError, r"missing value for required link"
+        ):
             await self.con.execute(r'''
                 INSERT Foo;
             ''')
@@ -18056,8 +18521,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required link"):
+            edgedb.MissingRequiredError, r"missing value for required link"
+        ):
             # Should fail because there is missing data
             await self.con.execute(r'''
                 ALTER TYPE Foo { ALTER LINK bar RESET EXPRESSION };
@@ -18070,8 +18535,8 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
         ''')
 
         async with self.assertRaisesRegexTx(
-                edgedb.MissingRequiredError,
-                r"missing value for required link"):
+            edgedb.MissingRequiredError, r"missing value for required link"
+        ):
             await self.con.execute(r'''
                 INSERT Foo;
             ''')
@@ -18092,9 +18557,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             r"""
                 SELECT Foo { bar }
             """,
-            [
-                {'bar': None}
-            ]
+            [{'bar': None}],
         )
 
     async def test_edgeql_ddl_adjust_computed_08(self):
@@ -18113,9 +18576,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             r"""
                 SELECT Foo { bar }
             """,
-            [
-                {'bar': []}
-            ]
+            [{'bar': []}],
         )
 
     async def test_edgeql_ddl_adjust_computed_09(self):
@@ -18135,9 +18596,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             r"""
                 SELECT Foo { bar }
             """,
-            [
-                {'bar': []}
-            ]
+            [{'bar': []}],
         )
 
     async def test_edgeql_ddl_adjust_computed_10(self):
@@ -18155,9 +18614,7 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             r"""
                 DELETE Foo
             """,
-            [
-                {}
-            ]
+            [{}],
         )
 
     async def test_edgeql_ddl_adjust_computed_11(self):
@@ -18196,12 +18653,15 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             };
         ''')
 
-        await self.migrate(r'''
+        await self.migrate(
+            r'''
             TYPE default::Foo {
                 PROPERTY foo: std::str;
             };
             ALIAS default::FooAlias := default::Foo;
-        ''', module=None)
+        ''',
+            module=None,
+        )
 
     async def test_edgeql_ddl_adjust_computed_13(self):
         await self.con.execute(r'''
@@ -18281,7 +18741,6 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
             """)
 
     async def test_edgeql_ddl_captured_as_migration_01(self):
-
         await self.con.execute(r"""
             CREATE TYPE Foo {
                 CREATE PROPERTY foo := 1;
@@ -18300,16 +18759,18 @@ CREATE MIGRATION m14i24uhm6przo3bpl2lqndphuomfrtq3qdjaqdg6fza7h6m7tlbra
                         script
                     }
             """,
-            [{
-                'script': textwrap.dedent(
-                    '''\
+            [
+                {
+                    'script': textwrap.dedent(
+                        '''\
                     SET generated_by := (schema::MigrationGeneratedBy.\
 DDLStatement);
                     CREATE TYPE Foo {
                         CREATE PROPERTY foo := (1);
                     };'''
-                )
-            }]
+                    )
+                }
+            ],
         )
 
     async def test_edgeql_ddl_link_policy_01(self):
@@ -18654,18 +19115,20 @@ DDLStatement);
                 filter .name = 'tgt';
 
             """,
-            tb.bag([
-                {
-                    "name": "tgt",
-                    "on_target_delete": "Allow",
-                    "source": {"name": "default::Foo"}
-                },
-                {
-                    "name": "tgt",
-                    "on_target_delete": "Allow",
-                    "source": {"name": "default::Bar"}
-                }
-            ]),
+            tb.bag(
+                [
+                    {
+                        "name": "tgt",
+                        "on_target_delete": "Allow",
+                        "source": {"name": "default::Foo"},
+                    },
+                    {
+                        "name": "tgt",
+                        "on_target_delete": "Allow",
+                        "source": {"name": "default::Bar"},
+                    },
+                ]
+            ),
         )
 
     async def test_edgeql_ddl_link_policy_13(self):
@@ -18858,7 +19321,7 @@ DDLStatement);
             r"""
                 SELECT (Bar UNION Baz).foo { name };
             """,
-            [{"name": "foo"}]
+            [{"name": "foo"}],
         )
 
         await self.assert_query_result(
@@ -18866,9 +19329,7 @@ DDLStatement);
                 WITH W := (Bar UNION Baz)
                 SELECT _ := (W { name }, W.foo) ORDER BY _.0.name;
             """,
-            [
-                [{"name": "bar"}, {}], [{"name": "baz"}, {}]
-            ],
+            [[{"name": "bar"}, {}], [{"name": "baz"}, {}]],
         )
 
         await self.con.execute(r"""
@@ -18954,7 +19415,7 @@ DDLStatement);
     async def test_edgeql_ddl_scoping_future_03(self):
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "Schema does not have 'using future simple_scoping'"
+            "Schema does not have 'using future simple_scoping'",
         ):
             await self.con.execute("""
                 start migration to {
@@ -19055,7 +19516,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             "missing value for required property 'name' of object type "
-            "'default::Foo'"
+            "'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo CREATE REQUIRED PROPERTY name -> str;
@@ -19078,8 +19539,7 @@ DDLStatement);
         """)
 
         await self.assert_query_result(
-            r'''SELECT Foo {name, num}''',
-            [{'name': '20!', 'num': 20}]
+            r'''SELECT Foo {name, num}''', [{'name': '20!', 'num': 20}]
         )
 
     async def test_edgeql_ddl_new_required_pointer_03(self):
@@ -19099,8 +19559,7 @@ DDLStatement);
         """)
 
         await self.assert_query_result(
-            r'''SELECT Foo {name, num}''',
-            [{'name': ['20!'], 'num': 20}]
+            r'''SELECT Foo {name, num}''', [{'name': ['20!'], 'num': 20}]
         )
 
     async def test_edgeql_ddl_new_required_pointer_04(self):
@@ -19132,7 +19591,7 @@ DDLStatement);
             [
                 {'num': 20, 'partner': {'code': 40}},
                 {'num': 30, 'partner': {'code': 60}},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_new_required_pointer_05(self):
@@ -19164,7 +19623,7 @@ DDLStatement);
             [
                 {'num': 20, 'partner': [{'code': 40}]},
                 {'num': 30, 'partner': [{'code': 60}]},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_new_required_pointer_06(self):
@@ -19185,8 +19644,7 @@ DDLStatement);
         """)
 
         await self.assert_query_result(
-            r'''SELECT Foo {name, num}''',
-            [{'name': '20!', 'num': 20}]
+            r'''SELECT Foo {name, num}''', [{'name': '20!', 'num': 20}]
         )
 
     async def test_edgeql_ddl_new_required_pointer_07(self):
@@ -19208,8 +19666,7 @@ DDLStatement);
         """)
 
         await self.assert_query_result(
-            r'''SELECT Foo {name, num}''',
-            [{'name': '20!', 'num': 20}]
+            r'''SELECT Foo {name, num}''', [{'name': '20!', 'num': 20}]
         )
 
     async def test_edgeql_ddl_new_required_pointer_08(self):
@@ -19236,7 +19693,7 @@ DDLStatement);
             [
                 {'name': '10!', 'num': 10},
                 {'name': '20!', 'num': 20},
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_new_required_pointer_09(self):
@@ -19254,8 +19711,7 @@ DDLStatement);
         """)
 
         await self.assert_query_result(
-            r'''SELECT Foo {name}''',
-            [{'name': {'hello', 'world'}}]
+            r'''SELECT Foo {name}''', [{'name': {'hello', 'world'}}]
         )
 
     async def test_edgeql_ddl_new_required_multi_pointer_01(self):
@@ -19267,7 +19723,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             "missing value for required property 'name' of object type "
-            "'default::Foo'"
+            "'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo CREATE REQUIRED MULTI PROPERTY name -> str;
@@ -19282,7 +19738,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             "missing value for required link 'link' of object type "
-            "'default::Foo'"
+            "'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo CREATE REQUIRED MULTI LINK link -> Object;
@@ -19299,7 +19755,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             "missing value for required property 'name' of object type "
-            "'default::Foo'"
+            "'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER PROPERTY name SET REQUIRED;
@@ -19316,7 +19772,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.MissingRequiredError,
             "missing value for required link 'link' of object type "
-            "'default::Foo'"
+            "'default::Foo'",
         ):
             await self.con.execute("""
                 ALTER TYPE Foo ALTER LINK link SET REQUIRED;
@@ -19350,8 +19806,7 @@ DDLStatement);
         """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.MissingRequiredError,
-            "missing value"
+            edgedb.MissingRequiredError, "missing value"
         ):
             await self.con.execute(r"""
                 INSERT Post { author := {(insert User), (insert User)} };
@@ -19394,8 +19849,7 @@ DDLStatement);
         """)
 
         async with self.assertRaisesRegexTx(
-            edgedb.UnsupportedFeatureError,
-            "cannot include mutating statements"
+            edgedb.UnsupportedFeatureError, "cannot include mutating statements"
         ):
             await self.con.execute(r"""
                 ALTER TYPE default::Post {
@@ -19517,7 +19971,8 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
             "'str' exists, but is a scalar type, not an object type",
-            _line=1, _col=29
+            _line=1,
+            _col=29,
         ):
             await self.con.execute(
                 r'''CREATE TYPE MyStr EXTENDING str;''',
@@ -19562,7 +20017,7 @@ DDLStatement);
 
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
-            "function 'get_all_children_ordered' does not exist"
+            "function 'get_all_children_ordered' does not exist",
         ):
             await self.con.execute(r'''
                 CREATE FUNCTION get_all_children_ordered(parent: SomeThing)
@@ -19580,7 +20035,7 @@ DDLStatement);
         async with self.assertRaisesRegexTx(
             edgedb.QueryError,
             r"function 'default::get_all_children_ordered"
-            r"\(parent: default::SomeThing\)' is defined recursively"
+            r"\(parent: default::SomeThing\)' is defined recursively",
         ):
             await self.con.execute(r'''
                 ALTER FUNCTION get_all_children_ordered(parent: SomeThing)
@@ -19596,8 +20051,9 @@ DDLStatement);
         """)
 
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"object type 'default::Foo' already exists"):
+            edgedb.errors.SchemaError,
+            r"object type 'default::Foo' already exists",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo;
             """)
@@ -19610,9 +20066,10 @@ DDLStatement);
         """)
 
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"property 'foo' of "
-                r"object type 'default::Foo' already exists"):
+            edgedb.errors.SchemaError,
+            r"property 'foo' of "
+            r"object type 'default::Foo' already exists",
+        ):
             await self.con.execute(r"""
                 ALTER TYPE Foo {
                     CREATE PROPERTY foo -> str;
@@ -19626,8 +20083,9 @@ DDLStatement);
         """)
 
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"object type 'default::Foo' already exists"):
+            edgedb.errors.SchemaError,
+            r"object type 'default::Foo' already exists",
+        ):
             await self.con.execute(r"""
                 ALTER TYPE Bar RENAME TO Foo;
             """)
@@ -19641,9 +20099,10 @@ DDLStatement);
         """)
 
         with self.assertRaisesRegex(
-                edgedb.errors.SchemaError,
-                r"property 'foo' of "
-                r"object type 'default::Foo' already exists"):
+            edgedb.errors.SchemaError,
+            r"property 'foo' of "
+            r"object type 'default::Foo' already exists",
+        ):
             await self.con.execute(r"""
                 ALTER TYPE Foo {
                     ALTER PROPERTY bar RENAME TO foo;
@@ -19657,8 +20116,9 @@ DDLStatement);
 
         # We don't want to prohibit this forever, but we need to for now.
         async with self.assertRaisesRegexTx(
-                edgedb.errors.UnsupportedFeatureError,
-                r"referring to alias 'default::Alias' from computed property"):
+            edgedb.errors.UnsupportedFeatureError,
+            r"referring to alias 'default::Alias' from computed property",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar := Alias;
@@ -19666,8 +20126,9 @@ DDLStatement);
             """)
 
         async with self.assertRaisesRegexTx(
-                edgedb.errors.UnsupportedFeatureError,
-                r"referring to alias 'default::Alias' from computed property"):
+            edgedb.errors.UnsupportedFeatureError,
+            r"referring to alias 'default::Alias' from computed property",
+        ):
             await self.con.execute(r"""
                 CREATE TYPE Foo {
                     CREATE PROPERTY bar := {Alias, Alias};
@@ -19945,8 +20406,9 @@ DDLStatement);
         """)
 
         with self.assertRaisesRegex(
-                edgedb.ConstraintViolationError,
-                r"may not make non-empty object type 'default::Foo' abstract"):
+            edgedb.ConstraintViolationError,
+            r"may not make non-empty object type 'default::Foo' abstract",
+        ):
             await self.con.execute(r"""
                 alter type Foo set abstract;
             """)
@@ -19985,9 +20447,10 @@ DDLStatement);
 
         for alter in alters:
             async with self.assertRaisesRegexTx(
-                    (edgedb.SchemaError, edgedb.SchemaDefinitionError),
-                    r"may not include a shape"):
-                await self.con.execute(fr"""
+                (edgedb.SchemaError, edgedb.SchemaDefinitionError),
+                r"may not include a shape",
+            ):
+                await self.con.execute(rf"""
                     alter type Baz {{
                         alter link foo {{
                             {alter}
@@ -20007,7 +20470,7 @@ DDLStatement);
                 select schema::Property {target: {name}}
                 filter .name = 'uuid_array_prop';
             """,
-            [{'target': {'name': 'array<std::uuid>'}}]
+            [{'target': {'name': 'array<std::uuid>'}}],
         )
 
     async def test_edgeql_ddl_computed_and_alias(self):
@@ -20133,9 +20596,7 @@ DDLStatement);
 class TestDDLNonIsolated(tb.DDLTestCase):
     TRANSACTION_ISOLATION = False
 
-    PER_TEST_TEARDOWN = [
-        'reset schema to initial'
-    ]
+    PER_TEST_TEARDOWN = ['reset schema to initial']
 
     async def test_edgeql_ddl_consecutive_create_migration_01(self):
         # A regression test for https://github.com/edgedb/edgedb/issues/2085.
@@ -20160,8 +20621,9 @@ class TestDDLNonIsolated(tb.DDLTestCase):
             insert Mig01;
         ''')
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required property 'n'"):
+            edgedb.MissingRequiredError,
+            r"missing value for required property 'n'",
+        ):
             # Test it standalone
             await self.con.query('''
                 alter type Mig01 create required property n -> int64;
@@ -20173,8 +20635,9 @@ class TestDDLNonIsolated(tb.DDLTestCase):
             insert Mig02;
         ''')
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required property 'n'"):
+            edgedb.MissingRequiredError,
+            r"missing value for required property 'n'",
+        ):
             # Test it in a script
             await self.con.query('''
                 alter type Mig02 create required property n -> int64;
@@ -20186,8 +20649,9 @@ class TestDDLNonIsolated(tb.DDLTestCase):
             create type Mig03;
         ''')
         with self.assertRaisesRegex(
-                edgedb.MissingRequiredError,
-                r"missing value for required property 'n'"):
+            edgedb.MissingRequiredError,
+            r"missing value for required property 'n'",
+        ):
             # Test a non-DDL failure in the script where prop was created
             await self.con.query('''
                 alter type Mig03 create required property n -> int64;
@@ -20276,9 +20740,11 @@ class TestDDLNonIsolated(tb.DDLTestCase):
                 cons.append(con)
             con2, con3 = cons
 
-            long_call = asyncio.create_task(con1.query_single(f'''
+            long_call = asyncio.create_task(
+                con1.query_single(f'''
                 select (count({query}), sys::_sleep(3));
-            '''))
+            ''')
+            )
             await asyncio.sleep(0.5)
             ddl = asyncio.create_task(con2.execute(modification))
             await asyncio.sleep(0.5)
@@ -20357,10 +20823,7 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         ''')
         # Run many times to wait for the func cache creation
         for _ in range(64):
-            await self.assert_query_result(
-                'select lol()',
-                [('x', 'y')]
-            )
+            await self.assert_query_result('select lol()', [('x', 'y')])
         # This drop should succeed, even when the func cache depends on the
         # returning tuple type; the cache should be evicted.
         await self.con.execute('''
@@ -20377,8 +20840,8 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         await self.con.query('DECLARE SAVEPOINT t0')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                'cannot DROP EXTENDING enum'):
+            edgedb.SchemaError, 'cannot DROP EXTENDING enum'
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color
                     DROP EXTENDING enum<Red, Green, Blue>;
@@ -20388,9 +20851,10 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         await self.con.query('ROLLBACK TO SAVEPOINT t0;')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                "cannot add supertype scalar type 'std::str' to enum type "
-                "default::Color"):
+            edgedb.SchemaError,
+            "cannot add supertype scalar type 'std::str' to enum type "
+            "default::Color",
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color EXTENDING str FIRST;
             ''')
@@ -20399,8 +20863,9 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         await self.con.query('ROLLBACK TO SAVEPOINT t0;')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                'cannot add supertype enum<Bad> to enum type default::Color'):
+            edgedb.SchemaError,
+            'cannot add supertype enum<Bad> to enum type default::Color',
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color
                     EXTENDING enum<Bad> LAST;
@@ -20410,8 +20875,9 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         await self.con.query('ROLLBACK TO SAVEPOINT t0;')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                'enum default::Color may not have multiple supertypes'):
+            edgedb.SchemaError,
+            'enum default::Color may not have multiple supertypes',
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color
                     EXTENDING enum<Bad>, enum<AlsoBad>;
@@ -20421,8 +20887,8 @@ class TestDDLNonIsolated(tb.DDLTestCase):
         await self.con.query('ROLLBACK TO SAVEPOINT t0;')
 
         with self.assertRaisesRegex(
-                edgedb.SchemaError,
-                'enums cannot contain duplicate values'):
+            edgedb.SchemaError, 'enums cannot contain duplicate values'
+        ):
             await self.con.execute('''
                 ALTER SCALAR TYPE Color
                     EXTENDING enum<Red, Green, Blue, Red>;
@@ -20491,7 +20957,7 @@ class TestDDLNonIsolated(tb.DDLTestCase):
             [
                 "Creating concurrent index on 'default::T' with expr (.n)",
                 "Creating concurrent index on 'default::T' with expr (.s)",
-            ]
+            ],
         )
 
     async def test_edgeql_ddl_concurrent_index_03(self):
@@ -20514,8 +20980,7 @@ class TestDDLNonIsolated(tb.DDLTestCase):
                 ''')
                 task = asyncio.create_task(
                     create_concurrent_indexes(
-                        con2,
-                        msg_callback=lambda _: ev.set()
+                        con2, msg_callback=lambda _: ev.set()
                     )
                 )
                 await ev.wait()

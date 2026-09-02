@@ -25,7 +25,7 @@ import os
     "--init-sdl-file",
     type=str,
     required=False,
-    help="initialize schema to be this file, schema" "should not be place",
+    help="initialize schema to be this file, schemashould not be place",
 )
 @click.option(
     "--library-ddl-files",
@@ -72,7 +72,6 @@ def interperter_entry(
     no_setup=False,
     skip_test_confirm=False,
 ) -> None:
-
     if test:
         schemas_dir = os.path.join(
             os.path.dirname(__file__), '..', '..', '..', 'tests', 'schemas'

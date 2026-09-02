@@ -29,12 +29,21 @@ from edb.edgeql.qltypes import ConfigScope
 
 from .ops import OpCode, Operation, SettingValue
 from .ops import (
-    spec_to_json, to_json_obj, to_json, from_json, set_value, to_edgeql
+    spec_to_json,
+    to_json_obj,
+    to_json,
+    from_json,
+    set_value,
+    to_edgeql,
 )
 from .ops import value_from_json, value_to_json_value
 from .spec import (
-    Spec, FlatSpec, ChainedSpec, Setting,
-    load_spec_from_schema, load_ext_spec_from_schema,
+    Spec,
+    FlatSpec,
+    ChainedSpec,
+    Setting,
+    load_spec_from_schema,
+    load_ext_spec_from_schema,
     load_ext_settings_from_schema,
 )
 from .types import ConfigType, CompositeConfigType
@@ -43,16 +52,31 @@ from .types import QueryCacheMode
 
 __all__ = (
     'lookup',
-    'Spec', 'FlatSpec', 'ChainedSpec', 'Setting', 'SettingValue',
-    'spec_to_json', 'to_json_obj', 'to_json', 'to_edgeql', 'from_json',
-    'set_value', 'value_from_json', 'value_to_json_value',
-    'ConfigScope', 'OpCode', 'Operation',
-    'ConfigType', 'CompositeConfigType',
-    'load_spec_from_schema', 'load_ext_spec_from_schema',
+    'Spec',
+    'FlatSpec',
+    'ChainedSpec',
+    'Setting',
+    'SettingValue',
+    'spec_to_json',
+    'to_json_obj',
+    'to_json',
+    'to_edgeql',
+    'from_json',
+    'set_value',
+    'value_from_json',
+    'value_to_json_value',
+    'ConfigScope',
+    'OpCode',
+    'Operation',
+    'ConfigType',
+    'CompositeConfigType',
+    'load_spec_from_schema',
+    'load_ext_spec_from_schema',
     'load_ext_settings_from_schema',
     'get_compilation_config',
     'QueryCacheMode',
-    'ConState', 'ConStateType',
+    'ConState',
+    'ConStateType',
 )
 
 
@@ -86,7 +110,8 @@ def lookup(
             return None
         else:
             raise errors.ConfigurationError(
-                f'unrecognized configuration parameter {name!r}')
+                f'unrecognized configuration parameter {name!r}'
+            )
 
     for c in configs:
         try:
@@ -104,12 +129,14 @@ def get_compilation_config(
     *,
     spec: Spec,
 ) -> immutables.Map[str, SettingValue]:
-    return immutables.Map((
-        (k, v)
-        for k, v in config.items()
-        if k in spec
-        if spec[k].affects_compilation
-    ))
+    return immutables.Map(
+        (
+            (k, v)
+            for k, v in config.items()
+            if k in spec
+            if spec[k].affects_compilation
+        )
+    )
 
 
 def _serialize_val(v: object) -> object:
@@ -125,8 +152,8 @@ def debug_serialize_config(
     cfg: Mapping[str, SettingValue],
 ) -> Any:
     return {
-        name:
-        {'redacted': True} if value.secret
+        name: {'redacted': True}
+        if value.secret
         else _serialize_val(value.value)
         for name, value in cfg.items()
     }

@@ -67,10 +67,10 @@ class Polymorphism(s_enum.StrEnum):
     def from_schema_type(type: s_types.Type) -> Polymorphism:
         return (
             Polymorphism.Simple
-            if not type.is_collection() else
-            Polymorphism.Array
-            if type.is_array() else
-            Polymorphism.Collection
+            if not type.is_collection()
+            else Polymorphism.Array
+            if type.is_array()
+            else Polymorphism.Collection
         )
 
 
@@ -98,6 +98,7 @@ class TransactionDeferMode(s_enum.StrEnum):
 
 class SchemaCardinality(s_enum.OrderedEnumMixin, s_enum.StrEnum):
     '''This enum is used to store cardinality in the schema.'''
+
     One = 'One'
     Many = 'Many'
     Unknown = 'Unknown'
@@ -130,6 +131,7 @@ class SchemaCardinality(s_enum.OrderedEnumMixin, s_enum.StrEnum):
 
 class Cardinality(s_enum.StrEnum):
     '''This enum is used in cardinality inference internally.'''
+
     # [0, 1]
     AT_MOST_ONE = 'AT_MOST_ONE'
     # [1, 1]
@@ -271,7 +273,6 @@ class DescribeLanguage(s_enum.StrEnum):
 
 
 class SchemaObjectClass(s_enum.StrEnum):
-
     ACCESS_POLICY = 'ACCESS_POLICY'
     ALIAS = 'ALIAS'
     ANNOTATION = 'ANNOTATION'
@@ -342,7 +343,6 @@ class LinkSourceDeleteAction(s_enum.StrEnum):
 
 
 class ConfigScope(s_enum.StrEnum):
-
     INSTANCE = 'INSTANCE'
     DATABASE = 'DATABASE'
     SESSION = 'SESSION'

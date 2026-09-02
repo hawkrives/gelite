@@ -29,7 +29,6 @@ from edb.common.ast import visitor
 
 
 class tast:
-
     class Base(ast.AST):
         pass
 
@@ -51,7 +50,6 @@ class tast:
 
 
 class ASTBaseTests(unittest.TestCase):
-
     def test_common_ast_copy(self):
         lconst = tast.Constant(value='foo')
         tree1 = tast.BinOp(left=lconst)
@@ -69,7 +67,8 @@ class ASTBaseTests(unittest.TestCase):
             node: dict
 
         tree2 = tast.BinOp(
-            left=tast.FunctionCall(args=[Dict(node={'lconst': lconst})]))
+            left=tast.FunctionCall(args=[Dict(node={'lconst': lconst})])
+        )
 
         ctree21 = copy.copy(tree2)
         assert ctree21 is not tree2
@@ -97,15 +96,13 @@ class ASTBaseTests(unittest.TestCase):
             field_typing_list: list[Base] = ast.field(factory=list)
             field_typing_tuple: tuple[Base, ...] = ()
             field_typing_union: str | bytes
-            field_typing_union_list: list[
-                str | bytes] = ast.field(factory=list)
+            field_typing_union_list: list[str | bytes] = ast.field(factory=list)
             field_typing_str: str
             field_typing_optional_str: typing.Optional[str]
-            field_typing_mapping: dict[
-                int, str] = ast.field(factory=dict)
-            field_typing_mapping_opt_key: \
-                dict[
-                    typing.Optional[int], str] = ast.field(factory=dict)
+            field_typing_mapping: dict[int, str] = ast.field(factory=dict)
+            field_typing_mapping_opt_key: dict[typing.Optional[int], str] = (
+                ast.field(factory=dict)
+            )
 
         self.assertEqual(Node().field_list, [])
         self.assertEqual(Node().field_typing_list, [])
@@ -172,14 +169,12 @@ class ASTBaseTests(unittest.TestCase):
 
 
 class ASTFindChildrenTests(unittest.TestCase):
-
     def test_common_ast_find_children(self):
         node = tast.UnaryOp(
             op='NamedTuple',
             operand=[
                 ('foo', tast.Constant(value=2)),
-                ('bar', [
-                    tast.UnaryOp(op='-', operand=tast.Constant(value=3))]),
+                ('bar', [tast.UnaryOp(op='-', operand=tast.Constant(value=3))]),
             ],
         )
         children = visitor.find_children(node, tast.Constant)

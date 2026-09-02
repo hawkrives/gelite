@@ -19,14 +19,8 @@
 
 """EdgeQL statement compilation routines."""
 
-
 from __future__ import annotations
-from typing import (
-    Any,
-    Optional,
-    Sequence,
-    cast
-)
+from typing import Any, Optional, Sequence, cast
 
 from collections import defaultdict
 import textwrap
@@ -133,8 +127,8 @@ def compile_SelectQuery(
             )
             or (
                 isinstance(expr.result, qlast.FunctionCall)
-                and expr.result.func in (
-                    'assert_distinct', 'assert_single', 'assert_exists')
+                and expr.result.func
+                in ('assert_distinct', 'assert_single', 'assert_exists')
             )
         )
 
@@ -145,17 +139,16 @@ def compile_SelectQuery(
             result_alias=expr.result_alias,
             view_name=ctx.toplevel_result_view_name,
             forward_rptr=forward_rptr,
-            ctx=sctx)
+            ctx=sctx,
+        )
 
         stmt.where = clauses.compile_where_clause(expr.where, ctx=sctx)
 
         stmt.orderby = clauses.compile_orderby_clause(expr.orderby, ctx=sctx)
 
-        stmt.offset = clauses.compile_limit_offset_clause(
-            expr.offset, ctx=sctx)
+        stmt.offset = clauses.compile_limit_offset_clause(expr.offset, ctx=sctx)
 
-        stmt.limit = clauses.compile_limit_offset_clause(
-            expr.limit, ctx=sctx)
+        stmt.limit = clauses.compile_limit_offset_clause(expr.limit, ctx=sctx)
 
         result = fini_stmt(stmt, ctx=sctx, parent_ctx=ctx)
 
@@ -252,8 +245,9 @@ def compile_ForQuery(
             )
 
         # Inject an implicit limit if appropriate
-        if ((ctx.expr_exposed or sctx.stmt is ctx.toplevel_stmt)
-                and ctx.implicit_limit):
+        if (
+            ctx.expr_exposed or sctx.stmt is ctx.toplevel_stmt
+        ) and ctx.implicit_limit:
             stmt.limit = dispatch.compile(
                 qlast.Constant.integer(ctx.implicit_limit),
                 ctx=sctx,
@@ -274,7 +268,9 @@ def _make_group_binding(
     binding_type = schemactx.derive_view(
         stype,
         derived_name=s_name.QualName('__derived__', alias),
-        preserve_shape=True, ctx=ctx)
+        preserve_shape=True,
+        ctx=ctx,
+    )
 
     binding_set = setgen.class_set(binding_type, ctx=ctx)
     binding_set.is_visible_binding_ref = True
@@ -320,11 +316,13 @@ def compile_InternalGroupQuery(
                 expr.subject,
                 result_alias=expr.subject_alias,
                 exprtype=s_types.ExprType.Group,
-                ctx=topctx)
+                ctx=topctx,
+            )
 
             if topctx.partial_path_prefix:
                 pathctx.register_set_in_scope(
-                    topctx.partial_path_prefix, ctx=topctx)
+                    topctx.partial_path_prefix, ctx=topctx
+                )
 
             # compile the USING
             assert expr.using is not None
@@ -357,12 +355,14 @@ def compile_InternalGroupQuery(
                     binding.span = using_entry.expr.span
                     stmt.using[using_entry.alias] = (
                         setgen.new_set_from_set(binding, ctx=sctx),
-                        qltypes.Cardinality.UNKNOWN)
+                        qltypes.Cardinality.UNKNOWN,
+                    )
                     binding.is_visible_binding_ref = True
 
             subject_stype = setgen.get_set_type(stmt.subject, ctx=topctx)
             stmt.group_binding = _make_group_binding(
-                subject_stype, expr.group_alias, ctx=topctx)
+                subject_stype, expr.group_alias, ctx=topctx
+            )
 
             # # Compile the shape on the group binding, in case we need it
             # viewgen.late_compile_view_shapes(stmt.group_binding, ctx=topctx)
@@ -372,10 +372,11 @@ def compile_InternalGroupQuery(
                     ctx.env.schema,
                     element_type=(
                         ctx.env.schema.get('std::str', type=s_types.Type)
-                    )
+                    ),
                 )
                 stmt.grouping_binding = _make_group_binding(
-                    grouping_stype, expr.grouping_alias, ctx=topctx)
+                    grouping_stype, expr.grouping_alias, ctx=topctx
+                )
 
         # Check that the by clause is legit
         by_refs = ast.find_children(stmt.by, qlast.ObjectRef)
@@ -414,12 +415,14 @@ def compile_InternalGroupQuery(
             stmt.result = compile_result_clause(
                 astutils.ensure_ql_query(expr.result),
                 result_alias=expr.result_alias,
-                ctx=bctx)
+                ctx=bctx,
+            )
 
             stmt.where = clauses.compile_where_clause(expr.where, ctx=bctx)
 
             stmt.orderby = clauses.compile_orderby_clause(
-                expr.orderby, ctx=bctx)
+                expr.orderby, ctx=bctx
+            )
 
         result = fini_stmt(stmt, ctx=sctx, parent_ctx=ctx)
 
@@ -440,7 +443,6 @@ def compile_GroupQuery(
 def compile_InsertQuery(
     expr: qlast.InsertQuery, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     if ctx.disallow_dml:
         raise errors.QueryError(
             f'INSERT statements cannot be used {ctx.disallow_dml}',
@@ -471,35 +473,40 @@ def compile_InsertQuery(
         # we need to error out.
         if ictx.inserting_paths.get(subject.path_id) == 'else':
             setgen.raise_self_insert_error(
-                subject_stype, expr.subject.span, ctx=ctx)
+                subject_stype, expr.subject.span, ctx=ctx
+            )
 
         if subject_stype.get_abstract(ctx.env.schema):
             raise errors.QueryError(
                 f'cannot insert into abstract '
                 f'{subject_stype.get_verbosename(ctx.env.schema)}',
-                span=expr.subject.span)
+                span=expr.subject.span,
+            )
 
         if subject_stype.is_free_object_type(ctx.env.schema):
             raise errors.QueryError(
-                f'free objects cannot be inserted',
-                span=expr.subject.span)
+                f'free objects cannot be inserted', span=expr.subject.span
+            )
 
         if subject_stype.is_view(ctx.env.schema):
             raise errors.QueryError(
                 f'cannot insert into expression alias '
                 f'{str(subject_stype.get_shortname(ctx.env.schema))!r}',
-                span=expr.subject.span)
+                span=expr.subject.span,
+            )
 
         if _is_forbidden_stdlib_type_for_mod(subject_stype, ctx):
             raise errors.QueryError(
                 f'cannot insert standard library type '
                 f'{subject_stype.get_displayname(ctx.env.schema)}',
-                span=expr.subject.span)
+                span=expr.subject.span,
+            )
 
         with ictx.new() as bodyctx:
             # Self-references in INSERT are prohibited.
             pathctx.ban_inserting_path(
-                subject.path_id, location='body', ctx=bodyctx)
+                subject.path_id, location='body', ctx=bodyctx
+            )
 
             bodyctx.class_view_overrides = ictx.class_view_overrides.copy()
             bodyctx.implicit_id_in_shapes = False
@@ -521,21 +528,28 @@ def compile_InsertQuery(
         assert isinstance(stmt_subject_stype, s_objtypes.ObjectType)
 
         stmt.conflict_checks = conflicts.compile_inheritance_conflict_checks(
-            stmt, stmt_subject_stype, ctx=ictx)
+            stmt, stmt_subject_stype, ctx=ictx
+        )
 
         if expr.unless_conflict is not None:
             constraint_spec, else_branch = expr.unless_conflict
 
             if constraint_spec:
                 stmt.on_conflict = conflicts.compile_insert_unless_conflict_on(
-                    stmt, stmt_subject_stype, constraint_spec, else_branch,
-                    ctx=ictx)
+                    stmt,
+                    stmt_subject_stype,
+                    constraint_spec,
+                    else_branch,
+                    ctx=ictx,
+                )
             else:
                 stmt.on_conflict = conflicts.compile_insert_unless_conflict(
-                    stmt, stmt_subject_stype, ctx=ictx)
+                    stmt, stmt_subject_stype, ctx=ictx
+                )
 
         conflicts.check_for_isolation_conflicts(
-            stmt, stmt_subject_stype, ctx=ictx)
+            stmt, stmt_subject_stype, ctx=ictx
+        )
 
         mat_stype = schemactx.get_material_type(stmt_subject_stype, ctx=ctx)
         result = setgen.class_set(
@@ -560,10 +574,12 @@ def compile_InsertQuery(
         # Compute the unioned output type if needed
         if stmt.on_conflict and stmt.on_conflict.else_ir:
             final_typ = typegen.infer_common_type(
-                [stmt.result, stmt.on_conflict.else_ir], ctx.env)
+                [stmt.result, stmt.on_conflict.else_ir], ctx.env
+            )
             if final_typ is None:
-                raise errors.QueryError('could not determine INSERT type',
-                                        span=stmt.span)
+                raise errors.QueryError(
+                    'could not determine INSERT type', span=stmt.span
+                )
             stmt.final_typeref = typegen.type_to_typeref(final_typ, env=ctx.env)
 
         # Wrap the statement.
@@ -597,7 +613,6 @@ def compile_InsertQuery(
 def compile_UpdateQuery(
     expr: qlast.UpdateQuery, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     if ctx.disallow_dml:
         raise errors.QueryError(
             f'UPDATE statements cannot be used {ctx.disallow_dml}',
@@ -627,14 +642,13 @@ def compile_UpdateQuery(
         subj_type = setgen.get_set_type(subject, ctx=ictx)
         if not isinstance(subj_type, s_objtypes.ObjectType):
             raise errors.QueryError(
-                f'cannot update non-ObjectType objects',
-                span=expr.subject.span
+                f'cannot update non-ObjectType objects', span=expr.subject.span
             )
 
         if subj_type.is_free_object_type(ctx.env.schema):
             raise errors.QueryError(
-                f'free objects cannot be updated',
-                span=expr.subject.span)
+                f'free objects cannot be updated', span=expr.subject.span
+            )
 
         mat_stype = schemactx.concretify(subj_type, ctx=ctx)
 
@@ -642,7 +656,8 @@ def compile_UpdateQuery(
             raise errors.QueryError(
                 f'cannot update standard library type '
                 f'{subj_type.get_displayname(ctx.env.schema)}',
-                span=expr.subject.span)
+                span=expr.subject.span,
+            )
 
         stmt._material_type = typeutils.type_to_typeref(
             ctx.env.schema,
@@ -674,7 +689,9 @@ def compile_UpdateQuery(
             )
 
         result = setgen.class_set(
-            mat_stype, path_id=stmt.subject.path_id, ctx=ctx,
+            mat_stype,
+            path_id=stmt.subject.path_id,
+            ctx=ctx,
         )
 
         with ictx.new() as resultctx:
@@ -698,10 +715,12 @@ def compile_UpdateQuery(
                 stmt.write_policies[dtype.id] = write_pol
 
             conflicts.check_for_isolation_conflicts(
-                stmt, dtype, mat_stype, ctx=ictx)
+                stmt, dtype, mat_stype, ctx=ictx
+            )
 
         stmt.conflict_checks = conflicts.compile_inheritance_conflict_checks(
-            stmt, mat_stype, ctx=ictx)
+            stmt, mat_stype, ctx=ictx
+        )
 
         result = fini_stmt(stmt, ctx=ictx, parent_ctx=ctx)
 
@@ -712,7 +731,6 @@ def compile_UpdateQuery(
 def compile_DeleteQuery(
     expr: qlast.DeleteQuery, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     if ctx.disallow_dml:
         raise errors.QueryError(
             f'DELETE statements cannot be used {ctx.disallow_dml}',
@@ -769,19 +787,19 @@ def compile_DeleteQuery(
             scopectx.implicit_limit = 0
             scopectx.expr_exposed = context.Exposure.UNEXPOSED
             subject = setgen.scoped_set(
-                dispatch.compile(expr.subject, ctx=scopectx), ctx=scopectx)
+                dispatch.compile(expr.subject, ctx=scopectx), ctx=scopectx
+            )
 
         subj_type = setgen.get_set_type(subject, ctx=ictx)
         if not isinstance(subj_type, s_objtypes.ObjectType):
             raise errors.QueryError(
-                f'cannot delete non-ObjectType objects',
-                span=expr.subject.span
+                f'cannot delete non-ObjectType objects', span=expr.subject.span
             )
 
         if subj_type.is_free_object_type(ctx.env.schema):
             raise errors.QueryError(
-                f'free objects cannot be deleted',
-                span=expr.subject.span)
+                f'free objects cannot be deleted', span=expr.subject.span
+            )
 
         mat_stype = schemactx.concretify(subj_type, ctx=ctx)
 
@@ -789,7 +807,8 @@ def compile_DeleteQuery(
             raise errors.QueryError(
                 f'cannot delete standard library type '
                 f'{subj_type.get_displayname(ctx.env.schema)}',
-                span=expr.subject.span)
+                span=expr.subject.span,
+            )
 
         stmt._material_type = typeutils.type_to_typeref(
             ctx.env.schema,
@@ -840,13 +859,17 @@ def compile_DeleteQuery(
                 # If there is a pointer that has a real table and doesn't
                 # have a special ON SOURCE DELETE policy, arrange to
                 # delete it in the query itself.
-                if not ptr.is_pure_computable(schema) and (
-                    not ptr.singular(schema)
-                    or ptr.has_user_defined_properties(schema)
-                ) and (
-                    not isinstance(ptr, s_links.Link)
-                    or ptr.get_on_source_delete(schema) ==
-                    s_links.LinkSourceDeleteAction.Allow
+                if (
+                    not ptr.is_pure_computable(schema)
+                    and (
+                        not ptr.singular(schema)
+                        or ptr.has_user_defined_properties(schema)
+                    )
+                    and (
+                        not isinstance(ptr, s_links.Link)
+                        or ptr.get_on_source_delete(schema)
+                        == s_links.LinkSourceDeleteAction.Allow
+                    )
                 ):
                     ptrs.append(typegen.ptr_to_ptrref(ptr, ctx=ctx))
 
@@ -878,11 +901,13 @@ def compile_DescribeStmt(
                 )
             else:
                 raise errors.QueryError(
-                    f'cannot describe full schema as {ql.language}')
+                    f'cannot describe full schema as {ql.language}'
+                )
 
             ct = typegen.type_to_typeref(
                 ctx.env.get_schema_type_and_track(
-                    s_name.QualName('std', 'str')),
+                    s_name.QualName('std', 'str')
+                ),
                 env=ctx.env,
             )
 
@@ -894,18 +919,22 @@ def compile_DescribeStmt(
         elif ql.object is qlast.DescribeGlobal.DatabaseConfig:
             if ql.language is qltypes.DescribeLanguage.DDL:
                 stmt.result = config_desc.compile_describe_config(
-                    qltypes.ConfigScope.DATABASE, ctx=ictx)
+                    qltypes.ConfigScope.DATABASE, ctx=ictx
+                )
             else:
                 raise errors.QueryError(
-                    f'cannot describe config as {ql.language}')
+                    f'cannot describe config as {ql.language}'
+                )
 
         elif ql.object is qlast.DescribeGlobal.InstanceConfig:
             if ql.language is qltypes.DescribeLanguage.DDL:
                 stmt.result = config_desc.compile_describe_config(
-                    qltypes.ConfigScope.INSTANCE, ctx=ictx)
+                    qltypes.ConfigScope.INSTANCE, ctx=ictx
+                )
             else:
                 raise errors.QueryError(
-                    f'cannot describe config as {ql.language}')
+                    f'cannot describe config as {ql.language}'
+                )
 
         elif ql.object is qlast.DescribeGlobal.Roles:
             if ql.language is qltypes.DescribeLanguage.DDL:
@@ -913,11 +942,13 @@ def compile_DescribeStmt(
                     qlast.FunctionCall(
                         func=('sys', '_describe_roles_as_ddl'),
                     ),
-                    ctx=ictx)
+                    ctx=ictx,
+                )
                 stmt.result = function_call
             else:
                 raise errors.QueryError(
-                    f'cannot describe roles as {ql.language}')
+                    f'cannot describe roles as {ql.language}'
+                )
 
         else:
             assert isinstance(ql.object, qlast.ObjectRef), ql.object
@@ -930,8 +961,7 @@ def compile_DescribeStmt(
 
             if itemclass is qltypes.SchemaObjectClass.MODULE:
                 mod = s_name.UnqualName(str(s_utils.ast_ref_to_name(objref)))
-                if not ctx.env.schema.get_global(
-                        s_mod.Module, mod, None):
+                if not ctx.env.schema.get_global(s_mod.Module, mod, None):
                     raise errors.InvalidReferenceError(
                         f"module '{mod}' does not exist",
                         span=objref.span,
@@ -949,7 +979,8 @@ def compile_DescribeStmt(
                     else:
                         itemtype = (
                             s_obj.ObjectMeta.get_schema_metaclass_for_ql_class(
-                                itemclass)
+                                itemclass
+                            )
                         )
 
                 last_exc = None
@@ -971,14 +1002,15 @@ def compile_DescribeStmt(
                         # Get the default module name
                         modname = aliases[None]
                         # Is the current item a function
-                        is_function = (itemclass is
-                                       qltypes.SchemaObjectClass.FUNCTION)
+                        is_function = (
+                            itemclass is qltypes.SchemaObjectClass.FUNCTION
+                        )
 
                         # We need to check functions if we're looking for them
                         # specifically or if this is a broad search. They are
                         # handled separately because they allow multiple
                         # matches for the same name.
-                        if (itemclass is None or is_function):
+                        if itemclass is None or is_function:
                             funcs = s_func.lookup_functions(
                                 name,
                                 tuple(),
@@ -994,14 +1026,15 @@ def compile_DescribeStmt(
                         # it's not a function we're looking for specifically.
                         if not is_function:
                             try:
-                                if itemclass is not \
-                                        qltypes.SchemaObjectClass.ALIAS:
+                                if (
+                                    itemclass
+                                    is not qltypes.SchemaObjectClass.ALIAS
+                                ):
                                     condition = None
                                     label = None
                                 else:
                                     condition = (
-                                        lambda obj:
-                                        obj.get_alias_is_persistent(
+                                        lambda obj: obj.get_alias_is_persistent(
                                             ctx.env.schema
                                         )
                                     )
@@ -1014,7 +1047,8 @@ def compile_DescribeStmt(
                                     ctx=newctx,
                                 )
                                 items[f'other_{modname}'].append(
-                                    obj.get_name(newctx.env.schema))
+                                    obj.get_name(newctx.env.schema)
+                                )
                             except errors.InvalidReferenceError as exc:
                                 # Record the exception to be possibly
                                 # raised if no matches are found
@@ -1077,9 +1111,9 @@ def compile_DescribeStmt(
                 include_std_ddl=True,
             )
             if masked_items:
-                text += ('\n\n'
-                         '# The following builtins are masked by the above:'
-                         '\n\n')
+                text += (
+                    '\n\n# The following builtins are masked by the above:\n\n'
+                )
                 masked = method(
                     ctx.env.schema,
                     included_modules=modules,
@@ -1093,7 +1127,8 @@ def compile_DescribeStmt(
 
             ct = typegen.type_to_typeref(
                 ctx.env.get_schema_type_and_track(
-                    s_name.QualName('std', 'str')),
+                    s_name.QualName('std', 'str')
+                ),
                 env=ctx.env,
             )
 
@@ -1111,7 +1146,6 @@ def compile_DescribeStmt(
 def compile_Shape(
     shape: qlast.Shape, *, ctx: context.ContextLevel
 ) -> irast.Set:
-
     if ctx.no_factoring and not shape.allow_factoring:
         return dispatch.compile(
             qlast.SelectQuery(result=shape, implicit=True),
@@ -1142,7 +1176,8 @@ def compile_Shape(
             shape=shape.elements,
             compile_views=False,
             ctx=subctx,
-            span=expr.span)
+            span=expr.span,
+        )
 
         ir_result = setgen.ensure_set(stmt, ctx=subctx)
 
@@ -1156,7 +1191,6 @@ def init_stmt(
     ctx: context.ContextLevel,
     parent_ctx: context.ContextLevel,
 ) -> None:
-
     ctx.env.compiled_stmts[qlstmt] = irstmt
 
     irstmt.span = qlstmt.span
@@ -1177,14 +1211,21 @@ def init_stmt(
                 # We allow DML in trivial *top-level* free objects
                 ctx.partial_path_prefix
                 and irutils.is_trivial_free_object(
-                    irutils.unwrap_set(ctx.partial_path_prefix))
+                    irutils.unwrap_set(ctx.partial_path_prefix)
+                )
                 # Find the enclosing context at the point the free object
                 # was defined.
-                and (outer_ctx := next((
-                    x for x in reversed(ctx._stack.stack)
-                    if isinstance(x, context.ContextLevel)
-                    and x.partial_path_prefix != ctx.partial_path_prefix
-                ), None))
+                and (
+                    outer_ctx := next(
+                        (
+                            x
+                            for x in reversed(ctx._stack.stack)
+                            if isinstance(x, context.ContextLevel)
+                            and x.partial_path_prefix != ctx.partial_path_prefix
+                        ),
+                        None,
+                    )
+                )
                 and outer_ctx.expr_exposed
             )
         ):
@@ -1217,8 +1258,7 @@ def init_stmt(
 
     irstmt.parent_stmt = parent_ctx.stmt
 
-    irstmt.bindings = process_with_block(
-        qlstmt, ctx=ctx, parent_ctx=parent_ctx)
+    irstmt.bindings = process_with_block(qlstmt, ctx=ctx, parent_ctx=parent_ctx)
 
     if isinstance(irstmt, irast.MutatingStmt):
         ctx.path_scope.factoring_fence = True
@@ -1231,7 +1271,6 @@ def fini_stmt(
     ctx: context.ContextLevel,
     parent_ctx: context.ContextLevel,
 ) -> irast.Set:
-
     view_name = parent_ctx.toplevel_result_view_name
     t = setgen.get_expr_type(irstmt, ctx=ctx)
 
@@ -1242,8 +1281,7 @@ def fini_stmt(
         ctx.env.dml_stmts.append(irstmt)
         irstmt.rewrites = ctx.env.dml_rewrites.pop(irstmt.subject, None)
 
-    if (isinstance(t, s_pseudo.PseudoType)
-            and t.is_any(ctx.env.schema)):
+    if isinstance(t, s_pseudo.PseudoType) and t.is_any(ctx.env.schema):
         # Need to produce something valid. Should get caught as an
         # error later.
         view = None
@@ -1267,7 +1305,7 @@ def fini_stmt(
                 derived_name=view_name,
                 preserve_shape=True,
                 attrs={'span': irstmt.span},
-                ctx=parent_ctx
+                ctx=parent_ctx,
             )
         path_id = pathctx.get_path_id(view, ctx=parent_ctx)
     else:
@@ -1276,10 +1314,10 @@ def fini_stmt(
 
     type_override = view if view is not None else None
     result = setgen.scoped_set(
-        irstmt, type_override=type_override, path_id=path_id, ctx=ctx)
+        irstmt, type_override=type_override, path_id=path_id, ctx=ctx
+    )
     if irstmt.span and not result.span:
-        result = setgen.new_set_from_set(
-            result, span=irstmt.span, ctx=ctx)
+        result = setgen.new_set_from_set(result, span=irstmt.span, ctx=ctx)
 
     if view is not None:
         parent_ctx.view_sets[view] = result
@@ -1325,7 +1363,8 @@ def process_with_block(
 
         else:
             raise RuntimeError(
-                f'unexpected expression in WITH block: {with_entry}')
+                f'unexpected expression in WITH block: {with_entry}'
+            )
 
     if had_materialized:
         # If we had to materialize, put the body of the statement into
@@ -1411,7 +1450,10 @@ def compile_result_clause(
         ctx.partial_path_prefix = expr
 
         ir_result = compile_query_subject(
-            expr, shape=shape, view_rptr=view_rptr, view_name=view_name,
+            expr,
+            shape=shape,
+            view_rptr=view_rptr,
+            view_name=view_name,
             forward_rptr=forward_rptr,
             result_alias=result_alias,
             view_scls=view_scls,
@@ -1419,7 +1461,7 @@ def compile_result_clause(
             exprtype=exprtype,
             compile_views=ctx.stmt is ctx.toplevel_stmt,
             ctx=sctx,
-            span=result.span
+            span=result.span,
         )
 
         ctx.partial_path_prefix = ir_result
@@ -1428,20 +1470,20 @@ def compile_result_clause(
 
 
 def compile_query_subject(
-        set: irast.Set,
-        *,
-        shape: Optional[list[qlast.ShapeElement]]=None,
-        view_rptr: Optional[context.ViewRPtr]=None,
-        view_name: Optional[s_name.QualName]=None,
-        result_alias: Optional[str]=None,
-        view_scls: Optional[s_types.Type]=None,
-        compile_views: bool=True,
-        exprtype: s_types.ExprType = s_types.ExprType.Select,
-        allow_select_shape_inject: bool=True,
-        forward_rptr: bool=False,
-        span: Optional[qlast.Span],
-        ctx: context.ContextLevel) -> irast.Set:
-
+    set: irast.Set,
+    *,
+    shape: Optional[list[qlast.ShapeElement]] = None,
+    view_rptr: Optional[context.ViewRPtr] = None,
+    view_name: Optional[s_name.QualName] = None,
+    result_alias: Optional[str] = None,
+    view_scls: Optional[s_types.Type] = None,
+    compile_views: bool = True,
+    exprtype: s_types.ExprType = s_types.ExprType.Select,
+    allow_select_shape_inject: bool = True,
+    forward_rptr: bool = False,
+    span: Optional[qlast.Span],
+    ctx: context.ContextLevel,
+) -> irast.Set:
     set_stype = setgen.get_set_type(set, ctx=ctx)
 
     set_expr = set.expr
@@ -1501,7 +1543,6 @@ def compile_query_subject(
             (
                 ctx.expr_exposed >= context.Exposure.BINDING
                 and allow_select_shape_inject
-
                 and not forward_rptr
                 and viewgen.has_implicit_type_computables(
                     set_stype,
@@ -1538,8 +1579,7 @@ def compile_query_subject(
         shape = []
 
     if shape is not None and view_scls is None:
-        if (view_name is None and
-                isinstance(result_alias, s_name.QualName)):
+        if view_name is None and isinstance(result_alias, s_name.QualName):
             view_name = result_alias
 
         if not isinstance(set_stype, s_objtypes.ObjectType):
@@ -1575,7 +1615,7 @@ def compile_query_subject(
         set.span = edb_span.merge_spans(
             itertools.chain(
                 (s.span for s in [set] if s.span),
-                (el.span for el in shape if el.span)
+                (el.span for el in shape if el.span),
             )
         )
 
@@ -1602,8 +1642,12 @@ def maybe_add_view(ir: irast.Set, *, ctx: context.ContextLevel) -> irast.Set:
         and ir.path_id.is_objtype_path()
     ):
         return compile_query_subject(
-            ir, allow_select_shape_inject=True, compile_views=False, ctx=ctx,
-            span=ir.span)
+            ir,
+            allow_select_shape_inject=True,
+            compile_views=False,
+            ctx=ctx,
+            span=ir.span,
+        )
     else:
         return ir
 
@@ -1621,26 +1665,28 @@ def _is_forbidden_stdlib_type_for_mod(
     assert not t.is_view(schema)
 
     if intersection := t.get_intersection_of(schema):
-        return all((_is_forbidden_stdlib_type_for_mod(it, ctx)
-                    for it in intersection.objects(schema)))
+        return all(
+            (
+                _is_forbidden_stdlib_type_for_mod(it, ctx)
+                for it in intersection.objects(schema)
+            )
+        )
     elif union := t.get_union_of(schema):
-        return any((_is_forbidden_stdlib_type_for_mod(ut, ctx)
-                    for ut in union.objects(schema)))
+        return any(
+            (
+                _is_forbidden_stdlib_type_for_mod(ut, ctx)
+                for ut in union.objects(schema)
+            )
+        )
 
     name = t.get_name(schema)
     mod_name = name.get_module_name()
 
-    if (
-        mod_name == s_name.UnqualName('cfg')
-        and o.in_server_config_op
-    ):
+    if mod_name == s_name.UnqualName('cfg') and o.in_server_config_op:
         # Config ops include various internally generated statements for cfg::
         return False
     if name == s_name.QualName('std', 'Object'):
         # Allow people to mess with the baseclass of user-defined objects to
         # their hearts' content
-        return False
-    if mod_name == s_name.UnqualName('std::net::http'):
-        # Allow users to insert net module types
         return False
     return mod_name in s_schema.STD_MODULES

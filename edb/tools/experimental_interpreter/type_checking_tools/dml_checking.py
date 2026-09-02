@@ -197,7 +197,8 @@ def insert_proprerty_checking(
                 ):
                     raise ValueError("TODO")
                 all_target_names: dict[e.QualifiedName, e.Tp] = {
-                    tp.name: tp for tp in all_target_tps  # type: ignore
+                    tp.name: tp  # type: ignore
+                    for tp in all_target_tps
                 }
                 # synthesize once to get the type
                 (synthesized_tp, expr_ck) = synthesize_type(ctx, attr_expr)
@@ -236,7 +237,9 @@ def insert_proprerty_checking(
                     if not all(
                         any(
                             tops.is_nominal_subtype_in_schema(
-                                ctx, synth_name, ck_name  # type: ignore
+                                ctx,
+                                synth_name,  # type: ignore
+                                ck_name,
                             )
                             for ck_name in all_target_names.keys()
                         )
@@ -371,9 +374,9 @@ def insert_checking(ctx: e.TcCtx, expr: e.InsertExpr) -> e.Expr:
                         k: actual_v,
                     }  # TODO THIS NEEDS ELABORATION
                 else:
-                    assert (
-                        k not in pending_default
-                    ), "only iterating over schema once, no duplicate keys"
+                    assert k not in pending_default, (
+                        "only iterating over schema once, no duplicate keys"
+                    )
                     pending_default[k] = deps
 
     # process pending keys until all are resolved
@@ -429,9 +432,9 @@ def update_checking(
     tp_name = subject_tp.name
     _, full_tp = mops.resolve_raw_name_and_type_def(ctx, tp_name)
     assert isinstance(full_tp, e.ObjectTp), "Cannot update scalar types"
-    assert all(
-        isinstance(k, e.StrLabel) for k in update_shape.shape.keys()
-    ), "Expecting string labels"
+    assert all(isinstance(k, e.StrLabel) for k in update_shape.shape.keys()), (
+        "Expecting string labels"
+    )
     cut_tp = {
         k: v
         for (k, v) in full_tp.val.items()

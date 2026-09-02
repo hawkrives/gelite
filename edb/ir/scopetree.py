@@ -50,8 +50,7 @@ from . import ast as irast
 
 
 class WarningContext(Protocol):
-    def log_warning(self, warning: errors.EdgeDBError) -> None:
-        ...
+    def log_warning(self, warning: errors.EdgeDBError) -> None: ...
 
 
 class FenceInfo(NamedTuple):
@@ -109,10 +108,10 @@ class ScopeTreeNode:
     def __init__(
         self,
         *,
-        path_id: Optional[pathid.PathId]=None,
-        fenced: bool=False,
-        unique_id: Optional[int]=None,
-        optional: bool=False,
+        path_id: Optional[pathid.PathId] = None,
+        fenced: bool = False,
+        unique_id: Optional[int] = None,
+        optional: bool = False,
     ) -> None:
         self.unique_id = unique_id
         self.path_id = path_id
@@ -127,8 +126,15 @@ class ScopeTreeNode:
         self._parent: Optional[weakref.ReferenceType[ScopeTreeNode]] = None
 
     FIELDS = (
-        'unique_id', 'path_id', 'fenced', 'unnest_fence', 'factoring_fence',
-        'factoring_allowlist', 'optional', 'children', 'namespaces',
+        'unique_id',
+        'path_id',
+        'fenced',
+        'unnest_fence',
+        'factoring_fence',
+        'factoring_allowlist',
+        'optional',
+        'children',
+        'namespaces',
         'is_group',
     )
 
@@ -146,7 +152,7 @@ class ScopeTreeNode:
 
     def __repr__(self) -> str:
         name = 'ScopeFenceNode' if self.fenced else 'ScopeTreeNode'
-        return (f'<{name} {self.path_id!r} at {id(self):0x}>')
+        return f'<{name} {self.path_id!r} at {id(self):0x}>'
 
     def find_dupe_unique_ids(self) -> set[int]:
         seen = set()
@@ -168,9 +174,7 @@ class ScopeTreeNode:
 
     def _name(self, debug: bool) -> str:
         if self.path_id is None:
-            name = (
-                ('FENCE' if self.fenced else 'BRANCH')
-            )
+            name = 'FENCE' if self.fenced else 'BRANCH'
         else:
             name = self.path_id.pformat_internal(debug=debug)
         return f'{name}{" [OPT]" if self.optional else ""}'
@@ -238,18 +242,12 @@ class ScopeTreeNode:
     @property
     def path_children(self) -> Iterator[ScopeTreeNodeWithPathId]:
         """An iterator of node's children that have path ids."""
-        return (
-            p for p in self.children
-            if has_path_id(p)
-        )
+        return (p for p in self.children if has_path_id(p))
 
     @property
     def path_descendants(self) -> Iterator[ScopeTreeNodeWithPathId]:
         """An iterator of node's descendants that have path ids."""
-        return (
-            p for p in self.descendants
-            if has_path_id(p)
-        )
+        return (p for p in self.descendants if has_path_id(p))
 
     def get_all_paths(self) -> AbstractSet[pathid.PathId]:
         return ordered.OrderedSet(pd.path_id for pd in self.path_descendants)
@@ -271,15 +269,11 @@ class ScopeTreeNode:
     def descendants_and_namespaces_ex(
         self,
         *,
-        unfenced_only: bool=False,
-        strict: bool=False,
-        skip: Optional[ScopeTreeNode]=None,
+        unfenced_only: bool = False,
+        strict: bool = False,
+        skip: Optional[ScopeTreeNode] = None,
     ) -> Iterator[
-        tuple[
-            ScopeTreeNode,
-            AbstractSet[pathid.Namespace],
-            FenceInfo
-        ]
+        tuple[ScopeTreeNode, AbstractSet[pathid.Namespace], FenceInfo]
     ]:
         """An iterator of node's descendants and namespaces.
 
@@ -297,8 +291,11 @@ class ScopeTreeNode:
         Top-first.
         """
         if not strict:
-            yield self, frozenset(), FenceInfo(
-                unnest_fence=False, factoring_fence=False)
+            yield (
+                self,
+                frozenset(),
+                FenceInfo(unnest_fence=False, factoring_fence=False),
+            )
         for child in tuple(self.children):
             if unfenced_only and child.fenced:
                 continue
@@ -309,7 +306,8 @@ class ScopeTreeNode:
             if child.parent is not self:
                 continue
             desc_ns = child.descendants_and_namespaces_ex(
-                unfenced_only=unfenced_only, strict=True)
+                unfenced_only=unfenced_only, strict=True
+            )
             for desc, desc_namespaces, desc_finfo in desc_ns:
                 yield (
                     desc,
@@ -321,11 +319,7 @@ class ScopeTreeNode:
     def strict_descendants_and_namespaces(
         self,
     ) -> Iterator[
-        tuple[
-            ScopeTreeNode,
-            AbstractSet[pathid.Namespace],
-            FenceInfo
-        ]
+        tuple[ScopeTreeNode, AbstractSet[pathid.Namespace], FenceInfo]
     ]:
         """An iterator of node's descendants and namespaces.
 
@@ -437,7 +431,7 @@ class ScopeTreeNode:
         self,
         path_id: pathid.PathId,
         *,
-        optional: bool=False,
+        optional: bool = False,
         span: Optional[span.Span],
         ctx: WarningContext,
     ) -> None:
@@ -447,8 +441,9 @@ class ScopeTreeNode:
         is_lprop = False
         lprop_base = None
         for prefix in reversed(list(path_id.iter_prefixes())):
-            new_child = ScopeTreeNode(path_id=prefix,
-                                      optional=optional and parent is subtree)
+            new_child = ScopeTreeNode(
+                path_id=prefix, optional=optional and parent is subtree
+            )
 
             # Normally the prefix is nested, except that tuple
             # indirection prefixes and the *object* prefixes of link
@@ -575,8 +570,13 @@ class ScopeTreeNode:
                     ) = factorable
 
                     self._check_factoring_errors(
-                        path_id, descendant, factor_point, existing,
-                        unnest_fence, existing_finfo, span,
+                        path_id,
+                        descendant,
+                        factor_point,
+                        existing,
+                        unnest_fence,
+                        existing_finfo,
+                        span,
                     )
 
                     existing_fenced = existing.parent_fence is not None and (
@@ -641,8 +641,7 @@ class ScopeTreeNode:
             # a reference to a correlated set inside a DML
             # statement.
             raise errors.InvalidReferenceError(
-                f'cannot reference correlated set '
-                f'{path_id.pformat()!r} here',
+                f'cannot reference correlated set {path_id.pformat()!r} here',
                 span=span,
             )
 
@@ -653,7 +652,8 @@ class ScopeTreeNode:
                     path_id,
                     in_branches=True,
                     pfx_with_invariant_card=True,
-                ) is None
+                )
+                is None
             )
             and (
                 not (src_path := path_id.src_path())
@@ -713,9 +713,9 @@ class ScopeTreeNode:
     def fuse_subtree(
         self,
         node: ScopeTreeNode,
-        self_fenced: bool=False,
-        node_fenced: bool=False,
-        span: Optional[span.Span]=None,
+        self_fenced: bool = False,
+        node_fenced: bool = False,
+        span: Optional[span.Span] = None,
         *,
         ctx: WarningContext,
     ) -> None:
@@ -753,8 +753,9 @@ class ScopeTreeNode:
         matching = set()
 
         for node in self.descendants:
-            if (node.path_id is not None
-                    and _paths_equal(node.path_id, path_id, set())):
+            if node.path_id is not None and _paths_equal(
+                node.path_id, path_id, set()
+            ):
                 matching.add(node)
 
         for node in matching:
@@ -798,10 +799,7 @@ class ScopeTreeNode:
         if self.path_id is not None:
             return False
         else:
-            return (
-                not self.children or
-                all(c.is_empty() for c in self.children)
-            )
+            return not self.children or all(c.is_empty() for c in self.children)
 
     def get_all_visible(self) -> set[pathid.PathId]:
         paths = set()
@@ -820,7 +818,7 @@ class ScopeTreeNode:
         self,
         path_id: pathid.PathId,
         *,
-        allow_group: bool=False,
+        allow_group: bool = False,
     ) -> tuple[
         Optional[ScopeTreeNode],
         FenceInfo,
@@ -831,14 +829,16 @@ class ScopeTreeNode:
         found = None
         nodes: list[ScopeTreeNode] = []
         for node, ans in self.ancestors_and_namespaces:
-            if (node.path_id is not None
-                    and _paths_equal(node.path_id, path_id, namespaces)):
+            if node.path_id is not None and _paths_equal(
+                node.path_id, path_id, namespaces
+            ):
                 found = node
                 break
 
             for child in node.children:
-                if (child.path_id is not None
-                        and _paths_equal(child.path_id, path_id, namespaces)):
+                if child.path_id is not None and _paths_equal(
+                    child.path_id, path_id, namespaces
+                ):
                     found = child
                     break
 
@@ -886,18 +886,12 @@ class ScopeTreeNode:
         for child in self.children:
             if child.path_id == path_id:
                 return child
-            if (
-                (
-                    in_branches
-                    and child.path_id is None
-                    and not child.fenced
-                ) or (
-                    pfx_with_invariant_card
-                    and child.path_id is not None
-                    # Type intersections have invariant cardinality
-                    # regardless of prefix visiblity.
-                    and child.path_id.is_type_intersection_path()
-                )
+            if (in_branches and child.path_id is None and not child.fenced) or (
+                pfx_with_invariant_card
+                and child.path_id is not None
+                # Type intersections have invariant cardinality
+                # regardless of prefix visiblity.
+                and child.path_id.is_type_intersection_path()
             ):
                 desc = child.find_child(
                     path_id,
@@ -914,8 +908,9 @@ class ScopeTreeNode:
         path_id: pathid.PathId,
     ) -> Optional[ScopeTreeNode]:
         for descendant, dns, _ in self.strict_descendants_and_namespaces:
-            if (descendant.path_id is not None
-                    and _paths_equal(descendant.path_id, path_id, dns)):
+            if descendant.path_id is not None and _paths_equal(
+                descendant.path_id, path_id, dns
+            ):
                 return descendant
 
         return None
@@ -926,20 +921,24 @@ class ScopeTreeNode:
     ) -> list[ScopeTreeNodeWithPathId]:
         matched = []
         for descendant, dns, _ in self.strict_descendants_and_namespaces:
-            if (has_path_id(descendant)
-                    and _paths_equal(descendant.path_id, path_id, dns)):
+            if has_path_id(descendant) and _paths_equal(
+                descendant.path_id, path_id, dns
+            ):
                 matched.append(descendant)
 
         return matched
 
-    def find_descendant_and_ns(self, path_id: pathid.PathId) -> tuple[
+    def find_descendant_and_ns(
+        self, path_id: pathid.PathId
+    ) -> tuple[
         Optional[ScopeTreeNode],
         AbstractSet[pathid.Namespace],
         Optional[FenceInfo],
     ]:
         for descendant, dns, finfo in self.strict_descendants_and_namespaces:
-            if (descendant.path_id is not None
-                    and _paths_equal(descendant.path_id, path_id, dns)):
+            if descendant.path_id is not None and _paths_equal(
+                descendant.path_id, path_id, dns
+            ):
                 return descendant, dns, finfo
 
         return None, frozenset(), None
@@ -998,22 +997,29 @@ class ScopeTreeNode:
 
         # Search up the tree
         for node, ans in self.ancestors_and_namespaces:
-
             # For each ancestor, search its descendants for path_id.
             # If we have passed a fence on the way up, only look for
             # unfenced descendants.
-            for descendant, dns, finfo in (
-                node.descendants_and_namespaces_ex(
-                    unfenced_only=fence_seen, skip=last)
+            for descendant, dns, finfo in node.descendants_and_namespaces_ex(
+                unfenced_only=fence_seen, skip=last
             ):
                 cns = namespaces | dns
-                if (has_path_id(descendant)
-                        and not descendant.is_group
-                        and _paths_equal(descendant.path_id, path_id, cns)):
-                    points.append((
-                        descendant, node, namespaces, dns, finfo | up_finfo,
-                        unnest_fence_seen, fence_seen,
-                    ))
+                if (
+                    has_path_id(descendant)
+                    and not descendant.is_group
+                    and _paths_equal(descendant.path_id, path_id, cns)
+                ):
+                    points.append(
+                        (
+                            descendant,
+                            node,
+                            namespaces,
+                            dns,
+                            finfo | up_finfo,
+                            unnest_fence_seen,
+                            fence_seen,
+                        )
+                    )
 
             namespaces |= ans
             unnest_fence_seen |= node.unnest_fence
@@ -1045,8 +1051,8 @@ class ScopeTreeNode:
 
     def pdebugformat(
         self,
-        fuller: bool=False,
-        styles: Optional[Mapping[ScopeTreeNode, term.AbstractStyle]]=None,
+        fuller: bool = False,
+        styles: Optional[Mapping[ScopeTreeNode, term.AbstractStyle]] = None,
     ) -> str:
         name = f'"{self.debugname(fuller=fuller)}"'
         if styles and self in styles:
@@ -1094,7 +1100,6 @@ class ScopeTreeNode:
 
 
 class ScopeTreeNodeWithPathId(ScopeTreeNode):
-
     path_id: pathid.PathId
 
 

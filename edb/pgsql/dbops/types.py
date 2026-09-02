@@ -151,7 +151,10 @@ class AlterCompositeTypeBaseMixin:
 
     def __repr__(self) -> str:
         return '<%s.%s %s>' % (
-            self.__class__.__module__, self.__class__.__name__, self.name)
+            self.__class__.__module__,
+            self.__class__.__name__,
+            self.name,
+        )
 
 
 class AlterCompositeTypeBase(AlterCompositeTypeBaseMixin, ddl.DDLOperation):
@@ -163,7 +166,8 @@ class AlterCompositeTypeBase(AlterCompositeTypeBaseMixin, ddl.DDLOperation):
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ) -> None:
         ddl.DDLOperation.__init__(
-            self, conditions=conditions, neg_conditions=neg_conditions)
+            self, conditions=conditions, neg_conditions=neg_conditions
+        )
         AlterCompositeTypeBaseMixin.__init__(self, name=name)
 
 
@@ -183,7 +187,8 @@ class AlterCompositeType(
         neg_conditions: Optional[Iterable[str | base.Condition]] = None,
     ) -> None:
         base.CompositeCommandGroup.__init__(
-            self, conditions=conditions, neg_conditions=neg_conditions)
+            self, conditions=conditions, neg_conditions=neg_conditions
+        )
         AlterCompositeTypeBaseMixin.__init__(self, name=name)
 
 
@@ -192,17 +197,19 @@ class AlterCompositeTypeAddAttribute(  # type: ignore
 ):
     def code(self) -> str:
         return 'ADD {} {}'.format(
-            self.get_attribute_term(), self.attribute.code(short=True))
+            self.get_attribute_term(), self.attribute.code(short=True)
+        )
 
 
 class AlterCompositeTypeDropAttribute(
-        composites.AlterCompositeDropAttribute, AlterCompositeTypeFragment):
+    composites.AlterCompositeDropAttribute, AlterCompositeTypeFragment
+):
     pass
 
 
 class AlterCompositeTypeAlterAttributeType(
-        composites.AlterCompositeAlterAttributeType,
-        AlterCompositeTypeFragment):
+    composites.AlterCompositeAlterAttributeType, AlterCompositeTypeFragment
+):
     pass
 
 
