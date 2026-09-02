@@ -53,7 +53,7 @@ test = [
     'requests-xml~=0.2.3',
 
     # For rebuilding GHA workflows
-    'Jinja2~=2.11',
+    'Jinja2~=3.1',
     'MarkupSafe~=1.1',
     'PyYAML~=6.0',
 
