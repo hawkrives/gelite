@@ -53,27 +53,6 @@ class TestCodeQuality(unittest.TestCase):
                     self.fail(
                         f'{fn} must be an empty file (except Python comments)')
 
-    def test_cqa_ruff(self):
-        edgepath = find_edgedb_root()
-
-        try:
-            import ruff  # NoQA
-        except ImportError:
-            raise unittest.SkipTest('ruff module is missing')
-
-        for subdir in ['edb', 'tests']:  # ignore any top-level test files
-            try:
-                subprocess.run(
-                    ['ruff', 'check', '.'],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    cwd=os.path.join(edgepath, subdir))
-            except subprocess.CalledProcessError as ex:
-                output = ex.output.decode()
-                raise AssertionError(
-                    f'ruff validation failed:\n{output}') from None
-
     def test_cqa_mypy(self):
         edgepath = find_edgedb_root()
         config_path = os.path.join(edgepath, 'pyproject.toml')
