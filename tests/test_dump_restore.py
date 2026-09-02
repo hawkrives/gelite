@@ -46,6 +46,10 @@ from edb.protocol import protocol  # type: ignore
 from edb.testbase import server as tb
 
 
+# mtype (1 byte) + message_length (4 bytes).
+_PACKET_PREFIX = 5
+
+
 def _body(msg: messages.ServerMessage) -> bytes:
     """The message's wire body: everything after mtype and message_length.
 
@@ -180,6 +184,23 @@ class TestDumpRestore(tb.QueryTestCase):
         ):
             with self.subTest(message=type(msg).__name__):
                 self.assertTrue(msg.dump())
+
+        # The embedded packet must be the *last* thing on the wire, with no
+        # length prefix in front of it: the server reads the DumpHeader's
+        # own fields straight out of the message buffer, so a prefix shifts
+        # every field after it and the header parses as a nonsense dump
+        # version. Asserting the exact bytes is the only way to see that.
+        restore = messages.Restore(
+            attributes=[], jobs=1, header_data=b'\xaa\xbb'
+        )
+        self.assertEqual(
+            restore.dump()[_PACKET_PREFIX:].hex(),
+            '0000'  # attributes: none
+            '0001'  # jobs
+            'aabb',  # the header packet, unprefixed
+        )
+        block = messages.RestoreBlock(block_data=b'\xcc\xdd')
+        self.assertEqual(block.dump()[_PACKET_PREFIX:].hex(), 'ccdd')
 
     async def test_dump_restore_schema_01(self):
         # Schema fidelity: the restored database must describe identically.
