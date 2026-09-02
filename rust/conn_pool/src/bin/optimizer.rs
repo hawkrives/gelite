@@ -1,6 +1,4 @@
 use conn_pool::{knobs::*, test::spec::run_specs_tests_in_runtime};
-use rand::RngCore as RngCore09;
-use rand_core_06::{CryptoRng, Error as RandError, RngCore as RngCore06};
 use std::sync::{atomic::AtomicIsize, Mutex};
 
 use genetic_algorithm::strategy::evolve::prelude::*;
@@ -8,30 +6,6 @@ use lru::LruCache;
 use rand::Rng;
 
 static LOG_LOCK: Mutex<()> = Mutex::new(());
-
-#[derive(Clone, Default)]
-struct CompatRng(rand::rngs::ThreadRng);
-
-impl RngCore06 for CompatRng {
-    fn next_u32(&mut self) -> u32 {
-        self.0.next_u32()
-    }
-
-    fn next_u64(&mut self) -> u64 {
-        self.0.next_u64()
-    }
-
-    fn fill_bytes(&mut self, dest: &mut [u8]) {
-        self.0.fill_bytes(dest);
-    }
-
-    fn try_fill_bytes(&mut self, dest: &mut [u8]) -> Result<(), RandError> {
-        self.fill_bytes(dest);
-        Ok(())
-    }
-}
-
-impl CryptoRng for CompatRng {}
 
 fn main() {
     // Enable tracing
@@ -141,7 +115,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = CompatRng::default();
+    let mut rng = rand_core_06::OsRng;
     let evolve = Evolve::builder()
         .with_multithreading(true)
         .with_genotype(genotype)
