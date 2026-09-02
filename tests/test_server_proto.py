@@ -1613,6 +1613,8 @@ class TestServerProto(tb.QueryTestCase):
                 ROLLBACK;
             ''')
 
+    # Idempotent: session aliases and savepoints only; ends by rolling back.
+    @tb.retry_on_serialization
     async def test_server_proto_tx_10(self):
         # Basic test that ROLLBACK works on SET ALIAS changes.
 
@@ -1785,6 +1787,8 @@ class TestServerProto(tb.QueryTestCase):
 
         await self.con.query('ROLLBACK')
 
+    # Idempotent: the one type it creates is dropped in a finally.
+    @tb.retry_on_serialization
     async def test_server_proto_tx_13(self):
         # Test COMMIT abort
 
@@ -1950,6 +1954,8 @@ class TestServerProto(tb.QueryTestCase):
                 await tx2.rollback()
             await con2.aclose()
 
+    # Idempotent: its DDL runs inside a transaction that is required to fail.
+    @tb.retry_on_serialization
     async def test_server_proto_tx_18(self):
         # The schema altered within the transaction should be visible
         # to the error handler in order to correctly map the

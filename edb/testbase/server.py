@@ -164,6 +164,39 @@ class StubbornHttpConnection(CustomSNI_HTTPSConnection):
         http.client.HTTPConnection.close(self)
 
 
+def retry_on_serialization(meth):
+    """Mark one test as safe to re-run after a serialization failure.
+
+    The class-level RETRY_ON_SERIALIZATION says every test in the class is
+    idempotent. Where that is not true of the whole class - a couple of tests
+    commit DDL under a fixed name while the rest do not - marking the safe
+    ones individually keeps the retry off the tests it would mislead.
+    """
+    meth.__retry_on_serialization__ = True
+    return meth
+
+
+async def _discard_open_transaction(con) -> None:
+    """Best-effort ROLLBACK so a retry starts from a usable connection.
+
+    A test class that manages its own transactions may have left one open,
+    or aborted, at the point the serialization error surfaced, and every
+    statement of the retry would then fail for that reason instead of the
+    real one. Gel tolerates a ROLLBACK with no transaction in progress, so
+    this can be issued unconditionally.
+
+    Failures here are swallowed deliberately: the retry that follows will
+    surface whatever is actually wrong, and raising from the cleanup path
+    would replace a serialization error with a less informative one.
+    """
+    if con is None:
+        return
+    try:
+        await con.query('ROLLBACK')
+    except Exception:
+        pass
+
+
 class TestCaseMeta(type(unittest.TestCase)):
     _database_names = set()
 
@@ -209,20 +242,36 @@ class TestCaseMeta(type(unittest.TestCase)):
                         __meth__(self, *args, **kwargs))
                 except (edgedb.TransactionSerializationError,
                         edgedb.TransactionDeadlockError):
+                    isolated = getattr(self, 'TRANSACTION_ISOLATION', False)
                     if (
                         try_no == 10
-                        # Only do a retry loop when we have a transaction
-                        or not getattr(self, 'TRANSACTION_ISOLATION', False)
+                        # A retry has to put the connection back into the
+                        # state the test expects to start from. With an outer
+                        # transaction the framework can do that itself; without
+                        # one it can only re-run the test, which is safe only
+                        # where the class, or the test, says it is idempotent.
+                        or not (
+                            isolated
+                            or getattr(self, 'RETRY_ON_SERIALIZATION', False)
+                            or getattr(
+                                __meth__, '__retry_on_serialization__', False)
+                        )
                     ):
                         raise
                     else:
-                        self.loop.run_until_complete(self.xact.rollback())
+                        if isolated:
+                            self.loop.run_until_complete(self.xact.rollback())
+                        else:
+                            self.loop.run_until_complete(
+                                _discard_open_transaction(
+                                    getattr(self, 'con', None)))
                         self.loop.run_until_complete(asyncio.sleep(
                             min((2 ** try_no) * 0.1, 10)
                             + random.randrange(100) * 0.001
                         ))
-                        self.xact = self.con.transaction()
-                        self.loop.run_until_complete(self.xact.start())
+                        if isolated:
+                            self.xact = self.con.transaction()
+                            self.loop.run_until_complete(self.xact.start())
 
                         try_no += 1
                 else:
@@ -794,6 +843,18 @@ class ClusterTestCase(TestCaseWithHttpClient):
     # or affect non-transactional state, in which case
     # TRANSACTION_ISOLATION must be set to False
     TRANSACTION_ISOLATION = True
+
+    # Serialization and deadlock errors are retried automatically, but only
+    # where the framework holds the transaction and can roll it back to get a
+    # clean starting state. With TRANSACTION_ISOLATION = False there is no such
+    # transaction, so the only available retry is to run the test again -
+    # correct just when the test leaves nothing behind that its second run
+    # would trip over. A class that commits DDL under a fixed name does not
+    # qualify: the retry fails on the name already existing, replacing a
+    # serialization error with a misleading one.
+    #
+    # Set this to True on such a class only after checking every test in it.
+    RETRY_ON_SERIALIZATION = False
 
     # By default, tests from the same testsuite may be ran in parallel in
     # several test worker processes.  However, certain cases might exhibit
