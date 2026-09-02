@@ -694,6 +694,7 @@ now uses the in-tree client over the server's admin Unix socket.
 | 6 | Deep inheritance hierarchies hit SQLite's weaker `UNION ALL` planning | Medium | Flatten or materialize `inhview`s if measurement demands. |
 | 7 | Migration rebuilds are O(table size) and need 2x disk | Low (inherent) | Document for app authors. |
 | 8 | Branching has no test coverage (Section 6) | **High** | `check_branching` was deleted with the dump scaffolding. Branches map to separate SQLite files, so this is a v1 feature with a novel implementation and nothing asserting it. Rebuilt in Milestone 0. |
+| 9 | Index-parameter inheritance conflict has no test (`edb/schema/indexes.py:1331`) | Medium | Its only coverage was `test_edgeql_migration_ai_09`, deleted with `EdgeQLAIMigrationTestCase` because pgvector destabilised the backend. The check itself is backend-agnostic schema code and **survives the port**, so unlike pgvector this gap is in code we keep. A user-defined abstract index with a parameter reproduces it without any extension. |
 
 ---
 
