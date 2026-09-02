@@ -174,17 +174,4 @@ global CardsWithText := (
 alias AliasArrayOfArrayOfScalar := [[1, 2, 3], [4, 5, 6]];
 global GlobalArrayOfArrayOfScalar := [[1, 2, 3], [4, 5, 6]];
 
-alias AliasCardsByCost := array_agg((
-    for cost in range_unpack(range(0, max(Card.cost) + 1))
-        select array_agg(
-            (select Card filter .cost = cost)
-        )
-));
-global GlobalCardsByCost := array_agg((
-    for cost in range_unpack(range(0, max(Card.cost) + 1))
-        select array_agg(
-            (select Card filter .cost = cost)
-        )
-));
-
 permission GameAdmin;

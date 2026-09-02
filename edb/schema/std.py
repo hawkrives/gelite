@@ -50,6 +50,14 @@ CACHE_SRC_DIRS = (
 )
 
 
+# Design section 5 defers ranges. The source stays in the tree so a later
+# version can restore it by dropping this entry - it is removed from the
+# *build*, not deleted. Unlike fts.edgeql, which s_schema.STD_SOURCES can
+# simply omit, this is one file inside the `std` directory that the walk
+# below picks up, so it has to be filtered by name.
+DEFERRED_STD_FILES = frozenset({'31-rangefuncs.edgeql'})
+
+
 def get_std_module_text(modname: sn.Name) -> str:
     module_eql = ''
 
@@ -58,7 +66,11 @@ def get_std_module_text(modname: sn.Name) -> str:
 
     if module_path.is_dir():
         for entry in module_path.iterdir():
-            if entry.is_file() and entry.suffix == '.edgeql':
+            if (
+                entry.is_file()
+                and entry.suffix == '.edgeql'
+                and entry.name not in DEFERRED_STD_FILES
+            ):
                 module_files.append(entry)
     else:
         module_path = module_path.with_suffix('.edgeql')

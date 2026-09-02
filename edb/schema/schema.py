@@ -78,7 +78,6 @@ STD_MODULES = (
     sn.UnqualName('std::cal'),
     sn.UnqualName('std::pg'),
     sn.UnqualName('std::_test'),
-    sn.UnqualName('std::fts'),
     sn.UnqualName('std::lang'),
     sn.UnqualName('std::lang::go'),
     sn.UnqualName('std::lang::js'),
@@ -95,6 +94,17 @@ SPECIAL_MODULES = (
 )
 
 # Specifies the order of processing of files and directories in lib/
+#
+# Design section 5 defers full-text search and ranges. Their sources stay
+# in the tree so a later version can restore them by putting the entries
+# back - they are removed from the *build*, not deleted:
+#
+#   edb/lib/fts.edgeql              dropped from STD_SOURCES below, and
+#                                   std::fts from STD_MODULES above
+#   edb/lib/std/31-rangefuncs.edgeql  filtered in schema.std, because it is
+#                                   a file inside the `std` directory that
+#                                   get_std_module_text() walks, not a
+#                                   module of its own
 STD_SOURCES = (
     sn.UnqualName('std'),
     sn.UnqualName('schema'),
@@ -105,7 +115,6 @@ STD_SOURCES = (
     sn.UnqualName('ext'),
     sn.UnqualName('enc'),
     sn.UnqualName('pg'),
-    sn.UnqualName('fts'),
 )
 TESTMODE_SOURCES = (sn.UnqualName('_testmode'),)
 
