@@ -844,6 +844,15 @@ class ClusterTestCase(TestCaseWithHttpClient):
     BASE_TEST_CLASS = True
     backend_dsn: Optional[str] = None
 
+    # Assigned in setUpClass from the cluster. Declared here so that a
+    # test method with annotations - whose body mypy therefore checks -
+    # can read them. Without these, `self.has_create_database` is an
+    # attr-defined error in any typed test, while remaining invisible in
+    # the unannotated ones, whose bodies mypy skips.
+    has_create_database: bool
+    has_create_role: bool
+    is_superuser: bool
+
     # Some tests may want to manage transactions manually,
     # or affect non-transactional state, in which case
     # TRANSACTION_ISOLATION must be set to False
