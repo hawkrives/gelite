@@ -230,9 +230,13 @@
       env:
         BUILD_EXT_MODE: skip
       run: |
-        # --no-build-isolation because we have explicitly installed all deps
-        # and don't want them to be reinstalled in an "isolated env".
-        uv pip install --no-build-isolation --no-deps -e .
+        # Same sync as above, minus --no-install-project, so this installs
+        # the project itself; uv installs the root project editable by
+        # default. --no-build-isolation because the build dependencies are
+        # already present via --group build, and BUILD_EXT_MODE=skip keeps
+        # setup.py from rebuilding the extensions just restored from cache.
+        uv sync --active --inexact --no-build-isolation \
+          --extra test --extra language-server --group build
 
     # Refresh the bootstrap cache
 
@@ -377,7 +381,11 @@
       env:
         BUILD_EXT_MODE: skip
       run: |
-        # --no-build-isolation because we have explicitly installed all deps
-        # and don't want them to be reinstalled in an "isolated env".
-        uv pip install --no-build-isolation --no-deps -e .
+        # Same sync as above, minus --no-install-project, so this installs
+        # the project itself; uv installs the root project editable by
+        # default. --no-build-isolation because the build dependencies are
+        # already present via --group build, and BUILD_EXT_MODE=skip keeps
+        # setup.py from rebuilding the extensions just restored from cache.
+        uv sync --active --inexact --no-build-isolation \
+          --extra test --extra language-server --group build
 <%- endmacro %>
