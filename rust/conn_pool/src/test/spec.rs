@@ -1,6 +1,6 @@
 //! Test utilities.
 use anyhow::{Error, Ok, Result};
-use rand::{thread_rng, Rng};
+use rand::Rng;
 use std::time::Duration;
 use tokio::task::LocalSet;
 use tracing::{error, info, trace};
@@ -33,7 +33,7 @@ async fn run_local(spec: Spec) -> std::result::Result<QoS, Error> {
     let connect_cost = spec.disconn_cost;
     let conn_failure_percentage = spec.conn_failure_percentage;
     let connector = BasicConnector::delay(move |disconnect| {
-        if conn_failure_percentage > 0 && thread_rng().gen_range(0..100) > conn_failure_percentage {
+        if conn_failure_percentage > 0 && rand::rng().random_range(0..100) > conn_failure_percentage {
             return std::result::Result::Err(());
         }
         std::result::Result::Ok(if disconnect {
