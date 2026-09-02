@@ -59,11 +59,15 @@ def test_eschema_syntax_type_08(self):
 
 **Placement matters.** Verified against ruff 0.11.2:
 
-| marker | protects the docstring? |
-|---|---|
-| `# fmt: skip` after the closing `"""` | **yes** |
-| `# fmt: off` / `# fmt: on` around the `def` | yes, but suppresses the code too |
-| `# fmt: skip` on the `def` line | **no** |
+| marker | protects the docstring? | |
+|---|---|---|
+| `# fmt: skip` after the closing `"""` | **yes** | **use this** |
+| `# fmt: off` / `# fmt: on` around the `def` | yes | don't — it suppresses the surrounding code too, which is what excluding whole files did and what this replaced |
+| `# fmt: skip` on the `def` line | **no** | silently does nothing for the docstring |
+
+There is no `fmt: off` block anywhere in the tree, deliberately. The point
+of #67 was to stop protecting test data by switching the formatter off
+over large regions; a block marker reintroduces that at a smaller scale.
 
 ## Rules
 
