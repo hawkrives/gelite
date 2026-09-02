@@ -28,6 +28,7 @@ import unittest
 EMPTY_INIT_FILES = {
     'edb/__init__.py',
     'edb/common/__init__.py',
+    'edb/pgsql/__init__.py',
     'edb/tools/__init__.py',
 }
 

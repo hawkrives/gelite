@@ -30,9 +30,11 @@ import uuid
 from edb import buildmeta
 from edb.common import typeutils
 from edb.common import uuidgen
+from edb.schema import backend as s_backend
 from edb.schema import casts as s_casts
 from edb.schema import constraints as s_constr
 from edb.schema import defines as s_def
+from edb.schema import expr as s_expr
 from edb.schema import functions as s_func
 from edb.schema import indexes as s_indexes
 from edb.schema import name as s_name
@@ -818,3 +820,42 @@ def setting_val_to_sql(val: str | int | float, is_enum: bool):
     if isinstance(val, float):
         return str(val)
     raise NotImplementedError('cannot convert setting to SQL: ', val)
+
+
+# Registered here rather than in edb/pgsql/__init__.py: find_spec on a
+# submodule imports the parent package, and setup.py does exactly that
+# while computing build cache keys - before the Rust extension exists.
+# See the comment in __init__.py. This module is the natural alternative:
+# every other backend module imports it, and it already carries the whole
+# edb.schema import cost, so registering costs nothing extra here.
+#
+# Both bodies import lazily. common is low in the backend's own import
+# order and must not pull the compiler in behind it.
+
+
+def _lower_expr(compiled_expr: s_expr.CompiledExpression) -> None:
+    from edb.pgsql import compiler as pg_compiler
+
+    pg_compiler.compile_ir_to_sql_tree(
+        compiled_expr.irast,
+        output_format=pg_compiler.OutputFormat.NATIVE,
+        singleton_mode=True,
+    )
+
+
+def _supports_range_type(schema: s_schema.Schema, stype: s_types.Type) -> bool:
+    from edb.pgsql import types as pgtypes
+
+    try:
+        pgtypes.pg_type_from_object(schema, stype)
+    except Exception:
+        return False
+    return True
+
+
+s_backend.register(
+    s_backend.BackendHooks(
+        lower_expr=_lower_expr,
+        supports_range_type=_supports_range_type,
+    )
+)

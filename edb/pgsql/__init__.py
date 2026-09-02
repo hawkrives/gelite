@@ -16,47 +16,16 @@
 # limitations under the License.
 #
 
-from __future__ import annotations
-
-from typing import TYPE_CHECKING
-
-from edb.schema import backend as s_backend
-
-if TYPE_CHECKING:
-    from edb.schema import expr as s_expr
-    from edb.schema import schema as s_schema
-    from edb.schema import types as s_types
-
-
-# Registered here, in the package __init__, so that importing any part of
-# the backend registers the whole of it. Both bodies import lazily: this
-# module is reached by `from edb.pgsql import common` and must not drag the
-# compiler in behind it.
-
-
-def _lower_expr(compiled_expr: s_expr.CompiledExpression) -> None:
-    from edb.pgsql import compiler as pg_compiler
-
-    pg_compiler.compile_ir_to_sql_tree(
-        compiled_expr.irast,
-        output_format=pg_compiler.OutputFormat.NATIVE,
-        singleton_mode=True,
-    )
-
-
-def _supports_range_type(schema: s_schema.Schema, stype: s_types.Type) -> bool:
-    from edb.pgsql import types as pgtypes
-
-    try:
-        pgtypes.pg_type_from_object(schema, stype)
-    except Exception:
-        return False
-    return True
-
-
-s_backend.register(
-    s_backend.BackendHooks(
-        lower_expr=_lower_expr,
-        supports_range_type=_supports_range_type,
-    )
-)
+# This file must contain no code, only comments.
+#
+# setup.py's ci_helper computes the build cache keys by calling
+# get_cache_src_dirs(), which does find_spec('edb.pgsql.metaschema') -
+# and find_spec on a submodule imports its parent package. That runs at
+# the very start of the build job, before the Rust extension exists, so
+# anything imported from here that reaches edb.schema (and through it
+# edb.common.span, which imports edb._edgeql_parser) fails the build
+# with ModuleNotFoundError.
+#
+# The schema.backend hooks are registered from edb/pgsql/common.py
+# instead, which every other backend module imports and which nothing in
+# the build path touches. tests/test_sourcecode.py enforces the emptiness.
