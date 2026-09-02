@@ -526,6 +526,13 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             1,
             f"Bot selected from and not just inserted: {sql}")
 
+    SCHEMA_gcache = r'''
+        global b := true;
+        type T {
+            access policy ok allow all using (global b);
+        };
+    '''
+
     def test_codegen_global_cache_01(self):
         tree = self._compile_to_tree('''
             select gcache::T filter global gcache::b

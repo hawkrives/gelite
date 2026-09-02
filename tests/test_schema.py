@@ -11773,10 +11773,21 @@ class TestDescribe(BaseDescribeTest):
 
             'DESCRIBE SCHEMA AS DDL',
 
+            # This was `notebook`, whose extension package declared no
+            # schema of its own. pg_unaccent is the only extension left,
+            # and it does: DESCRIBE emits its module and its one function
+            # alongside the user's schema.
             """
             CREATE EXTENSION PG_UNACCENT VERSION '1.1';
             CREATE MODULE default IF NOT EXISTS;
+            CREATE MODULE ext::pg_unaccent IF NOT EXISTS;
             CREATE MODULE test IF NOT EXISTS;
+            CREATE FUNCTION ext::pg_unaccent::unaccent(
+                text: std::str
+            ) -> std::str {
+                SET volatility := 'Immutable';
+                USING SQL $$select edgedb.unaccent(text)$$;
+            };
             CREATE TYPE default::Foo;
             CREATE TYPE test::Bar {
                 CREATE LINK foo: default::Foo;
@@ -11793,6 +11804,12 @@ class TestDescribe(BaseDescribeTest):
             module default {
                 type Foo {
                     link bar: test::Bar;
+                };
+            };
+            module ext::pg_unaccent {
+                function unaccent(text: std::str) -> std::str {
+                    volatility := 'Immutable';
+                    using sql $$select edgedb.unaccent(text)$$;
                 };
             };
             module test {
