@@ -110,6 +110,31 @@ requires = [
 build-backend = "build_backend"
 backend-path = ["."]
 
+[dependency-groups]
+# Mirrors [build-system].requires. Those govern PEP 517 isolated builds;
+# this group puts the same tooling in the working environment, which CI
+# needs because it runs `python setup.py ci_helper` directly rather than
+# through a build frontend. pip-compile --all-build-deps used to fold
+# these into requirements.txt; uv.lock does not lock build deps, so they
+# are declared here instead. Keep the two lists in agreement.
+build = [
+    "Cython>=3.0.11,<3.1.0",
+    "packaging>=21.0",
+    "setuptools>=67,<80.0.9",
+    "setuptools-rust~=1.8",
+    "wheel",
+    "parsing~=2.0",
+    "gel==3.1.0",
+]
+
+
+[tool.uv]
+# sphinx pulls setuptools in transitively, and 80.9.0 breaks it. Constrain
+# resolution rather than downgrading after install, which is what the CI
+# workflows used to do.
+constraint-dependencies = ["setuptools<80.9.0"]
+
+
 [tool.setuptools]
 packages = { find = { include = ["edb", "edb.*"] } }
 zip-safe = false
