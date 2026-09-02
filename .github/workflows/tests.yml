@@ -416,7 +416,7 @@ jobs:
   rust-rustfmt:
     runs-on: ubuntu-latest
 
-    # rustfmt only parses the sources, so this needs neither the build job
+    # Neither step compiles anything, so this needs neither the build job
     # nor the submodules - every workspace member lives in this repo.
     steps:
     - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
@@ -429,6 +429,17 @@ jobs:
     - name: Cargo fmt
       run:
         cargo fmt --check
+
+    # Nothing else in CI notices a stale Cargo.lock: every cargo command
+    # the other jobs run is happy to update the lock in place, so a
+    # dependency added to a crate - or a crate deleted from the workspace -
+    # leaves the lock wrong and the build still green. `cargo metadata`
+    # resolves the graph without compiling, and --locked turns "the lock
+    # needs updating" into exit 101 instead of a silent rewrite.
+    - name: Cargo lockfile
+      if: ${{ !cancelled() }}
+      run:
+        cargo metadata --locked --format-version 1 > /dev/null
 
   python-lint:
     runs-on: ubuntu-latest
@@ -468,6 +479,18 @@ jobs:
       if: ${{ !cancelled() }}
       run: |
         ruff format --check --diff edb tests
+
+    # The counterpart to the Cargo lockfile check in rust-rustfmt, and it
+    # exists for the same reason: plain `uv sync` re-locks when pyproject
+    # has moved on, so every other job would install the right packages
+    # from a lock that was never committed. --check reports the drift
+    # rather than repairing it. It re-resolves only when the lock really
+    # is stale; against a current one it is a few milliseconds of reading
+    # two files.
+    - name: uv lockfile
+      if: ${{ !cancelled() }}
+      run: |
+        uv lock --check
 
   python-typecheck:
     runs-on: ubuntu-latest
