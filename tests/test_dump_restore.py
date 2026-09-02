@@ -81,7 +81,7 @@ class TestDumpRestore(tb.QueryTestCase):
         """Dump `dbname` over the binary protocol.
 
         The server answers a Dump with one DumpHeader, then zero or more
-        DumpBlocks, then a CommandComplete whose status is b'DUMP'.
+        DumpBlocks, then a CommandComplete whose status is 'DUMP'.
         """
         con = await protocol.new_connection(
             **self.get_connect_args(database=dbname),
@@ -97,7 +97,7 @@ class TestDumpRestore(tb.QueryTestCase):
                 if isinstance(msg, messages.DumpBlock):
                     blocks.append(msg)
                 elif isinstance(msg, messages.CommandComplete):
-                    self.assertEqual(msg.status, b'DUMP')
+                    self.assertEqual(msg.status, 'DUMP')
                     break
                 else:
                     raise AssertionError(
@@ -137,7 +137,7 @@ class TestDumpRestore(tb.QueryTestCase):
             msg = await con.recv()
             if not isinstance(msg, messages.CommandComplete):
                 raise AssertionError(f'restore did not complete: {msg!r}')
-            self.assertEqual(msg.status, b'RESTORE')
+            self.assertEqual(msg.status, 'RESTORE')
         finally:
             await con.aclose()
 
