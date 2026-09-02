@@ -62,7 +62,7 @@ jobs:
 
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
 
 
     - name: Determine SCM revision
@@ -624,7 +624,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-buster-x86_64
         path: artifacts/debian-buster
@@ -651,7 +651,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-buster-aarch64
         path: artifacts/debian-buster
@@ -678,7 +678,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-bullseye-x86_64
         path: artifacts/debian-bullseye
@@ -705,7 +705,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-bullseye-aarch64
         path: artifacts/debian-bullseye
@@ -732,7 +732,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-bookworm-x86_64
         path: artifacts/debian-bookworm
@@ -759,7 +759,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-debian-bookworm-aarch64
         path: artifacts/debian-bookworm
@@ -786,7 +786,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-focal-x86_64
         path: artifacts/ubuntu-focal
@@ -813,7 +813,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-focal-aarch64
         path: artifacts/ubuntu-focal
@@ -840,7 +840,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-jammy-x86_64
         path: artifacts/ubuntu-jammy
@@ -867,7 +867,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-jammy-aarch64
         path: artifacts/ubuntu-jammy
@@ -894,7 +894,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-noble-x86_64
         path: artifacts/ubuntu-noble
@@ -921,7 +921,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-ubuntu-noble-aarch64
         path: artifacts/ubuntu-noble
@@ -948,7 +948,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-centos-8-x86_64
         path: artifacts/centos-8
@@ -975,7 +975,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-centos-8-aarch64
         path: artifacts/centos-8
@@ -1002,7 +1002,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-rockylinux-9-x86_64
         path: artifacts/rockylinux-9
@@ -1029,7 +1029,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-rockylinux-9-aarch64
         path: artifacts/rockylinux-9
@@ -1057,7 +1057,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-linux-x86_64
         path: artifacts/linux-x86_64
@@ -1085,7 +1085,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-linux-aarch64
         path: artifacts/linux-aarch64
@@ -1114,7 +1114,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-linuxmusl-x86_64
         path: artifacts/linuxmusl-x86_64
@@ -1143,7 +1143,7 @@ jobs:
         GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-linuxmusl-aarch64
         path: artifacts/linuxmusl-aarch64
@@ -1166,7 +1166,7 @@ jobs:
         # `dsherret/rust-toolchain-file`. So let's just run `brew update` early.
         brew update
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: true
       with:
         sparse-checkout: |
@@ -1174,23 +1174,23 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - name: Install Rust toolchain
-      uses: dsherret/rust-toolchain-file@v1
+      uses: dsherret/rust-toolchain-file@3551321aa44dd44a0393eb3b6bdfbc5d25ecf621  # v1
       if: true
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       if: true
       with:
         python-version: "3.12"
 
     - name: Set up NodeJS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
       if: true
       with:
         node-version: '20'
@@ -1226,7 +1226,7 @@ jobs:
       run: |
         edgedb-pkg/integration/macos/build.sh
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-macos-x86_64
         path: artifacts/macos-x86_64
@@ -1249,7 +1249,7 @@ jobs:
         # `dsherret/rust-toolchain-file`. So let's just run `brew update` early.
         brew update
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: true
       with:
         sparse-checkout: |
@@ -1257,23 +1257,23 @@ jobs:
         sparse-checkout-cone-mode: false
 
     - name: Install Rust toolchain
-      uses: dsherret/rust-toolchain-file@v1
+      uses: dsherret/rust-toolchain-file@3551321aa44dd44a0393eb3b6bdfbc5d25ecf621  # v1
       if: true
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
     - name: Set up Python
-      uses: actions/setup-python@v5
+      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
       if: true
       with:
         python-version: "3.12"
 
     - name: Set up NodeJS
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020  # v7.0.0
       if: true
       with:
         node-version: '20'
@@ -1309,7 +1309,7 @@ jobs:
       run: |
         edgedb-pkg/integration/macos/build.sh
 
-    - uses: actions/upload-artifact@50769540e7f4bd5e21e526ee35c689e35e0d6874  # v4.4.0
+    - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
       with:
         name: builds-macos-aarch64
         path: artifacts/macos-aarch64
@@ -1319,7 +1319,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-buster-x86_64
         path: artifacts/debian-buster
@@ -1343,7 +1343,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-buster-aarch64
         path: artifacts/debian-buster
@@ -1367,7 +1367,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-bullseye-x86_64
         path: artifacts/debian-bullseye
@@ -1391,7 +1391,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-bullseye-aarch64
         path: artifacts/debian-bullseye
@@ -1415,7 +1415,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-bookworm-x86_64
         path: artifacts/debian-bookworm
@@ -1439,7 +1439,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-debian-bookworm-aarch64
         path: artifacts/debian-bookworm
@@ -1463,7 +1463,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-focal-x86_64
         path: artifacts/ubuntu-focal
@@ -1487,7 +1487,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-focal-aarch64
         path: artifacts/ubuntu-focal
@@ -1511,7 +1511,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-jammy-x86_64
         path: artifacts/ubuntu-jammy
@@ -1535,7 +1535,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-jammy-aarch64
         path: artifacts/ubuntu-jammy
@@ -1559,7 +1559,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-noble-x86_64
         path: artifacts/ubuntu-noble
@@ -1583,7 +1583,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-ubuntu-noble-aarch64
         path: artifacts/ubuntu-noble
@@ -1607,7 +1607,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-centos-8-x86_64
         path: artifacts/centos-8
@@ -1631,7 +1631,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-centos-8-aarch64
         path: artifacts/centos-8
@@ -1655,7 +1655,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-rockylinux-9-x86_64
         path: artifacts/rockylinux-9
@@ -1679,7 +1679,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-rockylinux-9-aarch64
         path: artifacts/rockylinux-9
@@ -1703,7 +1703,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-linux-x86_64
         path: artifacts/linux-x86_64
@@ -1727,7 +1727,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-linux-aarch64
         path: artifacts/linux-aarch64
@@ -1751,7 +1751,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'x64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-linuxmusl-x86_64
         path: artifacts/linuxmusl-x86_64
@@ -1775,7 +1775,7 @@ jobs:
     runs-on: ['package-builder', 'self-hosted', 'linux', 'arm64']
 
     steps:
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-linuxmusl-aarch64
         path: artifacts/linuxmusl-aarch64
@@ -1799,13 +1799,13 @@ jobs:
     runs-on: ['macos-13']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-macos-x86_64
         path: artifacts/macos-x86_64
@@ -1830,13 +1830,13 @@ jobs:
     runs-on: ['macos-14']
 
     steps:
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       with:
         repository: edgedb/edgedb-pkg
         ref: master
         path: edgedb-pkg
 
-    - uses: actions/download-artifact@fa0a91b85d4f404e444e00e005971372dc801d16  # v4.1.8
+    - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         name: builds-macos-aarch64
         path: artifacts/macos-aarch64
@@ -1851,66 +1851,3 @@ jobs:
         PKG_TEST_FILES: " "
       run: |
         edgedb-pkg/integration/macos/test.sh
-
-  workflow-notifications:
-    if: failure() && github.event_name != 'pull_request'
-    name: Notify in Slack on failures
-
-    needs:
-      - prep
-      - build-debian-buster-x86_64
-      - test-debian-buster-x86_64
-      - build-debian-buster-aarch64
-      - test-debian-buster-aarch64
-      - build-debian-bullseye-x86_64
-      - test-debian-bullseye-x86_64
-      - build-debian-bullseye-aarch64
-      - test-debian-bullseye-aarch64
-      - build-debian-bookworm-x86_64
-      - test-debian-bookworm-x86_64
-      - build-debian-bookworm-aarch64
-      - test-debian-bookworm-aarch64
-      - build-ubuntu-focal-x86_64
-      - test-ubuntu-focal-x86_64
-      - build-ubuntu-focal-aarch64
-      - test-ubuntu-focal-aarch64
-      - build-ubuntu-jammy-x86_64
-      - test-ubuntu-jammy-x86_64
-      - build-ubuntu-jammy-aarch64
-      - test-ubuntu-jammy-aarch64
-      - build-ubuntu-noble-x86_64
-      - test-ubuntu-noble-x86_64
-      - build-ubuntu-noble-aarch64
-      - test-ubuntu-noble-aarch64
-      - build-centos-8-x86_64
-      - test-centos-8-x86_64
-      - build-centos-8-aarch64
-      - test-centos-8-aarch64
-      - build-rockylinux-9-x86_64
-      - test-rockylinux-9-x86_64
-      - build-rockylinux-9-aarch64
-      - test-rockylinux-9-aarch64
-      - build-linux-x86_64
-      - test-linux-x86_64
-      - build-linux-aarch64
-      - test-linux-aarch64
-      - build-linuxmusl-x86_64
-      - test-linuxmusl-x86_64
-      - build-linuxmusl-aarch64
-      - test-linuxmusl-aarch64
-      - build-macos-x86_64
-      - test-macos-x86_64
-      - build-macos-aarch64
-      - test-macos-aarch64
-    runs-on: ubuntu-latest
-    permissions:
-      actions: 'read'
-    steps:
-      - name: Slack Workflow Notification
-        uses: Gamesight/slack-workflow-status@26a36836c887f260477432e4314ec3490a84f309
-        with:
-          repo_token: ${{secrets.GITHUB_TOKEN}}
-          slack_webhook_url: ${{secrets.ACTIONS_SLACK_WEBHOOK_URL}}
-          name: 'Workflow notifications'
-          icon_emoji: ':hammer:'
-          include_jobs: 'on-failure'

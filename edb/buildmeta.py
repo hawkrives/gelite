@@ -58,7 +58,7 @@ from edb.common import verutils
 # to write a patch in edb/pgsql/patches.py, and then you should preserve
 # the old value.
 EDGEDB_CATALOG_VERSION = 2025_11_03_00_00
-EDGEDB_MAJOR_VERSION = 8
+GELITE_MAJOR_VERSION = 0
 
 
 class MetadataError(Exception):
@@ -483,7 +483,7 @@ def get_version_from_scm(root: pathlib.Path) -> str:
 
     m = pep440_version_re.match(tag)
     assert m is not None
-    major = EDGEDB_MAJOR_VERSION
+    major = GELITE_MAJOR_VERSION
     minor = m.group('minor')
     micro = m.group('micro') or ''
     microkind = '.' if micro else ''

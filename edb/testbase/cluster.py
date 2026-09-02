@@ -39,6 +39,7 @@ from edb.server import args as edgedb_args
 from edb.server import defines as edgedb_defines
 from edb.server import pgcluster
 from edb.server import pgconnparams
+from edb.testbase import connection as tconn
 
 
 if TYPE_CHECKING:
@@ -322,7 +323,7 @@ class BaseCluster:
             started = time.monotonic()
             await test()
             left -= (time.monotonic() - started)
-        if res := self._admin_query(
+        if res := await self._admin_query(
             "SELECT ();",
             f"{max(1, int(left))}s",
             check=False,
@@ -331,56 +332,71 @@ class BaseCluster:
                 f'could not connect to edgedb-server '
                 f'within {timeout} seconds (exit code = {res})') from None
 
-    def _admin_query(
+    async def _admin_query(
         self,
         query: str,
         wait_until_available: str = "0s",
-        check: bool=True,
+        check: bool = True,
     ) -> int:
-        args = [
-            "gel",
-            "query",
-            "--unix-path",
-            str(os.path.abspath(self._runstate_dir)),
-            "--port",
-            str(self._effective_port),
-            "--admin",
-            "--user",
-            edgedb_defines.EDGEDB_SUPERUSER,
-            "--branch",
-            edgedb_defines.EDGEDB_SUPERUSER_DB,
-            "--wait-until-available",
-            wait_until_available,
-            query,
-        ]
-        res = subprocess.run(
-            args=args,
-            check=check,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
+        """Run *query* on the admin Unix socket.
+
+        This used to shell out to the `gel` CLI. The `gel` console script
+        shipped by the Python package is a bootstrapper that downloads the
+        real CLI from packages.edgedb.com on first use, which makes running
+        the test suite depend on a third party staying online. It is also
+        unnecessary: the in-tree client can talk to the same socket.
+
+        The admin socket is used rather than TCP because these queries run
+        before a password exists - set_superuser_password is itself one of
+        them - and the admin socket does not authenticate.
+        """
+        sock_path = os.path.join(
+            self._runstate_dir, f'.s.GEL.admin.{self._effective_port}'
         )
-        return res.returncode
+        secs = int(wait_until_available.rstrip('s') or 0)
+        conn = None
+        try:
+            conn = await tconn.async_connect_test_client(
+                host='localhost',
+                port=self._effective_port,
+                user=edgedb_defines.EDGEDB_SUPERUSER,
+                branch=edgedb_defines.EDGEDB_SUPERUSER_DB,
+                admin_unix_path=sock_path,
+                wait_until_available=secs,
+            )
+            await conn.execute(query)
+        except Exception as e:
+            if check:
+                raise ClusterError(
+                    f'admin query failed: {e}'
+                ) from e
+            print(f'admin query failed: {e}', file=sys.stderr)
+            return 1
+        finally:
+            if conn is not None:
+                await conn.aclose()
+        return 0
 
     async def set_test_config(self) -> None:
         # Set session_idle_transaction_timeout to 5 minutes.
-        self._admin_query('''
+        await self._admin_query('''
             CONFIGURE INSTANCE SET session_idle_transaction_timeout :=
                 <duration>'5 minutes';
         ''')
         # And disable session_idle_timeout
-        self._admin_query('''
+        await self._admin_query('''
             CONFIGURE INSTANCE SET session_idle_timeout :=
                 <duration>'0 seconds';
         ''')
 
     async def set_superuser_password(self, password: str) -> None:
-        self._admin_query(f'''
+        await self._admin_query(f'''
             ALTER ROLE {edgedb_defines.EDGEDB_SUPERUSER}
             SET password := {quote.quote_literal(password)}
         ''')
 
     async def trust_local_connections(self) -> None:
-        self._admin_query('''
+        await self._admin_query('''
             CONFIGURE INSTANCE INSERT Auth {
                 priority := 0,
                 method := (INSERT Trust),

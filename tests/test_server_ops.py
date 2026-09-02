@@ -71,7 +71,7 @@ class TestServerApi(tb.ClusterTestCase):
             self.assertEqual(status, http.HTTPStatus.OK)
 
 
-class TestServerOps(tb.TestCaseWithHttpClient, tb.CLITestCaseMixin):
+class TestServerOps(tb.TestCaseWithHttpClient):
 
     async def kill_process(self, proc: asyncio.subprocess.Process):
         proc.terminate()
@@ -1522,83 +1522,6 @@ class TestServerOps(tb.TestCaseWithHttpClient, tb.CLITestCaseMixin):
             if os.path.exists(rf_name):
                 rf.close()
                 os.unlink(rf_name)
-
-    async def test_server_ops_restore_with_schema_signal(self):
-        async def test(pgdata_path):
-            backend_dsn = f'postgres:///?user=postgres&host={pgdata_path}'
-            runstate_dir = None if devmode.is_in_dev_mode() else pgdata_path
-            async with tb.start_edgedb_server(
-                max_allowed_connections=None,
-                backend_dsn=backend_dsn,
-                reset_auth=True,
-                runstate_dir=runstate_dir,
-            ) as sd1:
-                async with tb.start_edgedb_server(
-                    max_allowed_connections=None,
-                    backend_dsn=backend_dsn,
-                    runstate_dir=runstate_dir,
-                ) as sd2:
-                    await self._test_server_ops_restore_with_schema_signal(
-                        sd1, sd2
-                    )
-
-        with tempfile.TemporaryDirectory() as td:
-            cluster = await pgcluster.get_local_pg_cluster(
-                td, max_connections=20, log_level='s'
-            )
-            cluster.update_connection_params(
-                user='postgres',
-                database='template1',
-            )
-            self.assertTrue(await cluster.ensure_initialized())
-            await cluster.start()
-            try:
-                await test(td)
-            finally:
-                await cluster.stop()
-
-    async def _test_server_ops_restore_with_schema_signal(self, sd1, sd2):
-        con = await sd1.connect()
-        try:
-            await con.execute("CREATE DATABASE restore_signal;")
-            await con.execute("CREATE TYPE RestoreSignal;")
-            await con.execute("INSERT RestoreSignal;")
-        finally:
-            await con.aclose()
-
-        # Connect to the adjacent server first with the empty schema
-        conn_args = sd1.get_connect_args()
-        con = await sd2.connect(
-            database="restore_signal",
-            password=conn_args["password"],
-        )
-
-        try:
-            # Dump and restore should trigger a re-introspection in sd2
-            with tempfile.TemporaryDirectory() as f:
-                fname = os.path.join(f, 'dump')
-                await asyncio.to_thread(
-                    self.run_cli_on_connection, conn_args, "dump", fname
-                )
-                await asyncio.to_thread(
-                    self.run_cli_on_connection,
-                    conn_args,
-                    "-d",
-                    "restore_signal",
-                    "restore",
-                    fname
-                )
-
-            # The re-introspection has a delay, but should eventually happen
-            async for tr in self.try_until_succeeds(
-                ignore=edgedb.InvalidReferenceError,
-                timeout=30,
-            ):
-                async with tr:
-                    rsids = await con.query("SELECT RestoreSignal;")
-            self.assertTrue(rsids)
-        finally:
-            await con.aclose()
 
     async def _init_pg_cluster(self, path):
         cluster = await pgcluster.get_local_pg_cluster(path, log_level='s')

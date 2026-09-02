@@ -32,7 +32,7 @@ jobs:
         << calc_cache_key()|indent >>
     <%- endcall %>
 
-    - uses: actions/checkout@v4
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
       if: startsWith(github.ref, 'refs/heads')
       with:
         repository: edgedb/edgedb-pool-simulation
@@ -48,7 +48,7 @@ jobs:
         mkdir -p pool-simulation/reports
         python tests/test_server_pool.py
 
-    - uses: EndBug/add-and-commit@v7.0.0
+    - uses: EndBug/add-and-commit@f68b41bfefb2ed558185ab6ab97b620866ebe369  # v11.1.1
       if: ${{ always() }}
       continue-on-error: true
       with:

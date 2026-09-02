@@ -302,7 +302,13 @@ class Iteration(BaseTransaction, _Executor):
             return self.__retry._retry(ex)
 
     def _make_start_query_inner(self):
-        return self._options.start_transaction_query()
+        # gel 3.1.0 made optimistic_isolation a required argument. It only
+        # affects IsolationLevel.PreferRepeatableRead, which nothing here
+        # uses, and gel's own retry loop starts every attempt with it off,
+        # so False reproduces the query this used to build.
+        return self._options.start_transaction_query(
+            optimistic_isolation=False
+        )
 
     def _get_query_cache(self) -> abstract.QueryCache:
         return self._connection._query_cache
@@ -385,10 +391,15 @@ class Connection(options._OptionsMixin, _Executor):
     _top_xact: RawTransaction | None = None
 
     def __init__(
-        self, connect_args, *, test_no_tls=False, server_hostname=None
+        self, connect_args, *, test_no_tls=False, server_hostname=None,
+        admin_unix_path=None,
     ):
         super().__init__()
         self._connect_args = connect_args
+        # When set, connect to this Unix socket instead of the resolved
+        # TCP address. gel's con_utils refuses unix paths outright, so the
+        # address cannot be expressed through normal connection arguments.
+        self._admin_unix_path = admin_unix_path
         self._protocol = None
         self._transport = None
         self._query_cache = abstract.QueryCache(
@@ -675,7 +686,7 @@ class Connection(options._OptionsMixin, _Executor):
     async def connect_addr(self):
         tr = None
         loop = asyncio.get_running_loop()
-        addr = self._params.address
+        addr = self._admin_unix_path or self._params.address
         protocol_factory = functools.partial(
             edb_protocol.Protocol, self._params, loop
         )
@@ -789,6 +800,7 @@ async def async_connect_test_client(
     wait_until_available: int = 30,
     timeout: int = 10,
     server_hostname: str | None = None,
+    admin_unix_path: str | None = None,
 ) -> Connection:
     return await Connection(
         {
@@ -810,4 +822,5 @@ async def async_connect_test_client(
         },
         test_no_tls=test_no_tls,
         server_hostname=server_hostname,
+        admin_unix_path=admin_unix_path,
     ).ensure_connected()

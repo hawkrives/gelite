@@ -9,7 +9,7 @@ index b6222e4a2..5f1b366fb 100644
 +# HACK: Put this down here so it overrides the above version without
 +# merge conflicting with them.
 +EDGEDB_CATALOG_VERSION = 2030_01_01_00_00
-+EDGEDB_MAJOR_VERSION = 1000
++GELITE_MAJOR_VERSION = 1000
 +
 +
  class BackendVersion(NamedTuple):
