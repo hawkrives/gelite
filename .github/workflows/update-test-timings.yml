@@ -22,6 +22,13 @@ on:
           run; the automatic trigger uses the run that just finished.
         required: true
 
+# Two runs force-pushing the same branch would race. This serialises them
+# without cancelling: a queued run still has useful timings to merge, and
+# the freshness check below is what decides whether they are current.
+concurrency:
+  group: update-test-timings
+  cancel-in-progress: false
+
 permissions:
   contents: write
   pull-requests: write
@@ -41,7 +48,26 @@ jobs:
       with:
         submodules: false
 
+    # A Tests run on an older commit can finish after one on a newer commit,
+    # and this workflow would then force-push the older timings over the
+    # newer. A concurrency group cannot fix that: it resolves in favour of
+    # whichever event arrives last, which is the stale one. Ordering has to
+    # be checked directly. Skipping is safe - the newer commit's own run
+    # updates the file instead.
+    - name: Skip if the harvested run is not master's tip
+      if: github.event_name != 'workflow_dispatch'
+      run: |
+        set -euo pipefail
+        harvested='${{ github.event.workflow_run.head_sha }}'
+        tip=$(git rev-parse HEAD)
+        if [ "$harvested" != "$tip" ]; then
+          echo "::notice::harvested run is $harvested but master is now" \
+               "$tip; a newer run will supply fresher timings"
+          echo "SKIP=1" >> "$GITHUB_ENV"
+        fi
+
     - name: Set up uv and Python
+      if: env.SKIP != '1'
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
       with:
         python-version: '3.12.2'
@@ -52,6 +78,7 @@ jobs:
         enable-cache: false
 
     - name: Download the run's shard results
+      if: env.SKIP != '1'
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
       with:
         pattern: python-test-results-*
@@ -61,9 +88,11 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Merge the timings
+      if: env.SKIP != '1'
       shell: python
       run: |
         import csv
+        import decimal
         import glob
         import io
 
@@ -74,6 +103,7 @@ jobs:
             for name, t, c in csv.reader(f):
                 assert name not in orig, "duplicate test name in stats!"
                 orig[name] = (t, int(c))
+        committed = dict(orig)
 
         new = {}
         for path in glob.glob("results/running_times_*.csv"):
@@ -87,16 +117,45 @@ jobs:
         assert new, "no shard reported newer timings; nothing to update"
 
         orig.update(new)
+
+        # Round to two significant figures. At full float precision every
+        # one of the ~13,900 rows changes on every run - the last refresh
+        # was "13870 insertions(+), 13870 deletions(-)" - which made the
+        # `git diff --quiet` guard below unreachable and every diff
+        # unreviewable. Two sig figs costs 0.04% of the total estimate,
+        # measured across the whole file, and the balancer is packing bins
+        # by estimate: it does not need the third digit.
+        def sig2(value):
+            d = decimal.Decimal(value)
+            if d == 0:
+                return "0"
+            return format(round(d, -(d.adjusted() - 1)).normalize(), "f")
+
+        # Rounding alone does not settle the file: runner.py keeps a running
+        # average as (mean, observation count) and bumps the count on every
+        # measurement, so all ~13,900 rows would still churn on the third
+        # column. The count is only there to weight the next measurement, so
+        # when the rounded estimate has not moved, keep the count as well and
+        # the row is byte-identical. Rows whose estimate did move carry their
+        # new count, which is what makes the next average weight it correctly.
         buf = io.StringIO()
         writer = csv.writer(buf)
-        for k, v in sorted(orig.items()):
-            writer.writerow((k,) + tuple(v))
+        unchanged = 0
+        for k, (t, c) in sorted(orig.items()):
+            rounded = sig2(t)
+            was = committed.get(k)
+            if was is not None and sig2(was[0]) == rounded:
+                c = was[1]
+                unchanged += 1
+            writer.writerow((k, rounded, c))
         with open(".github/time_stats.csv", "w") as f:
             f.write(buf.getvalue())
 
-        print(f"{len(new)} rows measured, {len(orig)} total")
+        print(f"{len(new)} rows measured, {len(orig)} total, "
+              f"{unchanged} estimates unchanged")
 
     - name: Open or update the pull request
+      if: env.SKIP != '1'
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
