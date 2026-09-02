@@ -18,8 +18,6 @@
 
 
 import os
-import subprocess
-import sys
 import unittest
 
 
@@ -52,59 +50,3 @@ class TestCodeQuality(unittest.TestCase):
 
                     self.fail(
                         f'{fn} must be an empty file (except Python comments)')
-
-    def test_cqa_ruff(self):
-        edgepath = find_edgedb_root()
-
-        try:
-            import ruff  # NoQA
-        except ImportError:
-            raise unittest.SkipTest('ruff module is missing')
-
-        for subdir in ['edb', 'tests']:  # ignore any top-level test files
-            try:
-                subprocess.run(
-                    ['ruff', 'check', '.'],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    cwd=os.path.join(edgepath, subdir))
-            except subprocess.CalledProcessError as ex:
-                output = ex.output.decode()
-                raise AssertionError(
-                    f'ruff validation failed:\n{output}') from None
-
-    def test_cqa_mypy(self):
-        edgepath = find_edgedb_root()
-        config_path = os.path.join(edgepath, 'pyproject.toml')
-        if not os.path.exists(config_path):
-            raise RuntimeError('could not locate pyproject.toml file')
-
-        try:
-            import mypy  # NoQA
-        except ImportError:
-            raise unittest.SkipTest('mypy module is missing')
-
-        for subdir in ['edb', 'tests']:  # ignore any top-level test files
-            try:
-                subprocess.run(
-                    [
-                        sys.executable,
-                        '-I',
-                        '-m',
-                        'mypy',
-                        '--config-file',
-                        config_path,
-                        subdir,
-                    ],
-                    check=True,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                    cwd=edgepath,
-                )
-            except subprocess.CalledProcessError as ex:
-                output = ex.stdout.decode()
-                if ex.stderr:
-                    output += '\n\n' + ex.stderr.decode()
-                raise AssertionError(
-                    f'mypy validation failed:\n{output}') from None

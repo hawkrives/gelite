@@ -41,9 +41,7 @@ gel-ls = "edb.language_server.main:main"
 
 [project.optional-dependencies]
 test = [
-    'black~=24.2.0',
     'coverage~=7.4',
-    'ruff==0.11.2',
     'asyncpg~=0.30.0',
 
     # Needed for testing asyncutil
@@ -119,19 +117,16 @@ build = [
     "gel==3.1.0",
 ]
 
+# Just ruff, so the lint job can install it from the lock without building
+# the project or pulling mypy, Sphinx and lxml along with it.
+lint = [
+    "ruff==0.11.2",
+]
+
 
 [tool.setuptools]
 packages = { find = { include = ["edb", "edb.*"] } }
 zip-safe = false
-
-
-# ========================
-#          BLACK
-# ========================
-[tool.black]
-line-length = 80
-target-version = ["py310"]
-skip-string-normalization = true
 
 
 # ========================

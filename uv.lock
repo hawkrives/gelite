@@ -149,26 +149,6 @@ wheels = [
 ]
 
 [[package]]
-name = "black"
-version = "24.2.0"
-source = { registry = "https://pypi.org/simple" }
-dependencies = [
-    { name = "click" },
-    { name = "mypy-extensions" },
-    { name = "packaging" },
-    { name = "pathspec" },
-    { name = "platformdirs" },
-]
-sdist = { url = "https://files.pythonhosted.org/packages/29/69/f3ab49cdb938b3eecb048fa64f86bdadb1fac26e92c435d287181d543b0a/black-24.2.0.tar.gz", hash = "sha256:bce4f25c27c3435e4dace4815bcb2008b87e167e3bf4ee47ccdc5ce906eb4894", size = 631598, upload-time = "2024-02-12T20:21:26.969Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/43/1e/67c87a1fb39592aa944f35cc26892946ebe0a10aa324b87f9380b8753862/black-24.2.0-cp312-cp312-macosx_10_9_x86_64.whl", hash = "sha256:d84f29eb3ee44859052073b7636533ec995bd0f64e2fb43aeceefc70090e752b", size = 1585288, upload-time = "2024-02-12T20:37:13.8Z" },
-    { url = "https://files.pythonhosted.org/packages/5e/62/6437212cf40e40b74dbc7e134700a21cb21a9ac7e46ade940b5d4826456f/black-24.2.0-cp312-cp312-macosx_11_0_arm64.whl", hash = "sha256:1e08fb9a15c914b81dd734ddd7fb10513016e5ce7e6704bdd5e1251ceee51ac9", size = 1417360, upload-time = "2024-02-12T20:34:56.41Z" },
-    { url = "https://files.pythonhosted.org/packages/36/8f/de0d339ae683422a8e15d6f74b8022d4947009c347d8c2178c303c68cc4d/black-24.2.0-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:810d445ae6069ce64030c78ff6127cd9cd178a9ac3361435708b907d8a04c693", size = 1739406, upload-time = "2024-02-12T20:23:59.596Z" },
-    { url = "https://files.pythonhosted.org/packages/3e/58/89e5f5a1c4c5b66dc74eabe6337623d53b4d1c27fbbbe16defee53397f60/black-24.2.0-cp312-cp312-win_amd64.whl", hash = "sha256:ba15742a13de85e9b8f3239c8f807723991fbfae24bad92d34a2b12e81904982", size = 1373310, upload-time = "2024-02-12T20:25:27.243Z" },
-    { url = "https://files.pythonhosted.org/packages/47/15/b3770bc3328685a53bc9c041136240146c5cd866a1f020c2cf47f2ff9683/black-24.2.0-py3-none-any.whl", hash = "sha256:e8a6ae970537e67830776488bca52000eaa37fa63b9988e8c487458d9cd5ace6", size = 200610, upload-time = "2024-02-12T20:21:17.657Z" },
-]
-
-[[package]]
 name = "calver"
 version = "2025.3.31"
 source = { registry = "https://pypi.org/simple" }
@@ -719,7 +699,6 @@ language-server = [
 test = [
     { name = "async-solipsism" },
     { name = "asyncpg" },
-    { name = "black" },
     { name = "coverage" },
     { name = "docutils" },
     { name = "lxml" },
@@ -727,7 +706,6 @@ test = [
     { name = "prometheus-client" },
     { name = "pygments" },
     { name = "requests-xml" },
-    { name = "ruff" },
     { name = "sphinx" },
     { name = "sphinx-code-tabs" },
     { name = "sphinxcontrib-applehelp" },
@@ -752,6 +730,9 @@ build = [
     { name = "setuptools-rust" },
     { name = "wheel" },
 ]
+lint = [
+    { name = "ruff" },
+]
 
 [package.metadata]
 requires-dist = [
@@ -759,7 +740,6 @@ requires-dist = [
     { name = "argon2-cffi", specifier = "~=23.1.0" },
     { name = "async-solipsism", marker = "extra == 'test'", specifier = "==0.5.0" },
     { name = "asyncpg", marker = "extra == 'test'", specifier = "~=0.30.0" },
-    { name = "black", marker = "extra == 'test'", specifier = "~=24.2.0" },
     { name = "calver", specifier = "==2025.3.31" },
     { name = "click", specifier = "~=8.1.0" },
     { name = "coverage", marker = "extra == 'test'", specifier = "~=7.4" },
@@ -781,7 +761,6 @@ requires-dist = [
     { name = "pygments", marker = "extra == 'docs'", specifier = "~=2.10.0" },
     { name = "pygments", marker = "extra == 'test'", specifier = "~=2.10.0" },
     { name = "requests-xml", marker = "extra == 'test'", specifier = "~=0.2.3" },
-    { name = "ruff", marker = "extra == 'test'", specifier = "==0.11.2" },
     { name = "setproctitle", specifier = "~=1.2" },
     { name = "sphinx", marker = "extra == 'docs'", specifier = "~=4.2.0" },
     { name = "sphinx", marker = "extra == 'test'", specifier = "~=4.2.0" },
@@ -814,6 +793,7 @@ build = [
     { name = "setuptools-rust", specifier = "~=1.8" },
     { name = "wheel" },
 ]
+lint = [{ name = "ruff", specifier = "==0.11.2" }]
 
 [[package]]
 name = "graphql-core"
@@ -1171,24 +1151,6 @@ dependencies = [
     { name = "mypy-extensions" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/12/86/bb1bc379dec16803a8cda63a1da640a8cfcc7251ff8a6247c06cff30d0f0/parsing-2.0.4.tar.gz", hash = "sha256:08ff194215366defea26e8b2b364363cdcd0d3e464b42b1d49bb86c7642ca504", size = 36695, upload-time = "2023-11-24T18:11:03.397Z" }
-
-[[package]]
-name = "pathspec"
-version = "1.1.1"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/5a/82/42f767fc1c1143d6fd36efb827202a2d997a375e160a71eb2888a925aac1/pathspec-1.1.1.tar.gz", hash = "sha256:17db5ecd524104a120e173814c90367a96a98d07c45b2e10c2f3919fff91bf5a", size = 135180, upload-time = "2026-04-27T01:46:08.907Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/d9/7fb5aa316bc299258e68c73ba3bddbc499654a07f151cba08f6153988714/pathspec-1.1.1-py3-none-any.whl", hash = "sha256:a00ce642f577bf7f473932318056212bc4f8bfdf53128c78bbd5af0b9b20b189", size = 57328, upload-time = "2026-04-27T01:46:07.06Z" },
-]
-
-[[package]]
-name = "platformdirs"
-version = "4.11.5"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/ea/06/cf1564dcc2e2261c8c8c6c05628dc8b418943bdae2a4e58640ceb2f770fa/platformdirs-4.11.5.tar.gz", hash = "sha256:e8b31f4f8bcbbedef91a6b57a706255e4f148d2a4e01648382a0a47342539173", size = 34823, upload-time = "2026-08-27T21:36:37.46Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/c7/12/6f3fcd5067a9cbf4f8664b32957973498da8b083455203c8d9cab83a725c/platformdirs-4.11.5-py3-none-any.whl", hash = "sha256:89f8d42695853b89c7170bd49bc3dc593f98a71e695ede88e06a3b247bc4563b", size = 23900, upload-time = "2026-08-27T21:36:36.227Z" },
-]
 
 [[package]]
 name = "prometheus-client"

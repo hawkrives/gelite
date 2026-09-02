@@ -9,6 +9,13 @@ on:
       - '**'
   workflow_dispatch:
 
+# Only ever reads the repository: no comments, no pushes, no releases.
+# Artifact upload and download inside a run use the job token rather than
+# this scope. update-test-timings.yml is the one that needs write, and
+# declares it separately.
+permissions:
+  contents: read
+
 # A 16-shard matrix per push is expensive enough that superseded runs
 # starve the current head of runners. Cancel the older run for a ref when
 # a new one starts, but only for pull requests: pushes to master are what
@@ -413,6 +420,76 @@ jobs:
       run:
         cargo fmt --check
 
+  python-lint:
+    runs-on: ubuntu-latest
+
+    # Like rust-rustfmt, this only parses the sources: no build job, no
+    # submodules, no Postgres. It replaces test_sourcecode.py's
+    # test_cqa_ruff, which shelled out to the same binary from inside a
+    # shard - so a lint error cost a full build before it was reported.
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        submodules: false
+
+    - name: Set up uv and Python
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+      with:
+        python-version: '3.12.2'
+        activate-environment: true
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    # --only-group lint installs ruff and nothing else, at the version the
+    # lock pins, so what CI runs and what a contributor gets from `uv sync`
+    # cannot drift. --no-install-project keeps this off the Cython and Rust
+    # build, which is the whole reason the job is fast.
+    - name: Install ruff
+      run: |
+        uv sync --only-group lint --no-install-project
+
+    - name: Ruff check
+      run: |
+        ruff check edb tests
+
+  python-typecheck:
+    runs-on: ubuntu-latest
+
+    # mypy replaces test_sourcecode.py's test_cqa_mypy, which ran it from
+    # inside a shard - so a type error surfaced only after a full build, a
+    # Postgres bootstrap and a database setup, and only on the one shard
+    # that owned the test. Worse, a failure early enough in a shard means
+    # it never runs at all: that is how a deleted function still called by
+    # edb/tools/test/runner.py reached CI, killed all 16 shards, and took
+    # the check that would have named it down with them.
+    #
+    # It needs the runtime dependencies but NOT the compiled extensions.
+    # The dependencies matter: Config = immutables.Map[...] in
+    # compiler_pool/pool.py degrades to Any[...] without immutables
+    # installed, and mypy then reports 70 errors that are not real. The
+    # extensions do not: ignore_missing_imports covers them. Verified cold
+    # with every .so and .bc removed - 618 files, no issues, 70s.
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+      with:
+        submodules: false
+
+    - name: Set up uv and Python
+      uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
+      with:
+        python-version: '3.12.2'
+        activate-environment: true
+        enable-cache: true
+        cache-dependency-glob: "uv.lock"
+
+    - name: Install dependencies
+      run: |
+        uv sync --no-install-project --extra test
+
+    - name: Mypy
+      run: |
+        mypy --config-file pyproject.toml edb tests
+
   python-test:
     needs: build
     runs-on: ubuntu-latest
@@ -698,7 +775,8 @@ jobs:
         retention-days: 1
 
   test-conclusion:
-    needs: [cargo-test, rust-clippy, rust-rustfmt, python-test, python-test-list]
+    needs: [cargo-test, rust-clippy, rust-rustfmt, python-lint,
+            python-typecheck, python-test, python-test-list]
     runs-on: ubuntu-latest
     # Not always(): a run superseded by the next push is cancelled before any
     # shard uploads an artifact, so "Render results" would raise "no result
@@ -797,6 +875,8 @@ jobs:
           echo "  cargo-test:       ${{ needs.cargo-test.result }}"
           echo "  rust-clippy:      ${{ needs.rust-clippy.result }}"
           echo "  rust-rustfmt:     ${{ needs.rust-rustfmt.result }}"
+          echo "  python-lint:      ${{ needs.python-lint.result }}"
+          echo "  python-typecheck: ${{ needs.python-typecheck.result }}"
           echo "  python-test:      ${{ needs.python-test.result }}"
           echo "  python-test-list: ${{ needs.python-test-list.result }}"
           exit 1
