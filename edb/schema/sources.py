@@ -188,28 +188,6 @@ class Source(
                     )
                 )
 
-        ext_ai_index, _ = indexes.get_effective_object_index(
-            schema, self, sn.QualName("ext::ai", "index")
-        )
-        if ext_ai_index:
-            idx_id = indexes.get_ai_index_id(schema, ext_ai_index)
-            dimensions = ext_ai_index.must_get_json_annotation(
-                schema,
-                sn.QualName(
-                    "ext::ai", "embedding_dimensions"),
-                int,
-            )
-            res.append(
-                (
-                    f'__ext_ai_{idx_id}_embedding__',
-                    f'__ext_ai_{idx_id}_embedding__',
-                    (
-                        'edgedb',
-                        f'vector({dimensions})',
-                    ),
-                )
-            )
-
         return res
 
 

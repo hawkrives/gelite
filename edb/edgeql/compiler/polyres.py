@@ -779,9 +779,8 @@ def _check_server_arg_conversion(
     Server param conversion allows the server to replace a function arg with
     another parameter which it computes before executing the query.
 
-    For example when `ext::ai::search(anyobject, str)` is called, the server
-    gets an embedding vector for string arg which it then substitutes into a
-    call to `ext::ai::search(anyobject, array<float32>)`.
+    For example, a parameter may be cast to a different type before the
+    query executes.
 
     If any conversions are applied, returns (args, kwargs) with new query
     parameters representing the converted parameters.
@@ -1055,31 +1054,6 @@ def _resolve_server_param_conversion(
         )
         additional_info = (separator,)
         conversion_volatility = ft.Volatility.Immutable
-
-    elif conversion_name == 'ai_text_embedding':
-        assert isinstance(conversion_info, list)
-        object_param_name = conversion_info[1]
-
-        converted_type = schema.get_global(
-            s_types.Array,
-            s_types.Array.generate_name(
-                sn.QualName('std', 'float32')
-            )
-        )
-
-        _, _, object_arg = _get_arg(
-            func_params,
-            object_param_name,
-            args,
-            kwargs,
-            error_msg=f'Server param conversion {conversion_name} '
-            f'error finding object argument',
-            schema=schema,
-        )
-
-        object_type = object_arg[0].material_type(schema)[1]
-        additional_info = (str(object_type.get_id(schema)),)
-        conversion_volatility = ft.Volatility.Volatile
 
     else:
         raise RuntimeError(

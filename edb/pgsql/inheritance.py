@@ -169,10 +169,7 @@ def _get_select_from(
                     type_name=pgast.TypeName(name=('uuid',)),
                 )
 
-            elif ptr_name == sn.UnqualName('__fts_document__') or (
-                ptr_name.name.startswith('__ext_ai_')
-                and ptr_name.name.endswith('__')
-            ):
+            elif ptr_name == sn.UnqualName('__fts_document__'):
                 # an addon column
                 val = pgast.ColumnRef(name=(table_rvar_name, ptr_name.name))
 

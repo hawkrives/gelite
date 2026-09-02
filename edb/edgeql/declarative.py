@@ -965,17 +965,6 @@ def trace_Index(
     if node.except_expr:
         exprs.append(ExprDependency(expr=node.except_expr))
     deps = set()
-    if node.kwargs:
-        for kwarg in node.kwargs:
-            # HACK: Search all objects and depend on any ext::ai annotations.
-            # FIXME: Can we make this more general and less slow?
-            if kwarg == "embedding_model":
-                for n, v in ctx.objects.items():
-                    if (
-                        "@ext::ai::" in n.name
-                        and isinstance(v, qltracer.AnnotationValue)
-                    ):
-                        deps.add(n)
     _register_item(
         node,
         deps=deps,

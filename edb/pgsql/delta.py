@@ -89,7 +89,6 @@ from edb.pgsql import debug as pg_debug
 from edb.pgsql import dbops
 from edb.pgsql import params
 from edb.pgsql import deltafts
-from edb.pgsql import delta_ext_ai
 
 from edb.server import defines as edbdef
 from edb.server import config
@@ -3505,15 +3504,6 @@ class CreateIndex(IndexCommand, adapts=s_indexes.CreateIndex):
                 schema,
                 context,
             )
-        elif root_name == sn.QualName('ext::ai', 'index'):
-            return delta_ext_ai.create_ext_ai_index(
-                index,
-                predicate_src,
-                sql_kwarg_exprs,
-                options,
-                schema,
-                context,
-            )
 
         if root_code is None:
             raise AssertionError(f'index {root_name} is missing the code')
@@ -3659,23 +3649,6 @@ class DeleteIndex(IndexCommand, adapts=s_indexes.DeleteIndex):
                 index, drop_index, options, schema, orig_schema, context
             ))
 
-        # ext::ai::index
-        elif s_indexes.is_ext_ai_index(orig_schema, index):
-            # compile commands for index drop
-            options = get_index_compile_options(
-                index,
-                orig_schema,
-                context.modaliases,
-                self.get_schema_metaclass()
-            )
-            drop_support_ops, drop_col_ops = delta_ext_ai.delete_ext_ai_index(
-                index, drop_index, options, schema, orig_schema, context
-            )
-
-            # Even though the object type table is getting dropped, we have
-            # to drop the trigger and its function
-            self.pgops.add(drop_support_ops)
-            self.pgops.add(drop_col_ops)
         else:
             self.pgops.add(drop_index)
 
@@ -7550,13 +7523,6 @@ class CreateExtension(ExtensionCommand, adapts=s_exts.CreateExtension):
     ) -> s_schema.Schema:
         schema = super()._create_innards(schema, context)
 
-        if str(self.classname) == "ai":
-            self.pgops.add(
-                delta_ext_ai.pg_rebuild_all_pending_embeddings_views(
-                    schema, context
-                ),
-            )
-
         return schema
 
 
@@ -7641,11 +7607,6 @@ class DeleteExtension(ExtensionCommand, adapts=s_exts.DeleteExtension):
     ) -> s_schema.Schema:
         extension = schema.get_global(s_exts.Extension, self.classname)
         package = extension.get_package(schema)
-
-        if str(self.classname) == "ai":
-            self.pgops.add(
-                delta_ext_ai.pg_drop_all_pending_embeddings_views(schema),
-            )
 
         schema = super().apply(schema, context)
 

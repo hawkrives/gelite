@@ -209,7 +209,7 @@ class Environment:
     This indicates that the server will compute and provide an additional
     parameter based on a user provided parameter.
 
-    Used by ext::ai:search to get embeddings from text before running a query.
+    For example, a cast applied to a parameter before the query runs.
     """
 
     server_param_conversion_calls: list[tuple[str, Optional[parsing.Span]]]

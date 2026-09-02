@@ -42,14 +42,12 @@ from edb.edgeql import qltypes
 from edb.schema import objects as s_obj
 from edb.schema import name as sn
 
-from edb.edgeql import ast as qlast
 
 from edb.ir import ast as irast
 from edb.ir import typeutils as irtyputils
 from edb.ir import utils as irutils
 
 from edb.pgsql import ast as pgast
-from edb.pgsql import common
 from edb.pgsql import types as pg_types
 
 from edb.common.typeutils import not_none
@@ -4493,108 +4491,6 @@ def process_set_as_fts_search(
 
     return _process_set_as_object_search(
         ir_set, inner_cb=cb, ctx=ctx)
-
-
-@_special_case('ext::ai::search')
-def process_set_as_ext_ai_search(
-    ir_set: irast.SetE[irast.Call], *, ctx: context.CompilerContextLevel
-) -> SetRVars:
-    cb = _ext_ai_search_inner_pgvector
-    return _process_set_as_object_search(
-        ir_set, inner_cb=cb, ctx=ctx)
-
-
-def _ext_ai_search_inner_pgvector(
-    call: irast.Call,
-    obj_id: irast.PathId,
-    args_pg: list[pgast.BaseExpr],
-    _ctx: context.CompilerContextLevel,
-    newctx: context.CompilerContextLevel,
-    _inner_ctx: context.CompilerContextLevel,
-) -> tuple[pgast.BaseExpr, Optional[pgast.BaseExpr]]:
-    assert isinstance(call, irast.FunctionCall)
-    if call.extras is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    index_metadata = call.extras.get("index_metadata")
-    if index_metadata is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    tgt = obj_id.target
-    if tgt.material_type is not None:
-        tgt = tgt.material_type
-    target_index_metadata = index_metadata.get(tgt)
-    if target_index_metadata is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    index_id = target_index_metadata.get("id")
-    if index_id is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    dimensions = target_index_metadata.get("dimensions")
-    if dimensions is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-    df = target_index_metadata.get("distance_function")
-    if index_id is None:
-        raise AssertionError(
-            "missing expected index metadata in FunctionCall.extras")
-
-    query, = args_pg
-    el_name = sn.QualName(
-        '__object__',
-        f'__ext_ai_{index_id}_embedding__',
-    )
-    embedding_ptrref = irast.SpecialPointerRef(
-        name=el_name,
-        shortname=el_name,
-        out_source=obj_id.target,
-        out_target=pg_types.pg_tsvector_typeref,
-        out_cardinality=qltypes.Cardinality.AT_MOST_ONE,
-    )
-    embedding_id = obj_id.extend(ptrref=embedding_ptrref)
-    embedding = relctx.get_path_var(
-        newctx.rel,
-        embedding_id,
-        aspect=pgce.PathAspect.VALUE,
-        ctx=newctx,
-    )
-
-    similarity = pgast.FuncCall(
-        name=common.get_function_backend_name(*df),
-        args=[
-            embedding,
-            pgast.TypeCast(
-                arg=query,
-                type_name=pgast.TypeName(
-                    name=('edgedb', f'vector({dimensions})'),
-                ),
-            ),
-        ],
-    )
-
-    # Install the filter directly in newctx.rel. We could return it
-    # and have it put in inner_ctx.rel, and that does seem to work,
-    # but seems weirder.
-    valid = pgast.NullTest(arg=embedding, negated=True)
-    newctx.rel.where_clause = astutils.extend_binop(
-        newctx.rel.where_clause, valid
-    )
-
-    # Do an integrated sort. This ensures we can hit the index, and is
-    # more ergonomic anyway. Having the ORDER BY operate directly on
-    # the function call is not the *only* way to have it work, but it
-    # is the most reliable.
-    sort_by = pgast.SortBy(
-        node=similarity,
-        dir=qlast.SortOrder.Asc,
-        nulls=qlast.NonesOrder.Last,
-    )
-    if newctx.rel.sort_clause is None:
-        newctx.rel.sort_clause = []
-    newctx.rel.sort_clause.append(sort_by)
-
-    return similarity, None
 
 
 def _process_set_as_object_search(
