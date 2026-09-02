@@ -6,9 +6,6 @@ resolution-markers = [
     "python_full_version < '3.14'",
 ]
 
-[manifest]
-constraints = [{ name = "setuptools", specifier = "<80.9.0" }]
-
 [[package]]
 name = "aiosmtplib"
 version = "3.0.2"
