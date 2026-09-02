@@ -8816,6 +8816,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
                         (DELETE User filter .name = 't1')
             ''')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_select_params_array_of_array_01(self):
         await self.assert_query_result(
             r'''
@@ -8895,6 +8900,11 @@ class TestEdgeQLSelect(tb.QueryTestCase):
             __typenames__=True,
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_select_policies_subquery_args_01(self):
         # There used to be a bug where we screwed up cardinality
         # inference when functions with prefer_subquery_args (like

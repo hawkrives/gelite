@@ -22,6 +22,7 @@ import os.path
 import edgedb
 
 from edb.testbase import server as tb
+from edb.tools import test
 
 
 class TestTriggers(tb.DDLTestCase):
@@ -669,6 +670,11 @@ class TestTriggers(tb.DDLTestCase):
             };
         ''')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_triggers_enforce_errors_02(self):
         # Simulate a multi-table constraint that we can't do with constraints:
         # ensure the *sum* of the val fields in subordinates is zero

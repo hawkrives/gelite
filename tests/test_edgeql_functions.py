@@ -8042,6 +8042,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             {32},
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_01(self):
         # Test `contains` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8080,6 +8085,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_02(self):
         # Test `contains` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8108,6 +8118,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_03(self):
         # Test `contains` for datetime ranges.
         await self.assert_query_result(
@@ -8153,6 +8168,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_04(self):
         # Test `contains` for datetime ranges.
         await self.assert_query_result(
@@ -8193,6 +8213,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_05(self):
         # Test `contains` for local_datetime ranges.
         await self.assert_query_result(
@@ -8238,6 +8263,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_06(self):
         # Test `contains` for local_datetime ranges.
         await self.assert_query_result(
@@ -8278,6 +8308,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_07(self):
         # Test `contains` for local_date ranges.
         await self.assert_query_result(
@@ -8323,6 +8358,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_08(self):
         # Test `contains` for local_date ranges.
         await self.assert_query_result(
@@ -8363,6 +8403,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [False],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_09(self):
         # Test `contains` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8405,6 +8450,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [True],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_contains_10(self):
         # Test `contains` for datetime multiranges.
         await self.assert_query_result(
@@ -8560,6 +8610,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [True],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_overlaps_01(self):
         # Test `overlaps` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8605,6 +8660,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [True],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_overlaps_02(self):
         # Test `overlaps` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8635,6 +8695,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [True],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_adjacent_01(self):
         # Test `adjacent` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8666,6 +8731,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [True],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_adjacent_02(self):
         # Test `adjacent` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8696,6 +8766,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [True],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_strictly_below_01(self):
         # Test `strictly_below` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8727,6 +8802,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_strictly_below_02(self):
         # Test `strictly_below` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8784,6 +8864,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_strictly_above_01(self):
         # Test `strictly_above` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8815,6 +8900,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_strictly_above_02(self):
         # Test `strictly_above` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8872,6 +8962,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_bounded_above_01(self):
         # Test `bounded_above` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8903,6 +8998,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_bounded_above_02(self):
         # Test `bounded_above` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8960,6 +9060,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_bounded_below_01(self):
         # Test `bounded_below` for numeric ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -8991,6 +9096,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_bounded_below_02(self):
         # Test `bounded_below` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -9048,6 +9158,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [False],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_01(self):
         # Test `range_unpack` for numeric ranges.
         for st in ['int32', 'int64']:
@@ -9062,6 +9177,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [1, 4, 7],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_02(self):
         # Test `range_unpack` for numeric ranges with both inclusive
         # boundaries.
@@ -9078,6 +9198,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [1, 4, 7, 10],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_03(self):
         # Test `range_unpack` for numeric ranges with both exclusive
         # boundaries.
@@ -9107,6 +9232,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                 [4, 7],
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_04(self):
         # Test `range_unpack` for date/time.
         await self.assert_query_result(
@@ -9177,6 +9307,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_05(self):
         # Test `range_unpack` for date/time with non-standard boundaries
         # inclusion.
@@ -9237,6 +9372,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             ],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_06(self):
         # Test `range_unpack` of empty ranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -9273,6 +9413,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
             [],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_range_unpack_07(self):
         # Test errors for `range_unpack`.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
@@ -9354,6 +9499,11 @@ class TestEdgeQLFunctions(tb.DDLTestCase):
                           <cal::local_date>'2022-06-01'));
             """)
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_functions_multirange_unpack_01(self):
         # Test `multirange_unpack` for numeric multiranges.
         for st in ['int32', 'int64', 'float32', 'float64', 'decimal']:
