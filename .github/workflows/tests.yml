@@ -465,7 +465,7 @@ jobs:
     - name: Set environment variables
       run: |
         echo POSTGRES_GIT_REV=$(cat shared-artifacts/postgres_git_rev.txt) >> $GITHUB_ENV
-            echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
+        echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
         echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 
     # Restore build cache
@@ -605,7 +605,7 @@ jobs:
     - name: Set environment variables
       run: |
         echo POSTGRES_GIT_REV=$(cat shared-artifacts/postgres_git_rev.txt) >> $GITHUB_ENV
-            echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
+        echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
         echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 
     # Restore build cache
