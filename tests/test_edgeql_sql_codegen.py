@@ -18,7 +18,6 @@
 
 
 import os.path
-import re
 
 from edb.testbase import lang as tb
 
@@ -29,7 +28,6 @@ from edb.edgeql import parser as qlparser
 from edb.pgsql import ast as pgast
 from edb.pgsql import compiler as pg_compiler
 from edb.pgsql import codegen as pg_codegen
-from edb.pgsql import common as pg_common
 
 
 class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
@@ -527,48 +525,6 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             count,
             1,
             f"Bot selected from and not just inserted: {sql}")
-
-    def test_codegen_inlined_insert_02(self):
-        # Test that we don't use an overlay when selecting from a
-        # net::http::schedule_request
-        sql = self._compile('''
-            with
-                nh as module std::net::http,
-                url := <str>$url,
-                request := (
-                    nh::schedule_request(
-                        url,
-                        method := nh::Method.`GET`
-                    )
-                )
-            select request {
-                id,
-                state,
-                failure,
-                response,
-            }
-        ''')
-
-        schema_name = pg_common.versioned_schema('edgedbstd')
-        table_obj = self.schema.get("std::net::http::ScheduledRequest")
-        # Search for the table with versioned schema to exclude matches from
-        # access policies.
-        pattern = schema_name + r"\.['\"]" + str(table_obj.id) + r"['\"]"
-        count = len(re.findall(pattern, sql))
-
-        # The table should only be referenced once, in the INSERT.
-        # If we reference it more than that, we're probably selecting it.
-        self.assertEqual(
-            count,
-            1,
-            f"ScheduledRequest selected from and not just inserted: {sql}")
-
-    SCHEMA_gcache = r'''
-        global b := true;
-        type T {
-            access policy ok allow all using (global b);
-        };
-    '''
 
     def test_codegen_global_cache_01(self):
         tree = self._compile_to_tree('''

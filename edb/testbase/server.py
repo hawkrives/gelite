@@ -2261,7 +2261,6 @@ class _EdgeDBServer:
         default_branch: Optional[str] = None,
         env: Optional[dict[str, str]] = None,
         extra_args: Optional[list[str]] = None,
-        net_worker_mode: Optional[str] = None,
         password: Optional[str] = None,
     ) -> None:
         self.bind_addrs = bind_addrs
@@ -2298,7 +2297,6 @@ class _EdgeDBServer:
         self.default_branch = default_branch
         self.env = env
         self.extra_args = extra_args
-        self.net_worker_mode = net_worker_mode
         self.password = password
 
     async def wait_for_server_readiness(self, stream: asyncio.StreamReader):
@@ -2468,9 +2466,6 @@ class _EdgeDBServer:
         if not self.multitenant_config:
             cmd += ['--instance-name=localtest']
 
-        if self.net_worker_mode:
-            cmd += ['--net-worker-mode', self.net_worker_mode]
-
         if self.extra_args:
             cmd.extend(self.extra_args)
 
@@ -2630,7 +2625,6 @@ def start_edgedb_server(
     env: Optional[dict[str, str]] = None,
     extra_args: Optional[list[str]] = None,
     default_branch: Optional[str] = None,
-    net_worker_mode: Optional[str] = None,
     force_new: bool = False,  # True for ignoring multitenant config env
 ):
     if (not devmode.is_in_dev_mode() or adjacent_to) and not runstate_dir:
@@ -2711,7 +2705,6 @@ def start_edgedb_server(
         env=env,
         extra_args=extra_args,
         default_branch=default_branch,
-        net_worker_mode=net_worker_mode,
         password=password,
     )
 

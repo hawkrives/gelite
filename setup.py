@@ -1108,24 +1108,8 @@ setuptools.setup(
         ),
 
         setuptools_extension.Extension(
-            "edb.server.protocol.notebook_ext",
-            ["edb/server/protocol/notebook_ext.pyx"],
-            extra_compile_args=EXT_CFLAGS,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
             "edb.server.protocol.ui_ext",
             ["edb/server/protocol/ui_ext.pyx"],
-            extra_compile_args=EXT_CFLAGS,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
-            "edb.server.protocol.edgeql_ext",
-            ["edb/server/protocol/edgeql_ext.pyx"],
             extra_compile_args=EXT_CFLAGS,
             extra_link_args=EXT_LDFLAGS,
             include_dirs=EXT_INC_DIRS,

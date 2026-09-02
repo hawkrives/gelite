@@ -256,7 +256,6 @@ async def _run_server(
                 srvargs.ReloadTrigger.Default,
                 srvargs.ReloadTrigger.FileSystemEvent,
             ],
-            net_worker_mode=args.net_worker_mode,
         )
         magic_smtp = os.getenv('GELITE_MAGIC_SMTP_CONFIG')
         if magic_smtp:

@@ -76,9 +76,6 @@ STD_MODULES = (
     sn.UnqualName('cfg'),
     sn.UnqualName('cfg::perm'),
     sn.UnqualName('std::cal'),
-    sn.UnqualName('std::net'),
-    sn.UnqualName('std::net::http'),
-    sn.UnqualName('std::net::perm'),
     sn.UnqualName('std::pg'),
     sn.UnqualName('std::_test'),
     sn.UnqualName('std::fts'),
@@ -109,7 +106,6 @@ STD_SOURCES = (
     sn.UnqualName('enc'),
     sn.UnqualName('pg'),
     sn.UnqualName('fts'),
-    sn.UnqualName('net'),
 )
 TESTMODE_SOURCES = (
     sn.UnqualName('_testmode'),

@@ -6813,10 +6813,7 @@ def _generate_sql_information_schema(
             'cfg',
             'sys',
             'schema',
-            'std',
-            'std::net',
-            'std::net::http',
-            'std::net::perm'
+            'std'
         )
         '''
     )

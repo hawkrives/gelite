@@ -104,7 +104,6 @@ cdef class Database:
     cdef _cache_compiled_query(self, key, compiled)
     cdef _new_view(self, query_cache, protocol_version, role_name)
     cdef _remove_view(self, view)
-    cdef _observe_auth_ext_config(self)
     cdef _set_backend_ids(self, types)
     cdef _update_backend_ids(self, new_types)
     cdef _set_extensions(
@@ -122,9 +121,7 @@ cdef class Database:
         reflection_cache=?,
         backend_ids=?,
         db_config=?,
-        start_stop_extensions=?,
     )
-    cpdef start_stop_extensions(self)
     cdef get_state_serializer(self, protocol_version)
     cpdef set_state_serializer(self, protocol_version, serializer)
     cdef inline uint64_t tx_seq_begin_tx(self)

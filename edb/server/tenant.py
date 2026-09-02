@@ -748,9 +748,6 @@ class Tenant(ha_base.ClusterProtocol):
     def start_running(self) -> None:
         self._running = True
         self._accepting_connections = True
-        assert self._dbindex is not None
-        for db in self._dbindex.iter_dbs():
-            db.start_stop_extensions()
 
     def stop_accepting_connections(self) -> None:
         self._accepting_connections = False

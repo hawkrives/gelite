@@ -47,7 +47,6 @@ from edb.server.protocol import execute
 from edb.pgsql import dbops
 from edb.server.pgcon import errors as pgerror
 
-from edb.server.protocol import ai_ext
 
 cimport cython
 
@@ -198,7 +197,6 @@ cdef class Database:
         self._set_backend_ids(backend_ids)
         self.extensions = set()
         self._set_extensions(extensions)
-        self._observe_auth_ext_config()
 
         self._feature_used_metrics = {}
         self._set_feature_used_metrics(feature_used_metrics)
@@ -233,7 +231,6 @@ cdef class Database:
             self._cache_notify_task = None
         self._set_extensions(set())
         self._set_feature_used_metrics({})
-        self.start_stop_extensions()
 
     async def monitor(self, worker, name):
         while True:
@@ -406,7 +403,6 @@ cdef class Database:
         reflection_cache=None,
         backend_ids=None,
         db_config=None,
-        start_stop_extensions=True,
     ):
         if new_schema_pickle is None:
             raise AssertionError('new_schema is not supposed to be None')
@@ -426,34 +422,7 @@ cdef class Database:
             self.reflection_cache = reflection_cache
         if db_config is not None:
             self.db_config = db_config
-            self._observe_auth_ext_config()
         self._invalidate_caches()
-        if start_stop_extensions:
-            self.start_stop_extensions()
-
-    cpdef start_stop_extensions(self):
-        if "ai" in self.extensions:
-            ai_ext.start_extension(self.tenant, self.name)
-        else:
-            ai_ext.stop_extension(self.tenant, self.name)
-
-    cdef _observe_auth_ext_config(self):
-        key = "ext::auth::AuthConfig::providers"
-        if (
-            self.db_config is not None and
-            self.user_config_spec is not None and
-            key in self.user_config_spec
-        ):
-            providers = config.lookup(
-                key,
-                self.db_config,
-                spec=self.user_config_spec,
-            )
-            metrics.auth_providers.set(
-                len(providers),
-                self.tenant.get_instance_name(),
-                self.name,
-            )
 
     cdef _set_backend_ids(self, types):
         self.backend_ids = {}
@@ -2082,8 +2051,6 @@ cdef class DatabaseIndex:
                 feature_used_metrics=feature_used_metrics,
             )
             self._dbs[dbname] = db
-            if not early:
-                db.start_stop_extensions()
         self.set_current_branches()
         return db
 

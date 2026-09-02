@@ -165,11 +165,6 @@ class ReloadTrigger(enum.StrEnum):
     """Watch the files for changes and reload when it happens."""
 
 
-class NetWorkerMode(enum.StrEnum):
-    Default = "default"
-    Disabled = "disabled"
-
-
 class ServerAuthMethods:
 
     def __init__(
@@ -267,7 +262,6 @@ class ServerConfig(NamedTuple):
     readiness_state_file: Optional[pathlib.Path]
     disable_dynamic_system_config: bool
     reload_config_files: ReloadTrigger
-    net_worker_mode: NetWorkerMode
     config_file: Optional[pathlib.Path]
 
     startup_script: Optional[StartupScript]
@@ -1125,16 +1119,6 @@ server_options = typeutils.chain_decorators([
              'ReloadTrigger for more information.',
     ),
     click.option(
-        "--net-worker-mode",
-        envvar="GELITE_SERVER_NET_WORKER_MODE", cls=EnvvarResolver,
-        type=click.Choice(
-            list(NetWorkerMode.__members__.values()), case_sensitive=True
-        ),
-        hidden=True,
-        default='default',
-        help='Controls how the std::net workers work.',
-    ),
-    click.option(
         "--config-file", type=PathPath(), metavar="PATH",
         envvar="GELITE_SERVER_CONFIG_FILE",
         cls=EnvvarResolver,
@@ -1689,7 +1673,6 @@ def parse_args(**kwargs: Any):
     kwargs['reload_config_files'] = ReloadTrigger(
         kwargs['reload_config_files']
     )
-    kwargs['net_worker_mode'] = NetWorkerMode(kwargs['net_worker_mode'])
 
     for disallowed, replacement in (
         (
