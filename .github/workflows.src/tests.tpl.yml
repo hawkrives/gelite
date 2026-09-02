@@ -185,19 +185,24 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ always() }}
     steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
+        with:
+          submodules: false
+
+      # Checkout first: setup-uv computes its cache key from files in the
+      # working directory, so running it on an empty one warns that the cache
+      # will never be invalidated, and warns again about the empty workdir.
+      # Caching is off because this job installs click and nothing else.
       - name: Set up uv and Python
         uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
         with:
           python-version: '3.12.2'
           activate-environment: true
+          enable-cache: false
 
       - name: Install Python deps
         run: |
           uv pip install click
-
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-        with:
-          submodules: false
 
       - name: Download python-test results
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1

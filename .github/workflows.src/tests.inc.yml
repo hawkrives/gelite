@@ -72,13 +72,6 @@
         path: build/postgres/install
         key: edb-postgres-v3-${{ env.POSTGRES_GIT_REV }}-${{ hashFiles('shared-artifacts/lib_cache_key.txt') }}
 
-    - name: Handle cached Stolon build
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
-      id: stolon-cache
-      with:
-        path: build/stolon/bin
-        key: edb-stolon-v2-${{ env.STOLON_GIT_REV }}
-
     - name: Handle cached libpg_query build
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: libpg-query-cache
@@ -92,7 +85,6 @@
       if: |
         steps.rust-cache.outputs.cache-hit != 'true' ||
         steps.ext-cache.outputs.cache-hit != 'true' ||
-        steps.stolon-cache.outputs.cache-hit != 'true' ||
         steps.postgres-cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update
@@ -113,19 +105,43 @@
         restore-keys: |
           edb-rust-build-v1-
 
+    # actions/cache sets cache-hit only on an exact key match, but logs
+    # "Cache restored successfully" for a restore-keys prefix match too. The
+    # two look identical in the log while meaning opposite things, so say
+    # which happened.
+    - name: Report build cache outcomes
+      env:
+        RUST_HIT: ${{ steps.rust-cache.outputs.cache-hit }}
+        EXT_HIT: ${{ steps.ext-cache.outputs.cache-hit }}
+        POSTGRES_HIT: ${{ steps.postgres-cache.outputs.cache-hit }}
+        LIBPG_QUERY_HIT: ${{ steps.libpg-query-cache.outputs.cache-hit }}
+      run: |
+        for name in RUST EXT POSTGRES LIBPG_QUERY; do
+          eval "hit=\${${name}_HIT}"
+          if [[ "$hit" == "true" ]]; then
+            echo "$name cache: exact hit, build skipped"
+          else
+            echo "::notice::$name cache: no exact match" \
+                 "(a prefix match may have restored stale content), rebuilding"
+          fi
+        done
+
     - name: Build Rust extensions
+      if: steps.rust-cache.outputs.cache-hit != 'true'
       env:
         CARGO_HOME: ${{ env.BUILD_TEMP }}/rust/extensions/cargo_home
-        CACHE_HIT: ${{ steps.rust-cache.outputs.cache-hit }}
       run: |
-        if [[ "$CACHE_HIT" != "true" ]]; then
-          rm -rf ${BUILD_LIB}
-          mkdir -p build/rust_extensions
-          rsync -av ./build/rust_extensions/ ${BUILD_LIB}/
-          python setup.py -v build_rust
-          rsync -av ${BUILD_LIB}/ build/rust_extensions/
-          rm -rf ${BUILD_LIB}
-        fi
+        rm -rf ${BUILD_LIB}
+        mkdir -p build/rust_extensions
+        rsync -av ./build/rust_extensions/ ${BUILD_LIB}/
+        python setup.py -v build_rust
+        rsync -av ${BUILD_LIB}/ build/rust_extensions/
+        rm -rf ${BUILD_LIB}
+
+    # Runs on both paths: the cache restores into build/rust_extensions, but
+    # the compiled objects have to be in edb/ for anything to import them.
+    - name: Install Rust extensions
+      run: |
         rsync -av ./build/rust_extensions/edb/ ./edb/
 
     # Build libpg_query
@@ -199,31 +215,6 @@
           cp build/postgres/stamp build/postgres/install/
         fi
 
-    # Build Stolon
-
-    - name: Set up Go
-      if: steps.stolon-cache.outputs.cache-hit != 'true'
-      uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e  # v7.0.0
-      with:
-        go-version: 1.16
-
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1  # v7.0.1
-      if: steps.stolon-cache.outputs.cache-hit != 'true'
-      with:
-        repository: edgedb/stolon
-        path: build/stolon
-        ref: ${{ env.STOLON_GIT_REV }}
-        fetch-depth: 0
-        submodules: false
-
-    - name: Build Stolon
-      if: steps.stolon-cache.outputs.cache-hit != 'true'
-      run: |
-        mkdir -p build/stolon/bin/
-        curl -fsSL https://releases.hashicorp.com/consul/1.10.1/consul_1.10.1_linux_amd64.zip | zcat > build/stolon/bin/consul
-        chmod +x build/stolon/bin/consul
-        cd build/stolon && make
-
     # Install edgedb-server and populate egg-info
 
     - name: Install edgedb-server
@@ -267,11 +258,9 @@
     python setup.py -q ci_helper --type parsers >shared-artifacts/parsers_cache_key.txt
     python setup.py -q ci_helper --type postgres >shared-artifacts/postgres_git_rev.txt
     python setup.py -q ci_helper --type libpg_query >shared-artifacts/libpg_query_git_rev.txt
-    echo 'f8cd94309eaccbfba5dea7835b88c78377608a37' >shared-artifacts/stolon_git_rev.txt
     python setup.py -q ci_helper --type bootstrap >shared-artifacts/bootstrap_cache_key.txt
     echo POSTGRES_GIT_REV=$(cat shared-artifacts/postgres_git_rev.txt) >> $GITHUB_ENV
     echo LIBPG_QUERY_GIT_REV=$(cat shared-artifacts/libpg_query_git_rev.txt) >> $GITHUB_ENV
-    echo STOLON_GIT_REV=$(cat shared-artifacts/stolon_git_rev.txt) >> $GITHUB_ENV
     echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
     echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 <%- endmacro %>
@@ -299,8 +288,7 @@
     - name: Set environment variables
       run: |
         echo POSTGRES_GIT_REV=$(cat shared-artifacts/postgres_git_rev.txt) >> $GITHUB_ENV
-        echo STOLON_GIT_REV=$(cat shared-artifacts/stolon_git_rev.txt) >> $GITHUB_ENV
-        echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
+            echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
         echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 
     # Restore build cache
@@ -333,13 +321,6 @@
         path: build/postgres/install
         key: edb-postgres-v3-${{ env.POSTGRES_GIT_REV }}-${{ hashFiles('shared-artifacts/lib_cache_key.txt') }}
 
-    - name: Restore cached Stolon build
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
-      id: stolon-cache
-      with:
-        path: build/stolon/bin
-        key: edb-stolon-v2-${{ env.STOLON_GIT_REV }}
-
     - name: Restore bootstrap cache
       uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
       id: bootstrap-cache
@@ -353,7 +334,6 @@
         steps.ext-cache.outputs.cache-hit != 'true' ||
         steps.parsers-cache.outputs.cache-hit != 'true' ||
         steps.postgres-cache.outputs.cache-hit != 'true' ||
-        steps.stolon-cache.outputs.cache-hit != 'true' ||
         steps.bootstrap-cache.outputs.cache-hit != 'true'
       run: |
         echo ::error::Cannot retrieve build cache.
@@ -361,11 +341,6 @@
 
     - name: Validate cached binaries
       run: |
-        # Validate Stolon
-        ./build/stolon/bin/stolon-sentinel --version || exit 1
-        ./build/stolon/bin/stolon-keeper --version || exit 1
-        ./build/stolon/bin/stolon-proxy --version || exit 1
-
         # Validate PostgreSQL
         ./build/postgres/install/bin/postgres --version || exit 1
         ./build/postgres/install/bin/pg_config --version || exit 1
