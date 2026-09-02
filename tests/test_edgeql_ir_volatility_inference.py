@@ -30,8 +30,7 @@ from edb.edgeql import parser as qlparser
 class TestEdgeQLVolatilityInference(tb.BaseEdgeQLCompilerTest):
     """Unit tests for volatility inference."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards.esdl')
+    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'cards.esdl')
 
     def run_test(self, *, source, spec, expected):
         qltree = qlparser.parse_query(source)
@@ -44,150 +43,154 @@ class TestEdgeQLVolatilityInference(tb.BaseEdgeQLCompilerTest):
         )
 
         expected_volatility = qltypes.Volatility(
-            textwrap.dedent(expected).strip(' \n'))
-        self.assertEqual(ir.volatility, expected_volatility,
-                         'unexpected volatility:\n' + source)
+            textwrap.dedent(expected).strip(' \n')
+        )
+        self.assertEqual(
+            ir.volatility,
+            expected_volatility,
+            'unexpected volatility:\n' + source,
+        )
 
     def test_edgeql_ir_volatility_inference_00(self):
         """
-        SELECT Card
-% OK %
-        Stable
+                SELECT Card
+        % OK %
+                Stable
         """
 
     def test_edgeql_ir_volatility_inference_01(self):
         """
-        WITH
-            foo := random()
-        SELECT
-            foo
-% OK %
-        Volatile
+                WITH
+                    foo := random()
+                SELECT
+                    foo
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_02(self):
         """
-        SELECT
-            Card
-        FILTER
-            random() > 0.9
-% OK %
-        Volatile
+                SELECT
+                    Card
+                FILTER
+                    random() > 0.9
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_03(self):
         """
-        SELECT
-            Card
-        ORDER BY
-            random()
-% OK %
-        Volatile
+                SELECT
+                    Card
+                ORDER BY
+                    random()
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_04(self):
         """
-        SELECT
-            Card
-        LIMIT
-            <int64>random()
-% OK %
-        Volatile
+                SELECT
+                    Card
+                LIMIT
+                    <int64>random()
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_05(self):
         """
-        SELECT
-            Card
-        OFFSET
-            <int64>random()
-% OK %
-        Volatile
+                SELECT
+                    Card
+                OFFSET
+                    <int64>random()
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_06(self):
         """
-        INSERT
-            Card {
-                name := 'foo',
-                element := 'fire',
-                cost := 1,
-            }
-% OK %
-        Modifying
+                INSERT
+                    Card {
+                        name := 'foo',
+                        element := 'fire',
+                        cost := 1,
+                    }
+        % OK %
+                Modifying
         """
 
     def test_edgeql_ir_volatility_inference_07(self):
         """
-        UPDATE
-            Card
-        SET {
-                name := 'foo',
-        }
-% OK %
-        Modifying
+                UPDATE
+                    Card
+                SET {
+                        name := 'foo',
+                }
+        % OK %
+                Modifying
         """
 
     def test_edgeql_ir_volatility_inference_08(self):
         """
-        DELETE
-            Card
-% OK %
-        Modifying
+                DELETE
+                    Card
+        % OK %
+                Modifying
         """
 
     def test_edgeql_ir_volatility_inference_09(self):
         """
-        with X := 1 select X
-% OK %
-        Immutable
+                with X := 1 select X
+        % OK %
+                Immutable
         """
 
     def test_edgeql_ir_volatility_inference_10(self):
         """
-        with X := User select X
-% OK %
-        Stable
+                with X := User select X
+        % OK %
+                Stable
         """
 
     def test_edgeql_ir_volatility_inference_11(self):
         """
-        with X := random() select X
-% OK %
-        Volatile
+                with X := random() select X
+        % OK %
+                Volatile
         """
 
     def test_edgeql_ir_volatility_inference_12(self):
         """
-        select AliasOne
-% OK %
-        Immutable
+                select AliasOne
+        % OK %
+                Immutable
         """
 
     def test_edgeql_ir_volatility_inference_13(self):
         """
-        select global GlobalOne
-% OK %
-        Stable
+                select global GlobalOne
+        % OK %
+                Stable
         """
 
     def test_edgeql_ir_volatility_inference_14(self):
         """
-        select AirCard
-% OK %
-        Stable
+                select AirCard
+        % OK %
+                Stable
         """
 
     def test_edgeql_ir_volatility_inference_15(self):
         """
-        select global HighestCost
-% OK %
-        Stable
+                select global HighestCost
+        % OK %
+                Stable
         """
 
     def test_edgeql_ir_volatility_inference_16(self):
         """
-        select global CardsWithText
-% OK %
-        Stable
+                select global CardsWithText
+        % OK %
+                Stable
         """

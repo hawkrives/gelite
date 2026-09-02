@@ -88,6 +88,40 @@ def _set_spec(func, name, attrs):
     spec[name] = attrs
 
 
+# The markers that separate a test's input from its expected output. They
+# used to be matched with a literal partition('\n% OK %'), which required
+# the marker at column 0. `ruff format` re-indents docstring bodies, which
+# moved it and stopped the match - silently, in the files whose tests only
+# assert on the parsed output, since `expected` then became None and the
+# test degraded into "parse this and assert nothing". Nine files are
+# excluded from the formatter because of that; see #67.
+# No trailing anchor: partition() left whatever followed the marker in the
+# output, and two tests end their docstring as `% OK %  """`. Anchoring
+# to end-of-line would swallow those spaces, making `output` empty, which
+# the `if not output` fallthrough below reads as "no OK marker" - and the
+# whole docstring, marker included, gets parsed as source.
+_OK_MARKER_RE = re.compile(r'^[ \t]*% OK %', re.MULTILINE)
+_ERROR_MARKER_RE = re.compile(r'^[ \t]*% ERROR %', re.MULTILINE)
+
+
+def _split_on_marker(doc: str, marker: re.Pattern[str]) -> tuple[str, str]:
+    """Split a docstring on a marker line, wherever it is indented.
+
+    Deliberately does NOT dedent either half. The indentation inside these
+    docstrings is test data: 110 `col=` assertions in the marker files
+    measure columns that include it, and several tests use tab-indented
+    source to exercise the lexer.
+    """
+    m = marker.search(doc)
+    if m is None:
+        return doc, ''
+    source = doc[: m.start()]
+    if source.endswith('\n'):
+        # partition() consumed the newline before the marker; keep that.
+        source = source[:-1]
+    return source, doc[m.end() :]
+
+
 class DocTestMeta(type(unittest.TestCase)):
     def __new__(mcls, name, bases, dct):
         for attr, meth in tuple(dct.items()):
@@ -101,10 +135,12 @@ class DocTestMeta(type(unittest.TestCase)):
                     if doc:
                         output = error = None
 
-                        source, _, output = doc.partition('\n% OK %')
+                        source, output = _split_on_marker(doc, _OK_MARKER_RE)
 
                         if not output:
-                            source, _, error = doc.partition('\n% ERROR %')
+                            source, error = _split_on_marker(
+                                doc, _ERROR_MARKER_RE
+                            )
 
                             if not error:
                                 output = None

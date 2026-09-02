@@ -246,37 +246,19 @@ exclude = ["postgres", ".github", "edb/server/pgproto"]
 [tool.ruff.format]
 quote-style = "preserve"
 
-# These modules encode test data in docstrings: DocTestMeta in
-# edb/testbase/lang.py splits each test's docstring on the literal
-# "\n% OK %" - a newline followed by the marker at column 0 - into the
-# source to parse and the output to expect.
+# `ruff format` rewrites docstring bodies, and in these test files the
+# docstring IS the test data. DocTestMeta in edb/testbase/lang.py used to
+# require the "% OK %" separator at column 0, so re-indenting silently
+# dropped 520 of 521 expected-output assertions while leaving the suite
+# green. #67 made the marker match tolerate indentation, and marked the
+# individual docstrings whose whitespace is load-bearing with
+# `# fmt: skip` - so nothing needs excluding from the formatter any more.
 #
-# The formatter re-indents docstring bodies to match the enclosing block,
-# which moves that marker to column 8 and stops it matching. The tests do
-# not then fail: partition() returns no output, `expected` becomes None,
-# and each test degrades into "parse this blob and assert nothing".
-# Measured over these files, formatting drops 520 of 521 expected-output
-# assertions while leaving the suite green.
-#
-# tests/test_schema.py is the same hazard by a different route: its
-# docstrings are SDL source, and BaseSchemaLoadTest.load_schema
-# interpolates them verbatim into "module default { ... }" with no dedent.
-# Re-indenting one shifts every column in it, and 23 must_fail decorators
-# there assert an exact col=. Those would fail rather than pass quietly,
-# but the fix would be renumbering assertions to suit a formatter.
-#
-# Reflowing data is outside what a code formatter should be trusted with,
-# so these are excluded until the harness itself tolerates indentation.
-exclude = [
-    "tests/test_edgeql_ir_card_inference.py",
-    "tests/test_edgeql_ir_mult_inference.py",
-    "tests/test_edgeql_ir_type_inference.py",
-    "tests/test_edgeql_ir_volatility_inference.py",
-    "tests/test_edgeql_syntax.py",
-    "tests/test_schema.py",
-    "tests/test_schema_syntax.py",
-    "tests/test_sql_parse.py",
-]
+# Add `# fmt: skip` after the closing quotes of any new docstring whose
+# indentation matters: tab-indented source that exercises the lexer, or
+# anything a `col=` assertion measures. Note the placement - `# fmt: skip`
+# on the `def` line does NOT protect the docstring, only on the docstring
+# itself.
 
 [tool.ruff.lint]
 preview = true

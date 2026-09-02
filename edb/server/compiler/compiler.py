@@ -91,7 +91,6 @@ from edb.sqlite import debug as pg_debug
 from edb.sqlite import dbops as pg_dbops
 from edb.sqlite import params as pg_params
 from edb.sqlite import parser as pg_parser
-from edb.sqlite import patches as pg_patches
 from edb.sqlite import types as pg_types
 from edb.sqlite import delta as pg_delta
 
@@ -349,18 +348,14 @@ async def load_std_and_reflection_schema(
     backend_conn: metaschema.PGConnection,
     patches: int,
 ) -> tuple[s_schema.Schema, s_schema.Schema]:
-    vkey = pg_patches.get_version_key(patches)
-
     # stdschema and reflschema are combined in one pickle to preserve sharing.
-    key = f"std_and_reflection_schema{vkey}"
-    data = await instdata.get_instdata(backend_conn, key, 'bin')
+    data = await instdata.get_instdata(
+        backend_conn, "std_and_reflection_schema", 'bin'
+    )
     try:
         std_schema: s_schema.Schema
         refl_schema: s_schema.Schema
         std_schema, refl_schema = pickle.loads(data)
-        if vkey != pg_patches.get_version_key(len(pg_patches.PATCHES)):
-            std_schema = s_schema.upgrade_schema(std_schema)
-            refl_schema = s_schema.upgrade_schema(refl_schema)
         return (std_schema, refl_schema)
     except Exception as e:
         raise RuntimeError('could not load std schema pickle') from e
@@ -371,7 +366,6 @@ async def load_schema_intro_query(
     patches: int,
     kind: str,
 ) -> str:
-    kind += pg_patches.get_version_key(patches)
     return (await instdata.get_instdata(backend_conn, kind, 'text')).decode(
         'utf-8'
     )
@@ -381,7 +375,7 @@ async def load_schema_class_layout(
     backend_conn: metaschema.PGConnection,
     patches: int,
 ) -> s_refl.SchemaClassLayout:
-    key = f'classlayout{pg_patches.get_version_key(patches)}'
+    key = 'classlayout'
     data = await instdata.get_instdata(backend_conn, key, 'bin')
     try:
         return cast(s_refl.SchemaClassLayout, pickle.loads(data))
