@@ -394,6 +394,38 @@ git rm -r edb/sqlite/resolver edb/sqlite/delta_ext_ai.py \
 
 (Note the paths are under `edb/sqlite/` now, after Task 3.)
 
+**Step 1b: Two things this task strands, found while doing it early**
+
+The extension removal landed ahead of this plan (PR #24), and left two gaps
+that Task 6 should close rather than inherit.
+
+*The global compile cache is now unreachable.* `cached_globally=True` was
+passed by exactly one caller, the auth extension's HTTP router. With
+`auth_ext/` gone nothing sets it, so the parameter and its four branches in
+`dbview.pyx` — plus the pass-through in `execute.pyx` — are dead. Delete them
+here, or decide deliberately to keep the mechanism for a future caller. Its
+only test went the same way: `_test_server_ops_multi_tenant_6` registered a
+user over `/ext/auth/register` twice to prove the second call hit the cache,
+and was reduced to the tenant setup that `multi_tenant_7` still needs.
+
+*Dump and restore have no coverage at all.* PR #2 (`f7510e2`) deleted
+`test_dump01`–`test_dump03`, `test_dump_basic` and `test_dump_v2`–`v7` for
+their CLI dependency. What survives is `test_pg_dump.py`, which runs the real
+`pg_dump` binary against the Postgres-protocol frontend — so it goes with the
+resolver in Step 1, taking the last dump test with it. Ten schema fixtures
+under `tests/schemas/` are already orphaned by that first deletion
+(`dump_v3_*` through `dump_v7_*`; `dump_v4_*` and `dump_v5_*` went with the
+extensions), and the six still referenced only survive because
+`test_pg_dump.py` borrows them for interesting schemas.
+
+A SQLite fork needs its own dump/restore tests, and they are not a port of
+these: the fixtures assert on Postgres catalog shape — `pg_foreign_data_wrapper`,
+extension OIDs, `acldefault` — which has no SQLite analogue. The `.esdl`
+schemas are backend-agnostic and can seed a new corpus; the assertions cannot.
+**This is not yet planned anywhere.** Milestone 0 ends with dump/restore
+untested and no scheduled replacement, which should be an explicit risk rather
+than an accident.
+
 **Step 2: Exclude the deferred stdlib modules from the build**
 
 §5 defers ranges and full-text search. Their sources stay so v2 can restore

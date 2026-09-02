@@ -1063,19 +1063,6 @@ class Compiler:
             blocks=descriptors,
         )
 
-    def _reprocess_restore_config(
-        self,
-        stmts: Iterable[qlast.Base],
-    ) -> list[qlast.Base]:
-        '''Do any rewrites to the restore script needed.
-
-        This is intended to patch over certain backwards incompatible
-        changes to config. We try not to do that too much, but when we
-        do, dumps still need to work.
-        '''
-
-        return list(stmts)
-
     def describe_database_restore(
         self,
         user_schema_pickle: bytes,
@@ -1155,8 +1142,7 @@ class Compiler:
 
         # The state serializer generated below is somehow inappropriate,
         # so it's simply ignored here and the I/O process will do it on its own
-        commands = edgeql.parse_block(ddl_source)
-        statements = self._reprocess_restore_config(commands)
+        statements = edgeql.parse_block(ddl_source)
         units = _try_compile_ast(
             ctx=ctx, source=ddl_source, statements=statements
         ).units
