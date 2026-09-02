@@ -20,8 +20,18 @@ permissions:
 # starve the current head of runners. Cancel the older run for a ref when
 # a new one starts, but only for pull requests: pushes to master are what
 # catch merge skew that per-PR runs cannot, so those are left to finish.
+#
+# That exemption needs the sha in the group as well. With every master push
+# sharing one group and cancel-in-progress off, a second merge does not run
+# alongside the first - it queues behind it, for the ~50 minutes the matrix
+# takes. Merging #44 and #58 eighteen minutes apart left #58's run pending
+# with zero jobs, which GitHub renders as the commit simply having no
+# checks. Keying on the sha gives each master commit its own group, so the
+# runs neither cancel nor block each other.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: >-
+    ${{ github.workflow }}-${{ github.ref }}-${{
+    github.event_name == 'pull_request' && 'pr' || github.sha }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
