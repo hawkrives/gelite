@@ -277,8 +277,8 @@ class MultiSchemaPool(
     ) -> bool:
         """Sync the client state in the compiler server.
 
-        The client state is carried over with the compile(), compile_sql(),
-        compile_notebook(), compile_graphql() calls.
+        The client state is carried over with the compile(), compile_sql()
+        and compile_notebook() calls.
 
         Returns True if the client state changed, False otherwise.
         """
@@ -549,7 +549,6 @@ class MultiSchemaPool(
             elif method_name in {
                 "compile",
                 "compile_notebook",
-                "compile_graphql",
                 "compile_sql",
             }:
                 (

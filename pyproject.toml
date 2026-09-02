@@ -13,7 +13,6 @@ dependencies = [
 
     'click~=8.1.0',
     'cryptography~=42.0',
-    'graphql-core~=3.1.5',
     'psutil~=5.8',
     'setproctitle~=1.2',
 
@@ -159,7 +158,6 @@ module = [
     "edb.edgeql.codegen",
     "edb.edgeql.declarative",
     "edb.edgeql.tracer",
-    "edb.graphql.types",
     "edb.ir.*",
     "edb.pgsql.metaschema",
     "edb.pgsql.codegen",

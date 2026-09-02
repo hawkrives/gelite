@@ -131,7 +131,6 @@ class EdgeDBLogHandler(logging.StreamHandler):
 
 
 IGNORE_DEPRECATIONS_IN = {
-    'graphql',
     'promise',
 }
 

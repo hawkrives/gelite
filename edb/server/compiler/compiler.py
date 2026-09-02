@@ -53,7 +53,6 @@ from edb.server import instdata
 
 from edb import edgeql
 from edb.common import debug
-from edb import graphql
 from edb.common import turbo_uuid
 from edb.common import verutils
 from edb.common import uuidgen
@@ -144,7 +143,7 @@ class CompileContext:
     inline_objectids: bool = True
     schema_object_ids: Optional[
         Mapping[tuple[s_name.Name, Optional[str]], uuid.UUID]] = None
-    source: Optional[edgeql.Source | graphql.Source | pg_parser.Source] = None
+    source: Optional[edgeql.Source | pg_parser.Source] = None
     backend_runtime_params: pg_params.BackendRuntimeParams = dataclasses.field(
         default_factory=pg_params.get_default_runtime_params
     )
@@ -681,13 +680,6 @@ class Compiler:
             case enums.InputLanguage.EDGEQL:
                 assert isinstance(request.source, edgeql.Source)
                 unit_group = compile(ctx=ctx, source=request.source)
-            case enums.InputLanguage.GRAPHQL:
-                assert isinstance(request.source, graphql.Source)
-                unit_group = compile_graphql(
-                    ctx=ctx,
-                    source=request.source,
-                    variables=request.key_params,
-                )
             case enums.InputLanguage.SQL:
                 assert isinstance(request.source, pg_parser.Source)
                 unit_group = compile_sql_as_unit_group(
@@ -799,13 +791,6 @@ class Compiler:
             case enums.InputLanguage.EDGEQL:
                 assert isinstance(request.source, edgeql.Source)
                 unit_group = compile(ctx=ctx, source=request.source)
-            case enums.InputLanguage.GRAPHQL:
-                assert isinstance(request.source, graphql.Source)
-                unit_group = compile_graphql(
-                    ctx=ctx,
-                    source=request.source,
-                    variables=request.key_params,
-                )
             case enums.InputLanguage.SQL:
                 assert isinstance(request.source, pg_parser.Source)
                 unit_group = compile_sql_as_unit_group(
@@ -894,7 +879,6 @@ class Compiler:
         user_schema: bytes,
         global_schema: bytes,
         error_fields: dict[str, str],
-        from_graphql: bool,
     ) -> errors.EdgeDBError:
         from . import errormech
 
@@ -904,7 +888,7 @@ class Compiler:
             pickle.loads(global_schema),
         )
         rv: errors.EdgeDBError = errormech.interpret_backend_error(
-            schema, error_fields, from_graphql=from_graphql
+            schema, error_fields
         )
         return rv
 
@@ -2608,43 +2592,6 @@ def _compile_dispatch_ql(
         ):
             caps |= enums.Capability.MODIFICATIONS
         return (query, caps)
-
-
-def compile_graphql(
-    *,
-    ctx: CompileContext,
-    source: graphql.Source,
-    variables: Optional[Mapping[str, object]],
-) -> dbstate.QueryUnitGroup:
-    current_tx = ctx.state.current_tx()
-
-    gql_op = graphql.compile_graphql(
-        ctx.compiler_state.std_schema,
-        current_tx.get_user_schema(),
-        current_tx.get_global_schema(),
-        current_tx.get_database_config(),
-        current_tx.get_system_config(),
-        source.text(),
-        tokens=source.tokens(),
-        substitutions=source.substitutions(),
-        extracted_variables=source.variables(),
-        variables=variables,
-        native_input=True,
-    )
-    eql_source = edgeql.Source.from_string(
-        edgeql.generate_source(gql_op.edgeql_ast, pretty=True),
-    )
-
-    qug = compile(ctx=ctx, source=eql_source)
-    if gql_op.cache_deps_vars:
-        qug.graphql_key_variables = sorted(gql_op.cache_deps_vars)
-
-    # No warnings in graphql, yet
-    for qu in qug:
-        qu.warnings = ()
-    qug.warnings = None
-
-    return qug
 
 
 def compile(

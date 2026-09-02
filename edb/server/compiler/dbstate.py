@@ -468,8 +468,6 @@ class QueryUnitGroup:
 
     force_non_normalized: bool = False
 
-    graphql_key_variables: Optional[list[str]] = None
-
     @property
     def units(self) -> list[QueryUnit]:
         if self._unpacked_units is None:

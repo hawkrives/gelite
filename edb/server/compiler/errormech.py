@@ -29,7 +29,6 @@ from edb import errors
 from edb.common import value_dispatch
 from edb.common import uuidgen
 
-from edb.graphql import types as gql_types
 
 from edb.pgsql.parser import exceptions as parser_errors
 
@@ -145,51 +144,6 @@ cache_function_re = re.compile(
 type_in_access_policy_re = re.compile(r'(\w+|`.+?`)::(\w+|`.+?`)')
 
 
-def gql_translate_pgtype_inner(schema, msg):
-    """Try to replace any internal pg type name with a GraphQL type name"""
-
-    # Mapping base types
-    def base_type_map(name: str) -> str:
-        result = gql_types.EDB_TO_GQL_SCALARS_MAP.get(
-            str(types.base_type_name_map_r.get(name))
-        )
-
-        if result is None:
-            return name
-        else:
-            return result.name
-
-    translated = pgtype_re.sub(
-        lambda r: base_type_map(r.group(0)),
-        msg,
-    )
-
-    if translated != msg:
-        return translated
-
-    def replace(r):
-        type_id = uuidgen.UUID(r.group('id'))
-        stype = schema.get_by_id(type_id, None)
-        gql_name = gql_types.GQLCoreSchema.get_gql_name(
-            stype.get_name(schema))
-        if stype:
-            return f'{r.group("p")} {gql_name!r}'
-        else:
-            return f'{r.group("p")} {r.group("v")}'
-
-    translated = enum_re.sub(replace, msg)
-
-    return translated
-
-
-def gql_replace_type_names_in_text(msg):
-    return type_in_access_policy_re.sub(
-        lambda m: gql_types.GQLCoreSchema.get_gql_name(
-            sn.QualName.from_string(m.group(0))),
-        msg,
-    )
-
-
 def eql_translate_pgtype_inner(schema, msg):
     """Try to replace any internal pg type name with an edgedb type name"""
     translated = pgtype_re.sub(
@@ -213,7 +167,7 @@ def eql_translate_pgtype_inner(schema, msg):
     return translated
 
 
-def translate_pgtype(schema, msg, from_graphql=False):
+def translate_pgtype(schema, msg):
     """Try to translate a message that might refer to internal pg types.
 
     We *want* to replace internal pg type names with edgedb names, but only
@@ -225,10 +179,7 @@ def translate_pgtype(schema, msg, from_graphql=False):
     """
 
     leading, *rest = msg.split(':')
-    if from_graphql:
-        leading_translated = gql_translate_pgtype_inner(schema, leading)
-    else:
-        leading_translated = eql_translate_pgtype_inner(schema, leading)
+    leading_translated = eql_translate_pgtype_inner(schema, leading)
     return ':'.join([leading_translated, *rest])
 
 
@@ -284,7 +235,7 @@ def get_generic_exception_from_err_details(err_details):
 #########################################################################
 
 
-def static_interpret_backend_error(fields, from_graphql=False):
+def static_interpret_backend_error(fields):
     err_details = get_error_details(fields)
     # handle some generic errors if possible
     err = get_generic_exception_from_err_details(err_details)
@@ -292,14 +243,13 @@ def static_interpret_backend_error(fields, from_graphql=False):
         return err
 
     return static_interpret_by_code(
-        err_details.code, err_details, from_graphql=from_graphql)
+        err_details.code, err_details)
 
 
 @value_dispatch.value_dispatch
 def static_interpret_by_code(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     return errors.InternalServerError(err_details.message)
 
@@ -308,7 +258,6 @@ def static_interpret_by_code(
 def _static_interpret_branch_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     errcls = branch_errors[code]
 
@@ -321,7 +270,6 @@ def _static_interpret_branch_errors(
 def _static_interpret_directly_mappable(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     mapped = directly_mappable[code]
     if isinstance(mapped, type):
@@ -330,10 +278,7 @@ def _static_interpret_directly_mappable(
     else:
         errcls, err_message = mapped
 
-    if from_graphql:
-        msg = gql_replace_type_names_in_text(err_message)
-    else:
-        msg = err_message
+    msg = err_message
 
     return errcls(msg)
 
@@ -342,7 +287,6 @@ def _static_interpret_directly_mappable(
 def _static_interpret_constraint_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if code == pgerrors.ERROR_NOT_NULL_VIOLATION:
         if err_details.table_name or err_details.column_name:
@@ -386,10 +330,7 @@ def _static_interpret_constraint_errors(
         return errors.UnknownLinkError(msg)
 
     elif error_type == 'link_target_del':
-        if from_graphql:
-            msg = gql_replace_type_names_in_text(err_details.message)
-        else:
-            msg = err_details.message
+        msg = err_details.message
 
         return errors.ConstraintViolationError(
             msg, details=err_details.detail)
@@ -444,7 +385,6 @@ def _static_interpret_constraint_errors(
 def _static_interpret_schema_errors(
     code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if code == pgerrors.ERROR_INVALID_DATETIME_FORMAT:
         hint = None
@@ -463,7 +403,6 @@ def _static_interpret_schema_errors(
 def _static_interpret_undefined_function(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if cache_function_re.match(err_details.message):
         return errors.QueryCacheInvalidationError(
@@ -477,7 +416,6 @@ def _static_interpret_undefined_function(
 def _static_interpret_invalid_param_value(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     error_message_context = ''
     if err_details.detail_json:
@@ -495,7 +433,6 @@ def _static_interpret_invalid_param_value(
 def _static_interpret_wrong_object_type(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     if err_details.column_name:
         return SchemaRequired
@@ -519,7 +456,6 @@ def _static_interpret_wrong_object_type(
 def _static_interpret_cardinality_violation(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
 
     if (err_details.constraint_name == 'std::assert_single'
@@ -542,7 +478,6 @@ def _static_interpret_cardinality_violation(
 def _static_interpret_feature_not_supported(
     _code: str,
     err_details: ErrorDetails,
-    from_graphql: bool = False,
 ):
     return errors.UnsupportedBackendFeatureError(err_details.message)
 
@@ -552,7 +487,7 @@ def _static_interpret_feature_not_supported(
 #########################################################################
 
 
-def interpret_backend_error(schema, fields, from_graphql=False):
+def interpret_backend_error(schema, fields):
     # all generic errors are static and have been handled by this point
 
     err_details = get_error_details(fields)
@@ -560,12 +495,11 @@ def interpret_backend_error(schema, fields, from_graphql=False):
     if err_details.detail_json:
         hint = err_details.detail_json.get('hint')
 
-    return interpret_by_code(err_details.code, schema, err_details, hint,
-                             from_graphql=from_graphql)
+    return interpret_by_code(err_details.code, schema, err_details, hint)
 
 
 @value_dispatch.value_dispatch
-def interpret_by_code(code, schema, err_details, hint, from_graphql=False):
+def interpret_by_code(code, schema, err_details, hint):
     return errors.InternalServerError(err_details.message)
 
 
@@ -575,7 +509,6 @@ def _interpret_constraint_errors(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     details = None
     if code == pgerrors.ERROR_NOT_NULL_VIOLATION:
@@ -605,9 +538,6 @@ def _interpret_constraint_errors(
                 object_id = err_details.detail_json.get('object_id')
                 if object_id is not None:
                     details = f'Failing object id is {str(object_id)!r}.'
-
-            if from_graphql:
-                pname = gql_replace_type_names_in_text(pname)
 
             return errors.MissingRequiredError(
                 f'missing value for required {pname}',
@@ -661,10 +591,6 @@ def _interpret_constraint_errors(
         constraint_description = constraint.get_verbosename(schema)
         details = f'violated {constraint_description} on {subject_description}'
 
-        if from_graphql:
-            msg = gql_replace_type_names_in_text(msg)
-            details = gql_replace_type_names_in_text(details)
-
         return errors.ConstraintViolationError(msg, details=details)
     elif error_type == 'newconstraint':
         # If we're here, it means that we already validated that
@@ -707,11 +633,9 @@ def _interpret_invalid_text_repr(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql)
+        translate_pgtype(schema, err_details.message,)
     )
 
 
@@ -721,11 +645,9 @@ def _interpret_numeric_out_of_range(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.NumericOutOfRangeError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql)
+        translate_pgtype(schema, err_details.message,)
     )
 
 
@@ -736,11 +658,9 @@ def _interpret_invalid_datetime(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     return errors.InvalidValueError(
-        translate_pgtype(schema, err_details.message,
-                         from_graphql=from_graphql),
+        translate_pgtype(schema, err_details.message,),
         hint=hint,
     )
 
@@ -751,7 +671,6 @@ def _interpret_wrong_object_type(
     schema: s_schema.Schema,
     err_details: ErrorDetails,
     hint: Optional[str],
-    from_graphql: bool = False,
 ):
     # NOTE: this should never occur in GraphQL mode due to schema/query
     # validation.

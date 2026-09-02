@@ -178,12 +178,6 @@ edgeql_query_compilation_duration = registry.new_labeled_histogram(
     labels=('tenant',),
 )
 
-graphql_query_compilations = registry.new_labeled_counter(
-    'graphql_query_compilations_total',
-    'Number of compiled/cached GraphQL queries.',
-    labels=('tenant', 'path')
-)
-
 query_compilation_duration = registry.new_labeled_histogram(
     'query_compilation_duration',
     'Time it takes to compile a query or script.',

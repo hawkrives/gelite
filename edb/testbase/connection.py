@@ -231,28 +231,6 @@ class _Executor(abstract.AsyncIOExecutor):
     ) -> typing.Optional[options.TransactionOptions]:
         raise NotImplementedError
 
-    async def query_graphql_json(
-        self, query, *args: typing.Any, **kwargs: typing.Any
-    ) -> str:
-        return await self._query(
-            abstract.QueryContext(
-                query=abstract.QueryWithArgs(
-                    query,
-                    # None,
-                    args,
-                    kwargs,
-                    input_language=ord('G'),
-                ),
-                cache=self._get_query_cache(),
-                query_options=abstract._query_single_json_opts,
-                retry_options=self._get_retry_options(),
-                state=self._get_state(),
-                transaction_options=self._get_active_tx_options(),
-                warning_handler=self._get_warning_handler(),
-                annotations=self._get_annotations(),
-            )
-        )
-
 
 class Iteration(BaseTransaction, _Executor):
     def __init__(self, retry, connection, iteration):

@@ -1424,7 +1424,7 @@ class Tenant(ha_base.ClusterProtocol):
     async def _early_introspect_db(self, dbname: str) -> None:
         """We need to always introspect the extensions for each database.
 
-        Otherwise, we won't know to accept connections for graphql or
+        Otherwise, we won't know to accept connections for
         http, for example, until a native connection is made.
         """
         current_tenant.set(self.get_instance_name())

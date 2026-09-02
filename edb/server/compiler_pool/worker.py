@@ -18,20 +18,16 @@
 
 
 from __future__ import annotations
-from typing import Any, Mapping, Optional
+from typing import Any, Optional
 
 import pickle
 
 import immutables
 
-from edb import edgeql
-from edb import graphql
-from edb.common import uuidgen
 from edb.pgsql import params as pgparams
 from edb.schema import schema as s_schema
 from edb.server import compiler
 from edb.server import config
-from edb.server import defines
 
 from . import state
 from . import worker_proc
@@ -254,71 +250,6 @@ def compile_notebook(
     )
 
 
-def compile_graphql(
-    dbname: str,
-    evicted_dbs: list[str],
-    user_schema: Optional[bytes],
-    reflection_cache: Optional[bytes],
-    global_schema: Optional[bytes],
-    database_config: Optional[bytes],
-    system_config: Optional[bytes],
-    session_config: Mapping[str, Any],
-    *compile_args: Any,
-    **compile_kwargs: Any,
-) -> tuple[compiler.QueryUnitGroup, graphql.TranspiledOperation]:
-    db = __sync__(
-        dbname,
-        evicted_dbs,
-        user_schema,
-        reflection_cache,
-        global_schema,
-        database_config,
-        system_config,
-    )
-
-    gql_op = graphql.compile_graphql(
-        STD_SCHEMA,
-        db.user_schema,
-        GLOBAL_SCHEMA,
-        db.database_config,
-        INSTANCE_CONFIG,
-        *compile_args,
-        **compile_kwargs
-    )
-
-    source = edgeql.Source.from_string(
-        edgeql.generate_source(gql_op.edgeql_ast, pretty=True),
-    )
-
-    cfg_ser = COMPILER.state.compilation_config_serializer
-    request = compiler.CompilationRequest(
-        source=source,
-        protocol_version=defines.CURRENT_PROTOCOL,
-        schema_version=uuidgen.uuid4(),
-        compilation_config_serializer=cfg_ser,
-        output_format=compiler.OutputFormat.JSON,
-        input_format=compiler.InputFormat.JSON,
-        expect_one=True,
-        implicit_limit=0,
-        inline_typeids=False,
-        inline_typenames=False,
-        inline_objectids=False,
-        modaliases=None,
-        session_config=session_config,
-    )
-
-    unit_group, _ = COMPILER.compile(
-        user_schema=db.user_schema,
-        global_schema=GLOBAL_SCHEMA,
-        reflection_cache=db.reflection_cache,
-        database_config=db.database_config,
-        system_config=INSTANCE_CONFIG,
-        request=request,
-    )
-
-    return unit_group, gql_op  # type: ignore[return-value]
-
-
 def compile_sql(
     dbname: str,
     evicted_dbs: list[str],
@@ -365,8 +296,6 @@ def get_handler(methname):
             meth = compile_in_tx
         elif methname == "compile_notebook":
             meth = compile_notebook
-        elif methname == "compile_graphql":
-            meth = compile_graphql
         elif methname == "compile_sql":
             meth = compile_sql
         else:

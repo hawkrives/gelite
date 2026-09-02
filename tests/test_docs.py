@@ -37,7 +37,6 @@ try:
 except ImportError:
     sphinx = None  # type: ignore
 
-from graphql.language import parser as graphql_parser
 
 from edb.edgeql import parser as ql_parser
 
@@ -388,12 +387,6 @@ class TestDocSnippets(unittest.TestCase):
                     elif lang == 'pseudo-eql':
                         # Skip "pseudo-eql" language as we don't have a
                         # parser for it.
-                        pass
-                    elif lang == 'graphql':
-                        graphql_parser.parse(snippet)
-                    elif lang == 'graphql-schema':
-                        # The graphql-schema can be highlighted using graphql
-                        # lexer, but it does not have a dedicated parser.
                         pass
                     elif lang == 'json':
                         json.loads(snippet)

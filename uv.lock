@@ -548,7 +548,6 @@ dependencies = [
     { name = "click" },
     { name = "cryptography" },
     { name = "gel" },
-    { name = "graphql-core" },
     { name = "httptools" },
     { name = "immutables" },
     { name = "parsing" },
@@ -618,7 +617,6 @@ requires-dist = [
     { name = "docutils", marker = "extra == 'docs'", specifier = "~=0.17.0" },
     { name = "docutils", marker = "extra == 'test'", specifier = "~=0.17.0" },
     { name = "gel", specifier = "==3.1.0" },
-    { name = "graphql-core", specifier = "~=3.1.5" },
     { name = "httptools", specifier = ">=0.6.0" },
     { name = "immutables", specifier = ">=0.18" },
     { name = "lxml", marker = "extra == 'docs'", specifier = "~=6.0.0" },
@@ -662,15 +660,6 @@ build = [
     { name = "wheel" },
 ]
 lint = [{ name = "ruff", specifier = "==0.11.2" }]
-
-[[package]]
-name = "graphql-core"
-version = "3.1.7"
-source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/20/48/44502a3d0d39d1b094d84fdddbb49d28003dadfd4427527e14b341e43a38/graphql-core-3.1.7.tar.gz", hash = "sha256:62ec192150ccecd9a18cfb79e3e72eb7d1fd68fb594ef19c40099b6deec8ef0c", size = 500452, upload-time = "2021-12-12T18:31:32.864Z" }
-wheels = [
-    { url = "https://files.pythonhosted.org/packages/05/c3/bbdf432c196aec04d9ac6a12a88d10ac50fe412115bdb917add4b963d113/graphql_core-3.1.7-py3-none-any.whl", hash = "sha256:9b460f60320be01c7f3b1766cf3e406933003008055079b9d983b8f3988f4400", size = 189487, upload-time = "2021-12-12T18:31:30.955Z" },
-]
 
 [[package]]
 name = "httptools"

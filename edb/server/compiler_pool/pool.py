@@ -66,7 +66,6 @@ from . import state
 
 if TYPE_CHECKING:
     from edb import errors
-    from edb import graphql
     from edb.server.compiler import compiler
     from edb.server.compiler import config as config_compiler
     from edb.server.compiler import dbstate
@@ -723,41 +722,6 @@ class AbstractPool[
             fini()
             self._release_worker(worker)
 
-    async def compile_graphql(
-        self,
-        dbname: str,
-        user_schema_pickle: bytes,
-        global_schema_pickle: bytes,
-        reflection_cache: state.ReflectionCache,
-        database_config: Config,
-        system_config: Config,
-        *compile_args: Any,
-        **compiler_args: Any,
-    ) -> graphql.TranspiledOperation:
-        fini = lambda: None
-        worker = await self._acquire_worker(**compiler_args)
-        try:
-            preargs, sync_state, fini = await self._compute_compile_preargs(
-                "compile_graphql",
-                worker,
-                dbname,
-                user_schema_pickle,
-                global_schema_pickle,
-                reflection_cache,
-                database_config,
-                system_config,
-            )
-
-            return await worker.call(
-                *preargs,
-                *compile_args,
-                sync_state=sync_state
-            )
-
-        finally:
-            fini()
-            self._release_worker(worker)
-
     async def compile_sql(
         self,
         dbname: str,
@@ -811,14 +775,12 @@ class AbstractPool[
         user_schema: bytes,
         global_schema: bytes,
         error_fields: dict[str, str],
-        from_graphql: bool,
     ) -> errors.EdgeDBError:
         return await self._simple_call(
             'interpret_backend_error',
             user_schema,
             global_schema,
             error_fields,
-            from_graphql,
         )
 
     async def parse_global_schema(self, global_schema_json: bytes) -> bytes:

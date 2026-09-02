@@ -116,9 +116,6 @@ class flags(metaclass=FlagsMeta):
     edgeql_disable_normalization = Flag(
         doc="Disable EdgeQL normalization (constant extraction etc)")
 
-    graphql_compile = Flag(
-        doc="Debug GraphQL compiler.")
-
     sdl_loading = Flag(
         doc="Print applied DDL when loading SDL.")
 

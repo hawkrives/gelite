@@ -24,16 +24,12 @@ import pickle
 
 import immutables
 
-from edb import edgeql
-from edb import graphql
 
 from edb.common import debug
-from edb.common import uuidgen
 from edb.pgsql import params as pgparams
 from edb.schema import schema as s_schema
 from edb.server import compiler
 from edb.server import config
-from edb.server import defines
 
 from . import state
 from . import worker_proc
@@ -265,59 +261,6 @@ def compile_notebook(
     )
 
 
-def compile_graphql(
-    client_id: int,
-    dbname: str,
-    *compile_args: Any,
-    **compile_kwargs: Any,
-):
-    global clients
-    client_schema = clients[client_id]
-    db = client_schema.dbs[dbname]
-
-    gql_op = graphql.compile_graphql(
-        STD_SCHEMA,
-        db.user_schema,
-        client_schema.global_schema,
-        db.database_config,
-        client_schema.instance_config,
-        *compile_args,
-        **compile_kwargs
-    )
-
-    source = edgeql.Source.from_string(
-        edgeql.generate_source(gql_op.edgeql_ast, pretty=True),
-    )
-
-    cfg_ser = COMPILER.state.compilation_config_serializer
-    request = compiler.CompilationRequest(
-        source=source,
-        protocol_version=defines.CURRENT_PROTOCOL,
-        schema_version=uuidgen.uuid4(),
-        compilation_config_serializer=cfg_ser,
-        output_format=compiler.OutputFormat.JSON,
-        input_format=compiler.InputFormat.JSON,
-        expect_one=True,
-        implicit_limit=0,
-        inline_typeids=False,
-        inline_typenames=False,
-        inline_objectids=False,
-        modaliases=None,
-        session_config=None,
-    )
-
-    unit_group, _ = COMPILER.compile(
-        user_schema=db.user_schema,
-        global_schema=client_schema.global_schema,
-        reflection_cache=db.reflection_cache,
-        database_config=db.database_config,
-        system_config=client_schema.instance_config,
-        request=request,
-    )
-
-    return unit_group, gql_op
-
-
 def compile_sql(
     client_id: int,
     dbname: str,
@@ -370,8 +313,6 @@ def call_for_client(
         meth = compile
     elif methname == "compile_notebook":
         meth = compile_notebook
-    elif methname == "compile_graphql":
-        meth = compile_graphql
     elif methname == "compile_sql":
         meth = compile_sql
     else:

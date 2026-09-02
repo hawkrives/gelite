@@ -55,7 +55,7 @@ from edb.server.config import types
 from edb.tools import test
 
 
-def make_port_value(*, protocol='graphql+http',
+def make_port_value(*, protocol='edgeql+http',
                     database='testdb',
                     user='test',
                     concurrency=4,

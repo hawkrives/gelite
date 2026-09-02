@@ -67,7 +67,7 @@ GraphQL
   example of sorting movies by the director's last name and then by
   the movie's title:
 
-  .. code-block:: graphql
+  .. code-block:: text
 
       {
         Movie(
@@ -84,7 +84,7 @@ GraphQL
 * Add an ``exists`` filter operation (:eql:gh:`#1655`). Here's an
   example of using it to get records with missing data:
 
-  .. code-block:: graphql
+  .. code-block:: text
 
       {
         Movie(

@@ -1176,7 +1176,6 @@ async def interpret_error(
     *,
     global_schema_pickle: object=None,
     user_schema_pickle: object=None,
-    from_graphql: bool=False,
 ) -> Exception:
 
     if isinstance(exc, RecursionError):
@@ -1195,9 +1194,7 @@ async def interpret_error(
             source_map = getattr(exc, '_source_map', None)
             fields = exc.fields
 
-            static_exc = errormech.static_interpret_backend_error(
-                fields, from_graphql=from_graphql
-            )
+            static_exc = errormech.static_interpret_backend_error(fields)
 
             # only use the backend if schema is required
             if static_exc is errormech.SchemaRequired:
@@ -1215,7 +1212,6 @@ async def interpret_error(
                     user_schema_pickle,
                     global_schema_pickle,
                     fields,
-                    from_graphql,
                 )
 
             elif isinstance(static_exc, (

@@ -116,7 +116,7 @@ GraphQL
   type that renders as seamless JSON. Assuming ``additional_data`` is
   a JSON value, here's how a GraphQL query would work:
 
-  .. code-block:: graphql
+  .. code-block:: text
 
     {
         Book {
