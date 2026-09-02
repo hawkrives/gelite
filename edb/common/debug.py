@@ -226,14 +226,6 @@ def dump_code(*args, **kwargs):
     _markup.dump_code(*args, **kwargs)
 
 
-def dump_sql(sql, *args, **kwargs):
-    import edb.pgsql.codegen
-
-    dump_code(
-        edb.pgsql.codegen.generate_source(sql, *args, **kwargs), lexer='SQL'
-    )
-
-
 def dump_edgeql(eql, *args, **kwargs):
     import edb.edgeql.codegen
 

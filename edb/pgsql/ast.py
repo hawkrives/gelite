@@ -59,9 +59,16 @@ class Base(ast.AST):
         return f'<pg.{self.__class__.__name__} at 0x{id(self):x}>'
 
     def dump_sql(self) -> None:
-        from edb.common.debug import dump_sql
+        # Lived in edb.common.debug until the frontend stopped importing the
+        # backend; edb.common is below both, and this was its only backend
+        # reference. Deferred because codegen imports this module.
+        from edb.common import debug
+        from edb.pgsql import codegen
 
-        dump_sql(self, reordered=True, pretty=True)
+        debug.dump_code(
+            codegen.generate_source(self, reordered=True, pretty=True),
+            lexer='SQL',
+        )
 
 
 class ImmutableBase(ast.ImmutableASTMixin, Base):

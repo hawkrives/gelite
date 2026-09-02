@@ -40,6 +40,7 @@ from edb.edgeql import utils as qlutils
 from edb.edgeql import qltypes
 
 from . import annos as s_anno
+from . import backend as s_backend
 from . import delta as sd
 from . import expr as s_expr
 from . import functions as s_func
@@ -590,8 +591,7 @@ class ConstraintCommand(
                     context=context,
                 )
 
-                # compile the expression to sql to preempt errors downstream
-                utils.try_compile_irast_to_sql_tree(compiled, self.span)
+                s_backend.try_lower_expr(compiled, self.span)
 
                 return compiled
 
@@ -622,8 +622,7 @@ class ConstraintCommand(
                 context=context,
             )
 
-            # compile the expression to sql to preempt errors downstream
-            utils.try_compile_irast_to_sql_tree(compiled, self.span)
+            s_backend.try_lower_expr(compiled, self.span)
 
             return compiled
 

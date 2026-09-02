@@ -41,9 +41,9 @@ from edb.edgeql import ast as qlast
 
 from edb.ir import statypes
 
+from . import defines as s_def
 from . import name as sn
 from . import objects as so
-from . import expr as s_expr
 
 if TYPE_CHECKING:
     from . import objtypes as s_objtypes
@@ -201,7 +201,6 @@ def ast_to_type_shell(
         and node.maintype.name == 'enum'
     ):
         from . import scalars as s_scalars
-        from edb.pgsql import common as pg_common
 
         assert node.subtypes
 
@@ -233,10 +232,10 @@ def ast_to_type_shell(
                 element_spans.append(subtype_type_name.maintype.span)
 
         for element, element_span in zip(elements, element_spans):
-            if len(element) > pg_common.MAX_ENUM_LABEL_LENGTH:
+            if len(element) > s_def.MAX_ENUM_LABEL_LENGTH:
                 raise errors.SchemaDefinitionError(
                     f'enum labels cannot exceed '
-                    f'{pg_common.MAX_ENUM_LABEL_LENGTH} characters',
+                    f'{s_def.MAX_ENUM_LABEL_LENGTH} characters',
                     span=element_span,
                 )
 
@@ -1609,26 +1608,6 @@ def type_shell_substitute(
         )
     else:
         return typ
-
-
-def try_compile_irast_to_sql_tree(
-    compiled_expr: s_expr.CompiledExpression, span: Optional[parsing.Span]
-) -> None:
-    # compile the expression to sql to preempt errors downstream
-
-    from edb.pgsql import compiler as pg_compiler
-
-    try:
-        pg_compiler.compile_ir_to_sql_tree(
-            compiled_expr.irast,
-            output_format=pg_compiler.OutputFormat.NATIVE,
-            singleton_mode=True,
-        )
-    except errors.EdgeDBError as exception:
-        exception.set_span(span)
-        raise exception
-    except:
-        raise
 
 
 def str_interpolation_to_old_style(interp: qlast.StrInterp) -> str:
