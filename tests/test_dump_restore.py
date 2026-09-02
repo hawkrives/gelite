@@ -385,6 +385,21 @@ class TestDumpRestore(tb.QueryTestCase):
             'select LSource { one: { n } }',
         )
 
+    async def test_dump_restore_feature_multi_link(self):
+        # A multi link with no link property, to separate the two halves of
+        # the failing case below: if this passes and that one fails, the
+        # link property is the culprit rather than multi links.
+        await self._feature_round_trip(
+            'mlk',
+            'create type PTarget { create required property n -> str; };'
+            ' create type PSource {'
+            '   create multi link many -> PTarget;'
+            ' };',
+            "insert PTarget { n := 'a' };"
+            ' insert PSource { many := (select PTarget) };',
+            'select PSource { many: { n } order by .n }',
+        )
+
     async def test_dump_restore_feature_multi_link_prop(self):
         await self._feature_round_trip(
             'mlp',
