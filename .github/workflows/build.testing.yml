@@ -26,7 +26,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-buster:latest@sha256:239b20ae6086fdef9d4a66284ba702346cdb16bab30f4b0b3534d47deab64b09
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -52,7 +52,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-buster:latest@sha256:239b20ae6086fdef9d4a66284ba702346cdb16bab30f4b0b3534d47deab64b09
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -78,7 +78,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bullseye:latest@sha256:c9013ed1c6a5347b4c20f240fcaaf3834e88949e46d05f40f496b879f82f8f95
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -104,7 +104,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bullseye:latest@sha256:c9013ed1c6a5347b4c20f240fcaaf3834e88949e46d05f40f496b879f82f8f95
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -130,7 +130,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bookworm:latest@sha256:1aa458c2c451fd269d96dbdf1569284f2e1aab790a32a4588472446631e9613f
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -156,7 +156,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-debian-bookworm:latest@sha256:1aa458c2c451fd269d96dbdf1569284f2e1aab790a32a4588472446631e9613f
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -182,7 +182,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-focal:latest@sha256:cca585344b61054928d91a5234b219e98d63146448593385eb957da60583a440
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -208,7 +208,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-focal:latest@sha256:cca585344b61054928d91a5234b219e98d63146448593385eb957da60583a440
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -234,7 +234,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-jammy:latest@sha256:13c2cbba72d4adbe4be29155713c3d54208ee638e2b72a5ff231d183fedf9eb5
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -260,7 +260,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-jammy:latest@sha256:13c2cbba72d4adbe4be29155713c3d54208ee638e2b72a5ff231d183fedf9eb5
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -286,7 +286,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-noble:latest@sha256:c9b655a4f52cd1e72c1368e9133e0e656acd2f17b98aea48cfad9fcd1d401e2e
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -312,7 +312,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-ubuntu-noble:latest@sha256:c9b655a4f52cd1e72c1368e9133e0e656acd2f17b98aea48cfad9fcd1d401e2e
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -338,7 +338,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-centos-8:latest@sha256:8efd46203664cc2b8b5b0b59c3102aeeb12fff6fcaae759463f0da5a80b1324f
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -364,7 +364,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-centos-8:latest@sha256:8efd46203664cc2b8b5b0b59c3102aeeb12fff6fcaae759463f0da5a80b1324f
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -390,7 +390,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-rockylinux-9:latest@sha256:c231d26f9614eb5a786f25e80cbb16d658170eb59daedced2ca2cf3901bf412e
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -416,7 +416,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-rockylinux-9:latest@sha256:c231d26f9614eb5a786f25e80cbb16d658170eb59daedced2ca2cf3901bf412e
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -442,7 +442,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-linux-x86_64:latest@sha256:b3a5b7013547a85c214105e217b75194a5239f9fc2a5c9b49d5cf20a61d30dbb
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -469,7 +469,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-linux-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-linux-aarch64:latest@sha256:5207897fc775b1497f64313c840cbcf9c67bc089944d653147e402ddec9630bf
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -496,7 +496,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-linuxmusl-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-linuxmusl-x86_64:latest@sha256:154c8293f65a80f89869f107a4fb02e3ec6acdcbfafe106e1fd68c1a094f11de
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -524,7 +524,7 @@ jobs:
 
     steps:
     - name: Build
-      uses: docker://ghcr.io/geldata/gelpkg-build-linuxmusl-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-build-linuxmusl-aarch64:latest@sha256:e51c055764a0552fd533792cb90a6ecf16cf84bfbf60424cfdd48cabd26360ba
       env:
         PACKAGE: "edgedbpkg.edgedb:Gel"
         SRC_REF: "${{ github.sha }}"
@@ -720,7 +720,7 @@ jobs:
         path: artifacts/debian-buster
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-buster:latest@sha256:101041f2738f5c50d17becc99d1a65cc6fb49247e00fe7333500389bcdbd7847
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -744,7 +744,7 @@ jobs:
         path: artifacts/debian-buster
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-buster:latest@sha256:101041f2738f5c50d17becc99d1a65cc6fb49247e00fe7333500389bcdbd7847
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -768,7 +768,7 @@ jobs:
         path: artifacts/debian-bullseye
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bullseye:latest@sha256:27d2eec67a8c37e3b0cbaf19747e094a52aa3b51fffa4d1ebc27632ec9086da3
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -792,7 +792,7 @@ jobs:
         path: artifacts/debian-bullseye
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bullseye:latest@sha256:27d2eec67a8c37e3b0cbaf19747e094a52aa3b51fffa4d1ebc27632ec9086da3
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -816,7 +816,7 @@ jobs:
         path: artifacts/debian-bookworm
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bookworm:latest@sha256:a516efc1c210f5d48cd98dede35add93ab148c391fcac0fffb55b60f23e24b78
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -840,7 +840,7 @@ jobs:
         path: artifacts/debian-bookworm
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-debian-bookworm:latest@sha256:a516efc1c210f5d48cd98dede35add93ab148c391fcac0fffb55b60f23e24b78
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "debian"
@@ -864,7 +864,7 @@ jobs:
         path: artifacts/ubuntu-focal
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-focal:latest@sha256:990c5aa7ac8dadcd231eea40410ef2151f33b61dbafb9659270f062d7de0454e
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -888,7 +888,7 @@ jobs:
         path: artifacts/ubuntu-focal
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-focal:latest@sha256:990c5aa7ac8dadcd231eea40410ef2151f33b61dbafb9659270f062d7de0454e
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -912,7 +912,7 @@ jobs:
         path: artifacts/ubuntu-jammy
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-jammy:latest@sha256:bf1d133f28ca7b2126aa833ca419f57e5be79599b6f557c2dcb802b63bab700e
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -936,7 +936,7 @@ jobs:
         path: artifacts/ubuntu-jammy
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-jammy:latest@sha256:bf1d133f28ca7b2126aa833ca419f57e5be79599b6f557c2dcb802b63bab700e
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -960,7 +960,7 @@ jobs:
         path: artifacts/ubuntu-noble
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-noble:latest@sha256:4c5aef7fe3d49fabb72663bf9421a1cc05c1942ae3ac4687d938bb816d21a5d7
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -984,7 +984,7 @@ jobs:
         path: artifacts/ubuntu-noble
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-ubuntu-noble:latest@sha256:4c5aef7fe3d49fabb72663bf9421a1cc05c1942ae3ac4687d938bb816d21a5d7
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "ubuntu"
@@ -1008,7 +1008,7 @@ jobs:
         path: artifacts/centos-8
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-centos-8:latest@sha256:5e59e6a1a3415c326ef63569d863098d94ee603aedfdffd8096e97b5eb281d23
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "centos"
@@ -1032,7 +1032,7 @@ jobs:
         path: artifacts/centos-8
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-centos-8:latest@sha256:5e59e6a1a3415c326ef63569d863098d94ee603aedfdffd8096e97b5eb281d23
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "centos"
@@ -1056,7 +1056,7 @@ jobs:
         path: artifacts/rockylinux-9
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-rockylinux-9:latest@sha256:42df9236a22c0313f2c36dd1c099df5198a2c1a8c15bf36914656470d1ac63a0
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "rockylinux"
@@ -1080,7 +1080,7 @@ jobs:
         path: artifacts/rockylinux-9
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-rockylinux-9:latest@sha256:42df9236a22c0313f2c36dd1c099df5198a2c1a8c15bf36914656470d1ac63a0
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "rockylinux"
@@ -1104,7 +1104,7 @@ jobs:
         path: artifacts/linux-x86_64
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-linux-x86_64:latest@sha256:6cf55d7e607c4dbef3913a7b52060a3a247c75fae05455c8eb05467883b733e6
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "linux"
@@ -1128,7 +1128,7 @@ jobs:
         path: artifacts/linux-aarch64
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-linux-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-linux-aarch64:latest@sha256:7c1d1e8b9e333f9757d05a41282faa1e22952613197ecf3fad164a4f8c0121c1
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "linux"
@@ -1152,7 +1152,7 @@ jobs:
         path: artifacts/linuxmusl-x86_64
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-linuxmusl-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-linuxmusl-x86_64:latest@sha256:f5041db317d99f1c6600d29ad3a5fa18e47377516688dc233cc9135d48e389c3
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "linux"
@@ -1176,7 +1176,7 @@ jobs:
         path: artifacts/linuxmusl-aarch64
 
     - name: Test
-      uses: docker://ghcr.io/geldata/gelpkg-test-linuxmusl-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-test-linuxmusl-aarch64:latest@sha256:1a38306c50ff63bbbbbd662d73cb4e8a68efa0b5c45bdd39989df6d492f7b510
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "linux"
@@ -1285,7 +1285,7 @@ jobs:
         path: artifacts/debian-buster
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1311,7 +1311,7 @@ jobs:
         target: debian-buster
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-buster:latest@sha256:9e1c9d78a92fba8e6d9e2f49c83481d3cc247f169988b765bceb4af1a0119e8a
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1337,7 +1337,7 @@ jobs:
         path: artifacts/debian-buster
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1363,7 +1363,7 @@ jobs:
         target: debian-buster
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-buster:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-buster:latest@sha256:9e1c9d78a92fba8e6d9e2f49c83481d3cc247f169988b765bceb4af1a0119e8a
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1389,7 +1389,7 @@ jobs:
         path: artifacts/debian-bullseye
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1415,7 +1415,7 @@ jobs:
         target: debian-bullseye
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bullseye:latest@sha256:d15c4f0f7e97122752f550d2889ceac5dad216702070bcfad6f9fed6df8e7ea2
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1441,7 +1441,7 @@ jobs:
         path: artifacts/debian-bullseye
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1467,7 +1467,7 @@ jobs:
         target: debian-bullseye
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bullseye:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bullseye:latest@sha256:d15c4f0f7e97122752f550d2889ceac5dad216702070bcfad6f9fed6df8e7ea2
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1493,7 +1493,7 @@ jobs:
         path: artifacts/debian-bookworm
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1519,7 +1519,7 @@ jobs:
         target: debian-bookworm
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bookworm:latest@sha256:08a07359c266eb1d4109c92545646a37c7277e68309f26e049833206cf06353d
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1545,7 +1545,7 @@ jobs:
         path: artifacts/debian-bookworm
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1571,7 +1571,7 @@ jobs:
         target: debian-bookworm
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bookworm:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-debian-bookworm:latest@sha256:08a07359c266eb1d4109c92545646a37c7277e68309f26e049833206cf06353d
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1597,7 +1597,7 @@ jobs:
         path: artifacts/ubuntu-focal
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1623,7 +1623,7 @@ jobs:
         target: ubuntu-focal
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-focal:latest@sha256:b704781c14b8eb12447cc5e46ae4f76f59109d96fc01da190e25a9ac25630cdf
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1649,7 +1649,7 @@ jobs:
         path: artifacts/ubuntu-focal
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1675,7 +1675,7 @@ jobs:
         target: ubuntu-focal
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-focal:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-focal:latest@sha256:b704781c14b8eb12447cc5e46ae4f76f59109d96fc01da190e25a9ac25630cdf
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1701,7 +1701,7 @@ jobs:
         path: artifacts/ubuntu-jammy
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1727,7 +1727,7 @@ jobs:
         target: ubuntu-jammy
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-jammy:latest@sha256:a46c84ffaf94bca7d6c2dbec4a915ae517596c47c5fecedb073156e03af5fdeb
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1753,7 +1753,7 @@ jobs:
         path: artifacts/ubuntu-jammy
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1779,7 +1779,7 @@ jobs:
         target: ubuntu-jammy
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-jammy:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-jammy:latest@sha256:a46c84ffaf94bca7d6c2dbec4a915ae517596c47c5fecedb073156e03af5fdeb
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1805,7 +1805,7 @@ jobs:
         path: artifacts/ubuntu-noble
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1831,7 +1831,7 @@ jobs:
         target: ubuntu-noble
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-noble:latest@sha256:9f49f1c4c33f3c67f880b2871a84b59257a6005545fcc81dfb590764414d97ad
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1857,7 +1857,7 @@ jobs:
         path: artifacts/ubuntu-noble
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1883,7 +1883,7 @@ jobs:
         target: ubuntu-noble
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-noble:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-ubuntu-noble:latest@sha256:9f49f1c4c33f3c67f880b2871a84b59257a6005545fcc81dfb590764414d97ad
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1909,7 +1909,7 @@ jobs:
         path: artifacts/centos-8
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1935,7 +1935,7 @@ jobs:
         target: centos-8
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-centos-8:latest@sha256:4497210ee0c39729b83399ed4ad70b8a77e9d561b9a91d0ce42ff1a432865748
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -1961,7 +1961,7 @@ jobs:
         path: artifacts/centos-8
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -1987,7 +1987,7 @@ jobs:
         target: centos-8
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-centos-8:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-centos-8:latest@sha256:4497210ee0c39729b83399ed4ad70b8a77e9d561b9a91d0ce42ff1a432865748
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2013,7 +2013,7 @@ jobs:
         path: artifacts/rockylinux-9
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2039,7 +2039,7 @@ jobs:
         target: rockylinux-9
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-rockylinux-9:latest@sha256:d49a2313a031326e9a80b9a8ed071b60809e8adb865b9ee0c9b39cf3dc18a115
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2065,7 +2065,7 @@ jobs:
         path: artifacts/rockylinux-9
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2091,7 +2091,7 @@ jobs:
         target: rockylinux-9
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-rockylinux-9:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-rockylinux-9:latest@sha256:d49a2313a031326e9a80b9a8ed071b60809e8adb865b9ee0c9b39cf3dc18a115
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2117,7 +2117,7 @@ jobs:
         path: artifacts/linux-x86_64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2143,7 +2143,7 @@ jobs:
         target: linux-x86_64
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linux-x86_64:latest@sha256:656e64de99cf52c52acbaf1e8306b909d22bd6ba64f960fcc21cb2ec88657bc4
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2169,7 +2169,7 @@ jobs:
         path: artifacts/linux-aarch64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2195,7 +2195,7 @@ jobs:
         target: linux-aarch64
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linux-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linux-aarch64:latest@sha256:9f595afc395062953fa9c6454a8417d5ced92b1f5f7f6c0dcdfb5e47491a350c
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2221,7 +2221,7 @@ jobs:
         path: artifacts/linuxmusl-x86_64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2247,7 +2247,7 @@ jobs:
         target: linuxmusl-x86_64
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linuxmusl-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linuxmusl-x86_64:latest@sha256:508a1a11ff7d196653056701ab2a36ae68dad151bcc0495cb01fa77759c69d3a
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2273,7 +2273,7 @@ jobs:
         path: artifacts/linuxmusl-aarch64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PACKAGE_SERVER: sftp://uploader@package-upload.edgedb.net:22/
@@ -2299,7 +2299,7 @@ jobs:
         target: linuxmusl-aarch64
 
     - name: Test Published
-      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linuxmusl-aarch64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-testpublished-linuxmusl-aarch64:latest@sha256:59785c28d65eb76753f406b38f61cf21a9a1b00b347b0baf4a1c40f311f04911
       env:
         PKG_NAME: "${{ steps.describe.outputs.name }}"
         PKG_SUBDIST: "testing"
@@ -2337,7 +2337,7 @@ jobs:
         target: macos-x86_64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "macos"
@@ -2367,7 +2367,7 @@ jobs:
         target: macos-aarch64
 
     - name: Publish
-      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest
+      uses: docker://ghcr.io/geldata/gelpkg-upload-linux-x86_64:latest@sha256:45e11fa3f990930223ef85b436c7322614d2d3bc85b3f6519c0adda14bc62ff2
       env:
         PKG_SUBDIST: "testing"
         PKG_PLATFORM: "macos"
