@@ -119,12 +119,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ascii"
-version = "0.9.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eab1c04a571841102f5345a8fc0f6bb3d31c315dec879b5c6e42e40ce7ffa34e"
-
-[[package]]
 name = "async-compression"
 version = "0.4.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -197,7 +191,7 @@ checksum = "7f31f3af01c5c65a07985c804d3366560e6fa7883d640a122819b14ec327482c"
 dependencies = [
  "autocfg",
  "libm",
- "num-bigint 0.4.6",
+ "num-bigint",
  "num-integer",
  "num-traits",
  "serde",
@@ -362,19 +356,6 @@ name = "colorchoice"
 version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
-
-[[package]]
-name = "combine"
-version = "3.8.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "da3da6baa321ec19e1cc41d31bf599f00c783d0517095cdaf0332e3fe8d20680"
-dependencies = [
- "ascii",
- "byteorder",
- "either",
- "memchr",
- "unreachable",
-]
 
 [[package]]
 name = "combine"
@@ -691,18 +672,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "edb-graphql-parser"
-version = "0.3.0"
-source = "git+https://github.com/edgedb/graphql-parser#96f4d0fe5c0cc6bc6640f7f7089fda59c96b52cf"
-dependencies = [
- "combine 3.8.1",
- "num-bigint 0.2.6",
- "num-traits",
- "serde",
- "thiserror 1.0.69",
-]
-
-[[package]]
 name = "edgeql-parser"
 version = "0.1.0"
 dependencies = [
@@ -713,7 +682,7 @@ dependencies = [
  "edgeql-parser-derive",
  "indexmap",
  "memchr",
- "num-bigint 0.4.6",
+ "num-bigint",
  "phf",
  "pyo3",
  "serde",
@@ -744,7 +713,7 @@ dependencies = [
  "edgeql-parser",
  "gel-protocol",
  "indexmap",
- "num-bigint 0.4.6",
+ "num-bigint",
  "once_cell",
  "pyo3",
  "serde",
@@ -1156,7 +1125,7 @@ dependencies = [
  "derive_more",
  "gel-db-protocol",
  "gel-errors",
- "num-bigint 0.4.6",
+ "num-bigint",
  "num-traits",
  "snafu",
  "uuid",
@@ -1251,21 +1220,6 @@ name = "glob"
 version = "0.3.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
-
-[[package]]
-name = "graphql-rewrite"
-version = "0.1.0"
-dependencies = [
- "bincode",
- "combine 3.8.1",
- "edb-graphql-parser",
- "num-bigint 0.4.6",
- "num-traits",
- "pretty_assertions",
- "pyo3",
- "serde",
- "thiserror 2.0.12",
-]
 
 [[package]]
 name = "group"
@@ -1653,7 +1607,7 @@ checksum = "1a87aa2bb7d2af34197c04845522473242e1aa17c12f4935d5856491a7fb8c97"
 dependencies = [
  "cesu8",
  "cfg-if",
- "combine 4.6.7",
+ "combine",
  "jni-sys",
  "log",
  "thiserror 1.0.69",
@@ -1886,22 +1840,11 @@ version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "35bd024e8b2ff75562e5f34e7f4905839deb4b22955ef5e73d2fea1b9813cb23"
 dependencies = [
- "num-bigint 0.4.6",
+ "num-bigint",
  "num-complex",
  "num-integer",
  "num-iter",
  "num-rational",
- "num-traits",
-]
-
-[[package]]
-name = "num-bigint"
-version = "0.2.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "090c7f9998ee0ff65aa5b723e4009f7b217707f1fb5ea551329cc4d6231fb304"
-dependencies = [
- "autocfg",
- "num-integer",
  "num-traits",
 ]
 
@@ -1975,7 +1918,7 @@ version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f83d14da390562dca69fc84082e73e548e1ad308d24accdedd2720017cb37824"
 dependencies = [
- "num-bigint 0.4.6",
+ "num-bigint",
  "num-integer",
  "num-traits",
 ]
@@ -2887,7 +2830,7 @@ checksum = "b641fdc8bcf2781ee78b30c599700d64ad4f412976143e4c5d0b9df906bb4843"
 dependencies = [
  "byteorder",
  "iter-read",
- "num-bigint 0.4.6",
+ "num-bigint",
  "num-traits",
  "serde",
 ]
@@ -3524,15 +3467,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7264e107f553ccae879d21fbea1d6724ac785e8c3bfc762137959b5802826ef3"
 
 [[package]]
-name = "unreachable"
-version = "1.0.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "382810877fe448991dfc7f0dd6e3ae5d58088fd0ea5e35189655f84e6814fa56"
-dependencies = [
- "void",
-]
-
-[[package]]
 name = "untrusted"
 version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3588,12 +3522,6 @@ name = "version_check"
 version = "0.9.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0b928f33d975fc6ad9f86c8f283853ad26bdd5b10b7f1542aa2fa15e2289105a"
-
-[[package]]
-name = "void"
-version = "1.0.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a02e4885ed3bc0f2de90ea6dd45ebcbb66dacffe03547fadbb0eeae2770887d"
 
 [[package]]
 name = "walkdir"
