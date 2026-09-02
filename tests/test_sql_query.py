@@ -47,11 +47,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     SETUP = [
         '''
-        alter type novel {
-            create index fts::index on (
-                fts::with_options(.foo, language := fts::Language.eng)
-            );
-        };
+        # Upstream also puts an fts::index on `novel` here. Full-text search
+        # is deferred (#75), and this index took the whole sqlquery database
+        # down with it in setup - all 184 tests in this class - for something
+        # no test observes: nothing here queries fts::search, and nothing
+        # reads the __fts_document__ column the index would add to `novel`
+        # (the only SELECT * on that hierarchy is "novel.chapters").
 
         create module glob_mod;
         create global glob_mod::glob_str: str;
