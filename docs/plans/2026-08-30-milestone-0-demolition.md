@@ -6,7 +6,7 @@
 
 **Architecture:** Work outside-in. First capture behaviour that is about to lose its only test (branching). Then cut the frontend's four leaks into the backend, so the frontend has no backend dependency at all. Then fork `edb/pgsql/` to `edb/sqlite/` and delete the subsystems the design drops. No SQLite code is written in this milestone — it ends with a Postgres-backed tree that is *shaped* for the port.
 
-**Tech Stack:** Python 3.12, Cython, Rust (PyO3), `edb test` runner, jinja-rendered GitHub Actions workflows.
+**Tech Stack:** Python 3.12, Cython, Rust (PyO3), `edb test` runner, GitHub Actions workflows.
 
 ---
 
@@ -34,10 +34,11 @@ Read `docs/superpowers/specs/2026-08-30-gel-on-sqlite-design.md`, at minimum
 
 **Two facts that will otherwise waste your time:**
 
-1. `.github/workflows/*.yml` are **generated** from `.github/workflows.src/`
-   by `render.py`, driven by `.github/Makefile`. They carry no "do not edit"
-   header. Edit the templates and run `make -B -C .github`; editing the
-   generated files is silently reverted.
+1. `.github/workflows/*.yml` are edited **directly**. They used to be
+   rendered from `.github/workflows.src/` by `render.py` via `.github/Makefile`
+   — both are gone, so there is no template to edit and no render step to run.
+   Earlier revisions of this plan said the opposite; if you find an instruction
+   to run `make -C .github`, it is stale.
 2. The repo requires **Python 3.12**. A 3.11 interpreter cannot even parse
    files using PEP 695 generics (`def field[T](...)`), so a syntax check with
    the wrong interpreter reports false failures.
@@ -432,72 +433,28 @@ are excluded from the build rather than deleted, so v2 can restore them."
 
 ---
 
-## Task 7: Delete the CI workflows whose subsystems are gone
+## Task 7: Delete the CI workflows whose subsystems are gone — **done**
 
-Seven workflows test subsystems that Tasks 4–6 deleted.
+Completed ahead of the rest of this plan, and the tree no longer matches the
+steps that were written here, so they are replaced by what actually happened.
 
-**Step 1: Delete templates and generated output together**
+Deleted: the HA, connection pool, managed Postgres, Postgres-versions,
+in-place upgrade, in-place-7x and patch workflows, plus `.github/scripts/patches`,
+the build and release workflows, the Stolon build inside `tests.yml`, and
+`pull-request-meta.yml` (it failed any PR touching `postgres/` unless the title
+said so, and that submodule is being deleted).
 
-```bash
-git rm .github/workflows.src/tests.ha.tpl.yml \
-  .github/workflows.src/tests.ha.targets.yml \
-  .github/workflows.src/tests.pool.tpl.yml \
-  .github/workflows.src/tests.pool.targets.yml \
-  .github/workflows.src/tests.managed-pg.tpl.yml \
-  .github/workflows.src/tests.managed-pg.targets.yml \
-  .github/workflows.src/tests.pg-versions.tpl.yml \
-  .github/workflows.src/tests.pg-versions.targets.yml \
-  .github/workflows.src/tests.inplace.tpl.yml \
-  .github/workflows.src/tests.inplace.targets.yml \
-  .github/workflows.src/tests.inplace7x.tpl.yml \
-  .github/workflows.src/tests.inplace7x.targets.yml \
-  .github/workflows.src/tests.patches.tpl.yml \
-  .github/workflows.src/tests.patches.targets.yml \
-  .github/workflows/tests.ha.yml .github/workflows/tests.pool.yml \
-  .github/workflows/tests.managed-pg.yml \
-  .github/workflows/tests.pg-versions.yml \
-  .github/workflows/tests.inplace.yml \
-  .github/workflows/tests.inplace7x.yml \
-  .github/workflows/tests.patches.yml
-git rm -r .github/scripts/patches
-```
+`.github/workflows/` is now `tests.yml` and `update-test-timings.yml`. Neither
+is generated — see *Before you start*.
 
-**Step 2: Drop them from the Makefile**
+Two follow-ups that belong to this task and are **not** done:
 
-Modify `.github/Makefile` — remove those seven from the `all:` target.
-
-**Step 3: Regenerate and confirm nothing else moved**
-
-Run:
-```bash
-make -B -C .github && git status --short
-```
-Expected: only the deletions staged. If a *surviving* workflow changed, your
-template edit had a side effect — investigate before committing.
-
-**Step 4: Confirm the survivors still parse**
-
-Run:
-```bash
-python -c "
-import yaml, pathlib
-for p in sorted(pathlib.Path('.github/workflows').glob('*.yml')):
-    yaml.safe_load(p.read_text())
-print('all workflows parse')
-"
-```
-Expected: `all workflows parse`
-
-**Step 5: Commit**
-
-```bash
-git add -A
-git commit -m "Delete CI workflows for the subsystems that are gone
-
-HA, connection pool, managed Postgres, Postgres versions, the in-place
-upgrade ladder and patch testing. Templates and generated output removed
-together, and dropped from .github/Makefile."
-```
+- **`tests.yml` still builds Postgres and `libpg_query`.** It must keep doing
+  so until the fork actually runs on SQLite; removing it is Milestone 5 work,
+  not Milestone 0.
+- **Dump and restore have no CI coverage at all.** `test_pg_dump.py` and all
+  19 dump fixtures were deleted with the Postgres-protocol frontend. The
+  replacement is new work rather than a port; tracked separately.
 
 ---
 
