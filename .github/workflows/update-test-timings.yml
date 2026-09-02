@@ -46,6 +46,10 @@ jobs:
       with:
         python-version: '3.12.2'
         activate-environment: true
+        # Only needed for the interpreter: the merge below is stdlib csv, so
+        # nothing is ever installed and UV_CACHE_DIR is never created. Left
+        # on, the post-run save fails with "Cache path ... does not exist".
+        enable-cache: false
 
     - name: Download the run's shard results
       uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c  # v8.0.1
