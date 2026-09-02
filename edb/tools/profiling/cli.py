@@ -54,7 +54,7 @@ from . import profiler
 )
 @click.option(
     "--out",
-    default=profiler.EDGEDB_DIR,
+    default=profiler.GELITE_DIR,
     show_default=True,
     help="Output file or directory for the aggregations",
 )

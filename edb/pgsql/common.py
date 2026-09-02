@@ -176,7 +176,7 @@ def versioned_schema(s: str) -> str:
     global SCHEMA_SUFFIX
     if SCHEMA_SUFFIX is None:
         version = buildmeta.get_version_dict()['major']
-        SCHEMA_SUFFIX = f'_v{version}_{buildmeta.EDGEDB_CATALOG_VERSION:x}'
+        SCHEMA_SUFFIX = f'_v{version}_{buildmeta.GELITE_CATALOG_VERSION:x}'
 
     # N.B: We don't bother quoting the schema name, so make sure it is
     # lower case and doesn't have weird characters.

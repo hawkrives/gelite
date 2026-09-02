@@ -73,7 +73,7 @@ postgres_logger = logging.getLogger('postgres')
 get_database_backend_name = pgcommon.get_database_backend_name
 get_role_backend_name = pgcommon.get_role_backend_name
 
-EDGEDB_SERVER_SETTINGS = {
+GELITE_SERVER_SETTINGS = {
     'client_encoding': 'utf-8',
     # DO NOT raise client_min_messages above NOTICE level
     # because server indirect block return machinery relies
@@ -104,7 +104,7 @@ class BaseCluster:
     ) -> None:
         self._connection_addr: Optional[tuple[str, int]] = None
         self._connection_params: pgconnparams.ConnectionParams = \
-            pgconnparams.ConnectionParams(server_settings=EDGEDB_SERVER_SETTINGS)
+            pgconnparams.ConnectionParams(server_settings=GELITE_SERVER_SETTINGS)
         self._pg_config_data: dict[str, str] = {}
         self._pg_bin_dir: Optional[pathlib.Path] = None
         if instance_params is None:
@@ -119,7 +119,7 @@ class BaseCluster:
             & pgparams.BackendCapabilities.CREATE_DATABASE
         ):
             assert (
-                db_name == defines.EDGEDB_SUPERUSER_DB
+                db_name == defines.GELITE_SUPERUSER_DB
             ), f"db_name={db_name} is not allowed"
             rv = self.get_connection_params().database
             assert rv is not None
@@ -135,7 +135,7 @@ class BaseCluster:
             & pgparams.BackendCapabilities.CREATE_ROLE
         ):
             assert (
-                role_name == defines.EDGEDB_SUPERUSER
+                role_name == defines.GELITE_SUPERUSER
             ), f"role_name={role_name} is not allowed"
             rv = self.get_connection_params().user
             assert rv is not None
@@ -196,7 +196,7 @@ class BaseCluster:
     def get_runtime_params(self) -> pgparams.BackendRuntimeParams:
         params = self.get_connection_params()
         login_role: Optional[str] = params.user
-        sup_role = self.get_role_name(defines.EDGEDB_SUPERUSER)
+        sup_role = self.get_role_name(defines.GELITE_SUPERUSER)
         return pgparams.BackendRuntimeParams(
             instance_params=self._instance_params,
             session_authorization_role=(
@@ -583,7 +583,7 @@ class Cluster(BaseCluster):
             "summarize_wal": "on",
         }
 
-        if os.getenv('EDGEDB_DEBUG_PGSERVER'):
+        if os.getenv('GELITE_DEBUG_PGSERVER'):
             start_settings['log_min_messages'] = 'info'
             start_settings['log_statement'] = 'all'
         else:
@@ -868,7 +868,7 @@ class RemoteCluster(BaseCluster):
         super().__init__(instance_params=instance_params)
         self._connection_params = connection_params
         self._connection_params.update(
-            server_settings=EDGEDB_SERVER_SETTINGS
+            server_settings=GELITE_SERVER_SETTINGS
         )
         self._connection_addr = connection_addr
         self._ha_backend = ha_backend

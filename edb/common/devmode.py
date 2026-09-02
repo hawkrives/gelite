@@ -46,12 +46,12 @@ class CoverageConfig(NamedTuple):
 
     def save_to_environ(self):
         os.environ.update({
-            'EDGEDB_TEST_COVERAGE': self.to_json()
+            'GELITE_TEST_COVERAGE': self.to_json()
         })
 
     @classmethod
     def from_environ(cls) -> Optional['CoverageConfig']:
-        config = os.environ.get('EDGEDB_TEST_COVERAGE')
+        config = os.environ.get('GELITE_TEST_COVERAGE')
         if config is None:
             return None
         else:
@@ -122,7 +122,7 @@ def get_dev_mode_cache_dir() -> pathlib.Path:
 
 
 def get_dev_mode_data_dir() -> pathlib.Path:
-    data_dir_env = os.environ.get("EDGEDB_SERVER_DEV_DIR")
+    data_dir_env = os.environ.get("GELITE_SERVER_DEV_DIR")
     if data_dir_env:
         data_dir = pathlib.Path(data_dir_env)
     else:

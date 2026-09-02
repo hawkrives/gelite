@@ -57,7 +57,7 @@ from edb.tools.profiling import tracing_singledispatch
 
 
 CURRENT_DIR = pathlib.Path(__file__).resolve().parent
-EDGEDB_DIR = CURRENT_DIR.parent.parent.parent
+GELITE_DIR = CURRENT_DIR.parent.parent.parent
 PROFILING_JS = CURRENT_DIR / "svg_helpers.js"
 PREFIX = "edgedb_"
 STAT_SUFFIX = ".pstats"
@@ -430,7 +430,7 @@ class Block:
     @property
     def module(self) -> str:
         result = self.func[0]
-        edgedb = str(EDGEDB_DIR) + os.sep
+        edgedb = str(GELITE_DIR) + os.sep
         if result.startswith(edgedb):
             return result[len(edgedb):]
 

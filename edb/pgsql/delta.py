@@ -398,7 +398,7 @@ class CreateGlobalSchemaVersion(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='GlobalSchemaVersion',
                     metadata=metadata
                 )
@@ -406,7 +406,7 @@ class CreateGlobalSchemaVersion(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='GlobalSchemaVersion',
                     metadata=metadata
                 )
@@ -437,7 +437,7 @@ class AlterGlobalSchemaVersion(
             backend_params = params.get_default_runtime_params()
 
         if not backend_params.has_create_database:
-            key = f'{edbdef.EDGEDB_TEMPLATE_DB}metadata'
+            key = f'{edbdef.GELITE_TEMPLATE_DB}metadata'
             lock = dbops.Query(
                 trampoline.fixup_query(f'''
                 SELECT
@@ -465,7 +465,7 @@ class AlterGlobalSchemaVersion(
                             FROM pg_database
                             WHERE datname =
                               {V('edgedb')}.get_database_backend_name(
-                                {ql(edbdef.EDGEDB_TEMPLATE_DB)})
+                                {ql(edbdef.GELITE_TEMPLATE_DB)})
                         )
                         AND classoid = 'pg_database'::regclass::oid
                     FOR UPDATE
@@ -489,7 +489,7 @@ class AlterGlobalSchemaVersion(
                                     FROM pg_database
                                     WHERE datname =
                                       {V('edgedb')}.get_database_backend_name(
-                                        {ql(edbdef.EDGEDB_TEMPLATE_DB)})
+                                        {ql(edbdef.GELITE_TEMPLATE_DB)})
                                 )
                                 AND mode = 'ShareUpdateExclusiveLock'
                                 AND granted
@@ -544,7 +544,7 @@ class AlterGlobalSchemaVersion(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='GlobalSchemaVersion',
                     metadata=metadata
                 )
@@ -552,7 +552,7 @@ class AlterGlobalSchemaVersion(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='GlobalSchemaVersion',
                     metadata=metadata
                 )
@@ -6926,7 +6926,7 @@ class CreateDatabase(MetaCommand, DatabaseMixin, adapts=s_db.CreateBranch):
         template = (
             self.template
             if self.template and self.branch_type == ql_ast.BranchType.TEMPLATE
-            else edbdef.EDGEDB_TEMPLATE_DB
+            else edbdef.GELITE_TEMPLATE_DB
         )
         tpl_name = common.get_database_backend_name(
             template, tenant_id=tenant_id)
@@ -7044,7 +7044,7 @@ class CreateRole(MetaCommand, RoleMixin, adapts=s_roles.CreateRole):
         tenant_id = instance_params.tenant_id
 
         if role.get_superuser(schema):
-            membership.append(edbdef.EDGEDB_SUPERGROUP)
+            membership.append(edbdef.GELITE_SUPERGROUP)
 
             # If the cluster is not exposing an explicit superuser role,
             # we will make the created Postgres role superuser if we can
@@ -7137,7 +7137,7 @@ class AlterRole(MetaCommand, RoleMixin, adapts=s_roles.AlterRole):
         if self.has_attribute_value('superuser'):
             self.ensure_has_create_role(backend_params)
             membership = [str(x) for x in role.get_bases(schema).names(schema)]
-            membership.append(edbdef.EDGEDB_SUPERGROUP)
+            membership.append(edbdef.GELITE_SUPERGROUP)
             self.pgops.add(
                 dbops.AlterRoleAddMembership(
                     name=pg_role_name,
@@ -7269,7 +7269,7 @@ class CreateExtensionPackage(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='ExtensionPackage',
                     metadata=metadata
                 )
@@ -7277,7 +7277,7 @@ class CreateExtensionPackage(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='ExtensionPackage',
                     metadata=metadata
                 )
@@ -7313,7 +7313,7 @@ class DeleteExtensionPackage(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='ExtensionPackage',
                     metadata=metadata
                 )
@@ -7321,7 +7321,7 @@ class DeleteExtensionPackage(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='ExtensionPackage',
                     metadata=metadata
                 )
@@ -7375,7 +7375,7 @@ class CreateExtensionPackageMigration(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='ExtensionPackageMigration',
                     metadata=metadata
                 )
@@ -7383,7 +7383,7 @@ class CreateExtensionPackageMigration(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='ExtensionPackageMigration',
                     metadata=metadata
                 )
@@ -7419,7 +7419,7 @@ class DeleteExtensionPackageMigration(
         if backend_params.has_create_database:
             self.pgops.add(
                 dbops.UpdateMetadataSection(
-                    dbops.DatabaseWithTenant(name=edbdef.EDGEDB_TEMPLATE_DB),
+                    dbops.DatabaseWithTenant(name=edbdef.GELITE_TEMPLATE_DB),
                     section='ExtensionPackageMigration',
                     metadata=metadata
                 )
@@ -7427,7 +7427,7 @@ class DeleteExtensionPackageMigration(
         else:
             self.pgops.add(
                 dbops.UpdateSingleDBMetadataSection(
-                    edbdef.EDGEDB_TEMPLATE_DB,
+                    edbdef.GELITE_TEMPLATE_DB,
                     section='ExtensionPackageMigration',
                     metadata=metadata
                 )

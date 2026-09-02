@@ -284,7 +284,7 @@ cdef class PGConnection:
 
     def mark_as_system_db(self):
         if self.tenant.get_backend_runtime_params().has_create_database:
-            assert defines.EDGEDB_SYSTEM_DB in self.dbname
+            assert defines.GELITE_SYSTEM_DB in self.dbname
         self.is_system_db = True
 
     def add_log_listener(self, cb):
@@ -293,7 +293,7 @@ cdef class PGConnection:
     async def listen_for_sysevent(self):
         try:
             if self.tenant.get_backend_runtime_params().has_create_database:
-                assert defines.EDGEDB_SYSTEM_DB in self.dbname
+                assert defines.GELITE_SYSTEM_DB in self.dbname
             await self.sql_execute(b'LISTEN __edgedb_sysevent__;')
         except Exception:
             try:
@@ -303,7 +303,7 @@ cdef class PGConnection:
 
     async def signal_sysevent(self, event, **kwargs):
         if self.tenant.get_backend_runtime_params().has_create_database:
-            assert defines.EDGEDB_SYSTEM_DB in self.dbname
+            assert defines.GELITE_SYSTEM_DB in self.dbname
         event = json.dumps({
             'event': event,
             'server_id': self.server._server_id,

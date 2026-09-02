@@ -112,8 +112,8 @@ under the ``[Service]`` section. View the supported environment variables at
 .. code-block:: toml
 
    [Service]
-   Environment="GEL_SERVER_TLS_CERT_MODE=generate_self_signed"
-   Environment="GEL_SERVER_ADMIN_UI=enabled"
+   Environment="GELITE_SERVER_TLS_CERT_MODE=generate_self_signed"
+   Environment="GELITE_SERVER_ADMIN_UI=enabled"
 
 Save the file and exit, then restart the service.
 
@@ -189,12 +189,12 @@ Construct the DSN using these values:
 
 .. code-block:: bash
 
-    $ GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    $ GELITE_DSN="gel://admin:<password>@<hostname>:5656"
 
 Obtaining the TLS certificate
 -----------------------------
 
-If you configured Gel with ``GEL_SERVER_TLS_CERT_MODE=generate_self_signed``,
+If you configured Gel with ``GELITE_SERVER_TLS_CERT_MODE=generate_self_signed``,
 your application needs the certificate to connect securely.
 
 The generated certificate is stored in the data directory. You can find it at:
@@ -207,7 +207,7 @@ Alternatively, retrieve it using the Gel CLI:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure \
+    $ gel --dsn $GELITE_DSN --tls-security insecure \
         query "SELECT sys::get_tls_certificate()"
 
 Using in your application
@@ -217,11 +217,11 @@ Set these environment variables where you deploy your application:
 
 .. code-block:: bash
 
-    GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    GELITE_DSN="gel://admin:<password>@<hostname>:5656"
     # For self-signed certificates, provide the CA cert:
-    GEL_TLS_CA_FILE="/path/to/edbtlscert.pem"
+    GELITE_TLS_CA_FILE="/path/to/edbtlscert.pem"
     # Or embed the certificate content directly:
-    GEL_TLS_CA="<certificate content>"
+    GELITE_TLS_CA="<certificate content>"
 
 Gel's client libraries will automatically read these environment variables.
 
@@ -239,7 +239,7 @@ create an alias using :gelcmd:`instance link`.
 .. code-block:: bash
 
     $ gel instance link \
-        --dsn $GEL_DSN \
+        --dsn $GELITE_DSN \
         --non-interactive \
         --trust-tls-cert \
         my_bare_metal_instance

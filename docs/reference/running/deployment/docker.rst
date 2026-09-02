@@ -29,7 +29,7 @@ The simplest way to run the image (without data persistence) is this:
 .. code-block:: bash
 
    $ docker run --name gel -d \
-       -e GEL_SERVER_SECURITY=insecure_dev_mode \
+       -e GELITE_SERVER_SECURITY=insecure_dev_mode \
        geldata/gel
 
 See the :ref:`ref_guides_deployment_docker_customization` section below for the
@@ -41,7 +41,7 @@ Docker volume, run:
 .. code-block:: bash
 
    $ docker run -it --rm --link=gel \
-       -e GEL_SERVER_PASSWORD=secret \
+       -e GELITE_SERVER_PASSWORD=secret \
        -v gel-cli-config:/.config/edgedb geldata/gel-cli \
        -H gel instance link my_instance \
            --tls-security insecure \
@@ -67,8 +67,8 @@ must mount a persistent volume at the path specified by
 
    $ docker run \
        --name gel \
-       -e GEL_SERVER_PASSWORD=secret \
-       -e GEL_SERVER_TLS_CERT_MODE=generate_self_signed \
+       -e GELITE_SERVER_PASSWORD=secret \
+       -e GELITE_SERVER_TLS_CERT_MODE=generate_self_signed \
        -v /my/data/directory:/var/lib/gel/data \
        -d geldata/gel
 
@@ -79,8 +79,8 @@ Note that on Windows you must use a Docker volume instead:
    $ docker volume create --name=gel-data
    $ docker run \
        --name gel \
-       -e GEL_SERVER_PASSWORD=secret \
-       -e GEL_SERVER_TLS_CERT_MODE=generate_self_signed \
+       -e GELITE_SERVER_PASSWORD=secret \
+       -e GELITE_SERVER_TLS_CERT_MODE=generate_self_signed \
        -v gel-data:/var/lib/gel/data \
        -d geldata/gel
 
@@ -109,7 +109,7 @@ With a ``docker-compose.yaml`` containing:
      gel:
        image: geldata/gel
        environment:
-         GEL_SERVER_SECURITY: insecure_dev_mode
+         GELITE_SERVER_SECURITY: insecure_dev_mode
        volumes:
          - "./dbschema:/dbschema"
        ports:
@@ -160,14 +160,9 @@ is called the *bootstrap phase*.
 The following environment variables affect the bootstrap only and have no
 effect on subsequent container runs.
 
-.. note::
 
-   For |EdgeDB| versions before 6.0 (Gel) the prefix for all environment
-   variables is ``EDGEDB_`` instead of ``GEL_``.
-
-
-GEL_SERVER_BOOTSTRAP_COMMAND
-............................
+GELITE_SERVER_BOOTSTRAP_COMMAND
+...............................
 
 Useful to fine-tune initial user and branch creation, and other initial
 setup. If neither the :gelenv:`SERVER_BOOTSTRAP_COMMAND` variable or the
@@ -179,8 +174,8 @@ Maps directly to the |gel-server| flag ``--bootstrap-command``. The
 ``*_FILE`` and ``*_ENV`` variants are also supported.
 
 
-GEL_SERVER_BOOTSTRAP_SCRIPT_FILE
-................................
+GELITE_SERVER_BOOTSTRAP_SCRIPT_FILE
+...................................
 Deprecated in image version 2.8: use :gelenv:`SERVER_BOOTSTRAP_COMMAND_FILE`
 instead.
 
@@ -188,8 +183,8 @@ Run the script when initializing the database. The script is run by default
 user within default branch.
 
 
-GEL_SERVER_PASSWORD
-...................
+GELITE_SERVER_PASSWORD
+......................
 
 The password for the default superuser account will be set to this value. If
 no value is provided a password will not be set, unless set via
@@ -200,8 +195,8 @@ ignored.)
 The ``*_FILE`` and ``*_ENV`` variants are also supported.
 
 
-GEL_SERVER_PASSWORD_HASH
-........................
+GELITE_SERVER_PASSWORD_HASH
+...........................
 
 A variant of :gelenv:`SERVER_PASSWORD`, where the specified value is a hashed
 password verifier instead of plain text.
@@ -211,8 +206,8 @@ If :gelenv:`SERVER_BOOTSTRAP_COMMAND` is set, this variable will be ignored.
 The ``*_FILE`` and ``*_ENV`` variants are also supported.
 
 
-GEL_SERVER_GENERATE_SELF_SIGNED_CERT
-....................................
+GELITE_SERVER_GENERATE_SELF_SIGNED_CERT
+.......................................
 
 .. warning::
 
@@ -230,8 +225,8 @@ should likely provide your own certificate and key file with the variables
 below.
 
 
-GEL_SERVER_TLS_CERT/GEL_SERVER_TLS_KEY
-......................................
+GELITE_SERVER_TLS_CERT/GELITE_SERVER_TLS_KEY
+............................................
 
 The TLS certificate and private key data, exclusive with
 :gelenv:`SERVER_TLS_CERT_MODE=generate_self_signed`.
@@ -250,8 +245,8 @@ container entrypoint *before* any other processing takes place.
 Runtime configuration
 ---------------------
 
-GEL_DOCKER_LOG_LEVEL
-....................
+GELITE_DOCKER_LOG_LEVEL
+.......................
 
 Determines the log verbosity level in the entrypoint script. Valid levels are
 ``trace``, ``debug``, ``info``, ``warning``, and ``error``.  The default is
@@ -302,18 +297,18 @@ Construct the DSN using these values:
 
 .. code-block:: bash
 
-    $ GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    $ GELITE_DSN="gel://admin:<password>@<hostname>:5656"
 
 For a Docker Compose setup with the service named ``gel``:
 
 .. code-block:: bash
 
-    $ GEL_DSN="gel://admin:secret@gel:5656"
+    $ GELITE_DSN="gel://admin:secret@gel:5656"
 
 Obtaining the TLS certificate
 -----------------------------
 
-If you configured Gel with ``GEL_SERVER_TLS_CERT_MODE=generate_self_signed``,
+If you configured Gel with ``GELITE_SERVER_TLS_CERT_MODE=generate_self_signed``,
 your application needs the certificate to connect securely.
 
 Retrieve the certificate from the running container:
@@ -327,13 +322,13 @@ Or using the Gel utility script:
 .. code-block:: bash
 
     $ docker exec <container-name> \
-        gel-show-secrets.sh --format=raw GEL_SERVER_TLS_CERT
+        gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_CERT
 
 Alternatively, retrieve it using the Gel CLI:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure \
+    $ gel --dsn $GELITE_DSN --tls-security insecure \
         query "SELECT sys::get_tls_certificate()"
 
 If you mounted a persistent volume at :gelenv:`SERVER_DATADIR`, the
@@ -351,11 +346,11 @@ Set these environment variables in your application container:
       app:
         image: your-app
         environment:
-          GEL_DSN: "gel://admin:secret@gel:5656"
+          GELITE_DSN: "gel://admin:secret@gel:5656"
           # For self-signed certificates:
-          GEL_CLIENT_TLS_SECURITY: "insecure"
+          GELITE_CLIENT_TLS_SECURITY: "insecure"
           # Or provide the CA certificate:
-          # GEL_TLS_CA: "<certificate content>"
+          # GELITE_TLS_CA: "<certificate content>"
 
 For production, we recommend providing the TLS certificate rather than
 disabling TLS verification:
@@ -366,8 +361,8 @@ disabling TLS verification:
       app:
         image: your-app
         environment:
-          GEL_DSN: "gel://admin:${GEL_PASSWORD}@gel:5656"
-          GEL_TLS_CA_FILE: "/certs/gel-ca.pem"
+          GELITE_DSN: "gel://admin:${GELITE_PASSWORD}@gel:5656"
+          GELITE_TLS_CA_FILE: "/certs/gel-ca.pem"
         volumes:
           - ./certs:/certs:ro
 

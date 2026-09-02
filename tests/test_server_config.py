@@ -1558,7 +1558,7 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
         "loopback aliases aren't set up on macOS by default"
     )
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_proto_configure_listen_addresses(self):
@@ -1618,7 +1618,7 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
                 await asyncio.gather(*closings)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE SYSTEM in multi-tenant mode",
     )
     async def test_server_config_idle_connection_01(self):
@@ -1658,7 +1658,7 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
         )
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE SYSTEM in multi-tenant mode",
     )
     async def test_server_config_idle_connection_02(self):
@@ -1839,7 +1839,7 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
             check('branch', 'edgedb', 'edgedb')
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_config_backend_levels(self):
@@ -2148,7 +2148,7 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
             self.assertEqual(orig_aborted, new_aborted)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_config_custom_enum(self):
@@ -2300,15 +2300,15 @@ class TestStaticServerConfig(tb.TestCase):
 
     async def test_server_config_env_01(self):
         # Backend settings cannot be set statically with remote backend
-        remote_pg = bool(os.getenv("EDGEDB_TEST_BACKEND_DSN"))
+        remote_pg = bool(os.getenv("GELITE_TEST_BACKEND_DSN"))
 
         env = {
-            "EDGEDB_SERVER_CONFIG_cfg::session_idle_timeout": "1m22s",
-            "EDGEDB_SERVER_CONFIG_cfg::apply_access_policies": "false",
-            "EDGEDB_SERVER_CONFIG_cfg::multiprop": "single",
+            "GELITE_SERVER_CONFIG_cfg::session_idle_timeout": "1m22s",
+            "GELITE_SERVER_CONFIG_cfg::apply_access_policies": "false",
+            "GELITE_SERVER_CONFIG_cfg::multiprop": "single",
         }
         if not remote_pg:
-            env["EDGEDB_SERVER_CONFIG_cfg::query_execution_timeout"] = "403"
+            env["GELITE_SERVER_CONFIG_cfg::query_execution_timeout"] = "403"
 
         async with tb.start_edgedb_server(env=env) as sd:
             conn = await sd.connect()
@@ -2349,7 +2349,7 @@ class TestStaticServerConfig(tb.TestCase):
 
     async def test_server_config_env_02(self):
         env = {
-            "EDGEDB_SERVER_CONFIG_cfg::allow_bare_ddl": "illegal_input"
+            "GELITE_SERVER_CONFIG_cfg::allow_bare_ddl": "illegal_input"
         }
         with self.assertRaisesRegex(
             cluster.ClusterError,
@@ -2359,7 +2359,7 @@ class TestStaticServerConfig(tb.TestCase):
                 pass
 
     async def test_server_config_env_03(self):
-        env = {"EDGEDB_SERVER_CONFIG_cfg::apply_access_policies": "on"}
+        env = {"GELITE_SERVER_CONFIG_cfg::apply_access_policies": "on"}
         with self.assertRaisesRegex(
             cluster.ClusterError,
             "can only be one of: true, false",
@@ -2368,7 +2368,7 @@ class TestStaticServerConfig(tb.TestCase):
                 pass
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_config_default(self):
@@ -2417,7 +2417,7 @@ class TestStaticServerConfig(tb.TestCase):
                 await conn.aclose()
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use --config-file in multi-tenant mode",
     )
     async def test_server_config_file_01(self):
@@ -2498,7 +2498,7 @@ class TestStaticServerConfig(tb.TestCase):
                 await conn.aclose()
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use --config-file in multi-tenant mode",
     )
     async def test_server_config_file_02(self):
@@ -2518,7 +2518,7 @@ class TestStaticServerConfig(tb.TestCase):
                 pass
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use --config-file in multi-tenant mode",
     )
     async def test_server_config_file_03(self):
@@ -2538,7 +2538,7 @@ class TestStaticServerConfig(tb.TestCase):
                 pass
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use --config-file in multi-tenant mode",
     )
     async def test_server_config_file_04(self):
@@ -2559,7 +2559,7 @@ class TestStaticServerConfig(tb.TestCase):
                 pass
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use --config-file in multi-tenant mode",
     )
     async def test_server_config_file_05(self):

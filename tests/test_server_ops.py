@@ -144,7 +144,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 await sd.connect(wait_until_available=0)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "--bootstrap-command is not supported in multi-tenant mode",
     )
     async def test_server_ops_bootstrap_script(self) -> None:
@@ -188,7 +188,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             )
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "--bootstrap-command is not supported in multi-tenant mode",
     )
     async def test_server_ops_bootstrap_script_server(self):
@@ -212,7 +212,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         "https://github.com/edgedb/edgedb/issues/7789"
     )
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "--background is not supported in multi-tenante mode"
     )
     async def test_server_ops_background(self) -> None:
@@ -299,7 +299,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
-        if "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
+        if "GELITE_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
             cmd.extend([
                 '--temp-dir',
                 '--max-backend-connections', '10',
@@ -534,7 +534,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 reset_auth=True,
                 backend_dsn=f'postgres:///?user=postgres&host={pgdata_path}',
                 runstate_dir=None if devmode.is_in_dev_mode() else pgdata_path,
-                env={"EDGEDB_SERVER_TENANT_ID": tenant},
+                env={"GELITE_SERVER_TENANT_ID": tenant},
             ) as sd:
                 con = await sd.connect()
                 try:
@@ -659,7 +659,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             runstate_dir=None if devmode.is_in_dev_mode() else td,
             reset_auth=True,
             ignore_other_tenants=True,
-            env={'EDGEDB_SERVER_TENANT_ID': 'asdf'},
+            env={'GELITE_SERVER_TENANT_ID': 'asdf'},
         ) as sd:
             con = await sd.connect()
             await con.aclose()
@@ -1251,7 +1251,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             test(f'https://{sd.host}:{sd.port}/server/status/alive')
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "--readiness-state-file is not allowed in multi-tenant mode",
     )
     async def test_server_ops_readiness(self):
@@ -1366,7 +1366,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 os.unlink(rf_name)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "--readiness-state-file is not allowed in multi-tenant mode",
     )
     async def test_server_ops_readonly(self):
@@ -1432,7 +1432,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 os.unlink(rf_name)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "covered in test_server_ops_multi_tenant",
     )
     async def test_server_ops_offline(self):
@@ -1475,7 +1475,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 os.unlink(rf_name)
 
     @unittest.skipIf(
-        "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
+        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "covered in test_server_ops_multi_tenant",
     )
     async def test_server_ops_blocked(self):

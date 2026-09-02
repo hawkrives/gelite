@@ -54,7 +54,7 @@ def server(version=False, **kwargs):
         print(f"edb, version {buildmeta.get_version()}")
         sys.exit(0)
 
-    os.environ['EDGEDB_DEBUG_SERVER'] = '1'
+    os.environ['GELITE_DEBUG_SERVER'] = '1'
     debug.init_debug_flags()
     kwargs['security'] = srv_args.ServerSecurityMode.InsecureDevMode
     if kwargs['cors_always_allowed_origins'] is None:

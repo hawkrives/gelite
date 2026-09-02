@@ -85,7 +85,7 @@ All components of the DSN are optional; in fact, gel:// is a valid DSN. Any unsp
   .. code-block::
 
     MY_TLS_SECURITY=insecure
-    GEL_DSN=gel://hostname.com:1234?tls_security_env=MY_TLS_SECURITY
+    GELITE_DSN=gel://hostname.com:1234?tls_security_env=MY_TLS_SECURITY
 
   Environment params lets you specify a *pointer* to another environment variable. At runtime, the specified environment variable will be read. If it isn't set, an error will be thrown.
 
@@ -231,9 +231,9 @@ When specified, the connection parameters (user, password, and |branch|) will *o
 
 .. code-block::
 
-  GEL_DSN=gel://olduser:oldpass@hostname.com:5656
-  GEL_USER=newuser
-  GEL_PASSWORD=newpass
+  GELITE_DSN=gel://olduser:oldpass@hostname.com:5656
+  GELITE_USER=newuser
+  GELITE_PASSWORD=newpass
 
 In this scenario, ``newuser`` will override ``olduser`` and ``newpass`` will override ``oldpass``. The client library will try to connect using this modified DSN: :geluri:`newuser:newpass@hostname.com:5656`.
 

@@ -28,5 +28,5 @@ def gen_types():
     """Print available debug flags."""
 
     for flag in debug.flags:
-        print(f'env EDGEDB_DEBUG_{flag.name.upper()}=1')
+        print(f'env GELITE_DEBUG_{flag.name.upper()}=1')
         print(f'    {flag.doc}\n')

@@ -100,7 +100,7 @@
         PKG_PLATFORM_LIBC: "<< tgt.platform_libc >>"
         <%- endif %>
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -192,7 +192,7 @@
         BUILD_GENERIC: true
         <%- endif %>
         CMAKE_POLICY_VERSION_MINIMUM: '3.5'
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
       run: |
         edgedb-pkg/integration/macos/build.sh

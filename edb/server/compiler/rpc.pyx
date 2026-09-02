@@ -170,8 +170,8 @@ cdef class CompilationRequest:
         session_config: Mapping[str, config.SettingValue] | None = None,
         database_config: Mapping[str, config.SettingValue] | None = None,
         system_config: Mapping[str, config.SettingValue] | None = None,
-        role_name: str = defines.EDGEDB_SUPERUSER,
-        branch_name: str = defines.EDGEDB_SUPERUSER_DB,
+        role_name: str = defines.GELITE_SUPERUSER,
+        branch_name: str = defines.GELITE_SUPERUSER_DB,
         key_params: Mapping[str, object] | None = None,
     ):
         self.serializer = compilation_config_serializer

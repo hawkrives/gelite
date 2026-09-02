@@ -87,10 +87,10 @@ logger = logging.getLogger("edb.server")
 
 HTTP_MAX_CONNECTIONS = 100
 HEALTH_CHECK_MIN_INTERVAL: float = float(
-    os.getenv("GEL_BACKEND_HEALTH_CHECK_MIN_INTERVAL", 10)
+    os.getenv("GELITE_BACKEND_HEALTH_CHECK_MIN_INTERVAL", 10)
 )
 HEALTH_CHECK_TIMEOUT: float = float(
-    os.getenv("GEL_BACKEND_HEALTH_CHECK_TIMEOUT", 10)
+    os.getenv("GELITE_BACKEND_HEALTH_CHECK_TIMEOUT", 10)
 )
 
 
@@ -238,7 +238,7 @@ class Tenant(ha_base.ClusterProtocol):
         self._http_client = None
 
         # If it isn't stored in instdata, it is the old default.
-        self.default_database = defines.EDGEDB_OLD_DEFAULT_DB
+        self.default_database = defines.GELITE_OLD_DEFAULT_DB
 
     def set_reloadable_files(
         self,
@@ -475,7 +475,7 @@ class Tenant(ha_base.ClusterProtocol):
     async def init_sys_pgcon(self) -> None:
         self._sys_pgcon_waiter = asyncio.Lock()
         self.__sys_pgcon = await self._pg_connect(
-            defines.EDGEDB_SYSTEM_DB,
+            defines.GELITE_SYSTEM_DB,
             source_description="init_sys_pgcon",
         )
         self._sys_pgcon_last_active_time = time.monotonic()
@@ -499,14 +499,14 @@ class Tenant(ha_base.ClusterProtocol):
             con, 'instancedata', 'json', versioned=False
         )
         catver = json.loads(result).get('catver')
-        if catver != defines.EDGEDB_CATALOG_VERSION:
+        if catver != defines.GELITE_CATALOG_VERSION:
             raise errors.ConfigurationError(
                 'database instance incompatible with this version of Gel',
                 details=(
                     f'The database instance was initialized with '
                     f'Gel format version {catver}, but this version '
                     f'of the server expects format version '
-                    f'{defines.EDGEDB_CATALOG_VERSION}.'
+                    f'{defines.GELITE_CATALOG_VERSION}.'
                 ),
                 hint=(
                     'You need to either recreate the instance and upgrade '
@@ -865,7 +865,7 @@ class Tenant(ha_base.ClusterProtocol):
         if self.get_backend_runtime_params().has_create_database:
             pg_dbname = self.get_pg_dbname(dbname)
         else:
-            pg_dbname = self.get_pg_dbname(defines.EDGEDB_SUPERUSER_DB)
+            pg_dbname = self.get_pg_dbname(defines.GELITE_SUPERUSER_DB)
         started_at = time.monotonic()
         try:
             rv = await self._cluster.connect(
@@ -893,7 +893,7 @@ class Tenant(ha_base.ClusterProtocol):
             rv.set_tenant(self)
             if self._backend_adaptive_ha is not None:
                 self._backend_adaptive_ha.on_pgcon_made(
-                    dbname == defines.EDGEDB_SYSTEM_DB
+                    dbname == defines.GELITE_SYSTEM_DB
                 )
             metrics.total_backend_connections.inc(1.0, self._instance_name)
             metrics.current_backend_connections.inc(1.0, self._instance_name)
@@ -1040,7 +1040,7 @@ class Tenant(ha_base.ClusterProtocol):
                 #   2. We still cannot connect to the Postgres cluster
                 try:
                     conn = await self._pg_connect(
-                        defines.EDGEDB_SYSTEM_DB,
+                        defines.GELITE_SYSTEM_DB,
                         source_description="_reconnect_sys_pgcon"
                     )
                     break
@@ -1185,7 +1185,7 @@ class Tenant(ha_base.ClusterProtocol):
     def is_database_connectable(self, dbname: str) -> bool:
         return (
             self._running
-            and dbname != defines.EDGEDB_TEMPLATE_DB
+            and dbname != defines.GELITE_TEMPLATE_DB
             and dbname not in self._block_new_connections
         )
 
@@ -1572,8 +1572,8 @@ class Tenant(ha_base.ClusterProtocol):
         elif branch is not None:
             return branch
         elif (
-            database == defines.EDGEDB_OLD_DEFAULT_DB
-            and self.maybe_get_db(dbname=defines.EDGEDB_OLD_DEFAULT_DB) is None
+            database == defines.GELITE_OLD_DEFAULT_DB
+            and self.maybe_get_db(dbname=defines.GELITE_OLD_DEFAULT_DB) is None
         ):
             return default
         else:
@@ -1582,10 +1582,10 @@ class Tenant(ha_base.ClusterProtocol):
 
     def resolve_user_name(self, user: str) -> str:
         if (
-            user == defines.EDGEDB_OLD_SUPERUSER
+            user == defines.GELITE_OLD_SUPERUSER
             and user not in self.get_roles()
         ):
-            return defines.EDGEDB_SUPERUSER
+            return defines.GELITE_SUPERUSER
         else:
             return user
 
@@ -2229,7 +2229,7 @@ class Tenant(ha_base.ClusterProtocol):
         dbs = {}
         if self._dbindex is not None:
             for db in self._dbindex.iter_dbs():
-                if db.name in defines.EDGEDB_SPECIAL_DBS:
+                if db.name in defines.GELITE_SPECIAL_DBS:
                     continue
 
                 try:

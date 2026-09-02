@@ -618,7 +618,7 @@ Deploy this app to Vercel with the button below.
 
 .. image:: https://vercel.com/button
   :width: 150px
-  :target: https://vercel.com/new/git/external?repository-url=https://github.com/geldata/gel-examples/tree/main/nextjs-blog&project-name=nextjs-edgedb-blog&repository-name=nextjs-edgedb-blog&env=GEL_DSN,GEL_CLIENT_TLS_SECURITY
+  :target: https://vercel.com/new/git/external?repository-url=https://github.com/geldata/gel-examples/tree/main/nextjs-blog&project-name=nextjs-edgedb-blog&repository-name=nextjs-edgedb-blog&env=GELITE_DSN,GELITE_CLIENT_TLS_SECURITY
 
 .. lint-on
 

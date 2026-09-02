@@ -62,8 +62,8 @@ logging facility can be used::
    $ gel --no-cli-update-check
    [..snip..] Skipping version check due to --no-cli-update-check
    gel>
-   $ GEL_RUN_VERSION_CHECK=never gel
-   [..snip..] Skipping version check due to GEL_RUN_VERSION_CHECK=never
+   $ GELITE_RUN_VERSION_CHECK=never gel
+   [..snip..] Skipping version check due to GELITE_RUN_VERSION_CHECK=never
    gel>
 
 

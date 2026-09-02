@@ -501,7 +501,7 @@ class BaseServer:
         if self._listen_port is None:
             self._listen_port = (
                 self.config_lookup('listen_port', sys_config)
-                or defines.EDGEDB_PORT
+                or defines.GELITE_PORT
             )
 
         self._stmt_cache_size = self.config_lookup(
@@ -915,8 +915,7 @@ class BaseServer:
             nonlocal tls_password_needed
             tls_password_needed = True
             return (
-                os.environ.get('GEL_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
-                or os.environ.get('EDGEDB_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
+                os.environ.get('GELITE_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
             )
 
         sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
@@ -945,7 +944,7 @@ class BaseServer:
                             "Cannot load TLS certificates - the private key "
                             "file is likely protected by a password. Specify "
                             "the password using environment variable: "
-                            "GEL_SERVER_TLS_PRIVATE_KEY_PASSWORD"
+                            "GELITE_SERVER_TLS_PRIVATE_KEY_PASSWORD"
                         ) from e
                 elif tls_key_file is None:
                     raise StartupError(
@@ -1499,17 +1498,17 @@ class Server(BaseServer):
 
             # Patch all the databases
             for dbname in dbnames:
-                if dbname != defines.EDGEDB_SYSTEM_DB:
+                if dbname != defines.GELITE_SYSTEM_DB:
                     g.create_task(
                         self._maybe_patch_db(dbname, patches, sem))
 
             # Patch the template db, so that any newly created databases
             # will have the patches.
             g.create_task(self._maybe_patch_db(
-                defines.EDGEDB_TEMPLATE_DB, patches, sem))
+                defines.GELITE_TEMPLATE_DB, patches, sem))
 
         await self._tenant.ensure_database_not_connected(
-            defines.EDGEDB_TEMPLATE_DB
+            defines.GELITE_TEMPLATE_DB
         )
 
         # Patch the system db last. The system db needs to go last so
@@ -1521,7 +1520,7 @@ class Server(BaseServer):
         # always use the correct schema when compiling patches.
         async with self._tenant.use_sys_pgcon() as syscon:
             await self._maybe_apply_patches(
-                defines.EDGEDB_SYSTEM_DB, syscon, patches, sys=True)
+                defines.GELITE_SYSTEM_DB, syscon, patches, sys=True)
 
     def _load_schema(self, result, version_key) -> s_schema.Schema:
         res = pickle.loads(result[2:])
@@ -1700,7 +1699,7 @@ class Server(BaseServer):
                 await self._restart_servers_new_addr(
                     self._listen_hosts,
                     self.config_lookup('listen_port', cfg)
-                    or defines.EDGEDB_PORT,
+                    or defines.GELITE_PORT,
                 )
 
             elif setting_name == 'session_idle_timeout':

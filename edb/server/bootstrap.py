@@ -304,7 +304,7 @@ async def _ensure_edgedb_role(
 ) -> uuid.UUID:
     member_of = set()
     if superuser:
-        member_of.add(edbdef.EDGEDB_SUPERGROUP)
+        member_of.add(edbdef.GELITE_SUPERGROUP)
 
     if objid is None:
         objid = uuidgen.uuid1mc()
@@ -312,7 +312,7 @@ async def _ensure_edgedb_role(
     members = set()
     login_role = ctx.cluster.get_connection_params().user
     assert login_role is not None
-    sup_role = ctx.cluster.get_role_name(edbdef.EDGEDB_SUPERUSER)
+    sup_role = ctx.cluster.get_role_name(edbdef.GELITE_SUPERUSER)
     if login_role != sup_role:
         members.add(login_role)
 
@@ -352,7 +352,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
     backend_params = ctx.cluster.get_runtime_params()
     tenant_id = backend_params.tenant_id
 
-    # First, check the existence of EDGEDB_SUPERGROUP - the role which is
+    # First, check the existence of GELITE_SUPERGROUP - the role which is
     # usually created at the beginning of bootstrap.
     is_default_tenant = tenant_id == buildmeta.get_default_tenant_id()
     ignore_others = is_default_tenant and ctx.args.ignore_other_tenants
@@ -367,7 +367,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
                 r.rolname LIKE ('%' || $1)
             """,
             args=[
-                edbdef.EDGEDB_SUPERGROUP.encode("utf-8"),
+                edbdef.GELITE_SUPERGROUP.encode("utf-8"),
             ],
         )
     else:
@@ -382,7 +382,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
             """,
             args=[
                 ctx.cluster.get_role_name(
-                    edbdef.EDGEDB_SUPERGROUP).encode("utf-8"),
+                    edbdef.GELITE_SUPERGROUP).encode("utf-8"),
             ],
         )
 
@@ -397,7 +397,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
         # the others.
         # This mode is used for in-place upgrade.
         for rolname in result:
-            other_tenant_id = rolname[: -(len(edbdef.EDGEDB_SUPERGROUP) + 1)]
+            other_tenant_id = rolname[: -(len(edbdef.GELITE_SUPERGROUP) + 1)]
             if other_tenant_id == tenant_id.encode("utf-8"):
                 return ClusterMode.regular
 
@@ -427,7 +427,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
                 WHERE datname LIKE '%' || $1
             ''',
             args=(
-                edbdef.EDGEDB_SYSTEM_DB.encode("utf-8"),
+                edbdef.GELITE_SYSTEM_DB.encode("utf-8"),
             ),
         )
     else:
@@ -439,7 +439,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
             ''',
             args=(
                 ctx.cluster.get_db_name(
-                    edbdef.EDGEDB_SYSTEM_DB).encode("utf-8"),
+                    edbdef.GELITE_SYSTEM_DB).encode("utf-8"),
             ),
         )
 
@@ -454,7 +454,7 @@ async def _get_cluster_mode(ctx: BootstrapContext) -> ClusterMode:
         # the others.
         # This mode is used for in-place upgrade.
         for dbname in result:
-            other_tenant_id = dbname[: -(len(edbdef.EDGEDB_SYSTEM_DB) + 1)]
+            other_tenant_id = dbname[: -(len(edbdef.GELITE_SYSTEM_DB) + 1)]
             if other_tenant_id == tenant_id.encode("utf-8"):
                 return ClusterMode.single_role
 
@@ -471,8 +471,8 @@ async def _create_edgedb_template_database(
     block = dbops.SQLBlock()
     dbid = uuidgen.uuid1mc()
     db = dbops.Database(
-        ctx.cluster.get_db_name(edbdef.EDGEDB_TEMPLATE_DB),
-        owner=ctx.cluster.get_role_name(edbdef.EDGEDB_SUPERUSER),
+        ctx.cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB),
+        owner=ctx.cluster.get_role_name(edbdef.GELITE_SUPERUSER),
         is_template=True,
         lc_collate='C',
         lc_ctype='C.UTF-8' if have_c_utf8 else 'en_US.UTF-8',
@@ -480,7 +480,7 @@ async def _create_edgedb_template_database(
         metadata=dict(
             id=str(dbid),
             tenant_id=backend_params.tenant_id,
-            name=edbdef.EDGEDB_TEMPLATE_DB,
+            name=edbdef.GELITE_TEMPLATE_DB,
             builtin=True,
         ),
     )
@@ -1373,8 +1373,8 @@ def _make_stdlib(
     trampolines.extend(tplan.trampolines)
 
     stdglobals = '\n'.join([
-        f'''CREATE SUPERUSER ROLE {edbdef.EDGEDB_SUPERUSER} {{
-            SET id := <uuid>'{global_ids[edbdef.EDGEDB_SUPERUSER]}'
+        f'''CREATE SUPERUSER ROLE {edbdef.GELITE_SUPERUSER} {{
+            SET id := <uuid>'{global_ids[edbdef.GELITE_SUPERUSER]}'
         }};''',
     ])
 
@@ -1766,7 +1766,7 @@ async def _init_stdlib(
         await _execute(conn, stdlib.sqltext)
 
         if in_dev_mode or cache_dir:
-            tpl_db_name = edbdef.EDGEDB_TEMPLATE_DB
+            tpl_db_name = edbdef.GELITE_TEMPLATE_DB
             tpl_pg_db_name = cluster.get_db_name(tpl_db_name)
             tpldbdump = await cluster.dump_database(
                 tpl_pg_db_name,
@@ -1798,7 +1798,7 @@ async def _init_stdlib(
             ).code_with_block(pl_block)
 
             set_single_db_metadata_text = dbops.SetSingleDBMetadata(
-                edbdef.EDGEDB_TEMPLATE_DB, global_metadata
+                edbdef.GELITE_TEMPLATE_DB, global_metadata
             ).code_with_block(pl_block)
 
             pl_block.add_command(textwrap.dedent(trampoline.fixup_query(f"""\
@@ -2020,12 +2020,12 @@ async def _configure(
     metadata = {'sysconfig': json.loads(config_json)}
     if ctx.cluster.get_runtime_params().has_create_database:
         dbops.UpdateMetadata(
-            dbops.DatabaseWithTenant(name=edbdef.EDGEDB_SYSTEM_DB),
+            dbops.DatabaseWithTenant(name=edbdef.GELITE_SYSTEM_DB),
             metadata,
         ).generate(block)
     else:
         dbops.UpdateSingleDBMetadata(
-            edbdef.EDGEDB_SYSTEM_DB, metadata,
+            edbdef.GELITE_SYSTEM_DB, metadata,
         ).generate(block)
 
     await _execute_block(ctx.conn, block)
@@ -2107,7 +2107,7 @@ def compile_sys_queries(
         schema,
         f"""SELECT (
             SELECT sys::Branch
-            FILTER .name != "{edbdef.EDGEDB_TEMPLATE_DB}"
+            FILTER .name != "{edbdef.GELITE_TEMPLATE_DB}"
         ).name""",
         expected_cardinality_one=False,
     )
@@ -2277,7 +2277,7 @@ async def _populate_misc_instance_data(
     mock_auth_nonce = scram.generate_nonce()
     json_instance_data = {
         'version': dict(buildmeta.get_version_dict()),
-        'catver': edbdef.EDGEDB_CATALOG_VERSION,
+        'catver': edbdef.GELITE_CATALOG_VERSION,
         'mock_auth_nonce': mock_auth_nonce,
     }
 
@@ -2298,7 +2298,7 @@ async def _populate_misc_instance_data(
     if not backend_params.has_create_role:
         json_single_role_metadata = {
             'id': str(uuidgen.uuid1mc()),
-            'name': edbdef.EDGEDB_SUPERUSER,
+            'name': edbdef.GELITE_SUPERUSER,
             'tenant_id': backend_params.tenant_id,
             'builtin': False,
         }
@@ -2311,12 +2311,12 @@ async def _populate_misc_instance_data(
     if not backend_params.has_create_database:
         await _store_static_json_cache(
             ctx,
-            f'{edbdef.EDGEDB_TEMPLATE_DB}metadata',
+            f'{edbdef.GELITE_TEMPLATE_DB}metadata',
             json.dumps({}),
         )
         await _store_static_json_cache(
             ctx,
-            f'{edbdef.EDGEDB_SYSTEM_DB}metadata',
+            f'{edbdef.GELITE_SYSTEM_DB}metadata',
             json.dumps({}),
         )
 
@@ -2357,7 +2357,7 @@ async def _create_edgedb_database(
             builtin=builtin,
         ),
     )
-    tpl_db = ctx.cluster.get_db_name(edbdef.EDGEDB_TEMPLATE_DB)
+    tpl_db = ctx.cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
     dbops.CreateDatabase(db, template=tpl_db).generate(block)
 
     # Background tasks on some hosted provides like DO seem to sometimes make
@@ -2433,7 +2433,7 @@ async def _check_catalog_compatibility(
             WHERE key = $1 AND json->>'tenant_id' = $2
             """).encode('utf-8'),
             args=[
-                f"{edbdef.EDGEDB_TEMPLATE_DB}metadata".encode("utf-8"),
+                f"{edbdef.GELITE_TEMPLATE_DB}metadata".encode("utf-8"),
                 tenant_id.encode("utf-8"),
             ],
         )
@@ -2452,7 +2452,7 @@ async def _check_catalog_compatibility(
                 LIMIT 1
                 """,
                 args=[
-                    edbdef.EDGEDB_SYSTEM_DB.encode("utf-8"),
+                    edbdef.GELITE_SYSTEM_DB.encode("utf-8"),
                 ],
             )
         else:
@@ -2464,7 +2464,7 @@ async def _check_catalog_compatibility(
                 """,
                 args=[
                     ctx.cluster.get_db_name(
-                        edbdef.EDGEDB_SYSTEM_DB).encode("utf-8"),
+                        edbdef.GELITE_SYSTEM_DB).encode("utf-8"),
                 ],
             )
 
@@ -2492,7 +2492,7 @@ async def _check_catalog_compatibility(
 
         expected_ver = buildmeta.get_version()
         datadir_catver = instancedata.get('catver')
-        expected_catver = edbdef.EDGEDB_CATALOG_VERSION
+        expected_catver = edbdef.GELITE_CATALOG_VERSION
 
         status = dict(
             data_catalog_version=datadir_catver,
@@ -2594,17 +2594,17 @@ async def _start(ctx: BootstrapContext) -> edbcompiler.Compiler:
 async def _bootstrap_edgedb_super_roles(ctx: BootstrapContext) -> uuid.UUID:
     await _ensure_edgedb_supergroup(
         ctx,
-        edbdef.EDGEDB_SUPERGROUP,
+        edbdef.GELITE_SUPERGROUP,
     )
 
     superuser_uid = await _ensure_edgedb_role(
         ctx,
-        edbdef.EDGEDB_SUPERUSER,
+        edbdef.GELITE_SUPERUSER,
         superuser=True,
         builtin=True,
     )
 
-    superuser = ctx.cluster.get_role_name(edbdef.EDGEDB_SUPERUSER)
+    superuser = ctx.cluster.get_role_name(edbdef.GELITE_SUPERUSER)
     await _execute(ctx.conn, f'SET ROLE {qi(superuser)}')
 
     return superuser_uid
@@ -2647,7 +2647,7 @@ async def _bootstrap(
         # XXX: THIS IS WRONG, RIGHT?
         else:
             new_template_db_id = uuidgen.uuid1mc()
-        tpl_db = cluster.get_db_name(edbdef.EDGEDB_TEMPLATE_DB)
+        tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
         conn = PGConnectionProxy(
             cluster,
             source_description="_bootstrap",
@@ -2678,8 +2678,8 @@ async def _bootstrap(
             tpl_ctx,
             testmode=args.testmode,
             global_ids={
-                edbdef.EDGEDB_SUPERUSER: superuser_uid,
-                edbdef.EDGEDB_TEMPLATE_DB: new_template_db_id,
+                edbdef.GELITE_SUPERUSER: superuser_uid,
+                edbdef.GELITE_TEMPLATE_DB: new_template_db_id,
             }
         )
         (
@@ -2722,7 +2722,7 @@ async def _bootstrap(
             json.dumps(stdlib.num_patches),
         )
 
-        default_branch = args.default_branch or edbdef.EDGEDB_SUPERUSER_DB
+        default_branch = args.default_branch or edbdef.GELITE_SUPERUSER_DB
         await _store_static_text_cache(
             tpl_ctx,
             'default_branch',
@@ -2768,15 +2768,15 @@ async def _bootstrap(
     elif backend_params.has_create_database:
         await _create_edgedb_database(
             ctx,
-            edbdef.EDGEDB_SYSTEM_DB,
-            edbdef.EDGEDB_SUPERUSER,
+            edbdef.GELITE_SYSTEM_DB,
+            edbdef.GELITE_SUPERUSER,
             builtin=True,
         )
 
         sys_conn = PGConnectionProxy(
             cluster,
             source_description="_bootstrap",
-            dbname=cluster.get_db_name(edbdef.EDGEDB_SYSTEM_DB),
+            dbname=cluster.get_db_name(edbdef.GELITE_SYSTEM_DB),
         )
 
         try:
@@ -2802,7 +2802,7 @@ async def _bootstrap(
         await _create_edgedb_database(
             ctx,
             default_branch,
-            args.default_database_user or edbdef.EDGEDB_SUPERUSER,
+            args.default_database_user or edbdef.GELITE_SUPERUSER,
         )
     else:
         await _set_edgedb_database_metadata(
@@ -2813,7 +2813,7 @@ async def _bootstrap(
     if (
         backend_params.has_create_role
         and args.default_database_user
-        and args.default_database_user != edbdef.EDGEDB_SUPERUSER
+        and args.default_database_user != edbdef.GELITE_SUPERUSER
     ):
         await _ensure_edgedb_role(
             ctx,
@@ -2832,7 +2832,7 @@ async def _bootstrap(
         await _create_edgedb_database(
             ctx,
             args.default_database,
-            args.default_database_user or edbdef.EDGEDB_SUPERUSER,
+            args.default_database_user or edbdef.GELITE_SUPERUSER,
         )
 
     return stdlib, compiler

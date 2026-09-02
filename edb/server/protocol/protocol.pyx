@@ -790,7 +790,7 @@ cdef class HttpProtocol:
                     response,
                     "Admin UI is not enabled on this EdgeDB instance. "
                     "Run the server with --admin-ui=enabled "
-                    "(or EDGEDB_SERVER_ADMIN_UI=enabled) to enable."
+                    "(or GELITE_SERVER_ADMIN_UI=enabled) to enable."
                 )
             else:
                 await ui_ext.handle_request(

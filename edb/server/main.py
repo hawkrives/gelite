@@ -258,7 +258,7 @@ async def _run_server(
             ],
             net_worker_mode=args.net_worker_mode,
         )
-        magic_smtp = os.getenv('EDGEDB_MAGIC_SMTP_CONFIG')
+        magic_smtp = os.getenv('GELITE_MAGIC_SMTP_CONFIG')
         if magic_smtp:
             await tenant.load_sidechannel_configs(
                 json.loads(magic_smtp), compiler=compiler
@@ -478,18 +478,11 @@ async def run_server(
     if devmode.is_in_dev_mode():
         logger.info(f'development mode active')
 
-    if fd_str := os.environ.get("EDGEDB_SERVER_EXTERNAL_LOCK_FD"):
+    if fd_str := os.environ.get("GELITE_SERVER_EXTERNAL_LOCK_FD"):
         try:
             fd = int(fd_str)
         except ValueError:
-            logger.info("Invalid EDGEDB_SERVER_EXTERNAL_LOCK_FD")
-        else:
-            os.set_inheritable(fd, False)
-    if fd_str := os.environ.get("GEL_SERVER_EXTERNAL_LOCK_FD"):
-        try:
-            fd = int(fd_str)
-        except ValueError:
-            logger.info("Invalid GEL_SERVER_EXTERNAL_LOCK_FD")
+            logger.info("Invalid GELITE_SERVER_EXTERNAL_LOCK_FD")
         else:
             os.set_inheritable(fd, False)
 
@@ -719,7 +712,7 @@ async def run_server(
         ):
             instance_name = args.instance_name
             database = pgcluster.get_database_backend_name(
-                defines.EDGEDB_TEMPLATE_DB,
+                defines.GELITE_TEMPLATE_DB,
                 tenant_id=tenant_id,
             ) if args.data_dir else None
             server_settings = {
@@ -780,11 +773,11 @@ def bump_rlimit_nofile() -> None:
     except resource.error:
         logger.warning('could not read RLIMIT_NOFILE')
     else:
-        if fno_soft < defines.EDGEDB_MIN_RLIMIT_NOFILE:
+        if fno_soft < defines.GELITE_MIN_RLIMIT_NOFILE:
             try:
                 resource.setrlimit(
                     resource.RLIMIT_NOFILE,
-                    (min(defines.EDGEDB_MIN_RLIMIT_NOFILE, fno_hard),
+                    (min(defines.GELITE_MIN_RLIMIT_NOFILE, fno_hard),
                      fno_hard))
             except resource.error:
                 logger.warning('could not set RLIMIT_NOFILE')
@@ -856,13 +849,9 @@ def server_main(**kwargs: Any) -> None:
 @srvargs.server_options
 @click.pass_context
 def main(ctx, version=False, **kwargs):
-    if kwargs.get('testmode') and 'GEL_TEST_CATALOG_VERSION' in os.environ:
-        buildmeta.EDGEDB_CATALOG_VERSION = int(
-            os.environ['GEL_TEST_CATALOG_VERSION']
-        )
-    elif kwargs.get('testmode') and 'EDGEDB_TEST_CATALOG_VERSION' in os.environ:
-        buildmeta.EDGEDB_CATALOG_VERSION = int(
-            os.environ['EDGEDB_TEST_CATALOG_VERSION']
+    if kwargs.get('testmode') and 'GELITE_TEST_CATALOG_VERSION' in os.environ:
+        buildmeta.GELITE_CATALOG_VERSION = int(
+            os.environ['GELITE_TEST_CATALOG_VERSION']
         )
     if version:
         print(f"gel-server, version {buildmeta.get_version()}")
@@ -931,22 +920,16 @@ def initialize_static_cfg(
 
     values: dict[str, Any] = {}
     translate_env = {
-        "EDGEDB_SERVER_BIND_ADDRESS": "listen_addresses",
-        "EDGEDB_SERVER_PORT": "listen_port",
-        "GEL_SERVER_BIND_ADDRESS": "listen_addresses",
-        "GEL_SERVER_PORT": "listen_port",
+        "GELITE_SERVER_BIND_ADDRESS": "listen_addresses",
+        "GELITE_SERVER_PORT": "listen_port",
     }
     for name, value in os.environ.items():
         if cfg := translate_env.get(name):
             values[cfg] = value
         else:
-            cfg = name.removeprefix("EDGEDB_SERVER_CONFIG_cfg::")
+            cfg = name.removeprefix("GELITE_SERVER_CONFIG_cfg::")
             if cfg != name:
                 values[cfg] = value
-            else:
-                cfg = name.removeprefix("GEL_SERVER_CONFIG_cfg::")
-                if cfg != name:
-                    values[cfg] = value
     if values:
         add_config_values(values, config.ConStateType.environment_variable)
 

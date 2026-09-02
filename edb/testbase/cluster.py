@@ -55,7 +55,7 @@ class BaseCluster:
         self,
         runstate_dir: pathlib.Path,
         *,
-        port: int = edgedb_defines.EDGEDB_PORT,
+        port: int = edgedb_defines.GELITE_PORT,
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
         log_level: Optional[str] = None,
@@ -74,7 +74,7 @@ class BaseCluster:
     ):
         self._edgedb_cmd = [sys.executable, '-I', '-m', 'edb.server.main']
 
-        if "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
+        if "GELITE_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
             self._edgedb_cmd.append('--instance-name=localtest')
 
         self._edgedb_cmd.append('--tls-cert-mode=generate_self_signed')
@@ -83,7 +83,7 @@ class BaseCluster:
         if log_level:
             self._edgedb_cmd.extend(['--log-level', log_level])
 
-        compiler_addr = os.getenv('EDGEDB_TEST_REMOTE_COMPILER')
+        compiler_addr = os.getenv('GELITE_TEST_REMOTE_COMPILER')
         if compiler_addr:
             compiler_pool_mode = edgedb_args.CompilerPoolMode.Remote
             self._edgedb_cmd.extend(
@@ -271,7 +271,7 @@ class BaseCluster:
     ) -> bool:
         return await conn.sql_fetch_val(
             b"SELECT True FROM pg_catalog.pg_database WHERE datname = $1",
-            args=[edgedb_defines.EDGEDB_TEMPLATE_DB.encode("utf-8")],
+            args=[edgedb_defines.GELITE_TEMPLATE_DB.encode("utf-8")],
         ) is not None
 
     async def _wait_for_server(
@@ -359,8 +359,8 @@ class BaseCluster:
             conn = await tconn.async_connect_test_client(
                 host='localhost',
                 port=self._effective_port,
-                user=edgedb_defines.EDGEDB_SUPERUSER,
-                branch=edgedb_defines.EDGEDB_SUPERUSER_DB,
+                user=edgedb_defines.GELITE_SUPERUSER,
+                branch=edgedb_defines.GELITE_SUPERUSER_DB,
                 admin_unix_path=sock_path,
                 wait_until_available=secs,
             )
@@ -391,7 +391,7 @@ class BaseCluster:
 
     async def set_superuser_password(self, password: str) -> None:
         await self._admin_query(f'''
-            ALTER ROLE {edgedb_defines.EDGEDB_SUPERUSER}
+            ALTER ROLE {edgedb_defines.GELITE_SUPERUSER}
             SET password := {quote.quote_literal(password)}
         ''')
 
@@ -416,7 +416,7 @@ class Cluster(BaseCluster):
         data_dir: pathlib.Path,
         *,
         pg_superuser: str = 'postgres',
-        port: int = edgedb_defines.EDGEDB_PORT,
+        port: int = edgedb_defines.GELITE_PORT,
         runstate_dir: Optional[pathlib.Path] = None,
         env: Optional[Mapping[str, str]] = None,
         testmode: bool = False,
@@ -552,10 +552,10 @@ class RunningCluster(BaseCluster):
         pass
 
     def has_create_database(self) -> bool:
-        return os.environ.get('EDGEDB_TEST_CASES_SET_UP') != 'inplace'
+        return os.environ.get('GELITE_TEST_CASES_SET_UP') != 'inplace'
 
     def has_create_role(self) -> bool:
-        return os.environ.get('EDGEDB_TEST_HAS_CREATE_ROLE') == 'True'
+        return os.environ.get('GELITE_TEST_HAS_CREATE_ROLE') == 'True'
 
 
 class TempClusterWithRemotePg(BaseCluster):
@@ -587,7 +587,7 @@ class TempClusterWithRemotePg(BaseCluster):
             ),
         )
         self._backend_dsn = backend_dsn
-        mt = "EDGEDB_SERVER_MULTITENANT_CONFIG_FILE" in os.environ
+        mt = "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ
         if mt:
             compiler_pool_mode = edgedb_args.CompilerPoolMode.MultiTenant
 

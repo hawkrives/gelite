@@ -96,10 +96,10 @@ PreArgs = tuple[Any, ...]
 PROCESS_INITIAL_RESPONSE_TIMEOUT: float = 60.0
 KILL_TIMEOUT: float = 10.0
 HEALTH_CHECK_MIN_INTERVAL: float = float(
-    os.getenv("GEL_COMPILER_HEALTH_CHECK_MIN_INTERVAL", 10)
+    os.getenv("GELITE_COMPILER_HEALTH_CHECK_MIN_INTERVAL", 10)
 )
 HEALTH_CHECK_TIMEOUT: float = float(
-    os.getenv("GEL_COMPILER_HEALTH_CHECK_TIMEOUT", 10)
+    os.getenv("GELITE_COMPILER_HEALTH_CHECK_TIMEOUT", 10)
 )
 ADAPTIVE_SCALE_UP_WAIT_TIME: float = 3.0
 ADAPTIVE_SCALE_DOWN_WAIT_TIME: float = 60.0
@@ -1106,7 +1106,7 @@ class BaseLocalPool[Worker_T: Worker, InitArgs_T](
 
         env = _ENV
         if debug.flags.server:
-            env = {'EDGEDB_DEBUG_SERVER': '1', **_ENV}
+            env = {'GELITE_DEBUG_SERVER': '1', **_ENV}
 
         cmdline = [sys.executable]
         if sys.flags.isolated:
@@ -1649,7 +1649,7 @@ class RemotePool(AbstractPool[RemoteWorker, InitArgs, RemoteInitArgsPickle]):
             await worker.call(
                 '__init_server__',
                 compiler_protocol,
-                defines.EDGEDB_CATALOG_VERSION,
+                defines.GELITE_CATALOG_VERSION,
                 init_args_pickled,
             )
         except state.IncompatibleClient as ex:

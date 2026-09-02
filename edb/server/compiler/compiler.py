@@ -1839,7 +1839,7 @@ def _compile_ql_query(
         })
         id_hash = hashlib.blake2b(digest_size=16)
         id_hash.update(
-            json.dumps(sql_info).encode(defines.EDGEDB_ENCODING)
+            json.dumps(sql_info).encode(defines.GELITE_ENCODING)
         )
         sql_info['id'] = str(uuidgen.from_bytes(id_hash.digest()))
 
@@ -1992,7 +1992,7 @@ def _compile_ql_query(
         ]
 
     sql_hash = _hash_sql(
-        sql_text.encode(defines.EDGEDB_ENCODING),
+        sql_text.encode(defines.GELITE_ENCODING),
         mode=str(ctx.output_format).encode(),
         intype=in_type_id.bytes,
         outtype=out_type_id.bytes)
@@ -2000,13 +2000,13 @@ def _compile_ql_query(
     cache_func_call = None
     if func_call_sql is not None:
         func_call_sql_hash = _hash_sql(
-            func_call_sql.encode(defines.EDGEDB_ENCODING),
+            func_call_sql.encode(defines.GELITE_ENCODING),
             mode=str(ctx.output_format).encode(),
             intype=in_type_id.bytes,
             outtype=out_type_id.bytes,
         )
         cache_func_call = (
-            (sql_info_prefix + func_call_sql).encode(defines.EDGEDB_ENCODING),
+            (sql_info_prefix + func_call_sql).encode(defines.GELITE_ENCODING),
             func_call_sql_hash,
         )
 
@@ -2023,7 +2023,7 @@ def _compile_ql_query(
         query_asts = None
 
     return dbstate.Query(
-        sql=(sql_info_prefix + sql_text).encode(defines.EDGEDB_ENCODING),
+        sql=(sql_info_prefix + sql_text).encode(defines.GELITE_ENCODING),
         sql_hash=sql_hash,
         cache_sql=cache_sql,
         cache_func_call=cache_func_call,
@@ -2064,7 +2064,7 @@ def _build_cache_function(
             # return_type to reflect that fact. This was set to `void`, leading
             # to issues that certain exceptions are not raised as expected when
             # wrapped with a function returning (setof) void - reproducible
-            # with test_edgeql_casts_json_12() and EDGEDB_TEST_REPEATS=1.
+            # with test_edgeql_casts_json_12() and GELITE_TEST_REPEATS=1.
             return_type = ("int",)
             if ir.stype.is_object_type() or ir.stype.is_tuple(ir.schema):
                 returns_record = True
@@ -2159,8 +2159,8 @@ def _build_cache_function(
             target_list=[pgast.ResTarget(val=func_call)],
         )
     cache_sql = (
-        cf.to_string().encode(defines.EDGEDB_ENCODING),
-        df.to_string().encode(defines.EDGEDB_ENCODING),
+        cf.to_string().encode(defines.GELITE_ENCODING),
+        df.to_string().encode(defines.GELITE_ENCODING),
     )
     return cache_sql, sql_ast
 
@@ -2904,7 +2904,7 @@ def _try_compile(
         # This is a bad but simple way to emulate a slow compilation for tests.
         # Ideally, we should have a testmode function that is hooked to sleep
         # as `simple_special_case`, or wait for a notification from the test.
-        sentinel = "# EDGEDB_TEST_COMPILER_SLEEP = "
+        sentinel = "# GELITE_TEST_COMPILER_SLEEP = "
         text = source.text()
         if text.startswith(sentinel):
             time.sleep(float(text[len(sentinel):text.index("\n")]))
@@ -2923,7 +2923,7 @@ def _try_compile_ast(
         # This is a bad but simple way to emulate a slow compilation for tests.
         # Ideally, we should have a testmode function that is hooked to sleep
         # as `simple_special_case`, or wait for a notification from the test.
-        sentinel = "# EDGEDB_TEST_COMPILER_SLEEP = "
+        sentinel = "# GELITE_TEST_COMPILER_SLEEP = "
         text = source.text()
         if text.startswith(sentinel):
             time.sleep(float(text[len(sentinel):text.index("\n")]))

@@ -51,10 +51,10 @@ we'll need. There are a couple more environment variables we need to set:
 .. code-block:: bash
 
     $ flyctl secrets set \
-        GEL_SERVER_PASSWORD="$PASSWORD" \
-        GEL_SERVER_BACKEND_DSN_ENV=DATABASE_URL \
-        GEL_SERVER_TLS_CERT_MODE=generate_self_signed \
-        GEL_SERVER_PORT=8080 \
+        GELITE_SERVER_PASSWORD="$PASSWORD" \
+        GELITE_SERVER_BACKEND_DSN_ENV=DATABASE_URL \
+        GELITE_SERVER_TLS_CERT_MODE=generate_self_signed \
+        GELITE_SERVER_PORT=8080 \
         --app $EDB_APP
     Secrets are staged for the first deployment
 
@@ -200,7 +200,7 @@ skip this step).
 
 .. code-block:: bash
 
-    $ EDB_SECRETS="GEL_SERVER_TLS_KEY GEL_SERVER_TLS_CERT"
+    $ EDB_SECRETS="GELITE_SERVER_TLS_KEY GELITE_SERVER_TLS_CERT"
     $ flyctl ssh console --app $EDB_APP -C \
         "gel-show-secrets.sh --format=toml $EDB_SECRETS" \
       | tr -d '\r' | flyctl secrets import --app $EDB_APP
@@ -231,7 +231,7 @@ Construct the DSN for internal Fly.io connections:
 
 .. code-block:: bash
 
-    $ GEL_DSN=gel://admin:$PASSWORD@$EDB_APP.internal:8080
+    $ GELITE_DSN=gel://admin:$PASSWORD@$EDB_APP.internal:8080
 
 Consider writing it to a file to ensure the DSN looks correct. Remember to
 delete the file after you're done. (Printing this value to the terminal with
@@ -239,7 +239,7 @@ delete the file after you're done. (Printing this value to the terminal with
 
 .. code-block:: bash
 
-    $ echo $GEL_DSN > dsn.txt
+    $ echo $GELITE_DSN > dsn.txt
     $ open dsn.txt
     $ rm dsn.txt
 
@@ -252,7 +252,7 @@ the server's TLS certificate:
 .. code-block:: bash
 
     $ flyctl ssh console -a $EDB_APP \
-        -C "gel-show-secrets.sh --format=raw GEL_SERVER_TLS_CERT"
+        -C "gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_CERT"
 
 Save this to a file or set it as a secret in your application.
 
@@ -265,7 +265,7 @@ API server) set the value of the :gelenv:`DSN` secret inside that app.
 .. code-block:: bash
 
     $ flyctl secrets set \
-        GEL_DSN=$DSN \
+        GELITE_DSN=$DSN \
         --app my-other-fly-app
 
 We'll also set another variable that will disable Gel's TLS checks.
@@ -274,7 +274,7 @@ this case; configuring TLS certificates is also beyond the scope of this guide.
 
 .. code-block:: bash
 
-    $ flyctl secrets set GEL_CLIENT_TLS_SECURITY=insecure \
+    $ flyctl secrets set GELITE_CLIENT_TLS_SECURITY=insecure \
         --app my-other-fly-app
 
 
@@ -325,7 +325,7 @@ You can securely obtain the certificate content by running:
 .. code-block:: bash
 
     $ flyctl ssh console -a $EDB_APP \
-        -C "gel-show-secrets.sh --format=raw GEL_SERVER_TLS_CERT"
+        -C "gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_CERT"
 
 Local development with the CLI
 ------------------------------
@@ -347,7 +347,7 @@ alias to the remote instance.
 .. code-block:: bash
 
     $ gel instance link \
-        --dsn $GEL_DSN \
+        --dsn $GELITE_DSN \
         --non-interactive \
         --trust-tls-cert \
         my_fly_instance

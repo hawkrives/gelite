@@ -313,7 +313,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_ddl_rename_type_and_add_01(self):
         await self.con.execute("""
@@ -365,7 +365,7 @@ class TestEdgeQLDDL(tb.DDLTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_ddl_rename_type_and_add_02(self):
         await self.con.execute("""

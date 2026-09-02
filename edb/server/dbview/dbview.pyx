@@ -137,7 +137,7 @@ cdef class CompiledQuery:
             data['tag'] = self.tag
         # maintenance reminder: please also update _amend_typedesc_in_sql()
         if data:
-            data_bytes = json.dumps(data).encode(defines.EDGEDB_ENCODING)
+            data_bytes = json.dumps(data).encode(defines.GELITE_ENCODING)
             return b''.join([b'-- ', data_bytes, b'\n'])
         else:
             return b''
@@ -633,7 +633,7 @@ cdef class DatabaseConnectionView:
             'sys::current_permissions': list(self.get_permissions()[1])
         }
 
-        if db.name == defines.EDGEDB_SYSTEM_DB:
+        if db.name == defines.GELITE_SYSTEM_DB:
             # Make system database read-only.
             self._capability_mask = <uint64_t>(
                 compiler.Capability.ALL
@@ -1678,7 +1678,7 @@ cdef class DatabaseConnectionView:
                 tag_json = json.dumps({"tag": tag})
                 intro_sql = b''.join([
                     b'-- ',
-                    tag_json.encode(defines.EDGEDB_ENCODING),
+                    tag_json.encode(defines.GELITE_ENCODING),
                     b'\n',
                     intro_sql,
                 ])
@@ -2095,14 +2095,14 @@ cdef class DatabaseIndex:
     cdef inline set_current_branches(self):
         metrics.current_branches.set(
             sum(
-                dbname != defines.EDGEDB_SYSTEM_DB
+                dbname != defines.GELITE_SYSTEM_DB
                 for dbname in self._dbs
             ),
             self._tenant.get_instance_name(),
         )
         metrics.current_introspected_branches.set(
             sum(
-                dbname != defines.EDGEDB_SYSTEM_DB
+                dbname != defines.GELITE_SYSTEM_DB
                 and db.user_schema_pickle is not None
                 for dbname, db in self._dbs.items()
             ),
@@ -2124,13 +2124,13 @@ cdef class DatabaseIndex:
         if self._tenant.get_backend_runtime_params().has_create_database:
             dbops.UpdateMetadata(
                 dbops.Database(
-                    name=self._tenant.get_pg_dbname(defines.EDGEDB_SYSTEM_DB),
+                    name=self._tenant.get_pg_dbname(defines.GELITE_SYSTEM_DB),
                 ),
                 metadata,
             ).generate(block)
         else:
             dbops.UpdateSingleDBMetadata(
-                defines.EDGEDB_SYSTEM_DB, metadata
+                defines.GELITE_SYSTEM_DB, metadata
             ).generate(block)
         await conn.sql_execute(block.to_string().encode())
 

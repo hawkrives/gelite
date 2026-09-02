@@ -132,8 +132,8 @@ class StolonConsulBackend(StolonBackend):
         # This means we can request for 10 consecutive requests immediately
         # after each response without delay, and then we're capped to 0.1
         # request(token) per second, or 1 request per 10 seconds.
-        cap = float(os.environ.get("EDGEDB_SERVER_CONSUL_TOKEN_CAPACITY", 10))
-        rate = float(os.environ.get("EDGEDB_SERVER_CONSUL_TOKEN_RATE", 0.1))
+        cap = float(os.environ.get("GELITE_SERVER_CONSUL_TOKEN_CAPACITY", 10))
+        rate = float(os.environ.get("GELITE_SERVER_CONSUL_TOKEN_RATE", 0.1))
         self._token_bucket = token_bucket.TokenBucket(cap, rate)
 
     async def _start_watching(self) -> asyncwatcher.AsyncWatcherProtocol:

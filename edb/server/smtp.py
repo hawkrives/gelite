@@ -118,8 +118,8 @@ class SMTP:
             _semaphore = asyncio.BoundedSemaphore(
                 int(
                     os.environ.get(
-                        "EDGEDB_SERVER_AUTH_SMTP_CONCURRENCY",
-                        os.environ.get("EDGEDB_SERVER_SMTP_CONCURRENCY", 5),
+                        "GELITE_SERVER_AUTH_SMTP_CONCURRENCY",
+                        os.environ.get("GELITE_SERVER_SMTP_CONCURRENCY", 5),
                     )
                 )
             )
@@ -182,7 +182,7 @@ class SMTP:
         file_name_hash = hashlib.sha256(hash_input.encode()).hexdigest()
         file_name = f"/tmp/edb-test-email-{file_name_hash}.pickle"
         test_file = os.environ.get(
-            "EDGEDB_TEST_EMAIL_FILE",
+            "GELITE_TEST_EMAIL_FILE",
             file_name,
         )
         if os.path.exists(test_file):

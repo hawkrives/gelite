@@ -203,7 +203,7 @@ class SetMetadata(PutMetadata):
         object_type = self.object.get_type()
         object_id = self.object.get_id()
 
-        prefix = ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)
+        prefix = ql(defines.GELITE_VISIBLE_METADATA_PREFIX)
         desc = ql(json.dumps(metadata))
         comment = f'E{prefix} || {desc}'
 
@@ -234,7 +234,7 @@ class SetSingleDBMetadata(PutSingleDBMetadata):
 class UpdateMetadata(PutMetadata):
     def code_with_block(self, block: base.PLBlock) -> str:
         metadata_qry = GetMetadata(self.object).code_with_block(block)
-        prefix = ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)
+        prefix = ql(defines.GELITE_VISIBLE_METADATA_PREFIX)
         json_v = block.declare_var('jsonb')
         upd_v = block.declare_var('text')
         meta_v = block.declare_var('jsonb')
@@ -313,7 +313,7 @@ class UpdateMetadataSection(UpdateMetadataSectionMixin, PutMetadata):
     def code_with_block(self, block: base.PLBlock) -> str:
         json_v, meta_v = self._merge(block)
         upd_v = block.declare_var('text')
-        prefix = ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)
+        prefix = ql(defines.GELITE_VISIBLE_METADATA_PREFIX)
         block.add_command(textwrap.dedent(f'''\
             IF {json_v} IS NOT NULL THEN
                 {upd_v} := E{prefix} || ({json_v} || {meta_v})::text;

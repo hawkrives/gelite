@@ -518,7 +518,7 @@ def _compile_sql(
             sql_info['extras'] = json.dumps(extras),
             id_hash = hashlib.blake2b(digest_size=16)
             id_hash.update(
-                json.dumps(sql_info).encode(defines.EDGEDB_ENCODING)
+                json.dumps(sql_info).encode(defines.GELITE_ENCODING)
             )
             sql_info['id'] = str(uuidgen.from_bytes(id_hash.digest()))
 

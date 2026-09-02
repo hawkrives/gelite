@@ -1519,7 +1519,7 @@ cdef class EdgeConnection(frontend.FrontendConnection):
             msg_buf.write_len_prefixed_utf8(str(buildmeta.get_version()))
             msg_buf.write_int16(DUMP_HEADER_SERVER_CATALOG_VERSION)
             msg_buf.write_int32(8)
-            msg_buf.write_int64(buildmeta.EDGEDB_CATALOG_VERSION)
+            msg_buf.write_int64(buildmeta.GELITE_CATALOG_VERSION)
             msg_buf.write_int16(DUMP_HEADER_SERVER_TIME)
             msg_buf.write_len_prefixed_utf8(str(int(time.time())))
 

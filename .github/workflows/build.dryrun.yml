@@ -621,7 +621,7 @@ jobs:
         PKG_PLATFORM_VERSION: "buster"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -648,7 +648,7 @@ jobs:
         PKG_PLATFORM_VERSION: "buster"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -675,7 +675,7 @@ jobs:
         PKG_PLATFORM_VERSION: "bullseye"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -702,7 +702,7 @@ jobs:
         PKG_PLATFORM_VERSION: "bullseye"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -729,7 +729,7 @@ jobs:
         PKG_PLATFORM_VERSION: "bookworm"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -756,7 +756,7 @@ jobs:
         PKG_PLATFORM_VERSION: "bookworm"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -783,7 +783,7 @@ jobs:
         PKG_PLATFORM_VERSION: "focal"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -810,7 +810,7 @@ jobs:
         PKG_PLATFORM_VERSION: "focal"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -837,7 +837,7 @@ jobs:
         PKG_PLATFORM_VERSION: "jammy"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -864,7 +864,7 @@ jobs:
         PKG_PLATFORM_VERSION: "jammy"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -891,7 +891,7 @@ jobs:
         PKG_PLATFORM_VERSION: "noble"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -918,7 +918,7 @@ jobs:
         PKG_PLATFORM_VERSION: "noble"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -945,7 +945,7 @@ jobs:
         PKG_PLATFORM_VERSION: "8"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -972,7 +972,7 @@ jobs:
         PKG_PLATFORM_VERSION: "8"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -999,7 +999,7 @@ jobs:
         PKG_PLATFORM_VERSION: "9"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1026,7 +1026,7 @@ jobs:
         PKG_PLATFORM_VERSION: "9"
         EXTRA_OPTIMIZATIONS: "true"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1054,7 +1054,7 @@ jobs:
         EXTRA_OPTIMIZATIONS: "true"
         BUILD_GENERIC: true
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1082,7 +1082,7 @@ jobs:
         EXTRA_OPTIMIZATIONS: "true"
         BUILD_GENERIC: true
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1111,7 +1111,7 @@ jobs:
         BUILD_GENERIC: true
         PKG_PLATFORM_LIBC: "musl"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1140,7 +1140,7 @@ jobs:
         BUILD_GENERIC: true
         PKG_PLATFORM_LIBC: "musl"
         METAPKG_GIT_CACHE: disabled
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
 
     - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
@@ -1221,7 +1221,7 @@ jobs:
         METAPKG_GIT_CACHE: disabled
         BUILD_GENERIC: true
         CMAKE_POLICY_VERSION_MINIMUM: '3.5'
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
       run: |
         edgedb-pkg/integration/macos/build.sh
@@ -1304,7 +1304,7 @@ jobs:
         METAPKG_GIT_CACHE: disabled
         BUILD_GENERIC: true
         CMAKE_POLICY_VERSION_MINIMUM: '3.5'
-        GEL_PKG_REF: ${{ inputs.gelpkg_ref }}
+        GELITE_PKG_REF: ${{ inputs.gelpkg_ref }}
         METAPKG_REF: ${{ inputs.metapkg_ref }}
       run: |
         edgedb-pkg/integration/macos/build.sh

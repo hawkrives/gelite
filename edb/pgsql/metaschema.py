@@ -1341,7 +1341,7 @@ class GetObjectMetadata(trampoline.VersionedFunction):
         FROM
             obj_description("objoid", "objclass") AS d
     '''.format(
-        prefix=f'E{ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)}',
+        prefix=f'E{ql(defines.GELITE_VISIBLE_METADATA_PREFIX)}',
     )
 
     def __init__(self) -> None:
@@ -1364,7 +1364,7 @@ class GetColumnMetadata(trampoline.VersionedFunction):
         FROM
             col_description("tableoid", "column") AS d
     '''.format(
-        prefix=f'E{ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)}',
+        prefix=f'E{ql(defines.GELITE_VISIBLE_METADATA_PREFIX)}',
     )
 
     def __init__(self) -> None:
@@ -1387,7 +1387,7 @@ class GetSharedObjectMetadata(trampoline.VersionedFunction):
         FROM
             shobj_description("objoid", "objclass") AS d
     '''.format(
-        prefix=f'E{ql(defines.EDGEDB_VISIBLE_METADATA_PREFIX)}',
+        prefix=f'E{ql(defines.GELITE_VISIBLE_METADATA_PREFIX)}',
     )
 
     def __init__(self) -> None:
@@ -1405,7 +1405,7 @@ class GetDatabaseMetadataFunction(trampoline.VersionedFunction):
         SELECT
             CASE
             WHEN
-                "dbname" = {ql(defines.EDGEDB_SUPERUSER_DB)}
+                "dbname" = {ql(defines.GELITE_SUPERUSER_DB)}
                 OR (edgedb_VER.get_backend_capabilities()
                     & {int(params.BackendCapabilities.CREATE_DATABASE)}) != 0
             THEN
@@ -1457,7 +1457,7 @@ class GetCurrentDatabaseFunction(trampoline.VersionedFunction):
                     char_length(edgedb_VER.get_backend_tenant_id()) + 2
                 )
             ELSE
-                {ql(defines.EDGEDB_SUPERUSER_DB)}
+                {ql(defines.GELITE_SUPERUSER_DB)}
             END
     '''
 
@@ -3022,7 +3022,7 @@ class DescribeRolesAsDDLFunction(trampoline.VersionedFunction):
             role_obj,
             'apply_access_policies_pg_default',
         )
-        qi_superuser = qlquote.quote_ident(defines.EDGEDB_SUPERUSER)
+        qi_superuser = qlquote.quote_ident(defines.GELITE_SUPERUSER)
         text = f"""
             WITH RECURSIVE
             dependencies AS (
@@ -3046,7 +3046,7 @@ class DescribeRolesAsDDLFunction(trampoline.VersionedFunction):
             SELECT
             coalesce(string_agg(
                 CASE WHEN
-                    role.{qi(name_col)} = {ql(defines.EDGEDB_SUPERUSER)} THEN
+                    role.{qi(name_col)} = {ql(defines.GELITE_SUPERUSER)} THEN
                     NULLIF(
                         concat(
                             'ALTER ROLE {qi_superuser} {{ ',
@@ -3910,7 +3910,7 @@ class SysConfigFullFunction(trampoline.VersionedFunction):
             FROM
                 jsonb_each(
                     edgedb_VER.get_database_metadata(
-                        {ql(defines.EDGEDB_SYSTEM_DB)}
+                        {ql(defines.GELITE_SYSTEM_DB)}
                     ) -> 'sysconfig'
                 ) AS s
                 INNER JOIN config_spec ON (config_spec.name = s.key)
@@ -5741,9 +5741,9 @@ def _generate_branch_views(schema: s_schema.Schema) -> list[dbops.View]:
              THEN
                 datname IN (
                     edgedb_VER.get_database_backend_name(
-                        {ql(defines.EDGEDB_TEMPLATE_DB)}),
+                        {ql(defines.GELITE_TEMPLATE_DB)}),
                     edgedb_VER.get_database_backend_name(
-                        {ql(defines.EDGEDB_SYSTEM_DB)})
+                        {ql(defines.GELITE_SYSTEM_DB)})
                 )
              ELSE False END
         )""",
@@ -5904,7 +5904,7 @@ def _generate_extension_views(schema: s_schema.Schema) -> list[dbops.View]:
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackage'
             ) AS e
     '''
@@ -5928,7 +5928,7 @@ def _generate_extension_views(schema: s_schema.Schema) -> list[dbops.View]:
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackage'
             ) AS e
             CROSS JOIN LATERAL
@@ -5943,7 +5943,7 @@ def _generate_extension_views(schema: s_schema.Schema) -> list[dbops.View]:
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackage'
             ) AS e
             CROSS JOIN LATERAL
@@ -6033,7 +6033,7 @@ def _generate_extension_migration_views(
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackageMigration'
             ) AS e
     '''
@@ -6057,7 +6057,7 @@ def _generate_extension_migration_views(
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackageMigration'
             ) AS e
             CROSS JOIN LATERAL
@@ -6072,7 +6072,7 @@ def _generate_extension_migration_views(
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'ExtensionPackageMigration'
             ) AS e
             CROSS JOIN LATERAL
@@ -6130,7 +6130,7 @@ def _generate_role_views(schema: s_schema.Schema) -> list[dbops.View]:
             WHERE
                 m.member = a.oid
                 AND g.rolname = edgedb_VER.get_role_backend_name(
-                    {ql(defines.EDGEDB_SUPERGROUP)}
+                    {ql(defines.GELITE_SUPERGROUP)}
                 )
         )
     '''
@@ -6526,7 +6526,7 @@ def _generate_schema_ver_views(schema: s_schema.Schema) -> list[dbops.View]:
         FROM
             jsonb_each(
                 edgedb_VER.get_database_metadata(
-                    {ql(defines.EDGEDB_TEMPLATE_DB)}
+                    {ql(defines.GELITE_TEMPLATE_DB)}
                 ) -> 'GlobalSchemaVersion'
             ) AS v
     '''

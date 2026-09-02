@@ -133,7 +133,7 @@ class DropBranch(BranchCommand, sd.DeleteExternalObject[Branch]):
         context: sd.CommandContext,
     ) -> None:
         super()._validate_legal_command(schema, context)
-        if self.classname.name in s_def.EDGEDB_SPECIAL_DBS:
+        if self.classname.name in s_def.GELITE_SPECIAL_DBS:
             raise errors.ExecutionError(
                 f"database {self.classname.name!r} cannot be dropped"
             )

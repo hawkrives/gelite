@@ -141,7 +141,7 @@ Construct the DSN using these values:
 
 .. code-block:: bash
 
-    $ GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    $ GELITE_DSN="gel://admin:<password>@<hostname>:5656"
 
 Obtaining the TLS certificate
 -----------------------------
@@ -159,7 +159,7 @@ to the instance and extracting it:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure \
+    $ gel --dsn $GELITE_DSN --tls-security insecure \
         query "SELECT sys::get_tls_certificate()"
 
 Store this certificate and provide it to your application via the
@@ -172,11 +172,11 @@ Set these environment variables where you deploy your application:
 
 .. code-block:: bash
 
-    GEL_DSN="gel://admin:<password>@<hostname>:5656"
+    GELITE_DSN="gel://admin:<password>@<hostname>:5656"
     # For self-signed certificates:
-    GEL_CLIENT_TLS_SECURITY=insecure
+    GELITE_CLIENT_TLS_SECURITY=insecure
     # Or with a proper TLS certificate:
-    GEL_TLS_CA="<certificate content>"
+    GELITE_TLS_CA="<certificate content>"
 
 Gel's client libraries will automatically read these environment variables.
 
@@ -194,7 +194,7 @@ create an alias using :gelcmd:`instance link`.
 .. code-block:: bash
 
     $ gel instance link \
-        --dsn $GEL_DSN \
+        --dsn $GELITE_DSN \
         --non-interactive \
         --trust-tls-cert \
         my_aws_instance

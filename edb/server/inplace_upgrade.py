@@ -601,7 +601,7 @@ async def _finalize_one(
     # For the template database (which is upgraded *last*, after all
     # others have succeeded), run the commands to update the global
     # schema. (To populate the extension packages.)
-    if database == edbdef.EDGEDB_TEMPLATE_DB:
+    if database == edbdef.GELITE_TEMPLATE_DB:
         global_schema_update_query = await instdata.get_instdata(
             conn, 'global_schema_update_query', 'text')
         await conn.sql_execute(global_schema_update_query)
@@ -625,7 +625,7 @@ async def _get_databases(
 ) -> list[str]:
     cluster = ctx.cluster
 
-    tpl_db = cluster.get_db_name(edbdef.EDGEDB_TEMPLATE_DB)
+    tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
     conn = await cluster.connect(
         source_description="inplace upgrade",
         database=tpl_db
@@ -648,7 +648,7 @@ async def _get_databases(
     # stay around so we can query all branches.
     EARLY: tuple[str, ...] = ()
     databases.sort(
-        key=lambda k: (k == edbdef.EDGEDB_TEMPLATE_DB, k not in EARLY, k)
+        key=lambda k: (k == edbdef.GELITE_TEMPLATE_DB, k not in EARLY, k)
     )
 
     return databases
@@ -660,7 +660,7 @@ async def _get_global_schema(
 ) -> s_schema.Schema:
     cluster = ctx.cluster
 
-    tpl_db = cluster.get_db_name(edbdef.EDGEDB_TEMPLATE_DB)
+    tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
     conn = await cluster.connect(
         source_description="inplace upgrade",
         database=tpl_db
@@ -712,7 +712,7 @@ async def _rollback_all(
 
     for database in databases:
         if database == os.environ.get(
-            'EDGEDB_UPGRADE_ROLLBACK_ERROR_INJECTION'
+            'GELITE_UPGRADE_ROLLBACK_ERROR_INJECTION'
         ):
             raise AssertionError(f'failure injected on {database}')
 
@@ -747,7 +747,7 @@ async def _upgrade_all(
         upgrade_data = json.load(f)
 
     for database in databases:
-        if database == edbdef.EDGEDB_TEMPLATE_DB:
+        if database == edbdef.GELITE_TEMPLATE_DB:
             continue
 
         conn = bootstrap.PGConnectionProxy(
@@ -813,7 +813,7 @@ async def _finalize_all(
             finally:
                 conn.terminate()
 
-    inject_failure = os.environ.get('EDGEDB_UPGRADE_FINALIZE_ERROR_INJECTION')
+    inject_failure = os.environ.get('GELITE_UPGRADE_FINALIZE_ERROR_INJECTION')
 
     # Test all of the pivots in transactions we rollback, to make sure
     # that they work. This ensures that if there is a bug in the pivot

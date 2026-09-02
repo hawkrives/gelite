@@ -530,7 +530,7 @@ class TestEdgeQLExprAliases(tb.QueryTestCase):
 
     @test.xerror(
         "Known collation issue on Heroku Postgres",
-        unless=os.getenv("EDGEDB_TEST_BACKEND_VENDOR") != "heroku-postgres"
+        unless=os.getenv("GELITE_TEST_BACKEND_VENDOR") != "heroku-postgres"
     )
     async def test_edgeql_aliases_if_else_02(self):
         await self.assert_query_result(

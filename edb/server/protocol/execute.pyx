@@ -1029,7 +1029,7 @@ async def parse_execute_json(
     role_name: str | None = None,
 ) -> bytes:
     if role_name is None:
-        role_name = edbdef.EDGEDB_SUPERUSER
+        role_name = edbdef.GELITE_SUPERUSER
 
     dbv: dbview.DatabaseConnectionView = await _get_transient_dbv(
         db,
@@ -1327,7 +1327,7 @@ async def interpret_error(
 
             exc = RuntimeError(
                 'unhandled error while calling interpret_backend_error(); '
-                'run with EDGEDB_DEBUG_SERVER to debug.')
+                'run with GELITE_DEBUG_SERVER to debug.')
 
     elif isinstance(exc, parser_errors.PSqlParseError):
         exc = errormech.static_interpret_psql_parse_error(exc)

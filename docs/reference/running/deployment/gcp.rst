@@ -179,11 +179,11 @@ pass it as a secret into Kubernetes. Then we'll redeploy the pods.
    $ kubectl create secret generic cloudsql-tls-credentials \
        --from-literal=tlskey="$(
            kubectl exec deploy/gel -c=gel -- \
-               gel-show-secrets.sh --format=raw GEL_SERVER_TLS_KEY
+               gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_KEY
        )" \
        --from-literal=tlscert="$(
            kubectl exec deploy/gel -c=gel -- \
-               gel-show-secrets.sh --format=raw GEL_SERVER_TLS_CERT
+               gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_CERT
        )"
 
    $ kubectl delete -f deployment.yaml
@@ -229,8 +229,8 @@ your instance's :ref:`DSN <ref_dsn>`:
 
 .. code-block:: bash
 
-    $ GEL_IP=<copy IP address here>
-    $ GEL_DSN="gel://admin:${PASSWORD}@${GEL_IP}"
+    $ GELITE_IP=<copy IP address here>
+    $ GELITE_DSN="gel://admin:${PASSWORD}@${GELITE_IP}"
 
 To print the final DSN, you can ``echo`` it. Note that you should only run
 this command on a computer you trust, like a personal laptop or sandboxed
@@ -238,7 +238,7 @@ environment.
 
 .. code-block:: bash
 
-    $ echo $GEL_DSN
+    $ echo $GELITE_DSN
 
 Obtaining the TLS certificate
 -----------------------------
@@ -249,21 +249,21 @@ needs the certificate to connect securely. Retrieve it from the running pod:
 .. code-block:: bash
 
     $ kubectl exec deploy/gel -c=gel -- \
-        gel-show-secrets.sh --format=raw GEL_SERVER_TLS_CERT \
+        gel-show-secrets.sh --format=raw GELITE_SERVER_TLS_CERT \
         > gel-tls-cert.pem
 
 Alternatively, retrieve it using the Gel CLI:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure \
+    $ gel --dsn $GELITE_DSN --tls-security insecure \
         query "SELECT sys::get_tls_certificate()" > gel-tls-cert.pem
 
 Test your connection by opening a REPL:
 
 .. code-block:: bash
 
-    $ gel --dsn $GEL_DSN --tls-security insecure
+    $ gel --dsn $GELITE_DSN --tls-security insecure
     Gel x.x (repl x.x)
     Type \help for help, \quit to quit.
     gel> select "hello world!";
@@ -282,7 +282,7 @@ create an alias using :gelcmd:`instance link`.
 .. code-block:: bash
 
     $ echo $PASSWORD | gel instance link \
-        --dsn $GEL_DSN \
+        --dsn $GELITE_DSN \
         --password-from-stdin \
         --non-interactive \
         --trust-tls-cert \
@@ -311,13 +311,13 @@ Set these environment variables where you deploy your application:
 
 .. code-block:: bash
 
-    GEL_DSN="gel://admin:<password>@<external-ip>:5656"
+    GELITE_DSN="gel://admin:<password>@<external-ip>:5656"
     # For self-signed certificates, provide the CA cert:
-    GEL_TLS_CA_FILE="/path/to/gel-tls-cert.pem"
+    GELITE_TLS_CA_FILE="/path/to/gel-tls-cert.pem"
     # Or embed the certificate content directly:
-    GEL_TLS_CA="<certificate content>"
+    GELITE_TLS_CA="<certificate content>"
     # Or (for development only) disable TLS verification:
-    # GEL_CLIENT_TLS_SECURITY=insecure
+    # GELITE_CLIENT_TLS_SECURITY=insecure
 
 Gel's client libraries will automatically read these environment variables.
 
