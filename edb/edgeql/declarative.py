@@ -964,7 +964,9 @@ def trace_Index(
     exprs = [ExprDependency(expr=node.expr)]
     if node.except_expr:
         exprs.append(ExprDependency(expr=node.except_expr))
-    deps = set()
+    # Always empty since the ext::ai embedding_model scan was removed;
+    # mypy cannot infer the element type from an empty literal.
+    deps: set[s_name.QualName] = set()
     _register_item(
         node,
         deps=deps,

@@ -9607,7 +9607,7 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
     async def test_edgeql_migration_extensions_01(self):
         await self.con.execute('''
             START MIGRATION TO {
-                using extension graphql;
+                using extension pg_unaccent;
             };
         ''')
 
@@ -9617,7 +9617,7 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
             'proposed': {
                 'statements': [{
                     'text':
-                        "CREATE EXTENSION graphql VERSION '1.0';"
+                        "CREATE EXTENSION pg_unaccent VERSION '1.1';"
                 }],
                 'confidence': 1.0,
             },
@@ -9630,10 +9630,10 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
                 SELECT schema::Extension {
                     name,
                 }
-                FILTER .name = 'graphql'
+                FILTER .name = 'pg_unaccent'
             """,
             [{
-                'name': 'graphql',
+                'name': 'pg_unaccent',
             }]
         )
 
@@ -9648,7 +9648,7 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
             'proposed': {
                 'statements': [{
                     'text':
-                        'DROP EXTENSION graphql;'
+                        'DROP EXTENSION pg_unaccent;'
                 }],
                 'confidence': 1.0,
             },
@@ -9661,14 +9661,14 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
                 SELECT schema::Extension {
                     name,
                 }
-                FILTER .name = 'graphql'
+                FILTER .name = 'pg_unaccent'
             """,
             [],
         )
 
         await self.con.execute('''
             START MIGRATION TO {
-                using extension graphql version '1.0';
+                using extension pg_unaccent version '1.1';
             };
         ''')
 
@@ -9678,7 +9678,7 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
             'proposed': {
                 'statements': [{
                     'text':
-                        "CREATE EXTENSION graphql VERSION '1.0';"
+                        "CREATE EXTENSION pg_unaccent VERSION '1.1';"
                 }],
                 'confidence': 1.0,
             },

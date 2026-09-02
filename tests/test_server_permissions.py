@@ -25,7 +25,7 @@ from edb.testbase import server as server_tb
 from edb.testbase import http as tb
 
 
-class TestServerPermissions(tb.EdgeQLTestCase):
+class TestServerPermissions(server_tb.QueryTestCase):
 
     PARALLELISM_GRANULARITY = 'system'
     TRANSACTION_ISOLATION = False
@@ -64,72 +64,6 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             await self.con.query('''
                 DROP ROLE foo;
                 DROP PERMISSION default::perm_a;
-            ''')
-
-    async def test_server_permissions_role_02(self):
-        # Check that non-superuser has permissions
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    default::perm_a,
-                    cfg::perm::configure_allow_user_specified_id,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-            CREATE PERMISSION default::perm_b;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT [
-                    global sys::perm::superuser,
-                    global default::perm_a,
-                    global default::perm_b,
-                ];
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [[False, True, False]])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [[False, True, False]])
-
-            # Check that we reject configuring apply_access_policies
-            with self.assertRaisesRegex(
-                edgedb.DisabledCapabilityError,
-                'to configure session config variable apply_access_policies',
-            ):
-                self.edgeql_query(
-                    qry,
-                    user='foo',
-                    password='secret',
-                    config=dict(apply_access_policies=False),
-                )
-
-            # This one we said is OK though.
-            self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-                config=dict(allow_user_specified_id=False),
-            )
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
-                DROP PERMISSION default::perm_b;
             ''')
 
     async def test_server_permissions_role_03(self):
@@ -270,80 +204,6 @@ class TestServerPermissions(tb.EdgeQLTestCase):
                 DROP PERMISSION default::perm_a;
                 DROP PERMISSION default::perm_b;
                 DROP PERMISSION default::perm_c;
-            ''')
-
-    async def test_server_permissions_role_06(self):
-        # Check that superusers can read Role data
-
-        await self.con.query('''
-            CREATE SUPERUSER ROLE foo {
-                SET password := 'secret';
-                SET permissions := default::perm_a;
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT n := sys::Role.name FILTER n in {'admin', 'foo'}
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, tb.bag(['admin', 'foo']))
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, tb.bag(['admin', 'foo']))
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
-            ''')
-
-    async def test_server_permissions_role_07(self):
-        # Check that non-superusers cannot read Role data
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := default::perm_a;
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT n := sys::Role.name FILTER n in {'admin', 'foo'}
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [])
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
             ''')
 
     async def test_server_permissions_function_01(self):
@@ -1044,55 +904,6 @@ class TestServerPermissions(tb.EdgeQLTestCase):
             await conn.aclose()
             await self.con.query('''
                 DROP ROLE foo;
-            ''')
-
-    async def test_server_permissions_current_permissions_01(self):
-        # Check that sys::current_permissions works
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    sys::perm::data_modification,
-                    default::perm_a,
-                    default::perm_b,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-        ''')
-
-        try:
-            conn = await self.connect(
-                user='foo',
-                password='secret',
-            )
-
-            qry = """
-                SELECT global sys::current_permissions;
-            """
-            result = await conn.query(qry)
-            self.assert_data_shape(result, [tb.bag([
-                'sys::perm::data_modification',
-                'default::perm_a',
-                'default::perm_b',
-            ])])
-
-            result, _ = self.edgeql_query(
-                qry,
-                user='foo',
-                password='secret',
-            )
-            self.assert_data_shape(result, [tb.bag([
-                'sys::perm::data_modification',
-                'default::perm_a',
-                'default::perm_b',
-            ])])
-
-        finally:
-            await conn.aclose()
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP PERMISSION default::perm_a;
             ''')
 
 
@@ -2002,81 +1813,4 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             await conn.aclose()
             await self.con.query('''
                 DROP ROLE foo;
-            ''')
-
-
-class TestServerPermissionsGraphql(tb.GraphQLTestCase):
-
-    PARALLELISM_GRANULARITY = 'system'
-    TRANSACTION_ISOLATION = False
-
-    async def test_server_permissions_graphql_01(self):
-        # Check that non-superuser has permissions
-
-        await self.con.query('''
-            CREATE ROLE foo {
-                SET password := 'secret';
-                SET permissions := {
-                    default::perm_a,
-                    cfg::perm::configure_allow_user_specified_id,
-                };
-            };
-            CREATE PERMISSION default::perm_a;
-            CREATE PERMISSION default::perm_b;
-
-            CREATE ALIAS GraphqlIsNotAQueryLanguage := {
-                perm_a := global perm_a,
-                perm_b := global perm_b,
-                role := global sys::current_role,
-            }
-        ''')
-
-        try:
-            qry = '''
-                query {
-                    GraphqlIsNotAQueryLanguage {
-                        perm_a
-                        perm_b
-                        role
-                    }
-                }
-            '''
-            result = self.graphql_query(
-                qry, user='foo', password='secret'
-            )
-            self.assert_data_shape(
-                result,
-                dict(GraphqlIsNotAQueryLanguage=[dict(
-                    perm_a=True,
-                    perm_b=False,
-                    role='foo',
-                )]),
-            )
-
-            # Check that we reject configuring apply_access_policies
-            with self.assertRaisesRegex(
-                edgedb.DisabledCapabilityError,
-                'to configure session config variable apply_access_policies',
-            ):
-                self.graphql_query(
-                    qry,
-                    user='foo',
-                    password='secret',
-                    config=dict(apply_access_policies=False),
-                )
-
-            # This one we said is OK though.
-            self.graphql_query(
-                qry,
-                user='foo',
-                password='secret',
-                config=dict(allow_user_specified_id=False),
-            )
-
-        finally:
-            await self.con.query('''
-                DROP ROLE foo;
-                DROP ALIAS GraphqlIsNotAQueryLanguage;
-                DROP PERMISSION default::perm_a;
-                DROP PERMISSION default::perm_b;
             ''')

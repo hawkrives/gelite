@@ -629,9 +629,11 @@ cdef class HttpProtocol:
                     response.close_connection = True
 
             else:
-                # Every extension that served HTTP - graphql, notebook,
-                # edgeql_http, ai and auth - has been removed, so no path
-                # under /db/<name>/ or /branch/<name>/ resolves any more.
+                # Reached only when there is a path segment after the
+                # branch name. Every extension that served HTTP - graphql,
+                # notebook, edgeql_http, ai and auth - has been removed, so
+                # nothing resolves there any more. The bare /db/<name>/ and
+                # /branch/<name>/ still tunnel the binary protocol above.
                 return self._not_found(request, response)
 
         elif route == 'auth':

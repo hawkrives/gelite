@@ -998,23 +998,19 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             con2 = None
             try:
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 0)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 0)
 
-                await con.execute('create extension graphql')
-                await con.execute('create extension pg_trgm')
+                await con.execute('create extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 1)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 1)
                 # The innards of extensions shouldn't be counted in
-                # feature use metrics. (pg_trgm has functions.)
+                # feature use metrics. (pg_unaccent has functions.)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 0)
 
-                await con.execute('drop extension graphql')
+                await con.execute('drop extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
-                self.assertEqual(metrics.get(_extkey('pg_trgm'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
 
                 self.assertEqual(metrics.get(_extkey('global'), 0), 0)
 
@@ -1040,9 +1036,9 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 await con.execute('create empty branch b2')
                 con2 = await sd.connect(database='b2')
                 await con2.execute('create function asdf() -> int64 using (0)')
-                await con2.execute('create extension graphql')
+                await con2.execute('create extension pg_unaccent')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 1)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 1)
                 self.assertEqual(metrics.get(_featkey('global'), 0), 1)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 2)
 
@@ -1052,7 +1048,7 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 # Dropping the other branch clears them out
                 await con.execute('drop branch b2')
                 metrics = tb.parse_metrics(sd.fetch_metrics())
-                self.assertEqual(metrics.get(_extkey('graphql'), 0), 0)
+                self.assertEqual(metrics.get(_extkey('pg_unaccent'), 0), 0)
                 self.assertEqual(metrics.get(_featkey('function'), 0), 1)
 
                 # More detailed testing

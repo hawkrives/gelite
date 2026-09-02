@@ -24,8 +24,6 @@ import signal
 import ssl
 import tempfile
 import unittest
-import urllib.error
-import urllib.request
 
 import edgedb
 
@@ -51,9 +49,6 @@ class TestServerAuth(tb.ConnectedTestCase):
         if not self.has_create_role:
             self.skipTest('create role is not supported by the backend')
 
-        await self.con.query('''
-            CREATE EXTENSION edgeql_http;
-        ''')
         await self.con.query(f'''
             CREATE SUPERUSER ROLE foo {{
                 SET password := 'foo-pass';
@@ -70,19 +65,12 @@ class TestServerAuth(tb.ConnectedTestCase):
                 password='wrong',
             )
 
-        # Test wrong password on http basic auth
-        body, code = await self._basic_http_request(None, 'foo', 'wrong')
-        self.assertEqual(code, 401, f"Wrong result: {body}")
-
         # good password
         conn = await self.connect(
             user='foo',
             password='foo-pass',
         )
         await conn.aclose()
-        body, code = await self._basic_http_request(None, 'foo', 'foo-pass')
-        self.assertEqual(code, 200, f"Wrong result: {body}")
-
         # good password, non-allowed database
         with self.assertRaisesRegex(
             edgedb.AuthenticationError,
@@ -102,10 +90,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             database='__edgedbsys__',
         )
         await syscon.aclose()
-
-        body, code = await self._basic_http_request(
-            None, 'foo', 'foo-pass', db='auth_failure')
-        self.assertEqual(code, 401, f"Wrong result: {body}")
 
         # Force foo to use a JWT so auth fails
         await self.con.query('''
@@ -130,14 +114,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                 {'method': {'transports': ['SIMPLE_HTTP']}}
             ],
         )
-
-        # Should fail now
-        body, code = await self._basic_http_request(None, 'foo', 'foo-pass')
-        self.assertEqual(code, 401, f"Wrong result: {body}")
-
-        # But *edgedb* should still work
-        body, code = await self._basic_http_request(None, 'edgedb', None)
-        self.assertEqual(code, 200, f"Wrong result: {body}")
 
         await self.con.query('''
             CONFIGURE INSTANCE RESET Auth
@@ -411,35 +387,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             await self.con.execute(
                 f'CREATE SUPERUSER ROLE myrole_{"x" * s_def.MAX_NAME_LENGTH};')
 
-    async def _basic_http_request(
-        self, server, user, password, db='edgedb',
-    ):
-        url = f'{self.http_addr}/db/{db}/edgeql'
-        params = dict(query='select 1')
-        password = password or self.get_connect_args()['password']
-
-        # Do the elaborate dance to let urllib do basic auth
-        # Most tests we just construct the header ourselves because that
-        # was very easy to integrate and also less confusing, but it's
-        # worth making sure that we interoperate with *something*.
-        https_handler = urllib.request.HTTPSHandler(context=self.tls_context)
-
-        passman = urllib.request.HTTPPasswordMgr()
-        passman.add_password('edgedb', url, user, password)
-        auth_handler = urllib.request.HTTPBasicAuthHandler(passman)
-        opener = urllib.request.build_opener(https_handler, auth_handler)
-
-        request = urllib.request.Request(
-            f'{url}/?{urllib.parse.urlencode(params)}',
-        )
-        try:
-            resp = opener.open(request)
-        except urllib.error.HTTPError as e:
-            resp = e.fp
-        resp_body = resp.read()
-        resp_status = resp.status
-        return resp_body, resp_status
-
     async def _http_request(
         self,
         server,
@@ -537,10 +484,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                         transports := "SIMPLE_HTTP",
                     }),
                 }
-            ''')
-            await conn.execute('''
-                CREATE EXTENSION edgeql_http;
-                CREATE EXTENSION graphql;
             ''')
             await conn.aclose()
 
@@ -755,10 +698,6 @@ class TestServerAuth(tb.ConnectedTestCase):
         ) as sd:
             base_sk = generate_gel_token(jwk)
             conn = await sd.connect(secret_key=base_sk)
-            await conn.execute('''
-                CREATE EXTENSION edgeql_http;
-                CREATE EXTENSION graphql;
-            ''')
             await conn.aclose()
 
             # bad secret keys
@@ -847,7 +786,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             conn = await sd.connect()
             try:
                 await conn.query("CREATE SUPERUSER ROLE ssl_user;")
-                await conn.query("CREATE EXTENSION edgeql_http;")
                 await self._test_mtls(
                     sd, client_ssl_cert_file, client_ssl_key_file, False)
                 await conn.query("""

@@ -18,7 +18,6 @@
 
 import asyncio
 import decimal
-import http
 import json
 import time
 import uuid
@@ -2713,104 +2712,6 @@ class TestServerProtoDdlPropagation(tb.QueryTestCase):
             await tb.drop_db(con2, 'test_db_prop')
 
             await con2.aclose()
-
-    @unittest.skipUnless(devmode.is_in_dev_mode(),
-                         'the test requires devmode')
-    async def test_server_adjacent_extension_propagation(self):
-        headers = {
-            'Authorization': self.make_auth_header(),
-        }
-
-        server_args = self.get_adjacent_server_args()
-        async with tb.start_edgedb_server(**server_args) as sd:
-
-            await self.con.execute("CREATE EXTENSION notebook;")
-
-            # First, ensure that the local server is aware of the new ext.
-            async for tr in self.try_until_succeeds(
-                ignore=self.failureException,
-            ):
-                async with tr:
-                    with self.http_con(server=self) as http_con:
-                        response, _, status = self.http_con_json_request(
-                            http_con,
-                            path="notebook",
-                            body={"queries": ["SELECT 1"]},
-                            headers=headers,
-                        )
-
-                        self.assertEqual(
-                            status, http.HTTPStatus.OK, f"fuck: {response} {_}")
-                        self.assert_data_shape(
-                            response,
-                            {
-                                'kind': 'results',
-                                'results': [
-                                    {
-                                        'kind': 'data',
-                                    },
-                                ],
-                            },
-                        )
-
-            # Make sure the adjacent server picks up on the new extension
-            async for tr in self.try_until_succeeds(
-                ignore=self.failureException,
-            ):
-                async with tr:
-                    with self.http_con(server=sd) as http_con:
-                        response, _, status = self.http_con_json_request(
-                            http_con,
-                            path="notebook",
-                            body={"queries": ["SELECT 1"]},
-                            headers=headers,
-                        )
-
-                        self.assertEqual(status, http.HTTPStatus.OK)
-                        self.assert_data_shape(
-                            response,
-                            {
-                                'kind': 'results',
-                                'results': [
-                                    {
-                                        'kind': 'data',
-                                    },
-                                ],
-                            },
-                        )
-
-            # Now drop the extension.
-            await self.con.execute("DROP EXTENSION notebook;")
-
-            # First, ensure that the local server is aware of the new ext.
-            async for tr in self.try_until_succeeds(
-                ignore=self.failureException,
-            ):
-                async with tr:
-                    with self.http_con(server=self) as http_con:
-                        response, _, status = self.http_con_json_request(
-                            http_con,
-                            path="notebook",
-                            body={"queries": ["SELECT 1"]},
-                            headers=headers,
-                        )
-
-                        self.assertEqual(status, http.HTTPStatus.NOT_FOUND)
-
-            # Make sure the adjacent server picks up on the new extension
-            async for tr in self.try_until_succeeds(
-                ignore=self.failureException,
-            ):
-                async with tr:
-                    with self.http_con(server=sd) as http_con:
-                        response, _, status = self.http_con_json_request(
-                            http_con,
-                            path="notebook",
-                            body={"queries": ["SELECT 1"]},
-                            headers=headers,
-                        )
-
-                        self.assertEqual(status, http.HTTPStatus.NOT_FOUND)
 
 
 class TestServerProtoDDL(tb.DDLTestCase):

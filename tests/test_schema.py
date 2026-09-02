@@ -11758,7 +11758,7 @@ class TestDescribe(BaseDescribeTest):
     def test_schema_describe_schema_02(self):
         self._assert_describe(
             """
-            using extension notebook version '1.0';
+            using extension pg_unaccent version '1.1';
             module default {
                 type Foo {
                     link bar -> test::Bar;
@@ -11774,7 +11774,7 @@ class TestDescribe(BaseDescribeTest):
             'DESCRIBE SCHEMA AS DDL',
 
             """
-            CREATE EXTENSION NOTEBOOK VERSION '1.0';
+            CREATE EXTENSION PG_UNACCENT VERSION '1.1';
             CREATE MODULE default IF NOT EXISTS;
             CREATE MODULE test IF NOT EXISTS;
             CREATE TYPE default::Foo;
@@ -11789,7 +11789,7 @@ class TestDescribe(BaseDescribeTest):
             'DESCRIBE SCHEMA AS SDL',
 
             r"""
-            using extension notebook version '1.0';
+            using extension pg_unaccent version '1.1';
             module default {
                 type Foo {
                     link bar: test::Bar;
