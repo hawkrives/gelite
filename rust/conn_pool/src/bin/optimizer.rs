@@ -88,7 +88,7 @@ fn main() {
                 .iter()
                 .map(|k| {
                     let proposed: isize =
-                        (k.get() as f32 * rand::thread_rng().gen_range(-2.0..2.0_f32)) as _;
+                        (k.get() as f32 * rand::rng().random_range(-2.0..2.0_f32)) as _;
                     proposed
                 })
                 .collect(),
@@ -115,7 +115,7 @@ fn main() {
         .build()
         .unwrap();
 
-    let mut rng = rand::thread_rng(); // a randomness provider implementing Trait rand::Rng
+    let mut rng = rand_08::thread_rng(); // rand 0.8 Rng, as genetic_algorithm requires
     let evolve = Evolve::builder()
         .with_multithreading(true)
         .with_genotype(genotype)

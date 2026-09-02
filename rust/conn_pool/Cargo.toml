@@ -10,7 +10,7 @@ workspace = true
 
 [features]
 python_extension = ["pyo3"]
-optimizer = ["genetic_algorithm", "lru", "rand", "statrs", "anyhow", "tokio/test-util"]
+optimizer = ["genetic_algorithm", "lru", "rand", "rand_08", "statrs", "anyhow", "tokio/test-util"]
 
 [dependencies]
 pyo3 = { workspace = true, optional = true }
@@ -31,7 +31,11 @@ serde-pickle = "1"
 # For the optimizer
 genetic_algorithm = { version = "0.9.0", optional = true }
 lru = { version = "0.16.0", optional = true }
-rand = { version = "0.8.5", optional = true }
+rand = { version = "0.9.0", optional = true }
+# genetic_algorithm 0.9 takes an `impl rand 0.8 Rng`, so the optimizer needs a
+# 0.8 generator alongside the 0.9 one used elsewhere. rand 0.8 is already in the
+# tree via genetic_algorithm, so this pulls in no new crates.
+rand_08 = { package = "rand", version = "0.8.6", optional = true }
 statrs = { version = "0.17.1", optional = true }
 anyhow = { version = "1", optional = true }
 
@@ -46,7 +50,7 @@ anyhow = "=1.0.97"
 rstest = "=0.26.1"
 
 statrs = "=0.17.1"
-rand = "=0.8.5"
+rand = "=0.9.3"
 
 [lib]
 
