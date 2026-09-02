@@ -265,7 +265,7 @@ jobs:
       run: |
         # --no-build-isolation because we have explicitly installed all deps
         # and don't want them to be reinstalled in an "isolated env".
-        uv pip install --no-build-isolation --no-deps -e .[test,docs]
+        uv pip install --no-build-isolation --no-deps -e .
 
     # Refresh the bootstrap cache
 
@@ -556,7 +556,7 @@ jobs:
       run: |
         # --no-build-isolation because we have explicitly installed all deps
         # and don't want them to be reinstalled in an "isolated env".
-        uv pip install --no-build-isolation --no-deps -e .[test,docs]
+        uv pip install --no-build-isolation --no-deps -e .
 
     # Run the test
 
@@ -705,7 +705,7 @@ jobs:
       run: |
         # --no-build-isolation because we have explicitly installed all deps
         # and don't want them to be reinstalled in an "isolated env".
-        uv pip install --no-build-isolation --no-deps -e .[test,docs]
+        uv pip install --no-build-isolation --no-deps -e .
 
     # List tests and upload
 
