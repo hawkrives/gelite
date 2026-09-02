@@ -23,7 +23,6 @@ from __future__ import annotations
 from typing import (
     Any,
     Optional,
-    Iterable,
     Literal,
     Sequence,
     NamedTuple,
@@ -35,7 +34,6 @@ import asyncio
 import atexit
 import base64
 import contextlib
-import dataclasses
 import functools
 import heapq
 import http
@@ -54,7 +52,6 @@ import struct
 import subprocess
 import sys
 import tempfile
-import time
 import unittest
 import urllib
 
@@ -63,7 +60,6 @@ import edgedb
 from edb.edgeql import quote as qlquote
 from edb.server import args as edgedb_args
 from edb.testbase import cluster as edgedb_cluster
-from edb.server import pgcluster
 from edb.server import defines as edgedb_defines
 from edb.server import auth
 from edb.server.pgconnparams import ConnectionParams
@@ -74,7 +70,6 @@ from edb.common import debug
 from edb.common import retryloop
 from edb.common import secretkey
 
-from edb import buildmeta
 from edb import protocol
 from edb.protocol import protocol as test_protocol
 from edb.testbase import serutils
@@ -1795,369 +1790,6 @@ class SQLQueryTestCase(BaseQueryTestCase):
                 self.assertEqual(len(res[0]), columns)
         elif isinstance(columns, list):
             self.assertListEqual(columns, list(res[0].keys()))
-
-
-class StablePGDumpTestCase(BaseQueryTestCase):
-
-    BASE_TEST_CLASS = True
-    TRANSACTION_ISOLATION = False
-
-    def run_pg_dump(self, *args, input: Optional[str] = None) -> None:
-        conargs = self.get_connect_args()
-        self.run_pg_dump_on_connection(conargs, *args, input=input)
-
-    @classmethod
-    def run_pg_dump_on_connection(
-        cls, dsn: str, *args, input: Optional[str] = None
-    ) -> None:
-        cmd = [cls._pg_bin_dir / 'pg_dump', '--dbname', dsn]
-        cmd += args
-        try:
-            subprocess.run(
-                cmd,
-                input=input.encode() if input else None,
-                check=True,
-                capture_output=True,
-            )
-        except subprocess.CalledProcessError as e:
-            output = '\n'.join(getattr(out, 'decode', out.__str__)()
-                               for out in [e.output, e.stderr] if out)
-            raise AssertionError(
-                f'command {cmd} returned non-zero exit status {e.returncode}'
-                f'\n{output}'
-            ) from e
-
-    @classmethod
-    def setUpClass(cls):
-        try:
-            import asyncpg
-        except ImportError:
-            raise unittest.SkipTest('SQL tests skipped: asyncpg not installed')
-
-        if cls.get_set_up() == 'inplace':
-            raise unittest.SkipTest('SQL dump tests skipped in single db mode')
-
-        super().setUpClass()
-        frontend_dsn = cls.get_sql_proto_dsn()
-        src_dbname = cls.con.dbname
-        tgt_dbname = f'restored_{src_dbname}'
-        try:
-            newdsn = cls.get_backend_sql_dsn(dbname=tgt_dbname)
-        except Exception:
-            super().tearDownClass()
-            raise
-
-        cls._pg_bin_dir = cls.loop.run_until_complete(
-            pgcluster.get_pg_bin_dir())
-
-        cls.backend = cls.loop.run_until_complete(
-            cls.get_backend_sql_connection())
-
-        # Run pg_dump to create the dump data for an existing Gel database.
-        with tempfile.NamedTemporaryFile() as f:
-            cls.run_pg_dump_on_connection(frontend_dsn, '-f', f.name)
-
-            # Skip the restore part of the test if the database
-            # backend is older than our pg_dump, since it won't work.
-            pg_ver_str = cls.loop.run_until_complete(
-                cls.backend.fetch('select version()')
-            )[0][0]
-            pg_ver = buildmeta.parse_pg_version(pg_ver_str)
-            bundled_ver = buildmeta.get_pg_version()
-            if pg_ver.major < bundled_ver.major:
-                raise unittest.SkipTest('pg_dump newer than backend')
-
-            # Create a new Postgres database to be used for dump tests.
-            db_exists = cls.loop.run_until_complete(
-                cls.backend.fetch(f'''
-                    SELECT oid
-                    FROM pg_database
-                    WHERE datname = {tgt_dbname!r}
-                ''')
-            )
-            if list(db_exists):
-                cls.loop.run_until_complete(
-                    cls.backend.execute(f'drop database {tgt_dbname}')
-                )
-            cls.loop.run_until_complete(
-                cls.backend.execute(f'create database {tgt_dbname}')
-            )
-
-            # Populate the new database using the dump
-            cmd = [
-                cls._pg_bin_dir / 'psql',
-                '-a',
-                '--dbname', newdsn,
-                '-f', f.name,
-                '-v', 'ON_ERROR_STOP=on',
-            ]
-            try:
-                subprocess.run(
-                    cmd,
-                    input=None,
-                    check=True,
-                    capture_output=True,
-                )
-            except subprocess.CalledProcessError as e:
-                output = '\n'.join(getattr(out, 'decode', out.__str__)()
-                                   for out in [e.output, e.stderr] if out)
-                raise AssertionError(
-                    f'command {cmd} returned non-zero exit status '
-                    f'{e.returncode}\n{output}'
-                ) from e
-
-        # Connect to the newly created database.
-        cls.scon = cls.loop.run_until_complete(
-            asyncpg.connect(newdsn))
-
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            cls.loop.run_until_complete(cls.scon.close())
-            # Give event loop another iteration so that connection
-            # transport has a chance to properly close.
-            cls.loop.run_until_complete(asyncio.sleep(0))
-            cls.scon = None
-
-            tgt_dbname = f'restored_{cls.con.dbname}'
-            cls.loop.run_until_complete(
-                cls.backend.execute(f'drop database {tgt_dbname}')
-            )
-            cls.loop.run_until_complete(cls.backend.close())
-            cls.loop.run_until_complete(asyncio.sleep(0))
-        finally:
-            super().tearDownClass()
-
-    def assert_shape(
-        self,
-        sqlres: Iterable[Any],
-        eqlres: Iterable[asyncpg.Record],
-    ) -> None:
-        """
-        Compare the shape of results produced by a SQL query and an EdgeQL
-        query.
-        """
-
-        assert_data_shape.assert_data_shape(
-            list(sqlres),
-            [dataclasses.asdict(r) for r in eqlres],
-            self.fail,
-            from_sql=True,
-        )
-
-    def multi_prop_subquery(self, source: str, prop: str) -> str:
-        "Propduce a subquery fetching a multi prop as an array."
-
-        return (
-            f'(SELECT array_agg(target) FROM "{source}.{prop}"'
-            f' WHERE source = "{source}".id) AS {prop}'
-        )
-
-    def single_link_subquery(
-        self,
-        source: str,
-        link: str,
-        target: str,
-        link_props: Optional[Iterable[str]] = None
-    ) -> str:
-        """Propduce a subquery fetching a single link as a record.
-
-        If no link properties are specified then the array of records will be
-        made up of target types.
-
-        If the link properties are specified then the array of records will be
-        made up of link records.
-        """
-
-        if link_props:
-            return (
-                f'(SELECT x FROM "{target}"'
-                f' JOIN "{source}.{link}" x ON x.target = "{target}".id'
-                f' WHERE x.source = "{source}".id) AS _{link}'
-            )
-
-        else:
-            return (
-                f'(SELECT "{target}" FROM "{target}"'
-                f' WHERE "{target}".id = "{source}".{link}_id) AS {link}'
-            )
-
-    def multi_link_subquery(
-        self,
-        source: str,
-        link: str,
-        target: str,
-        link_props: Optional[Iterable[str]] = None
-    ) -> str:
-        """Propduce a subquery fetching a multi link as an array or records.
-
-        If no link properties are specified then the array of records will be
-        made up of target types.
-
-        If the link properties are specified then the array of records will be
-        made up of link records.
-        """
-
-        if link_props:
-            return (
-                f'(SELECT array_agg(x) FROM "{target}"'
-                f' JOIN "{source}.{link}" x ON x.target = "{target}".id'
-                f' WHERE x.source = "{source}".id) AS _{link}'
-            )
-
-        else:
-            return (
-                f'(SELECT array_agg("{target}") FROM "{target}"'
-                f' JOIN "{source}.{link}" x ON x.target = "{target}".id'
-                f' WHERE x.source = "{source}".id) AS {link}'
-            )
-
-
-def get_test_cases_setup(
-    cases: Iterable[unittest.TestCase]
-) -> list[tuple[unittest.TestCase, DatabaseName, SetupScript]]:
-    result: list[tuple[unittest.TestCase, DatabaseName, SetupScript]] = []
-
-    for case in cases:
-        if not hasattr(case, 'get_setup_script'):
-            continue
-
-        try:
-            setup_script = case.get_setup_script()
-        except unittest.SkipTest:
-            continue
-
-        dbname = case.get_database_name()
-        result.append((case, dbname, setup_script))
-
-    return result
-
-
-def test_cases_use_server(cases: Iterable[unittest.TestCase]) -> bool:
-    for case in cases:
-        if not hasattr(case, 'uses_server'):
-            continue
-
-        if case.uses_server():
-            return True
-
-
-async def setup_test_cases(
-    cases,
-    conn,
-    num_jobs,
-    try_cached_db=False,
-    skip_empty_databases=False,
-    verbose=False,
-):
-    setup = get_test_cases_setup(cases)
-
-    stats = []
-    if num_jobs == 1:
-        # Special case for --jobs=1
-        for _case, dbname, setup_script in setup:
-            if skip_empty_databases and not setup_script:
-                continue
-            await _setup_database(
-                dbname, setup_script, conn, stats, try_cached_db)
-            if verbose:
-                print(f' -> {dbname}: OK', flush=True)
-    else:
-        async with asyncio.TaskGroup() as g:
-            # Use a semaphore to limit the concurrency of bootstrap
-            # tasks to the number of jobs (bootstrap is heavy, having
-            # more tasks than `--jobs` won't necessarily make
-            # things faster.)
-            sem = asyncio.BoundedSemaphore(num_jobs)
-
-            async def controller(coro, dbname, *args):
-                async with sem:
-                    await coro(dbname, *args)
-                    if verbose:
-                        print(f' -> {dbname}: OK', flush=True)
-
-            for _case, dbname, setup_script in setup:
-                if skip_empty_databases and not setup_script:
-                    continue
-
-                g.create_task(controller(
-                    _setup_database, dbname, setup_script, conn, stats,
-                    try_cached_db))
-    return stats
-
-
-async def _setup_database(
-        dbname, setup_script, conn_args, stats, try_cached_db):
-    start_time = time.monotonic()
-    default_args = {
-        'user': edgedb_defines.GELITE_SUPERUSER,
-        'password': 'test',
-    }
-
-    default_args.update(conn_args)
-
-    try:
-        admin_conn = await tconn.async_connect_test_client(
-            database=edgedb_defines.GELITE_SUPERUSER_DB,
-            **default_args)
-    except Exception as ex:
-        raise RuntimeError(
-            f'exception during creation of {dbname!r} test DB; '
-            f'could not connect to the {edgedb_defines.GELITE_SUPERUSER_DB} '
-            f'db; {type(ex).__name__}({ex})'
-        ) from ex
-
-    try:
-        await admin_conn.execute(
-            f'CREATE DATABASE {qlquote.quote_ident(dbname)};'
-        )
-    except edgedb.DuplicateDatabaseDefinitionError:
-        # Eh, that's fine
-        # And, if we are trying to use a cache of the database, assume
-        # the db is populated and return.
-        if try_cached_db:
-            elapsed = time.monotonic() - start_time
-            stats.append(
-                ('setup::' + dbname,
-                 {'running-time': elapsed, 'cached': True}))
-            return
-    except Exception as ex:
-        raise RuntimeError(
-            f'exception during creation of {dbname!r} test DB: '
-            f'{type(ex).__name__}({ex})'
-        ) from ex
-    finally:
-        await admin_conn.aclose()
-
-    dbconn = await tconn.async_connect_test_client(
-        database=dbname, **default_args
-    )
-    try:
-        if setup_script:
-            async for tx in dbconn.retrying_transaction():
-                async with tx:
-                    with dbconn.capture_warnings():
-                        await dbconn.execute(setup_script)
-    except Exception as ex:
-        raise RuntimeError(
-            f'exception during initialization of {dbname!r} test DB: '
-            f'{type(ex).__name__}({ex})'
-        ) from ex
-    finally:
-        await dbconn.aclose()
-
-    elapsed = time.monotonic() - start_time
-    stats.append(
-        ('setup::' + dbname, {'running-time': elapsed, 'cached': False}))
-
-
-_lock_cnt = 0
-
-
-def gen_lock_key():
-    global _lock_cnt
-    _lock_cnt += 1
-    return os.getpid() * 1000 + _lock_cnt
 
 
 class _EdgeDBServerData(NamedTuple):

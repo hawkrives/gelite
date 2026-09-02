@@ -408,15 +408,13 @@ only test went the same way: `_test_server_ops_multi_tenant_6` registered a
 user over `/ext/auth/register` twice to prove the second call hit the cache,
 and was reduced to the tenant setup that `multi_tenant_7` still needs.
 
-*Dump and restore have no coverage at all.* PR #2 (`f7510e2`) deleted
-`test_dump01`–`test_dump03`, `test_dump_basic` and `test_dump_v2`–`v7` for
-their CLI dependency. What survives is `test_pg_dump.py`, which runs the real
-`pg_dump` binary against the Postgres-protocol frontend — so it goes with the
-resolver in Step 1, taking the last dump test with it. Ten schema fixtures
-under `tests/schemas/` are already orphaned by that first deletion
-(`dump_v3_*` through `dump_v7_*`; `dump_v4_*` and `dump_v5_*` went with the
-extensions), and the six still referenced only survive because
-`test_pg_dump.py` borrows them for interesting schemas.
+*Dump and restore have no coverage at all, and now no fixtures either.*
+PR #2 (`f7510e2`) deleted `test_dump01`–`test_dump03`, `test_dump_basic` and
+`test_dump_v2`–`v7` for their CLI dependency, leaving only `test_pg_dump.py`,
+which ran the real `pg_dump` binary against the Postgres-protocol frontend.
+PR #24 deleted that too, along with all 19 remaining schema fixtures and the
+`StablePGDumpTestCase` base: it tested pg_dump compatibility, not dump and
+restore, and the frontend it drove is deleted in Step 1 regardless.
 
 A SQLite fork needs its own dump/restore tests, and they are not a port of
 these: the fixtures assert on Postgres catalog shape — `pg_foreign_data_wrapper`,
