@@ -1650,7 +1650,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             '''
         )
         for [tbl_name, columns_from_information_schema] in tables:
-            if tbl_name.split('.')[0] in ('cfg', 'schema', 'sys', '"ext::ai"'):
+            if tbl_name.split('.')[0] in ('cfg', 'schema', 'sys'):
                 continue
 
             try:

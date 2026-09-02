@@ -1444,8 +1444,7 @@ def process_set_as_subquery(
         # aliases/globals.  While they might try to apply volatility
         # refs due to FOR/free objects, it shouldn't be semantically
         # necessary that they actually are attached to the enclosing
-        # location. This turns out to be an important optimization for
-        # ext::auth::ClientTokenIdentity.
+        # location.
         if ir_set.is_schema_alias:
             newctx.volatility_ref = ()
 

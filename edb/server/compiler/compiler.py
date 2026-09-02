@@ -1074,50 +1074,7 @@ class Compiler:
         do, dumps still need to work.
         '''
 
-        new_stmts = []
-        smtp_config = {}
-
-        for stmt in stmts:
-            # ext::auth::SMTPConfig got removed and moved into a cfg
-            # object, so intercept those and rewrite them.
-            if (
-                isinstance(stmt, qlast.ConfigSet)
-                and stmt.name.module == 'ext::auth::SMTPConfig'
-            ):
-                smtp_config[stmt.name.name] = stmt.expr
-            else:
-                new_stmts.append(stmt)
-
-        if smtp_config:
-            # Do the rewrite of SMTPConfig
-            smtp_config['name'] = qlast.Constant.string('_default')
-
-            new_stmts.append(
-                qlast.ConfigInsert(
-                    scope=qltypes.ConfigScope.DATABASE,
-                    name=qlast.ObjectRef(
-                        module='cfg', name='SMTPProviderConfig'
-                    ),
-                    shape=[
-                        qlast.ShapeElement(
-                            expr=qlast.Path(steps=[qlast.Ptr(name=name)]),
-                            compexpr=expr,
-                        )
-                        for name, expr in smtp_config.items()
-                    ],
-                )
-            )
-            new_stmts.append(
-                qlast.ConfigSet(
-                    scope=qltypes.ConfigScope.DATABASE,
-                    name=qlast.ObjectRef(
-                        name='current_email_provider_name'
-                    ),
-                    expr=qlast.Constant.string('_default'),
-                )
-            )
-
-        return new_stmts
+        return list(stmts)
 
     def describe_database_restore(
         self,

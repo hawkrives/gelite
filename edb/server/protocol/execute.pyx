@@ -952,7 +952,7 @@ async def parse_execute_json(
     # WARNING: only set cached_globally to True when the query is
     # strictly referring to only shared stable objects in user schema
     # or anything from std schema, for example:
-    #     YES:  select ext::auth::UIConfig { ... }
+    #     YES:  select cfg::Config { ... }
     #     NO:   select default::User { ... }
     cached_globally: bool = False,
     use_metrics: bool = True,

@@ -38,7 +38,6 @@ import time
 import unittest
 import urllib.error
 import urllib.request
-import uuid
 
 import edgedb
 
@@ -1757,56 +1756,29 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         await self._test_server_ops_multi_tenant_1(mtargs)
         await self._test_server_ops_multi_tenant_2(mtargs)
 
-    async def _test_server_ops_global_compile_cache(
+    async def _test_server_ops_set_email_provider(
         self, mtargs: MultiTenantArgs, ddl, i, **kwargs
     ):
         conn = await mtargs.sd.connect(**kwargs)
         try:
             await conn.execute(ddl)
-            await conn.execute('create extension pgcrypto')
-            await conn.execute('create extension auth')
-            await conn.execute(f'''
-                configure current database set
-                ext::auth::AuthConfig::auth_signing_key := '{"a" * 32}';
-
-                configure current database
-                insert ext::auth::EmailPasswordProviderConfig {{
-                    require_verification := false,
-                }};
-
+            await conn.execute(f"""
                 configure current database set
                 current_email_provider_name := 'provider:{i}';
-            ''')
+            """)
         finally:
             await conn.aclose()
 
-        with self.http_con(
-            mtargs.sd, server_hostname=kwargs['server_hostname']
-        ) as http_con:
-            async for tr in self.try_until_succeeds(ignore=AssertionError):
-                async with tr:
-                    _response, _, status = self.http_con_json_request(
-                        http_con,
-                        path=f"/db/{conn.dbname}/ext/auth/register",
-                        body={
-                            "provider": "builtin::local_emailpassword",
-                            "challenge": str(uuid.uuid4()),
-                            "email": "cache@example.com",
-                            "password": "secret",
-                        },
-                    )
-                    self.assertEqual(status, 201)
-
     async def _test_server_ops_multi_tenant_6(self, mtargs: MultiTenantArgs):
-        # The 2 tenants has different user schema, make sure the auth queries
-        # work fine: the first run caches the queries and the second uses them
-        await self._test_server_ops_global_compile_cache(
+        # Give the 2 tenants different user schemas, and point each at its own
+        # email provider, which _test_server_ops_multi_tenant_7 then reads back
+        await self._test_server_ops_set_email_provider(
             mtargs,
             "create type GlobalCache1 { create property name: str }",
             1,
             **mtargs.args1,
         )
-        await self._test_server_ops_global_compile_cache(
+        await self._test_server_ops_set_email_provider(
             mtargs,
             "create type GlobalCache2 { create property active: bool }",
             2,

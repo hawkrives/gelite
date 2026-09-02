@@ -1434,7 +1434,7 @@ cdef class DatabaseConnectionView:
                 # WARNING: only set cached_globally to True when the query is
                 # strictly referring to only shared stable objects in user
                 # schema or anything from std schema, for example:
-                #     YES:  select ext::auth::UIConfig { ... }
+                #     YES:  select cfg::Config { ... }
                 #     NO:   select default::User { ... }
                 query_unit_group = (
                     self.server.system_compile_cache.get(query_req)
