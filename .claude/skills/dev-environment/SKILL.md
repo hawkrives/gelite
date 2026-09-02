@@ -87,6 +87,35 @@ __EDGEDB_DEVMODE=1 uv run --no-sync edb test tests/test_sourcecode.py
 
 The last one is the cheapest end-to-end proof that the runner works.
 
+## Stale build artifacts lie
+
+Compiled extensions are untracked and outlive the sources they came
+from, so a working tree can fail in ways a fresh CI checkout never
+would. After moving or renaming a `.pyx`, check what the binaries
+actually contain:
+
+```
+for so in $(find edb -name '*.so'); do
+  strings "$so" | grep -q 'edb\.pgsql' && echo "STALE: $so"
+done
+```
+
+**A `git mv` preserves mtime**, so a generated `.c` sitting next to a
+moved `.pyx` is now *newer* than its source and Cython skips
+regenerating it. The stale `.c` bakes the old dotted module name into
+the build, and the extension registers itself under a name that no
+longer exists. Rebuilding does not fix it — delete the generated `.c`
+first:
+
+```
+rm -f edb/<pkg>/<mod>.c
+BUILD_EXT_MODE=py-only uv run --no-sync python setup.py build_ext --inplace
+```
+
+Those `.c` files are gitignored, so a fresh checkout regenerates them and
+CI never sees this. It is a local-tree problem that looks like a code
+problem.
+
 ## After a container restart
 
 A restarted container keeps the git checkout but loses the built
