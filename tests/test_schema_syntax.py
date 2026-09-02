@@ -50,7 +50,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         """
 
 
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_empty_04(self):
         """
@@ -68,7 +68,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
 \tabstract type test::Bar {
 \t\trequired property bar: str;
 \t};
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_tabs_02(self):
         """
@@ -79,7 +79,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
 \t  abstract type test::Bar {
 \t      required property bar: str;
 };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_semicolon_01(self):
         """
@@ -92,7 +92,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         abstract type test::OwnedObject {
             required link owner: User;
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_semicolon_02(self):
         """
@@ -109,7 +109,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 required property tag: str;
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_semicolon_03(self):
         """
@@ -124,7 +124,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
             required link owner: User;
             required property tag: str;
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_type_01(self):
         """type test::User extending builtins::NamedObject;"""
@@ -225,8 +225,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  "Unexpected 'unit'", line=5, col=30)
+    @tb.must_fail(errors.EdgeQLSyntaxError, "Unexpected 'unit'", line=5, col=30)
     def test_eschema_syntax_type_08(self):
         """
         module test {
@@ -264,15 +263,18 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 required link attachment: Post | File | User;
             };
         };
-        """
+        """  # fmt: skip
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  "Unexpected keyword 'COMMIT'",
-                  details="This name is a reserved keyword and cannot be "
-                          "used as an identifier",
-                  hint="Use a different identifier or quote the name "
-                       "with backticks: `Commit`",
-                  line=3, col=18)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        "Unexpected keyword 'COMMIT'",
+        details="This name is a reserved keyword and cannot be "
+        "used as an identifier",
+        hint="Use a different identifier or quote the name "
+        "with backticks: `Commit`",
+        line=3,
+        col=18,
+    )
     def test_eschema_syntax_type_11(self):
         """
         module test {
@@ -351,9 +353,12 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  "more than one 'on target delete' specification",
-                  line=6, col=21)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        "more than one 'on target delete' specification",
+        line=6,
+        col=21,
+    )
     def test_eschema_syntax_type_18(self):
         """
         module test {
@@ -421,7 +426,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 };
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_type_23(self):
         """
@@ -540,7 +545,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 overloaded required multi property eggs: str;
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_type_26(self):
         """
@@ -569,7 +574,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 };
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_type_27(self):
         """
@@ -590,7 +595,9 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
     @tb.must_fail(
         errors.EdgeQLSyntaxError,
         "fully-qualified name is not allowed in a module declaration",
-        line=3, col=18)
+        line=3,
+        col=18,
+    )
     def test_eschema_syntax_type_29(self):
         """
         module foo {
@@ -649,7 +656,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         type test::Foo {
             property lurr := (20);
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_type_33(self):
         """
@@ -725,7 +732,7 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
                 link x2 := (select Baz);
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_link_target_type_01(self):
         """
@@ -777,8 +784,12 @@ class TestEdgeSchemaParser(SchemaSyntaxTest):
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Expected 'ON', but got 'prop' instead", line=4, col=23)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Expected 'ON', but got 'prop' instead",
+        line=4,
+        col=23,
+    )
     def test_eschema_syntax_index_03(self):
         """
         module test {
@@ -894,7 +905,7 @@ type LogEntry extending    OwnedObject,    Text {
 
         };};
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_ws_02(self):
         """
@@ -903,11 +914,9 @@ type LogEntry extending    OwnedObject,    Text {
 % OK %
 
         scalar type test::newScalarType extending str;
-        """
+        """  # fmt: skip
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Missing ';'",
-                  line=2, col=55)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Missing ';'", line=2, col=55)
     def test_eschema_syntax_ws_03(self):
         """
         scalar type test::newScalarType0 extending str#:
@@ -996,8 +1005,9 @@ type LogEntry extending    OwnedObject,    Text {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected keyword 'FINAL'",
-                  line=3, col=13)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError, r"Unexpected keyword 'FINAL'", line=3, col=13
+    )
     def test_eschema_syntax_scalar_07(self):
         """
         module test {
@@ -1016,8 +1026,7 @@ type LogEntry extending    OwnedObject,    Text {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected ':='",
-                  line=4, col=47)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected ':='", line=4, col=47)
     def test_eschema_syntax_scalar_09(self):
         """
         module test {
@@ -1070,11 +1079,14 @@ type LogEntry extending    OwnedObject,    Text {
             using (__subject__ <= $param);
             errmessage := 'Maximum allowed value for {subject} is {$param}.';
         };
-        """
+        """  # fmt: skip
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Unexpected keyword 'DELEGATED'",
-                  line=3, col=13)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Unexpected keyword 'DELEGATED'",
+        line=3,
+        col=13,
+    )
     def test_eschema_syntax_constraint_02(self):
         """
         module test {
@@ -1131,9 +1143,12 @@ type LogEntry extending    OwnedObject,    Text {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"missing type declaration.*`param`",
-                  line=3, col=47)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"missing type declaration.*`param`",
+        line=3,
+        col=47,
+    )
     def test_eschema_syntax_constraint_06(self):
         """
         module test {
@@ -1141,9 +1156,12 @@ type LogEntry extending    OwnedObject,    Text {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Unexpected keyword 'CONSTRAINT'",
-                  line=4, col=26)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Unexpected keyword 'CONSTRAINT'",
+        line=4,
+        col=26,
+    )
     def test_eschema_syntax_constraint_07(self):
         """
         module test {
@@ -1165,8 +1183,12 @@ type LogEntry extending    OwnedObject,    Text {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected keyword 'CONSTRAINT'",
-                  line=3, col=13)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Unexpected keyword 'CONSTRAINT'",
+        line=3,
+        col=13,
+    )
     def test_eschema_syntax_constraint_09(self):
         """
         module test {
@@ -1193,7 +1215,7 @@ type LogEntry extending    OwnedObject,    Text {
 abstract property test::foo {
     title := 'Sample property';
 };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_property_02(self):
         """
@@ -1228,8 +1250,12 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected keyword 'PROPERTY'",
-                  line=3, col=13)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Unexpected keyword 'PROPERTY'",
+        line=3,
+        col=13,
+    )
     def test_eschema_syntax_property_05(self):
         """
         module test {
@@ -1303,8 +1329,7 @@ abstract property test::foo {
         """
 
     @tb.must_fail(
-        errors.EdgeQLSyntaxError,
-        r'specifying EXTENDING twice is not allowed'
+        errors.EdgeQLSyntaxError, r'specifying EXTENDING twice is not allowed'
     )
     def test_eschema_syntax_property_12(self):
         """
@@ -1349,7 +1374,7 @@ abstract property test::foo {
             constraint expr {
                 using (self.foo = self.bar);
             };
-        };      """
+        };      """  # fmt: skip
 
     def test_eschema_syntax_link_05(self):
         """
@@ -1431,7 +1456,7 @@ abstract property test::foo {
                };
             };
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_link_10(self):
         """
@@ -1440,8 +1465,9 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected keyword 'LINK'",
-                  line=3, col=13)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError, r"Unexpected keyword 'LINK'", line=3, col=13
+    )
     def test_eschema_syntax_link_11(self):
         """
         module test {
@@ -1449,8 +1475,7 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected '::'",
-                  line=4, col=25)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected '::'", line=4, col=25)
     def test_eschema_syntax_link_12(self):
         """
         module test {
@@ -1545,7 +1570,7 @@ abstract property test::foo {
             using sql $$
                 SELECT 'life';
             $$;
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_function_03(self):
         r"""
@@ -1624,7 +1649,7 @@ abstract property test::foo {
             function some_func(foo: str = ')') -> std::str
                 using sql function 'some_other_func';
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_function_10(self):
         """
@@ -1640,7 +1665,7 @@ abstract property test::foo {
                 using sql function 'some_other_func';
         };
 
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_function_11(self):
         """
@@ -1650,9 +1675,12 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"function parameters do not need a \$",
-                  line=3, col=32)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"function parameters do not need a \$",
+        line=3,
+        col=32,
+    )
     def test_eschema_syntax_function_12(self):
         """
         module test {
@@ -1694,8 +1722,7 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected '>'",
-                  line=6, col=21)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Unexpected '>'", line=6, col=21)
     def test_eschema_syntax_function_17(self):
         """
         module test {
@@ -1736,7 +1763,7 @@ abstract property test::foo {
             function len4() ->  std::int64
                 using SQL function 'length4';
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_function_19(self):
         """
@@ -1767,7 +1794,7 @@ abstract property test::foo {
             function len4() ->  std::int64
                 using SQL function 'length4';
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_function_20(self):
         """
@@ -1797,11 +1824,9 @@ abstract property test::foo {
             function len4() ->  std::int64
                 using SQL function 'length4';
         };
-        """
+        """  # fmt: skip
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Missing ','",
-                  line=3, col=33)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Missing ','", line=3, col=33)
     def test_eschema_syntax_function_21(self):
         """
         module test {
@@ -1849,7 +1874,7 @@ abstract property test::foo {
                 FILTER Foo.bar = 'baz'
             );
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_alias_03(self):
         """
@@ -1861,9 +1886,7 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Missing ','",
-                  line=4, col=25)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Missing ','", line=4, col=25)
     def test_eschema_syntax_alias_04(self):
         """
         module test {
@@ -1875,9 +1898,7 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Missing ','",
-                  line=3, col=31)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Missing ','", line=3, col=31)
     def test_eschema_syntax_alias_05(self):
         """
         module test {
@@ -1885,9 +1906,7 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Missing ','",
-                  line=3, col=31)
+    @tb.must_fail(errors.EdgeQLSyntaxError, r"Missing ','", line=3, col=31)
     def test_eschema_syntax_alias_06(self):
         """
         module test {
@@ -1938,7 +1957,7 @@ abstract property test::foo {
         """
         abstract annotation test::foobar extending foo1,
     foo2;
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_annotation_10(self):
         """
@@ -1946,7 +1965,7 @@ abstract property test::foo {
     foo2 {
             title := 'Title';
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_annotation_11(self):
         """
@@ -1969,8 +1988,12 @@ abstract property test::foo {
         };
         """
 
-    @tb.must_fail(errors.EdgeQLSyntaxError,
-                  r"Unexpected keyword 'EXTENDING'", line=3, col=46)
+    @tb.must_fail(
+        errors.EdgeQLSyntaxError,
+        r"Unexpected keyword 'EXTENDING'",
+        line=3,
+        col=46,
+    )
     def test_eschema_syntax_annotation_14(self):
         """
         module test {
@@ -1979,15 +2002,12 @@ abstract property test::foo {
         """
 
     @tb.must_fail(
-        errors.EdgeQLSyntaxError,
-        r"Missing keyword 'ABSTRACT'",
-        line=1,
-        col=1
+        errors.EdgeQLSyntaxError, r"Missing keyword 'ABSTRACT'", line=1, col=1
     )
     def test_eschema_syntax_annotation_15(self):
         """
 annotation test::foo;
-        """
+        """  # fmt: skip
 
     def test_eschema_syntax_future_1(self):
         """
@@ -2157,7 +2177,7 @@ annotation test::foo;
         abstract type test::OwnedObject {
             required link owner: User;
         };
-        """
+        """  # fmt: skip
 
     def test_eschema_newsyntax_global_1(self):
         """
@@ -2170,7 +2190,7 @@ annotation test::foo;
         module test {
             global foo -> str;
         };
-        """
+        """  # fmt: skip
 
     @tb.must_fail(
         errors.EdgeQLSyntaxError,
@@ -2199,7 +2219,7 @@ annotation test::foo;
         module test {
             global foo -> str;
         };
-        """
+        """  # fmt: skip
 
     @tb.must_fail(
         errors.EdgeQLSyntaxError,

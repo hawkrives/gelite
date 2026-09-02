@@ -246,35 +246,19 @@ exclude = ["postgres", ".github", "edb/server/pgproto"]
 [tool.ruff.format]
 quote-style = "preserve"
 
-# These modules encode test data in docstrings, and the formatter rewrites
-# docstring bodies. DocTestMeta in edb/testbase/lang.py used to require the
-# "% OK %" separator at column 0, so re-indenting silently dropped 520 of
-# 521 expected-output assertions while leaving the suite green. #67 made
-# the marker match tolerate indentation, which is why five files that used
-# to be listed here no longer are - verified by counting the markers still
-# found before and after formatting: 521 both times.
+# `ruff format` rewrites docstring bodies, and in these test files the
+# docstring IS the test data. DocTestMeta in edb/testbase/lang.py used to
+# require the "% OK %" separator at column 0, so re-indenting silently
+# dropped 520 of 521 expected-output assertions while leaving the suite
+# green. #67 made the marker match tolerate indentation, and marked the
+# individual docstrings whose whitespace is load-bearing with
+# `# fmt: skip` - so nothing needs excluding from the formatter any more.
 #
-# The three below are excluded for a different and narrower reason: their
-# docstrings contain whitespace that IS the test data, so the formatter
-# changes what is being asserted, not just where the marker sits.
-#
-#   test_edgeql_syntax.py   tab-indented and oddly-indented source that
-#   test_schema_syntax.py   exercises the lexer; between them 107 `col=`
-#                           assertions sit on multi-line docstrings and
-#                           measure columns that include the indentation.
-#   test_schema.py          BaseSchemaLoadTest.load_schema interpolates the
-#                           docstring verbatim into "module default { ... }"
-#                           with no dedent, and 23 `must_fail` decorators
-#                           assert an exact col=.
-#
-# Dedenting in the harness would make all three formattable, at the cost of
-# renumbering 130 column assertions. That is a deliberate decision, not a
-# cleanup - see #67.
-exclude = [
-    "tests/test_edgeql_syntax.py",
-    "tests/test_schema.py",
-    "tests/test_schema_syntax.py",
-]
+# Add `# fmt: skip` after the closing quotes of any new docstring whose
+# indentation matters: tab-indented source that exercises the lexer, or
+# anything a `col=` assertion measures. Note the placement - `# fmt: skip`
+# on the `def` line does NOT protect the docstring, only on the docstring
+# itself.
 
 [tool.ruff.lint]
 preview = true
