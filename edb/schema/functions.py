@@ -39,7 +39,6 @@ from edb import errors
 from edb.common import ast
 from edb.common import parsing
 from edb.common import struct
-from edb.common import verutils
 from edb.common import lru
 
 from edb.edgeql import ast as qlast
@@ -1722,20 +1721,12 @@ class FunctionCommand(
         # If a volatility is specified, it can be more volatile than the
         # inferred volatility but not less.
         if spec_volatility is not None and spec_volatility < ir.volatility:
-            # When restoring from old versions, just ignore the problem
-            # and use the inferred volatility
-            if context.compat_ver_is_before(
-                (1, 0, verutils.VersionStage.ALPHA, 8)
-            ):
-                self.set_attribute_value('volatility', ir.volatility)
-            else:
-                raise errors.InvalidFunctionDefinitionError(
-                    f'volatility mismatch in function declared as '
-                    f'{str(spec_volatility).lower()}',
-                    details=f'Actual volatility is '
-                    f'{str(ir.volatility).lower()}',
-                    span=body.parse().span,
-                )
+            raise errors.InvalidFunctionDefinitionError(
+                f'volatility mismatch in function declared as '
+                f'{str(spec_volatility).lower()}',
+                details=f'Actual volatility is {str(ir.volatility).lower()}',
+                span=body.parse().span,
+            )
 
         globs = {
             schema.get(glob.global_name, type=s_globals.Global)

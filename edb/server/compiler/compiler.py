@@ -54,7 +54,6 @@ from edb.server import instdata
 from edb import edgeql
 from edb.common import debug
 from edb.common import turbo_uuid
-from edb.common import verutils
 from edb.common import uuidgen
 
 from edb.edgeql import ast as qlast
@@ -146,7 +145,6 @@ class CompileContext:
     backend_runtime_params: pg_params.BackendRuntimeParams = dataclasses.field(
         default_factory=pg_params.get_default_runtime_params
     )
-    compat_ver: Optional[verutils.Version] = None
     bootstrap_mode: bool = False
     internal_schema_mode: bool = False
     log_ddl_as_migrations: bool = True
@@ -1058,11 +1056,8 @@ class Compiler:
             for name, qltype, objid in schema_ids
         }
 
-        dump_server_ver = verutils.parse_version(dump_server_ver_str)
-
-        # catalog_version didn't exist until late in the 3.0 cycle,
-        # but we can just treat that as being version 0
-        dump_catalog_version = dump_catalog_version or 0
+        # dump_server_ver_str and dump_catalog_version are read from the
+        # dump header but not branched on: see the comment below.
 
         state = dbstate.CompilerConnectionState(
             user_schema=pickle.loads(user_schema_pickle),
@@ -1079,7 +1074,6 @@ class Compiler:
             state=state,
             output_format=enums.OutputFormat.BINARY,
             expected_cardinality_one=False,
-            compat_ver=dump_server_ver,
             schema_object_ids=schema_object_ids,
             log_ddl_as_migrations=False,
             protocol_version=protocol_version,
@@ -1088,36 +1082,18 @@ class Compiler:
 
         ctx.state.start_tx()
 
-        dump_with_extraneous_computables = dump_server_ver < (
-            1,
-            0,
-            verutils.VersionStage.ALPHA,
-            8,
-        )
+        # Upstream branched here on the version of the server that wrote
+        # the dump, to read dumps from EdgeDB before 1.0: pointer names
+        # were remangled, computables and a ptr_item_id column were
+        # elided, and DML in functions was re-enabled. Those shims are
+        # keyed on a version below 1.0-alpha.5/alpha.8/beta.1, and this
+        # fork's version is 0.x - so every one of them fired for gelite's
+        # own dumps, and the remangling meant restore could not find the
+        # schema objects the dump named (#82). gelite restores gelite
+        # dumps; it has never been able to read an EdgeDB one, whose
+        # standard library and catalog version differ anyway.
 
-        dump_with_ptr_item_id = dump_with_extraneous_computables
-
-        allow_dml_in_functions = dump_server_ver < (
-            1,
-            0,
-            verutils.VersionStage.BETA,
-            1,
-        )
-
-        # This change came late in the 3.0 dev cycle, and with it we
-        # switched to using catalog versions for this, so that nightly
-        # dumps might work.
-        dump_with_dunder_type = dump_catalog_version < 2023_02_16_00_00
-
-        schema_ddl_text = schema_ddl.decode('utf-8')
-
-        if allow_dml_in_functions:
-            schema_ddl_text = (
-                'CONFIGURE CURRENT DATABASE '
-                'SET allow_dml_in_functions := true;\n' + schema_ddl_text
-            )
-
-        ddl_source = edgeql.Source.from_string(schema_ddl_text)
+        ddl_source = edgeql.Source.from_string(schema_ddl.decode('utf-8'))
 
         # The state serializer generated below is somehow inappropriate,
         # so it's simply ignored here and the I/O process will do it on its own
@@ -1139,7 +1115,6 @@ class Compiler:
             schema_object_id = uuidgen.from_bytes(schema_object_id_bytes)
             obj = schema.get_by_id(schema_object_id)
             desc = sertypes.parse(typedesc, protocol_version)
-            elided_col_set = set()
             mending_desc: list[Optional[DataMendingDescriptor]] = []
 
             if isinstance(obj, s_props.Property):
@@ -1153,10 +1128,6 @@ class Compiler:
                 mending_desc.append(None)
                 mending_desc.append(_get_ptr_mending_desc(schema, obj))
 
-                if dump_with_ptr_item_id:
-                    elided_col_set.add('ptr_item_id')
-                    mending_desc.append(None)
-
             elif isinstance(obj, s_links.Link):
                 assert isinstance(desc, sertypes.NamedTupleDesc)
                 desc_ptrs = list(desc.fields.keys())
@@ -1164,31 +1135,20 @@ class Compiler:
                 cols = {}
                 ptrs = dict(obj.get_pointers(schema).items(schema))
                 for ptr_name in desc_ptrs:
-                    if dump_with_ptr_item_id and ptr_name == 'ptr_item_id':
-                        elided_col_set.add(ptr_name)
-                        cols[ptr_name] = ptr_name
-                        mending_desc.append(None)
-                    else:
-                        ptr = ptrs[s_name.UnqualName(ptr_name)]
-                        if (
-                            dump_with_extraneous_computables
-                            and ptr.is_pure_computable(schema)
-                        ):
-                            elided_col_set.add(ptr_name)
-                            mending_desc.append(None)
+                    ptr = ptrs[s_name.UnqualName(ptr_name)]
 
-                        if not ptr.is_dumpable(schema):
-                            continue
+                    if not ptr.is_dumpable(schema):
+                        continue
 
-                        stor_info = pg_types.get_pointer_storage_info(
-                            ptr,
-                            schema=schema,
-                            source=obj,
-                            link_bias=True,
-                        )
+                    stor_info = pg_types.get_pointer_storage_info(
+                        ptr,
+                        schema=schema,
+                        source=obj,
+                        link_bias=True,
+                    )
 
-                        cols[ptr_name] = stor_info.column_name
-                        mending_desc.append(_get_ptr_mending_desc(schema, ptr))
+                    cols[ptr_name] = stor_info.column_name
+                    mending_desc.append(_get_ptr_mending_desc(schema, ptr))
 
             elif isinstance(obj, s_objtypes.ObjectType):
                 assert isinstance(desc, sertypes.ShapeDesc)
@@ -1216,12 +1176,6 @@ class Compiler:
                         continue
 
                     ptr = ptrs[s_name.UnqualName(ptr_name)]
-                    if (
-                        dump_with_extraneous_computables
-                        and ptr.is_pure_computable(schema)
-                    ) or (dump_with_dunder_type and ptr_name == '__type__'):
-                        elided_col_set.add(ptr_name)
-                        mending_desc.append(None)
 
                     if not ptr.is_dumpable(schema):
                         continue
@@ -1250,21 +1204,12 @@ class Compiler:
             _check_dump_layout(
                 frozenset(desc_ptrs),
                 frozenset(cols),
-                elided_col_set,
                 label=obj.get_verbosename(schema, with_parent=True),
             )
 
             table_name = pg_common.get_backend_name(schema, obj, catenate=True)
 
-            elided_cols = tuple(
-                i for i, pn in enumerate(desc_ptrs) if pn in elided_col_set
-            )
-
-            col_list = (
-                pg_common.quote_ident(cols[pn])
-                for pn in desc_ptrs
-                if pn not in elided_col_set
-            )
+            col_list = (pg_common.quote_ident(cols[pn]) for pn in desc_ptrs)
 
             stmt = (
                 f'COPY {table_name} '
@@ -1276,7 +1221,10 @@ class Compiler:
                 RestoreBlockDescriptor(
                     schema_object_id=schema_object_id,
                     sql_copy_stmt=stmt,
-                    compat_elided_cols=elided_cols,
+                    # Only the pre-1.0 shims removed above ever elided a
+                    # column, so nothing does now. pgcon still carries the
+                    # eliding branch of _rewrite_copy_data for it.
+                    compat_elided_cols=(),
                     data_mending_desc=tuple(mending_desc),
                 )
             )
@@ -3475,10 +3423,9 @@ def _describe_object(
 def _check_dump_layout(
     dump_els: AbstractSet[str],
     schema_els: AbstractSet[str],
-    elided_els: AbstractSet[str],
     label: str,
 ) -> None:
-    extra_els = dump_els - (schema_els | elided_els)
+    extra_els = dump_els - schema_els
     if extra_els:
         raise RuntimeError(
             f'dump data tuple of {label} has extraneous elements: '

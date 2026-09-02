@@ -55,7 +55,6 @@ from edb.common import parsing
 from edb.common import struct
 from edb.common import topological
 from edb.common import typing_inspect
-from edb.common import verutils
 
 from edb.edgeql import ast as qlast
 from edb.edgeql import compiler as qlcompiler
@@ -1030,23 +1029,6 @@ class Command(
             subcmd._log_all_renames(context)
 
     @classmethod
-    def get_orig_expr_text(
-        cls,
-        schema: s_schema.Schema,
-        astnode: qlast.DDLOperation,
-        name: str,
-    ) -> Optional[str]:
-        orig_text_expr = qlast.get_ddl_field_value(astnode, f'orig_{name}')
-        if orig_text_expr:
-            orig_text = qlcompiler.evaluate_ast_to_python_val(
-                orig_text_expr, schema=schema
-            )
-        else:
-            orig_text = None
-
-        return orig_text  # type: ignore
-
-    @classmethod
     def command_for_ast_node(
         cls,
         astnode: qlast.DDLOperation,
@@ -1291,7 +1273,7 @@ class CommandContext:
             Mapping[tuple[sn.Name, Optional[str]], uuid.UUID]
         ] = None,
         backend_runtime_params: Optional[Any] = None,
-        compat_ver: Optional[verutils.Version] = None,
+        dump_restore_mode: bool = False,
         include_ext_version: bool = True,
     ) -> None:
         self.stack: list[CommandContextToken[Command]] = []
@@ -1320,7 +1302,7 @@ class CommandContext:
             Command,
             list[tuple[Command, AlterObject[so.Object], list[str]]],
         ] = collections.defaultdict(list)
-        self.compat_ver = compat_ver
+        self.dump_restore_mode = dump_restore_mode
         self.include_ext_version = include_ext_version
 
     @property
@@ -1581,12 +1563,6 @@ class CommandContext:
         token: CommandContextToken[Command_T],
     ) -> CommandContextWrapper[Command_T]:
         return CommandContextWrapper(self, token)
-
-    def compat_ver_is_before(
-        self,
-        ver: tuple[int, int, verutils.VersionStage, int],
-    ) -> bool:
-        return self.compat_ver is not None and self.compat_ver < ver
 
 
 class ContextStack:
@@ -3137,10 +3113,6 @@ class CreateObject[Object_T: so.Object](ObjectCommand[Object_T]):
             qlclass = mcls.get_ql_class_or_die()
 
         objname = self.classname
-        if context.compat_ver_is_before((1, 0, verutils.VersionStage.ALPHA, 5)):
-            # Pre alpha.5 used to have a different name mangling scheme.
-            objname = sn.compat_name_remangle(str(objname))
-
         if id_field != 'id':
             qlclass = f'{qlclass}-{id_field}'
 
@@ -4142,21 +4114,12 @@ class AlterObjectProperty(Command):
         assert isinstance(parent_op, ObjectCommand)
         parent_cls = parent_op.get_schema_metaclass()
 
-        if (
-            propname.startswith('orig_')
-            and context.compat_ver_is_before(
-                (1, 0, verutils.VersionStage.ALPHA, 8)
+        try:
+            field = parent_cls.get_field(propname)
+        except LookupError:
+            raise errors.SchemaDefinitionError(
+                f'{propname!r} is not a valid field', span=astnode.span
             )
-            and not parent_cls.has_field(propname)
-        ):
-            return Nop()
-        else:
-            try:
-                field = parent_cls.get_field(propname)
-            except LookupError:
-                raise errors.SchemaDefinitionError(
-                    f'{propname!r} is not a valid field', span=astnode.span
-                )
 
         if not (
             astnode.special_syntax
@@ -4188,27 +4151,9 @@ class AlterObjectProperty(Command):
                 new_value = None
             else:
                 assert isinstance(ast_value, qlast.Expr)
-                orig_text = cls.get_orig_expr_text(
-                    schema, parent_op.qlast, field.name
-                )
-
-                if orig_text is not None and context.compat_ver_is_before(
-                    (1, 0, verutils.VersionStage.ALPHA, 6)
-                ):
-                    # Versions prior to a6 used a different expression
-                    # normalization strategy, so we must renormalize the
-                    # expression.
-                    expr_ql = qlcompiler.renormalize_compat(
-                        ast_value,
-                        orig_text,
-                        schema=schema,
-                        localnames=context.localnames,
-                    )
-                else:
-                    expr_ql = ast_value
 
                 new_value = s_expr.Expression.from_ast(
-                    expr_ql,
+                    ast_value,
                     schema,
                     context.modaliases,
                     context.localnames,

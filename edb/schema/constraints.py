@@ -29,7 +29,6 @@ from typing import (
 import re
 
 from edb import errors
-from edb.common import verutils
 
 from edb import edgeql
 from edb.edgeql import ast as qlast
@@ -1304,23 +1303,7 @@ class CreateConstraint(
         )
         # 'subjectexpr' can be present in either astnode type
         if astnode.subjectexpr:
-            orig_text = cls.get_orig_expr_text(schema, astnode, 'subjectexpr')
-
-            expr_ql: qlast.Expr
-            if orig_text is not None and context.compat_ver_is_before(
-                (1, 0, verutils.VersionStage.ALPHA, 6)
-            ):
-                # Versions prior to a6 used a different expression
-                # normalization strategy, so we must renormalize the
-                # expression.
-                expr_ql = qlcompiler.renormalize_compat(
-                    astnode.subjectexpr,
-                    orig_text,
-                    schema=schema,
-                    localnames=context.localnames,
-                )
-            else:
-                expr_ql = astnode.subjectexpr
+            expr_ql: qlast.Expr = astnode.subjectexpr
 
             subjectexpr = s_expr.Expression.from_ast(
                 expr_ql,
