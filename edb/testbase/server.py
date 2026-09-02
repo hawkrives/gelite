@@ -22,6 +22,7 @@
 from __future__ import annotations
 from typing import (
     Any,
+    Iterable,
     Optional,
     Literal,
     Sequence,
@@ -52,6 +53,7 @@ import struct
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 import urllib
 
@@ -1790,6 +1792,153 @@ class SQLQueryTestCase(BaseQueryTestCase):
                 self.assertEqual(len(res[0]), columns)
         elif isinstance(columns, list):
             self.assertListEqual(columns, list(res[0].keys()))
+
+
+def get_test_cases_setup(
+    cases: Iterable[unittest.TestCase]
+) -> list[tuple[unittest.TestCase, DatabaseName, SetupScript]]:
+    result: list[tuple[unittest.TestCase, DatabaseName, SetupScript]] = []
+
+    for case in cases:
+        if not hasattr(case, 'get_setup_script'):
+            continue
+
+        try:
+            setup_script = case.get_setup_script()
+        except unittest.SkipTest:
+            continue
+
+        dbname = case.get_database_name()
+        result.append((case, dbname, setup_script))
+
+    return result
+
+
+def test_cases_use_server(cases: Iterable[unittest.TestCase]) -> bool:
+    for case in cases:
+        if not hasattr(case, 'uses_server'):
+            continue
+
+        if case.uses_server():
+            return True
+
+
+async def setup_test_cases(
+    cases,
+    conn,
+    num_jobs,
+    try_cached_db=False,
+    skip_empty_databases=False,
+    verbose=False,
+):
+    setup = get_test_cases_setup(cases)
+
+    stats = []
+    if num_jobs == 1:
+        # Special case for --jobs=1
+        for _case, dbname, setup_script in setup:
+            if skip_empty_databases and not setup_script:
+                continue
+            await _setup_database(
+                dbname, setup_script, conn, stats, try_cached_db)
+            if verbose:
+                print(f' -> {dbname}: OK', flush=True)
+    else:
+        async with asyncio.TaskGroup() as g:
+            # Use a semaphore to limit the concurrency of bootstrap
+            # tasks to the number of jobs (bootstrap is heavy, having
+            # more tasks than `--jobs` won't necessarily make
+            # things faster.)
+            sem = asyncio.BoundedSemaphore(num_jobs)
+
+            async def controller(coro, dbname, *args):
+                async with sem:
+                    await coro(dbname, *args)
+                    if verbose:
+                        print(f' -> {dbname}: OK', flush=True)
+
+            for _case, dbname, setup_script in setup:
+                if skip_empty_databases and not setup_script:
+                    continue
+
+                g.create_task(controller(
+                    _setup_database, dbname, setup_script, conn, stats,
+                    try_cached_db))
+    return stats
+
+
+async def _setup_database(
+        dbname, setup_script, conn_args, stats, try_cached_db):
+    start_time = time.monotonic()
+    default_args = {
+        'user': edgedb_defines.GELITE_SUPERUSER,
+        'password': 'test',
+    }
+
+    default_args.update(conn_args)
+
+    try:
+        admin_conn = await tconn.async_connect_test_client(
+            database=edgedb_defines.GELITE_SUPERUSER_DB,
+            **default_args)
+    except Exception as ex:
+        raise RuntimeError(
+            f'exception during creation of {dbname!r} test DB; '
+            f'could not connect to the {edgedb_defines.GELITE_SUPERUSER_DB} '
+            f'db; {type(ex).__name__}({ex})'
+        ) from ex
+
+    try:
+        await admin_conn.execute(
+            f'CREATE DATABASE {qlquote.quote_ident(dbname)};'
+        )
+    except edgedb.DuplicateDatabaseDefinitionError:
+        # Eh, that's fine
+        # And, if we are trying to use a cache of the database, assume
+        # the db is populated and return.
+        if try_cached_db:
+            elapsed = time.monotonic() - start_time
+            stats.append(
+                ('setup::' + dbname,
+                 {'running-time': elapsed, 'cached': True}))
+            return
+    except Exception as ex:
+        raise RuntimeError(
+            f'exception during creation of {dbname!r} test DB: '
+            f'{type(ex).__name__}({ex})'
+        ) from ex
+    finally:
+        await admin_conn.aclose()
+
+    dbconn = await tconn.async_connect_test_client(
+        database=dbname, **default_args
+    )
+    try:
+        if setup_script:
+            async for tx in dbconn.retrying_transaction():
+                async with tx:
+                    with dbconn.capture_warnings():
+                        await dbconn.execute(setup_script)
+    except Exception as ex:
+        raise RuntimeError(
+            f'exception during initialization of {dbname!r} test DB: '
+            f'{type(ex).__name__}({ex})'
+        ) from ex
+    finally:
+        await dbconn.aclose()
+
+    elapsed = time.monotonic() - start_time
+    stats.append(
+        ('setup::' + dbname, {'running-time': elapsed, 'cached': False}))
+
+
+_lock_cnt = 0
+
+
+def gen_lock_key():
+    global _lock_cnt
+    _lock_cnt += 1
+    return os.getpid() * 1000 + _lock_cnt
 
 
 class _EdgeDBServerData(NamedTuple):
