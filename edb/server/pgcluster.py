@@ -26,7 +26,6 @@ from typing import (
     Sequence,
     Coroutine,
     Unpack,
-    cast,
     TYPE_CHECKING,
 )
 
@@ -55,7 +54,6 @@ from edb.common import uuidgen
 from edb.server import args as srvargs
 from edb.server import defines
 from edb.server import pgconnparams
-from edb.server.ha import base as ha_base
 from edb.pgsql import common as pgcommon
 from edb.pgsql import params as pgparams
 
@@ -184,14 +182,6 @@ class BaseCluster:
             apply_init_script=apply_init_script,
         )
         return conn
-
-    async def start_watching(
-        self, failover_cb: Optional[Callable[[], None]] = None
-    ) -> None:
-        pass
-
-    def stop_watching(self) -> None:
-        pass
 
     def get_runtime_params(self) -> pgparams.BackendRuntimeParams:
         params = self.get_connection_params()
@@ -863,7 +853,6 @@ class RemoteCluster(BaseCluster):
         connection_addr: tuple[str, int],
         connection_params: pgconnparams.ConnectionParams,
         instance_params: Optional[pgparams.BackendInstanceParams] = None,
-        ha_backend: Optional[ha_base.HABackend] = None,
     ):
         super().__init__(instance_params=instance_params)
         self._connection_params = connection_params
@@ -871,11 +860,8 @@ class RemoteCluster(BaseCluster):
             server_settings=GELITE_SERVER_SETTINGS
         )
         self._connection_addr = connection_addr
-        self._ha_backend = ha_backend
 
     def _get_connection_addr(self) -> Optional[tuple[str, int]]:
-        if self._ha_backend is not None:
-            return self._ha_backend.get_master_addr()
         return self._connection_addr
 
     async def ensure_initialized(self, **settings: Any) -> bool:
@@ -920,28 +906,14 @@ class RemoteCluster(BaseCluster):
     ) -> None:
         raise ClusterError('cannot modify HBA records of unmanaged cluster')
 
-    async def start_watching(
-        self, failover_cb: Optional[Callable[[], None]] = None
-    ) -> None:
-        if self._ha_backend is not None:
-            self._ha_backend.set_failover_callback(failover_cb)
-            await self._ha_backend.start_watching()
-
-    def stop_watching(self) -> None:
-        if self._ha_backend is not None:
-            self._ha_backend.stop_watching()
-
     @lru.method_cache
     def get_client_id(self) -> int:
         tenant_id = self._instance_params.tenant_id
-        if self._ha_backend is not None:
-            backend_dsn = self._ha_backend.dsn
-        else:
-            assert self._connection_addr is not None
-            assert self._connection_params is not None
-            host, port = self._connection_addr
-            database = self._connection_params.database
-            backend_dsn = f"postgres://{host}:{port}/{database}"
+        assert self._connection_addr is not None
+        assert self._connection_params is not None
+        host, port = self._connection_addr
+        database = self._connection_params.database
+        backend_dsn = f"postgres://{host}:{port}/{database}"
         data = f"{backend_dsn}|{tenant_id}".encode("utf-8")
         digest = hashlib.blake2b(data, digest_size=8).digest()
         rv: int = struct.unpack("q", digest)[0]
@@ -1008,36 +980,11 @@ async def get_remote_pg_cluster(
 ) -> RemoteCluster:
     from edb.server import pgcon
     parsed = urllib.parse.urlparse(dsn)
-    ha_backend = None
 
     if parsed.scheme not in {'postgresql', 'postgres'}:
-        ha_backend = ha_base.get_backend(parsed)
-        if ha_backend is None:
-            raise ValueError(
-                'invalid DSN: scheme is expected to be "postgresql", '
-                '"postgres" or one of the supported HA backend, '
-                'got {!r}'.format(parsed.scheme))
-
-        addr = await ha_backend.get_cluster_consensus()
-        dsn = 'postgresql://{}:{}'.format(*addr)
-
-        if parsed.query:
-            # Allow passing through Postgres connection parameters from the HA
-            # backend DSN as "pg" prefixed query strings. For example, an HA
-            # backend DSN with `?pgpassword=123` will result an actual backend
-            # DSN with `?password=123`. They have higher priority than the `PG`
-            # prefixed environment variables like `PGPASSWORD`.
-            pq = urllib.parse.parse_qs(parsed.query, strict_parsing=True)
-            query = {}
-            for k, v in pq.items():
-                if k.startswith("pg") and k not in ["pghost", "pgport"]:
-                    if isinstance(v, list):
-                        val = v[-1]
-                    else:
-                        val = cast(str, v)
-                    query[k[2:]] = val
-            if query:
-                dsn += f"?{urllib.parse.urlencode(query)}"
+        raise ValueError(
+            'invalid DSN: scheme is expected to be "postgresql" or '
+            '"postgres", got {!r}'.format(parsed.scheme))
 
     if tenant_id is None:
         t_id = buildmeta.get_default_tenant_id()
@@ -1106,9 +1053,9 @@ async def get_remote_pg_cluster(
             except pgcon.BackendPrivilegeError:
                 configfile_access = False
             except pgcon.BackendError as e:
-                # Stolon keeper symlinks postgresql.auto.conf to /dev/null
-                # making ALTER SYSTEM fail with InternalServerError,
-                # see https://github.com/sorintlab/stolon/pull/343
+                # A backend that symlinks postgresql.auto.conf to
+                # /dev/null makes ALTER SYSTEM fail with
+                # InternalServerError rather than a privilege error.
                 if 'could not fsync file "postgresql.auto.conf"' in e.args[0]:
                     configfile_access = False
                 else:
@@ -1340,7 +1287,6 @@ async def get_remote_pg_cluster(
         connection_addr=addr,
         connection_params=params,
         instance_params=instance_params,
-        ha_backend=ha_backend,
     )
 
 

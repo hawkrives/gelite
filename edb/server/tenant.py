@@ -67,8 +67,6 @@ from . import pgcon
 from . import compiler as edbcompiler
 from . import pgconnparams
 
-from .ha import adaptive as adaptive_ha
-from .ha import base as ha_base
 from .http import HttpClient
 from .pgcon import errors as pgcon_errors
 from .compiler import enums as compiler_enums
@@ -101,7 +99,7 @@ class RoleDescriptor(TypedDict):
     apply_access_policies_pg_default: bool | None
 
 
-class Tenant(ha_base.ClusterProtocol):
+class Tenant:
     _server: edbserver.BaseServer
     _cluster: pgcluster.BaseCluster
     _tenant_id: str
@@ -132,7 +130,6 @@ class Tenant(ha_base.ClusterProtocol):
     _init_con_sql: bytes | None
 
     _ha_master_serial: int
-    _backend_adaptive_ha: adaptive_ha.AdaptiveHASupport | None
     _readiness_state_file: pathlib.Path | None
     _readiness: srvargs.ReadinessState
     _readiness_reason: str
@@ -160,7 +157,6 @@ class Tenant(ha_base.ClusterProtocol):
         *,
         instance_name: str,
         max_backend_connections: int,
-        backend_adaptive_ha: bool = False,
         extensions_dir: tuple[pathlib.Path, ...] = (),
     ):
         self._cluster = cluster
@@ -187,12 +183,6 @@ class Tenant(ha_base.ClusterProtocol):
 
         # Increase-only counter to reject outdated attempts to connect
         self._ha_master_serial = 0
-        if backend_adaptive_ha:
-            self._backend_adaptive_ha = adaptive_ha.AdaptiveHASupport(
-                self, self._instance_name
-            )
-        else:
-            self._backend_adaptive_ha = None
         self._readiness_state_file = None
         self._readiness = srvargs.ReadinessState.Default
         self._readiness_reason = ""
@@ -307,15 +297,6 @@ class Tenant(ha_base.ClusterProtocol):
             # Brutally close the sys_pgcon to the old master - this should
             # trigger a reconnect task.
             self.__sys_pgcon.abort()
-
-        if self._backend_adaptive_ha is not None:
-            # Switch to FAILOVER if adaptive HA is enabled
-            self._backend_adaptive_ha.set_state_failover(
-                call_on_switch_over=False
-            )
-
-    def get_active_pgcon_num(self) -> int:
-        return self._pg_pool.active_conns
 
     @property
     def client_id(self) -> int:
@@ -716,7 +697,6 @@ class Tenant(ha_base.ClusterProtocol):
         self._task_group = asyncio.TaskGroup()
         await self._task_group.__aenter__()
         self._accept_new_tasks = True
-        await self._cluster.start_watching(self.on_switch_over)
 
     def start_running(self) -> None:
         self._running = True
@@ -784,7 +764,6 @@ class Tenant(ha_base.ClusterProtocol):
     def stop(self) -> None:
         self._running = False
         self._accept_new_tasks = False
-        self._cluster.stop_watching()
         self._stop_watching_files()
         self._server.request_frontend_stop(self)
 
@@ -861,10 +840,6 @@ class Tenant(ha_base.ClusterProtocol):
             )
         if ha_serial == self._ha_master_serial:
             rv.set_tenant(self)
-            if self._backend_adaptive_ha is not None:
-                self._backend_adaptive_ha.on_pgcon_made(
-                    dbname == defines.GELITE_SYSTEM_DB
-                )
             metrics.total_backend_connections.inc(1.0, self._instance_name)
             metrics.current_backend_connections.inc(1.0, self._instance_name)
             return rv
@@ -956,16 +931,10 @@ class Tenant(ha_base.ClusterProtocol):
         if not self._running:
             return
         try:
-            if self._backend_adaptive_ha is not None:
-                # Switch to FAILOVER if adaptive HA is enabled
-                self._backend_adaptive_ha.set_state_failover()
-            elif getattr(self._cluster, "_ha_backend", None) is None:
-                # If the server is not using an HA backend, nor has enabled the
-                # adaptive HA monitoring, we still try to "switch over" by
-                # disconnecting all pgcons if failover signal is received,
-                # allowing reconnection to happen sooner.
-                self.on_switch_over()
-            # Else, the HA backend should take care of calling on_switch_over()
+            # Nothing coordinates a switch-over any more, so "switch over"
+            # here by disconnecting all pgcons when the failover signal
+            # arrives, letting reconnection happen sooner.
+            self.on_switch_over()
         except Exception:
             metrics.background_errors.inc(
                 1.0, self._instance_name, "on_sys_pgcon_failover_signal"
@@ -994,7 +963,6 @@ class Tenant(ha_base.ClusterProtocol):
                 self.create_task(
                     self._reconnect_sys_pgcon(), interruptable=True
                 )
-            self.on_pgcon_broken(True)
         except Exception:
             metrics.background_errors.inc(
                 1.0, self._instance_name, "on_sys_pgcon_connection_lost"
@@ -1061,25 +1029,6 @@ class Tenant(ha_base.ClusterProtocol):
             self.set_pg_unavailable_msg(None)
         finally:
             self._sys_pgcon_ready_evt.set()
-
-    def on_pgcon_broken(self, is_sys_pgcon: bool = False) -> None:
-        try:
-            if self._backend_adaptive_ha:
-                self._backend_adaptive_ha.on_pgcon_broken(is_sys_pgcon)
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_pgcon_broken"
-            )
-            raise
-
-    def on_pgcon_lost(self) -> None:
-        try:
-            if self._backend_adaptive_ha:
-                self._backend_adaptive_ha.on_pgcon_lost()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_pgcon_lost")
-            raise
 
     def set_pg_unavailable_msg(self, msg: str | None) -> None:
         if msg is None or self._pg_unavailable_msg is None:

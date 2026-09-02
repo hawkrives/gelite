@@ -140,7 +140,6 @@ class BaseServer:
         compiler_pool_size: int,
         compiler_worker_branch_limit,
         compiler_pool_mode: srvargs.CompilerPoolMode,
-        compiler_pool_addr: tuple[str, int],
         nethosts: Sequence[str],
         netport: int,
         compiler_worker_max_rss: Optional[int] = None,
@@ -188,7 +187,6 @@ class BaseServer:
         self._compiler_pool_size = compiler_pool_size
         self._compiler_worker_branch_limit = compiler_worker_branch_limit
         self._compiler_pool_mode = compiler_pool_mode
-        self._compiler_pool_addr = compiler_pool_addr
         self._compiler_worker_max_rss = compiler_worker_max_rss
         self._system_compile_cache = lru.LRUMapping(
             maxsize=defines._MAX_QUERIES_CACHE_SYSTEM
@@ -602,11 +600,8 @@ class BaseServer:
             refl_schema=self._refl_schema,
             schema_class_layout=self._schema_class_layout,
         )
-        if self._compiler_pool_mode == srvargs.CompilerPoolMode.Remote:
-            args['address'] = self._compiler_pool_addr
-        else:
-            if self._compiler_worker_max_rss is not None:
-                args['worker_max_rss'] = self._compiler_worker_max_rss
+        if self._compiler_worker_max_rss is not None:
+            args['worker_max_rss'] = self._compiler_worker_max_rss
         return args
 
     async def _destroy_compiler_pool(self):
@@ -887,11 +882,9 @@ class BaseServer:
         return servers, port, addrs
 
     def _sni_callback(self, sslobj, server_name, sslctx):
-        # Match the given SNI for a pre-registered Tenant instance,
-        # and temporarily store in memory indexed by sslobj for future
-        # retrieval, see also retrieve_tenant() below.
-        #
-        # Used in multi-tenant server only. This method must not fail.
+        # Matched the SNI against a pre-registered Tenant in the
+        # multi-tenant server, which has been removed. There is one tenant
+        # now, so there is nothing to match. This method must not fail.
         pass
 
     def reload_tls(self, tls_cert_file, tls_key_file, client_ca_file):
@@ -1220,7 +1213,7 @@ class BaseServer:
         # The client connection must proceed on a Tenant instance. In cases:
         #   1. plain-text connection without TLS handshake
         #   2. TLS handshake didn't provide SNI
-        #   3. SNI didn't match any Tenant (retrieve_tenant() returned None)
+        #   3. retrieve_tenant() returned None
         # this method will be called for a "default" tenant to use.
         #
         # The caller must be ready to handle errors raised in this method, and

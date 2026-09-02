@@ -18,7 +18,7 @@
 
 
 from __future__ import annotations
-from typing import Any, Mapping, NamedTuple, Callable
+from typing import Any, Mapping, Callable
 
 import asyncio
 import http
@@ -141,10 +141,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 (ConnectionError, edgedb.ClientConnectionError)):
                 await sd.connect(wait_until_available=0)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--bootstrap-command is not supported in multi-tenant mode",
-    )
     async def test_server_ops_bootstrap_script(self) -> None:
         # Test that "edgedb-server" works as expected with the
         # following arguments:
@@ -185,10 +181,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 f'STDERR: {stderr.decode()}',
             )
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--bootstrap-command is not supported in multi-tenant mode",
-    )
     async def test_server_ops_bootstrap_script_server(self):
         # Test that "edgedb-server" works as expected with the
         # following arguments:
@@ -208,10 +200,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
     @unittest.skipIf(
         platform.system() == "Darwin",
         "https://github.com/edgedb/edgedb/issues/7789"
-    )
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--background is not supported in multi-tenante mode"
     )
     async def test_server_ops_background(self) -> None:
         # Test that "edgedb-server" works as expected with the
@@ -297,11 +285,10 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             '--tls-cert-mode=generate_self_signed',
             '--jose-key-mode=generate',
         ]
-        if "GELITE_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
-            cmd.extend([
-                '--temp-dir',
-                '--max-backend-connections', '10',
-            ])
+        cmd.extend([
+            '--temp-dir',
+            '--max-backend-connections', '10',
+        ])
 
         proc = None
 
@@ -991,7 +978,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
         async with tb.start_edgedb_server(
             default_auth_method=args.ServerAuthMethod.Trust,
-            force_new=True,
         ) as sd:
             con = await sd.connect()
             con2 = None
@@ -1241,10 +1227,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             test(f'https://{sd.host}:{sd.port}/metrics')
             test(f'https://{sd.host}:{sd.port}/server/status/alive')
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--readiness-state-file is not allowed in multi-tenant mode",
-    )
     async def test_server_ops_readiness(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1356,10 +1338,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "--readiness-state-file is not allowed in multi-tenant mode",
-    )
     async def test_server_ops_readonly(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1422,10 +1400,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "covered in test_server_ops_multi_tenant",
-    )
     async def test_server_ops_offline(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1465,10 +1439,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 rf.close()
                 os.unlink(rf_name)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "covered in test_server_ops_multi_tenant",
-    )
     async def test_server_ops_blocked(self):
         rf_no, rf_name = tempfile.mkstemp(text=True)
         rf = open(rf_no, "wt")
@@ -1539,316 +1509,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             await cluster.stop()
             raise
         return cluster, connect_args
-
-    async def test_server_ops_multi_tenant(self):
-        with (
-            tempfile.TemporaryDirectory() as td1,
-            tempfile.TemporaryDirectory() as td2,
-            tempfile.NamedTemporaryFile("w+") as conf_file,
-            tempfile.NamedTemporaryFile("w+") as rd1,
-            tempfile.NamedTemporaryFile("w+") as rd2,
-            tempfile.NamedTemporaryFile("w+") as cf1,
-            tempfile.NamedTemporaryFile("w+") as cf2,
-        ):
-            fs = []
-            conf = {}
-            for i, td, rd, cf in [(1, td1, rd1, cf1), (2, td2, rd2, cf2)]:
-                rd.file.write("default:ok")
-                rd.file.flush()
-                cf.flush()
-                fs.append(self.loop.create_task(self._init_pg_cluster(td)))
-                conf[f"{i}.localhost"] = {
-                    "instance-name": f"localtest{i}",
-                    "backend-dsn": f'postgres:///?user=postgres&host={td}',
-                    "max-backend-connections": 10,
-                    "readiness-state-file": rd.name,
-                    "config-file": cf.name,
-                }
-            await asyncio.wait(fs)
-            cluster1, args1 = await fs[0]
-            cluster2, args2 = await fs[1]
-            args1["server_hostname"] = "1.localhost"
-            args2["server_hostname"] = "2.localhost"
-            try:
-                json.dump(conf, conf_file.file)
-                conf_file.file.flush()
-
-                runstate_dir = None if devmode.is_in_dev_mode() else td1
-                srv = tb.start_edgedb_server(
-                    runstate_dir=runstate_dir,
-                    multitenant_config=conf_file.name,
-                    max_allowed_connections=None,
-                    http_endpoint_security=args.ServerEndpointSecurityMode.Optional,
-                )
-                async with srv as sd:
-                    mtargs = MultiTenantArgs(
-                        srv,
-                        sd,
-                        conf_file,
-                        conf,
-                        args1,
-                        args2,
-                        rd1,
-                        rd2,
-                        cf1,
-                        cf2
-                    )
-                    test_prefix = '_test_server_ops_multi_tenant_'
-                    tests = [s for s in dir(self) if s.startswith(test_prefix)]
-                    for name in tests:
-                        i = name.replace(test_prefix, '')
-                        with self.subTest(name, i=i):
-                            await getattr(self, name)(mtargs)
-            finally:
-                try:
-                    await cluster1.stop()
-                finally:
-                    await cluster2.stop()
-
-    async def _test_server_ops_multi_tenant_1(
-        self, mtargs: MultiTenantArgs, **kwargs
-    ):
-        conn = await mtargs.sd.connect(**mtargs.args1, **kwargs)
-        try:
-            rv = await conn.query_single("select sys::get_instance_name()")
-            self.assertEqual(rv, "localtest1")
-        finally:
-            await conn.aclose()
-
-    async def _test_server_ops_multi_tenant_2(self, mtargs: MultiTenantArgs):
-        conn = await mtargs.sd.connect(**mtargs.args2)
-        try:
-            rv = await conn.query_single("select sys::get_instance_name()")
-            self.assertEqual(rv, "localtest2")
-        finally:
-            await conn.aclose()
-
-    async def _test_server_ops_multi_tenant_3(self, mtargs: MultiTenantArgs):
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n', data
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-        self.assertNotIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-        conf1 = mtargs.conf.pop("1.localhost")
-        mtargs.reload_server()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.AvailabilityError, timeout=30
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(mtargs)
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 1.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-        mtargs.conf["1.localhost"] = conf1
-        mtargs.reload_server()
-
-        async for tr in self.try_until_succeeds(
-            ignore=edgedb.AvailabilityError, timeout=30
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(mtargs)
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_add_total'
-            '{tenant="localtest1"} 2.0\n',
-            data,
-        )
-        self.assertIn(
-            '\nedgedb_server_mt_tenant_remove_total'
-            '{tenant="localtest1"} 1.0\n',
-            data,
-        )
-
-    async def _test_server_ops_multi_tenant_4(self, mtargs: MultiTenantArgs):
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("offline:test")
-        mtargs.rd1.file.flush()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.ClientConnectionClosedError
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(
-                    mtargs,
-                    timeout=1,
-                    wait_until_available=0,
-                )
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("default:ok")
-        mtargs.rd1.file.flush()
-
-        await self._test_server_ops_multi_tenant_1(mtargs)
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-    async def _test_server_ops_multi_tenant_5(self, mtargs: MultiTenantArgs):
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("blocked:test")
-        mtargs.rd1.file.flush()
-
-        async for tr in self.try_until_fails(
-            wait_for=edgedb.AvailabilityError
-        ):
-            async with tr:
-                await self._test_server_ops_multi_tenant_1(
-                    mtargs,
-                    timeout=1,
-                    wait_until_available=0,
-                )
-
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-        mtargs.rd1.file.seek(0)
-        mtargs.rd1.file.truncate(0)
-        mtargs.rd1.file.write("default:ok")
-        mtargs.rd1.file.flush()
-
-        await self._test_server_ops_multi_tenant_1(mtargs)
-        await self._test_server_ops_multi_tenant_2(mtargs)
-
-    async def _test_server_ops_multi_tenant_8(self, mtargs: MultiTenantArgs):
-        # Start with 2 tenants
-        data = mtargs.sd.fetch_metrics()
-        self.assertIn(
-            '\nedgedb_server_mt_tenants_current 2.0\n',
-            data,
-        )
-        await self._test_server_ops_multi_tenant_1(mtargs)
-
-        with tempfile.TemporaryDirectory() as td:
-            # Test adding tenant with a non-existing jwt-sub-allowlist-file
-            tf = tempfile.mktemp(dir=td)
-            conf = mtargs.conf["1.localhost"].copy()
-            conf.update({
-                "instance-name": "localtest3",
-                "jwt-sub-allowlist-file": tf,
-            })
-            mtargs.conf["3.localhost"] = conf
-            mtargs.reload_server()
-
-            # The tenant should not be ready at this moment, while the server
-            # keeps retrying to add the tenant
-            args3 = mtargs.args1.copy()
-            args3["server_hostname"] = "3.localhost"
-            with self.assertRaises(edgedb.AvailabilityError):
-                async for tr in self.try_until_succeeds(
-                    ignore=edgedb.AvailabilityError, timeout=3
-                ):
-                    async with tr:
-                        conn = await mtargs.sd.connect(**args3)
-                        await conn.aclose()
-
-            # Though, the metrics should reflect the ongoing attempt
-            data = mtargs.sd.fetch_metrics()
-            self.assertIn(
-                '\nedgedb_server_mt_tenant_add_total'
-                '{tenant="localtest3"} 1.0\n',
-                data,
-            )
-            self.assertIn(
-                '\nedgedb_server_mt_tenants_current 2.0\n',
-                data,
-            )
-
-            # Now, create the missing file and the tenant should be added
-            with open(tf, "w") as f:
-                f.write("\n")
-            async for tr in self.try_until_succeeds(
-                ignore=edgedb.AvailabilityError
-            ):
-                async with tr:
-                    conn = await mtargs.sd.connect(**args3)
-                    await conn.aclose()
-            data = mtargs.sd.fetch_metrics()
-            self.assertIn(
-                '\nedgedb_server_mt_tenant_add_total'
-                '{tenant="localtest3"} 1.0\n',
-                data,
-            )
-            self.assertIn(
-                '\nedgedb_server_mt_tenants_current 3.0\n',
-                data,
-            )
-
-    async def _test_server_ops_multi_tenant_9(self, mtargs: MultiTenantArgs):
-        sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-        sslctx.check_hostname = False
-        sslctx.load_verify_locations(mtargs.sd.tls_cert_file)
-        self.assertEqual(
-            mtargs.sd.call_system_api(
-                "/server/status/alive", sslctx=sslctx, server_hostname=None,
-            ),
-            "OK",
-        )
-        self.assertEqual(
-            mtargs.sd.call_system_api(
-                "/server/status/ready", sslctx=sslctx, server_hostname=None,
-            ),
-            "OK",
-        )
-
-
-class MultiTenantArgs(NamedTuple):
-    srv: tb._EdgeDBServer
-    sd: tb._EdgeDBServerData
-    conf_file: tempfile._TemporaryFileWrapper
-    conf: dict[str, dict[str, Any]]
-    args1: dict[str, str]
-    args2: dict[str, str]
-    rd1: tempfile._TemporaryFileWrapper
-    rd2: tempfile._TemporaryFileWrapper
-    cf1: tempfile._TemporaryFileWrapper
-    cf2: tempfile._TemporaryFileWrapper
-    dbnames: list[str | None] = [None, None]
-
-    def reload_server(self):
-        self.conf_file.file.seek(0)
-        self.conf_file.file.truncate(0)
-        json.dump(self.conf, self.conf_file.file)
-        self.conf_file.file.flush()
-        self.srv.proc.send_signal(signal.SIGHUP)
-
-    def fetch_server_info(self, i):
-        return self.sd.fetch_server_info()["tenants"][f"{i}.localhost"]
 
 
 class TestPGExtensions(tb.TestCase):

@@ -2026,7 +2026,6 @@ class _EdgeDBServer:
             edgedb_args.ServerEndpointSecurityMode] = None,
         http_endpoint_security: Optional[
             edgedb_args.ServerEndpointSecurityMode] = None,  # see __aexit__
-        enable_backend_adaptive_ha: bool = False,
         ignore_other_tenants: bool = False,
         readiness_state_file: Optional[str] = None,
         tls_cert_file: Optional[os.PathLike] = None,
@@ -2037,7 +2036,6 @@ class _EdgeDBServer:
         jws_key_file: Optional[os.PathLike] = None,
         jwt_sub_allowlist_file: Optional[os.PathLike] = None,
         jwt_revocation_list_file: Optional[os.PathLike] = None,
-        multitenant_config: Optional[str] = None,
         config_file: Optional[os.PathLike] = None,
         default_branch: Optional[str] = None,
         env: Optional[dict[str, str]] = None,
@@ -2063,7 +2061,6 @@ class _EdgeDBServer:
         self.default_auth_method = default_auth_method
         self.binary_endpoint_security = binary_endpoint_security
         self.http_endpoint_security = http_endpoint_security
-        self.enable_backend_adaptive_ha = enable_backend_adaptive_ha
         self.ignore_other_tenants = ignore_other_tenants
         self.readiness_state_file = readiness_state_file
         self.tls_cert_file = tls_cert_file
@@ -2073,7 +2070,6 @@ class _EdgeDBServer:
         self.jws_key_file = jws_key_file
         self.jwt_sub_allowlist_file = jwt_sub_allowlist_file
         self.jwt_revocation_list_file = jwt_revocation_list_file
-        self.multitenant_config = multitenant_config
         self.config_file = config_file
         self.default_branch = default_branch
         self.env = env
@@ -2160,8 +2156,6 @@ class _EdgeDBServer:
             cmd += [
                 '--backend-dsn', pgdsn.decode('utf-8')
             ]
-        elif self.multitenant_config:
-            cmd += ['--multitenant-config-file', self.multitenant_config]
         elif self.data_dir:
             cmd += ['--data-dir', self.data_dir]
         else:
@@ -2213,9 +2207,6 @@ class _EdgeDBServer:
             cmd += ['--http-endpoint-security',
                     str(self.http_endpoint_security)]
 
-        if self.enable_backend_adaptive_ha:
-            cmd += ['--enable-backend-adaptive-ha']
-
         if self.ignore_other_tenants:
             cmd += ['--ignore-other-tenants']
 
@@ -2244,8 +2235,7 @@ class _EdgeDBServer:
         if self.config_file:
             cmd += ['--config-file', self.config_file]
 
-        if not self.multitenant_config:
-            cmd += ['--instance-name=localtest']
+        cmd += ['--instance-name=localtest']
 
         if self.extra_args:
             cmd.extend(self.extra_args)
@@ -2259,7 +2249,6 @@ class _EdgeDBServer:
         env = os.environ.copy()
         if self.env:
             env.update(self.env)
-        env.pop("GELITE_SERVER_MULTITENANT_CONFIG_FILE", None)
 
         stat_reader, stat_writer = await asyncio.open_connection(sock=status_r)
 
@@ -2390,7 +2379,6 @@ def start_edgedb_server(
         edgedb_args.ServerEndpointSecurityMode] = None,
     http_endpoint_security: Optional[
         edgedb_args.ServerEndpointSecurityMode] = None,
-    enable_backend_adaptive_ha: bool = False,
     ignore_other_tenants: bool = False,
     readiness_state_file: Optional[str] = None,
     tls_cert_file: Optional[os.PathLike] = None,
@@ -2401,12 +2389,10 @@ def start_edgedb_server(
     jws_key_file: Optional[os.PathLike] = None,
     jwt_sub_allowlist_file: Optional[os.PathLike] = None,
     jwt_revocation_list_file: Optional[os.PathLike] = None,
-    multitenant_config: Optional[str] = None,
     config_file: Optional[os.PathLike] = None,
     env: Optional[dict[str, str]] = None,
     extra_args: Optional[list[str]] = None,
     default_branch: Optional[str] = None,
-    force_new: bool = False,  # True for ignoring multitenant config env
 ):
     if (not devmode.is_in_dev_mode() or adjacent_to) and not runstate_dir:
         if backend_dsn or adjacent_to:
@@ -2418,21 +2404,6 @@ def start_edgedb_server(
             print('\n'.join(traceback.format_stack(limit=5)))
 
     password = None
-    if mt_conf := os.environ.get("GELITE_SERVER_MULTITENANT_CONFIG_FILE"):
-        if multitenant_config is None and max_allowed_connections == 10:
-            if not any(
-                (
-                    adjacent_to,
-                    data_dir,
-                    backend_dsn,
-                    compiler_pool_mode,
-                    default_branch,
-                    force_new,
-                )
-            ):
-                multitenant_config = mt_conf
-                max_allowed_connections = None
-                password = 'test'  # set in init_cluster() by test/runner.py
 
     params = locals()
     exclusives = [
@@ -2441,7 +2412,6 @@ def start_edgedb_server(
             "adjacent_to",
             "data_dir",
             "backend_dsn",
-            "multitenant_config",
         ]
         if params[name]
     ]
@@ -2471,7 +2441,6 @@ def start_edgedb_server(
         default_auth_method=default_auth_method,
         binary_endpoint_security=binary_endpoint_security,
         http_endpoint_security=http_endpoint_security,
-        enable_backend_adaptive_ha=enable_backend_adaptive_ha,
         ignore_other_tenants=ignore_other_tenants,
         readiness_state_file=readiness_state_file,
         tls_cert_file=tls_cert_file,
@@ -2481,7 +2450,6 @@ def start_edgedb_server(
         jws_key_file=jws_key_file,
         jwt_sub_allowlist_file=jwt_sub_allowlist_file,
         jwt_revocation_list_file=jwt_revocation_list_file,
-        multitenant_config=multitenant_config,
         config_file=config_file,
         env=env,
         extra_args=extra_args,

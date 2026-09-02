@@ -49,7 +49,6 @@ import setproctitle
 import uvloop
 
 from edb import buildmeta
-from edb import errors
 from edb.ir import statypes
 from edb.common import exceptions
 from edb.common import devmode
@@ -214,7 +213,6 @@ async def _run_server(
             cluster,
             instance_name=args.instance_name,
             max_backend_connections=args.max_backend_connections,
-            backend_adaptive_ha=args.backend_adaptive_ha,
             extensions_dir=args.extensions_dir,
         )
         tenant.set_init_con_data(init_con_data)
@@ -230,7 +228,6 @@ async def _run_server(
             compiler_pool_size=args.compiler_pool_size,
             compiler_worker_branch_limit=args.compiler_worker_branch_limit,
             compiler_pool_mode=args.compiler_pool_mode,
-            compiler_pool_addr=args.compiler_pool_addr,
             compiler_worker_max_rss=args.compiler_worker_max_rss,
             nethosts=args.bind_addresses,
             netport=args.port,
@@ -464,10 +461,7 @@ async def run_server(
     logsetup.setup_logging(args.log_level, args.log_to)
 
     logger.info(f"starting Gel server {buildmeta.get_version_line()}")
-    if args.multitenant_config_file:
-        logger.info("configured as a multitenant instance")
-    else:
-        logger.info(f'instance name: {args.instance_name!r}')
+    logger.info(f'instance name: {args.instance_name!r}')
     if devmode.is_in_dev_mode():
         logger.info(f'development mode active')
 
@@ -512,111 +506,6 @@ async def run_server(
             f'bytes: {runstate_dir_str!r} ({runstate_dir_str_len} bytes)',
             exit_code=11,
         )
-
-    if args.multitenant_config_file:
-        from edb.schema import reflection as s_refl
-        from . import bootstrap
-        from . import multitenant
-
-        try:
-            stdlib: bootstrap.StdlibBits | None
-            stdlib = bootstrap.read_data_cache(
-                bootstrap.STDLIB_CACHE_FILE_NAME, pickled=True
-            )
-            if stdlib is None:
-                abort(
-                    "Cannot run multi-tenant server "
-                    "without pre-compiled standard library"
-                )
-            if args.testmode:
-                # In multitenant mode, the server/compiler is started without a
-                # backend and will be connected to many backends. That means we
-                # cannot load the stdlib from a certain backend; instead, the
-                # pre-compiled stdlib is always in use. This means that we need
-                # to explicitly enable --testmode starting a multitenant server
-                # in order to handle backends with test-mode schema properly.
-                try:
-                    stdlib = _patch_stdlib_testmode(stdlib)
-                except errors.SchemaError:
-                    # The pre-compiled standard library already has test-mode
-                    # schema; ignore the patching error.
-                    pass
-
-            compiler = edbcompiler.new_compiler(
-                stdlib.stdschema,
-                stdlib.reflschema,
-                stdlib.classlayout,
-                config_spec=None,
-            )
-            reflection = s_refl.generate_structure(
-                stdlib.reflschema, make_funcs=False,
-            )
-            (
-                local_intro_sql, global_intro_sql
-            ) = bootstrap.compile_intro_queries_stdlib(
-                compiler=compiler,
-                user_schema=stdlib.reflschema,
-                reflection=reflection,
-            )
-            del reflection
-            compiler_state = edbcompiler.CompilerState(
-                std_schema=compiler.state.std_schema,
-                refl_schema=compiler.state.refl_schema,
-                schema_class_layout=stdlib.classlayout,
-                backend_runtime_params=(
-                    compiler.state.backend_runtime_params
-                ),
-                config_spec=compiler.state.config_spec,
-                local_intro_query=local_intro_sql,
-                global_intro_query=global_intro_sql,
-            )
-            del local_intro_sql, global_intro_sql
-            (
-                sys_queries,
-                report_configs_typedesc_1_0,
-                report_configs_typedesc_2_0,
-            ) = bootstrap.compile_sys_queries(
-                stdlib.reflschema,
-                compiler,
-                compiler_state.config_spec,
-            )
-
-            sys_config, backend_settings, init_con_data = (
-                initialize_static_cfg(
-                    args,
-                    is_remote_cluster=True,
-                    compiler=compiler,
-                )
-            )
-            del compiler
-            if backend_settings:
-                abort(
-                    'Static backend settings for remote backend are '
-                    'not supported'
-                )
-            with _internal_state_dir(runstate_dir, args) as (
-                int_runstate_dir,
-                args,
-            ):
-                return await multitenant.run_server(
-                    args,
-                    sys_config=sys_config,
-                    sys_queries={
-                        key: sql.encode("utf-8")
-                        for key, sql in sys_queries.items()
-                    },
-                    report_config_typedesc={
-                        (1, 0): report_configs_typedesc_1_0,
-                        (2, 0): report_configs_typedesc_2_0,
-                    },
-                    runstate_dir=runstate_dir,
-                    internal_runstate_dir=int_runstate_dir,
-                    do_setproctitle=do_setproctitle,
-                    compiler_state=compiler_state,
-                    init_con_data=init_con_data,
-                )
-        except server.StartupError as e:
-            abort(str(e))
 
     try:
         if args.data_dir:
@@ -851,14 +740,6 @@ def main(ctx, version=False, **kwargs):
         sys.exit(0)
     if ctx.invoked_subcommand is None:
         server_main(**kwargs)
-
-
-@main.command(hidden=True)
-@srvargs.compiler_options
-def compiler(**kwargs):
-    from edb.server.compiler_pool import server as compiler_server
-
-    asyncio.run(compiler_server.server_main(**kwargs))
 
 
 def main_dev():

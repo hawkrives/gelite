@@ -70,9 +70,6 @@ class BaseHttpTest(server.QueryTestCase):
                         path="server-info",
                     )
                     data = json.loads(rdata)
-                    if "databases" not in data:
-                        # multi-tenant instance - use the first tenant
-                        data = next(iter(data["tenants"].values()))
                     if instance_config:
                         config = data["instance_config"]
                     else:

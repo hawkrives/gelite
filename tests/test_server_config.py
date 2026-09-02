@@ -1557,10 +1557,6 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
         platform.system() == "Darwin",
         "loopback aliases aren't set up on macOS by default"
     )
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_proto_configure_listen_addresses(self):
         con1 = con2 = con3 = con4 = con5 = None
 
@@ -1617,10 +1613,6 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
                         closings.append(con.aclose())
                 await asyncio.gather(*closings)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE SYSTEM in multi-tenant mode",
-    )
     async def test_server_config_idle_connection_01(self):
         async with tb.start_edgedb_server(
             http_endpoint_security=args.ServerEndpointSecurityMode.Optional,
@@ -1657,10 +1649,6 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
             f'{float(len(idle_cons))}\\n',
         )
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE SYSTEM in multi-tenant mode",
-    )
     async def test_server_config_idle_connection_02(self):
         from edb import protocol
 
@@ -1772,10 +1760,6 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
                     self.assertEqual(
                         dbconf.get('__internal_sess_testvalue'), 10)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_config_backend_levels(self):
         async def assert_conf(con, name, expected_val):
             val = await con.query_single(f'''
@@ -2081,10 +2065,6 @@ class TestSeparateCluster(tb.TestCaseWithHttpClient):
                     new_aborted += float(line.split(' ')[1])
             self.assertEqual(orig_aborted, new_aborted)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_config_custom_enum(self):
         async def assert_conf(con, name, expected_val):
             val = await con.query_single(f'''
@@ -2301,10 +2281,6 @@ class TestStaticServerConfig(tb.TestCase):
             async with tb.start_edgedb_server(env=env):
                 pass
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_config_default(self):
         p1 = tb.find_available_port()
         async with tb.start_edgedb_server(
@@ -2350,10 +2326,6 @@ class TestStaticServerConfig(tb.TestCase):
             finally:
                 await conn.aclose()
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use --config-file in multi-tenant mode",
-    )
     async def test_server_config_file_01(self):
         conf = textwrap.dedent('''
             ["cfg::Config"]
@@ -2403,10 +2375,6 @@ class TestStaticServerConfig(tb.TestCase):
             finally:
                 await conn.aclose()
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use --config-file in multi-tenant mode",
-    )
     async def test_server_config_file_02(self):
         conf = textwrap.dedent('''
             ["cfg::Config"]
@@ -2423,10 +2391,6 @@ class TestStaticServerConfig(tb.TestCase):
             ):
                 pass
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use --config-file in multi-tenant mode",
-    )
     async def test_server_config_file_03(self):
         conf = textwrap.dedent('''
             ["cfg::Config"]
@@ -2443,10 +2407,6 @@ class TestStaticServerConfig(tb.TestCase):
             ):
                 pass
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use --config-file in multi-tenant mode",
-    )
     async def test_server_config_file_04(self):
         conf = textwrap.dedent('''
             ["cfg::Config"]
@@ -2464,10 +2424,6 @@ class TestStaticServerConfig(tb.TestCase):
             ):
                 pass
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use --config-file in multi-tenant mode",
-    )
     async def test_server_config_file_05(self):
         class Prop(enum.Enum):
             One = "One"

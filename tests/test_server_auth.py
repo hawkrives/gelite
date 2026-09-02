@@ -41,10 +41,6 @@ class TestServerAuth(tb.ConnectedTestCase):
     PARALLELISM_GRANULARITY = 'system'
     TRANSACTION_ISOLATION = False
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_auth_01(self):
         if not self.has_create_role:
             self.skipTest('create role is not supported by the backend')
@@ -387,10 +383,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             await self.con.execute(
                 f'CREATE SUPERUSER ROLE myrole_{"x" * s_def.MAX_NAME_LENGTH};')
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_auth_jwt_1(self):
         jwk_fd, jwk_file = tempfile.mkstemp()
 
@@ -493,10 +485,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                     ):
                         await sd.connect(secret_key=sk)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_auth_jwt_2(self):
         jwk_fd, jwk_file = tempfile.mkstemp()
 
@@ -580,10 +568,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             ):
                 await sd.connect(secret_key=sk)
 
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
-    )
     async def test_server_auth_multiple_methods(self):
         jwk_fd, jwk_file = tempfile.mkstemp()
 
@@ -647,10 +631,6 @@ class TestServerAuth(tb.ConnectedTestCase):
         platform.system() == "Darwin" and platform.machine() == 'x86_64',
         "Postgres is not getting getting enough shared memory on macos-14 "
         "GitHub runner by default"
-    )
-    @unittest.skipIf(
-        "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
-        "cannot use CONFIGURE INSTANCE in multi-tenant mode",
     )
     async def test_server_auth_mtls(self):
         if not self.has_create_role:

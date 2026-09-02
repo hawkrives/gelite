@@ -146,10 +146,9 @@ class ReloadTrigger(enum.StrEnum):
     Configure what triggers the reload of the following config files:
     1. TLS certificate and key (server config)
     2. JWS key (server config)
-    3. Multi-tenant config file (server config)
-    4. Readiness state (server or tenant config)
-    5. JWT sub allowlist and revocation list (server or tenant config)
-    6. The TOML config file (server or tenant config)
+    3. Readiness state (server or tenant config)
+    4. JWT sub allowlist and revocation list (server or tenant config)
+    5. The TOML config file (server or tenant config)
     """
 
     Default = "default"
@@ -206,8 +205,6 @@ class CompilerPoolMode(enum.StrEnum):
     Default = "default"
     Fixed = "fixed"
     OnDemand = "on_demand"
-    Remote = "remote"
-    MultiTenant = "fixed_multi_tenant"
 
     def __init__(self, name):
         self.pool_class = None
@@ -222,10 +219,8 @@ class ServerConfig(NamedTuple):
 
     data_dir: pathlib.Path
     backend_dsn: str
-    backend_adaptive_ha: bool
     tenant_id: Optional[str]
     ignore_other_tenants: bool
-    multitenant_config_file: Optional[pathlib.Path]
     log_level: str
     log_to: str
     bootstrap_only: bool
@@ -251,8 +246,6 @@ class ServerConfig(NamedTuple):
     compiler_pool_size: int
     compiler_worker_branch_limit: int
     compiler_pool_mode: CompilerPoolMode
-    compiler_pool_addr: tuple[str, int]
-    compiler_pool_tenant_cache_size: int
     compiler_worker_max_rss: Optional[int]
 
     echo_runtime_info: bool
@@ -360,22 +353,6 @@ class BackendCapabilitySet(click.ParamType):
         )
 
 
-class CompilerPoolModeChoice(click.Choice):
-    def __init__(self):
-        super().__init__(
-            list(sorted(
-                set(CompilerPoolMode.__members__.values())
-                - {CompilerPoolMode.Remote}
-            )),
-        )
-
-    def convert(self, value, param, ctx):
-        if value == "remote":
-            return CompilerPoolMode.Remote
-        else:
-            return super().convert(value, param, ctx)
-
-
 def _get_runstate_dir_default() -> str:
     runstate_dir: Optional[str]
 
@@ -425,19 +402,6 @@ def _validate_compiler_pool_size(ctx, param, value):
             f'the minimum value for the compiler pool size option '
             f'is {defines.BACKEND_COMPILER_POOL_SIZE_MIN}')
     return value
-
-
-def _validate_compiler_pool_host_port(ctx, param, value):
-    if value is None:
-        return None
-    address = value.split(":", 1)
-    if len(address) == 1:
-        return address[0], defines.GELITE_REMOTE_COMPILER_PORT
-    else:
-        try:
-            return address[0], int(address[1])
-        except ValueError:
-            raise click.BadParameter(f'port must be int: {address[1]}')
 
 
 def compute_default_compiler_pool_size() -> int:
@@ -637,16 +601,7 @@ server_options = typeutils.chain_decorators([
     click.option(
         '--backend-dsn', type=str,
         envvar="GELITE_SERVER_BACKEND_DSN", cls=EnvvarResolver,
-        help='DSN of a remote backend cluster, if using one. '
-             'Also supports HA clusters, for example: stolon+consul+http://'
-             'localhost:8500/test_cluster'),
-    click.option(
-        '--enable-backend-adaptive-ha', 'backend_adaptive_ha', is_flag=True,
-        help='If backend adaptive HA is enabled, the Gel server will '
-             'monitor the health of the backend cluster and shutdown all '
-             'backend connections if threshold is reached, until reconnected '
-             'again using the same DSN (HA should have updated the DNS '
-             'value). Default is disabled.'),
+        help='DSN of a remote backend cluster, if using one.'),
     click.option(
         '--tenant-id',
         type=str,
@@ -664,20 +619,6 @@ server_options = typeutils.chain_decorators([
         help='If set, the server will ignore the presence of another tenant '
              'in the database instance in single-tenant mode instead of '
              'exiting with a catalog incompatibility error.'
-    ),
-    click.option(
-        '--multitenant-config-file', type=PathPath(), metavar="PATH",
-        envvar="GELITE_SERVER_MULTITENANT_CONFIG_FILE",
-        cls=EnvvarResolver,
-        hidden=True,
-        help='Start the server in multi-tenant mode, with reloadable tenants '
-             'configured in the given file. Each tenant must have a unique '
-             'SNI name as the key to route the traffic correctly, as well as '
-             'a dedicated backend DSN to host the tenant data. See edb/server/'
-             'multitenant.py for config file format. All tenants share the '
-             'same compiler pool, thus the same stdlib. So if any of the '
-             'backends contains test-mode schema, the server should be '
-             'started with --testmode to handle them properly.',
     ),
     click.option(
         '-l', '--log-level',
@@ -797,13 +738,11 @@ server_options = typeutils.chain_decorators([
         envvar="GELITE_SERVER_COMPILER_POOL_SIZE",
         cls=EnvvarResolver,
         callback=_validate_compiler_pool_size,
-        help='Size of the compiler pool.  When --compiler-pool-mode=fixed or '
-             'fixed_multi_tenant, it is the NUM of compiler worker processes, '
+        help='Size of the compiler pool.  When --compiler-pool-mode=fixed, '
+             'it is the NUM of compiler worker processes, '
              f"defaults to {compute_default_compiler_pool_size()} (you'll see "
              '1 extra template process); for on_demand, it is the maximum NUM '
-             'of workers the pool could scale up to, with the same default; '
-             'for remote, it is the maximum NUM of concurrent requests to the '
-             'remote compiler server, defaults to 2.'
+             'of workers the pool could scale up to, with the same default.'
     ),
     click.option(
         '--compiler-worker-branch-limit', type=int, metavar='NUM',
@@ -811,13 +750,12 @@ server_options = typeutils.chain_decorators([
         envvar="GELITE_SERVER_COMPILER_WORKER_BRANCH_LIMIT",
         cls=EnvvarResolver,
         help='The maximum NUM of branches each compiler worker could cache up '
-             'to, default is 5.  If the worker serves multiple tenants (as in '
-             '--compiler-pool-mode=fixed_multi_tenant or remote), this tenant '
-             'on that worker will be able to cache up to NUM branches.'
+             'to, default is 5.'
     ),
     click.option(
         '--compiler-pool-mode',
-        type=CompilerPoolModeChoice(),
+        type=click.Choice(
+            sorted(set(CompilerPoolMode.__members__.values()))),
         default=CompilerPoolMode.Default.value,
         envvar="GELITE_SERVER_COMPILER_POOL_MODE",
         cls=EnvvarResolver,
@@ -827,27 +765,6 @@ server_options = typeutils.chain_decorators([
              'automatically scale up (to --compiler-pool-size workers ) and '
              'down to the demand. Defaults to "fixed" in production mode and '
              '"on_demand" in development mode.',
-    ),
-    click.option(
-        '--compiler-pool-addr',
-        hidden=True,
-        callback=_validate_compiler_pool_host_port,
-        envvar="GELITE_SERVER_COMPILER_POOL_ADDR",
-        cls=EnvvarResolver,
-        help=f'Specify the host[:port] of the compiler pool to connect to, '
-             f'only used if --compiler-pool-mode=remote. Default host is '
-             f'localhost, port is {defines.GELITE_REMOTE_COMPILER_PORT}',
-    ),
-    click.option(
-        "--compiler-pool-tenant-cache-size",
-        hidden=True,
-        type=int,
-        default=20,
-        envvar="GELITE_SERVER_COMPILER_POOL_TENANT_CACHE_SIZE",
-        cls=EnvvarResolver,
-        help="Maximum number of tenants for which each compiler worker can "
-             "cache their schemas, "
-             "only used when --compiler-pool-mode=fixed_multi_tenant"
     ),
     click.option(
         '--echo-runtime-info', type=bool, default=False, is_flag=True,
@@ -1138,67 +1055,6 @@ server_options = typeutils.chain_decorators([
 ])
 
 
-compiler_options = typeutils.chain_decorators([
-    click.option(
-        "--pool-size",
-        type=int,
-        envvar="GELITE_COMPILER_POOL_SIZE",
-        cls=EnvvarResolver,
-        callback=_validate_compiler_pool_size,
-        default=compute_default_compiler_pool_size(),
-        help=f"Number of compiler worker processes. Defaults to "
-             f"{compute_default_compiler_pool_size()}.",
-    ),
-    click.option(
-        "--client-schema-cache-size",
-        type=int,
-        envvar="GELITE_COMPILER_POOL_TENANT_CACHE_SIZE",
-        cls=EnvvarResolver,
-        default=20,
-        help="Maximum number of clients for which each worker can cache their "
-             "schemas, The compiler server is not affected by this setting, "
-             "it keeps pickled copies of schemas from all active clients "
-             "(each capped by --compiler-worker-branch-limit of the client)."
-    ),
-    click.option(
-        '-I', '--listen-addresses', type=str, multiple=True,
-        envvar="GELITE_COMPILER_BIND_ADDRESS", cls=EnvvarResolver,
-        default=('localhost',),
-        help='IP addresses to listen on, specify multiple times for more than '
-             'one address to listen on. Default: localhost',
-    ),
-    click.option(
-        '-P', '--listen-port', type=PortType(),
-        envvar="GELITE_COMPILER_SERVER_PORT", cls=EnvvarResolver,
-        help=f'Port to listen on. '
-             f'Default: {defines.GELITE_REMOTE_COMPILER_PORT}',
-    ),
-    click.option(
-        '--runstate-dir', type=PathPath(), default=None,
-        envvar="GELITE_COMPILER_RUNSTATE_DIR",
-        cls=EnvvarResolver,
-        help="Directory to store UNIX domain socket file for IPC, a temporary "
-             "directory will be used if not specified.",
-    ),
-    click.option(
-        '--metrics-port', type=PortType(),
-        envvar="GELITE_COMPILER_METRICS_PORT",
-        cls=EnvvarResolver,
-        help=f'Port to listen on for metrics HTTP API.',
-    ),
-    click.option(
-        '--worker-max-rss',
-        type=int,
-        envvar="GELITE_COMPILER_WORKER_MAX_RSS",
-        cls=EnvvarResolver,
-        help='Maximum allowed RSS (in bytes) per worker process. Any worker '
-             'exceeding this limit will be terminated and recreated. '
-             'Each worker is free from this limit in its first 20-30 hours '
-             'after spawn to avoid infinite restarts or a thundering herd.',
-    ),
-])
-
-
 def parse_args(**kwargs: Any):
     kwargs['bind_addresses'] = kwargs.pop('bind_address')
 
@@ -1408,9 +1264,7 @@ def parse_args(**kwargs: Any):
     kwargs['jose_key_mode'] = JOSEKeyMode(kwargs['jose_key_mode'])
 
     if kwargs['compiler_pool_mode'] == 'default':
-        if kwargs['multitenant_config_file']:
-            kwargs['compiler_pool_mode'] = 'fixed_multi_tenant'
-        elif devmode.is_in_dev_mode():
+        if devmode.is_in_dev_mode():
             kwargs['compiler_pool_mode'] = 'on_demand'
         else:
             kwargs['compiler_pool_mode'] = 'fixed'
@@ -1418,25 +1272,7 @@ def parse_args(**kwargs: Any):
         kwargs['compiler_pool_mode']
     )
     if kwargs['compiler_pool_size'] is None:
-        if kwargs['compiler_pool_mode'] == CompilerPoolMode.Remote:
-            # this reflects to a local semaphore to control concurrency,
-            # 2 means this is a small EdgeDB instance that could only issue
-            # at max 2 concurrent compile requests at a time.
-            kwargs['compiler_pool_size'] = 2
-        else:
-            kwargs['compiler_pool_size'] = compute_default_compiler_pool_size()
-    if kwargs['compiler_pool_mode'] == CompilerPoolMode.Remote:
-        if kwargs['compiler_pool_addr'] is None:
-            kwargs['compiler_pool_addr'] = (
-                "localhost", defines.GELITE_REMOTE_COMPILER_PORT
-            )
-        if kwargs['compiler_worker_max_rss'] is not None:
-            abort('cannot set --compiler-worker-max-rss when using '
-                  '--compiler-pool-mode=remote')
-
-    elif kwargs['compiler_pool_addr'] is not None:
-        abort('--compiler-pool-addr is only meaningful '
-              'under --compiler-pool-mode=remote')
+        kwargs['compiler_pool_size'] = compute_default_compiler_pool_size()
 
     if kwargs['temp_dir']:
         if kwargs['data_dir']:
@@ -1445,13 +1281,11 @@ def parse_args(**kwargs: Any):
             abort('--temp-dir is incompatible with --runstate-dir')
         if kwargs['backend_dsn']:
             abort('--temp-dir is incompatible with --backend-dsn')
-        if kwargs['multitenant_config_file']:
-            abort('--temp-dir is incompatible with --multitenant-config-file')
         kwargs['data_dir'] = kwargs['runstate_dir'] = pathlib.Path(
             tempfile.mkdtemp())
     else:
         if not kwargs['data_dir']:
-            if kwargs['backend_dsn'] or kwargs['multitenant_config_file']:
+            if kwargs['backend_dsn']:
                 pass
             elif devmode.is_in_dev_mode():
                 data_dir = devmode.get_dev_mode_data_dir()
@@ -1465,9 +1299,6 @@ def parse_args(**kwargs: Any):
                       'backend cluster using the --backend-dsn argument')
         elif kwargs['backend_dsn']:
             abort('The -D and --backend-dsn options are mutually exclusive.')
-        elif kwargs['multitenant_config_file']:
-            abort('The -D and --multitenant-config-file options '
-                  'are mutually exclusive.')
 
     if kwargs['tls_key_file'] and not kwargs['tls_cert_file']:
         abort('When --tls-key-file is set, --tls-cert-file must also be set.')
@@ -1573,30 +1404,6 @@ def parse_args(**kwargs: Any):
             )
 
     del kwargs['bootstrap_script']
-
-    if kwargs['multitenant_config_file']:
-        for name in (
-            "tenant_id",
-            "backend_dsn",
-            "backend_adaptive_ha",
-            "bootstrap_only",
-            "inplace_upgrade",
-            "bootstrap_command",
-            "bootstrap_command_file",
-            "instance_name",
-            "max_backend_connections",
-            "readiness_state_file",
-            "jwt_sub_allowlist_file",
-            "jwt_revocation_list_file",
-            "config_file",
-        ):
-            if kwargs.get(name):
-                opt = "--" + name.replace("_", "-")
-                abort(f"The {opt} and --multitenant-config-file options "
-                      f"are mutually exclusive.")
-        if kwargs['compiler_pool_mode'] is not CompilerPoolMode.MultiTenant:
-            abort("must use --compiler-pool-mode=fixed_multi_tenant "
-                  "in multi-tenant mode")
 
     bootstrap_script_text: Optional[str]
     if kwargs['bootstrap_command_file']:

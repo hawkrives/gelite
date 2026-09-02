@@ -47,7 +47,6 @@ async def handle_request(
             try:
                 tenant = server.get_default_tenant()
             except Exception:
-                # Multi-tenant server doesn't have default tenant
                 pass
         if tenant is None and not is_tenant_host:
             _response(

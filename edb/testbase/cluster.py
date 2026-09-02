@@ -71,24 +71,13 @@ class BaseCluster:
     ):
         self._edgedb_cmd = [sys.executable, '-I', '-m', 'edb.server.main']
 
-        if "GELITE_SERVER_MULTITENANT_CONFIG_FILE" not in os.environ:
-            self._edgedb_cmd.append('--instance-name=localtest')
+        self._edgedb_cmd.append('--instance-name=localtest')
 
         self._edgedb_cmd.append('--tls-cert-mode=generate_self_signed')
         self._edgedb_cmd.append('--jose-key-mode=generate')
 
         if log_level:
             self._edgedb_cmd.extend(['--log-level', log_level])
-
-        compiler_addr = os.getenv('GELITE_TEST_REMOTE_COMPILER')
-        if compiler_addr:
-            compiler_pool_mode = edgedb_args.CompilerPoolMode.Remote
-            self._edgedb_cmd.extend(
-                [
-                    '--compiler-pool-addr',
-                    compiler_addr,
-                ]
-            )
 
         if devmode.is_in_dev_mode():
             self._edgedb_cmd.append('--devmode')
@@ -578,9 +567,6 @@ class TempClusterWithRemotePg(BaseCluster):
             ),
         )
         self._backend_dsn = backend_dsn
-        mt = "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ
-        if mt:
-            compiler_pool_mode = edgedb_args.CompilerPoolMode.MultiTenant
 
         super().__init__(
             runstate_dir,
@@ -591,8 +577,7 @@ class TempClusterWithRemotePg(BaseCluster):
             http_endpoint_security=http_endpoint_security,
             compiler_pool_mode=compiler_pool_mode,
         )
-        if not mt:
-            self._edgedb_cmd.extend(['--backend-dsn', backend_dsn])
+        self._edgedb_cmd.extend(['--backend-dsn', backend_dsn])
 
     async def _new_pg_cluster(self) -> pgcluster.BaseCluster:
         return await pgcluster.get_remote_pg_cluster(self._backend_dsn)
