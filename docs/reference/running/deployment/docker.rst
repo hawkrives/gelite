@@ -160,14 +160,9 @@ is called the *bootstrap phase*.
 The following environment variables affect the bootstrap only and have no
 effect on subsequent container runs.
 
-.. note::
-
-   For |EdgeDB| versions before 6.0 (Gel) the prefix for all environment
-   variables is ``EDGEDB_`` instead of ``GEL_``.
-
 
 GELITE_SERVER_BOOTSTRAP_COMMAND
-............................
+...............................
 
 Useful to fine-tune initial user and branch creation, and other initial
 setup. If neither the :gelenv:`SERVER_BOOTSTRAP_COMMAND` variable or the
@@ -180,7 +175,7 @@ Maps directly to the |gel-server| flag ``--bootstrap-command``. The
 
 
 GELITE_SERVER_BOOTSTRAP_SCRIPT_FILE
-................................
+...................................
 Deprecated in image version 2.8: use :gelenv:`SERVER_BOOTSTRAP_COMMAND_FILE`
 instead.
 
@@ -189,7 +184,7 @@ user within default branch.
 
 
 GELITE_SERVER_PASSWORD
-...................
+......................
 
 The password for the default superuser account will be set to this value. If
 no value is provided a password will not be set, unless set via
@@ -201,7 +196,7 @@ The ``*_FILE`` and ``*_ENV`` variants are also supported.
 
 
 GELITE_SERVER_PASSWORD_HASH
-........................
+...........................
 
 A variant of :gelenv:`SERVER_PASSWORD`, where the specified value is a hashed
 password verifier instead of plain text.
@@ -212,7 +207,7 @@ The ``*_FILE`` and ``*_ENV`` variants are also supported.
 
 
 GELITE_SERVER_GENERATE_SELF_SIGNED_CERT
-....................................
+.......................................
 
 .. warning::
 
@@ -231,7 +226,7 @@ below.
 
 
 GELITE_SERVER_TLS_CERT/GELITE_SERVER_TLS_KEY
-......................................
+............................................
 
 The TLS certificate and private key data, exclusive with
 :gelenv:`SERVER_TLS_CERT_MODE=generate_self_signed`.
@@ -251,7 +246,7 @@ Runtime configuration
 ---------------------
 
 GELITE_DOCKER_LOG_LEVEL
-....................
+.......................
 
 Determines the log verbosity level in the entrypoint script. Valid levels are
 ``trace``, ``debug``, ``info``, ``warning``, and ``error``.  The default is
