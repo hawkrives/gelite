@@ -34,17 +34,17 @@ from edb.server import defines
 
 from edb.schema import schema as s_schema
 
-from edb.pgsql import ast as pgast
-from edb.pgsql import common as pg_common
-from edb.pgsql import codegen as pg_codegen
-from edb.pgsql import params as pg_params
-from edb.pgsql import parser as pg_parser
+from edb.sqlite import ast as pgast
+from edb.sqlite import common as pg_common
+from edb.sqlite import codegen as pg_codegen
+from edb.sqlite import params as pg_params
+from edb.sqlite import parser as pg_parser
 
 from . import dbstate
 from . import enums
 
 if TYPE_CHECKING:
-    from edb.pgsql import resolver as pg_resolver
+    from edb.sqlite import resolver as pg_resolver
 
 
 # Frontend-only settings. Maps setting name into their mutability flag.
@@ -244,7 +244,7 @@ def _compile_sql(
 
         if isinstance(stmt, (pgast.VariableSetStmt, pgast.VariableResetStmt)):
             if protocol_version != defines.POSTGRES_PROTOCOL:
-                from edb.pgsql import resolver as pg_resolver
+                from edb.sqlite import resolver as pg_resolver
 
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
@@ -288,7 +288,7 @@ def _compile_sql(
 
         elif isinstance(stmt, pgast.VariableShowStmt):
             if protocol_version != defines.POSTGRES_PROTOCOL:
-                from edb.pgsql import resolver as pg_resolver
+                from edb.sqlite import resolver as pg_resolver
 
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
@@ -298,7 +298,7 @@ def _compile_sql(
 
         elif isinstance(stmt, pgast.SetTransactionStmt):
             if protocol_version != defines.POSTGRES_PROTOCOL:
-                from edb.pgsql import resolver as pg_resolver
+                from edb.sqlite import resolver as pg_resolver
 
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
@@ -361,7 +361,7 @@ def _compile_sql(
                 )
 
             if not isinstance(stmt.query, (pgast.Query, pgast.CopyStmt)):
-                from edb.pgsql import resolver as pg_resolver
+                from edb.sqlite import resolver as pg_resolver
 
                 pg_resolver.dispatch._raise_unsupported(stmt.query)
 
@@ -453,7 +453,7 @@ def _compile_sql(
             if protocol_version != defines.POSTGRES_PROTOCOL and isinstance(
                 stmt, pgast.CopyStmt
             ):
-                from edb.pgsql import resolver as pg_resolver
+                from edb.sqlite import resolver as pg_resolver
 
                 pg_resolver.dispatch._raise_unsupported(stmt)
 
@@ -485,7 +485,7 @@ def _compile_sql(
             unit.capabilities |= stmt_resolved.capabilities
             track_stats = True
         else:
-            from edb.pgsql import resolver as pg_resolver
+            from edb.sqlite import resolver as pg_resolver
 
             pg_resolver.dispatch._raise_unsupported(stmt)
 
@@ -669,7 +669,7 @@ def resolve_query(
     pg_codegen.SQLSource,
     Optional[pg_codegen.SQLSource],
 ]:
-    from edb.pgsql import resolver as pg_resolver
+    from edb.sqlite import resolver as pg_resolver
 
     search_path: Sequence[str] = ("public",)
     try:

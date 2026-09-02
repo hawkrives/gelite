@@ -50,7 +50,7 @@ from edb.schema import name as s_name
 from edb.server import config
 from edb.server import defines
 
-from edb.pgsql import codegen as pgcodegen
+from edb.sqlite import codegen as pgcodegen
 
 from . import enums
 from . import sertypes

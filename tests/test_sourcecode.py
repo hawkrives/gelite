@@ -28,7 +28,7 @@ import unittest
 EMPTY_INIT_FILES = {
     'edb/__init__.py',
     'edb/common/__init__.py',
-    'edb/pgsql/__init__.py',
+    'edb/sqlite/__init__.py',
     'edb/tools/__init__.py',
 }
 
@@ -42,7 +42,7 @@ BACKEND_FREE_DIRS = ('edb/common', 'edb/edgeql', 'edb/ir', 'edb/schema')
 # The backend package the frontend must not name. `edb/schema/backend.py`
 # is the seam that replaced the imports this forbids: the backend registers
 # itself there on import, rather than the frontend reaching for it.
-BACKEND_PACKAGE = 'edb.pgsql'
+BACKEND_PACKAGE = 'edb.sqlite'
 
 
 def find_edgedb_root():

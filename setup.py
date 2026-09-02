@@ -61,11 +61,11 @@ ROOT_PATH = pathlib.Path(__file__).parent.resolve()
 
 EXT_INC_DIRS = [
     (ROOT_PATH / 'edb' / 'server' / 'pgproto').as_posix(),
-    (ROOT_PATH / 'edb' / 'pgsql' / 'parser' / 'libpg_query').as_posix()
+    (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').as_posix()
 ]
 
 EXT_LIB_DIRS = [
-    (ROOT_PATH / 'edb' / 'pgsql' / 'parser' / 'libpg_query').as_posix()
+    (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').as_posix()
 ]
 EDBSS_DIR = ROOT_PATH / 'edb_stat_statements'
 
@@ -440,7 +440,7 @@ def _get_env_with_protobuf_c_flags():
 
 
 def _compile_libpg_query():
-    dir = (ROOT_PATH / 'edb' / 'pgsql' / 'parser' / 'libpg_query').resolve()
+    dir = (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').resolve()
 
     if not (dir / 'README.md').exists():
         print('libpg_query submodule has not been initialized, '
@@ -515,7 +515,7 @@ def _get_pg_source_stamp():
 def _get_libpg_query_source_stamp():
     output = subprocess.check_output(
         ['git', 'submodule', 'status', '--cached',
-         'edb/pgsql/parser/libpg_query'],
+         'edb/sqlite/parser/libpg_query'],
         universal_newlines=True,
         cwd=ROOT_PATH,
     )
@@ -1139,8 +1139,8 @@ setuptools.setup(
         ),
 
         setuptools_extension.Extension(
-            "edb.pgsql.parser.parser",
-            ["edb/pgsql/parser/parser.pyx"],
+            "edb.sqlite.parser.parser",
+            ["edb/sqlite/parser/parser.pyx"],
             extra_compile_args=EXT_CFLAGS + _protobuf_c_cflags,
             extra_link_args=EXT_LDFLAGS,
             include_dirs=EXT_INC_DIRS,

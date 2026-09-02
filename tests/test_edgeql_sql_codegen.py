@@ -25,9 +25,9 @@ from edb.common.ast import visitor as ast_visitor
 
 from edb.edgeql import compiler
 from edb.edgeql import parser as qlparser
-from edb.pgsql import ast as pgast
-from edb.pgsql import compiler as pg_compiler
-from edb.pgsql import codegen as pg_codegen
+from edb.sqlite import ast as pgast
+from edb.sqlite import compiler as pg_compiler
+from edb.sqlite import codegen as pg_codegen
 
 
 class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):

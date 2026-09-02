@@ -34,7 +34,7 @@ from edb.edgeql import qltypes
 from edb.edgeql import tokenizer
 from edb.server import config, defines
 from edb.server.pgproto.pgproto cimport WriteBuffer, ReadBuffer
-from edb.pgsql import parser as pgparser
+from edb.sqlite import parser as pgparser
 
 from . import enums, sertypes
 

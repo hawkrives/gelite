@@ -14,7 +14,7 @@ import click
 
 from edb.edgeql import ast as qlast
 from edb.ir import ast as irast
-from edb.pgsql import ast as pgast
+from edb.sqlite import ast as pgast
 from edb.tools.edb import edbcommands
 
 

@@ -44,7 +44,7 @@ from edb.schema import name as s_name
 from edb.server import compiler, defines, config, metrics, pgcon
 from edb.server.compiler import dbstate, enums, sertypes
 from edb.server.protocol import execute
-from edb.pgsql import dbops
+from edb.sqlite import dbops
 from edb.server.pgcon import errors as pgerror
 
 

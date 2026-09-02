@@ -40,7 +40,7 @@ import urllib.parse
 import click
 from click.testing import CliRunner
 
-from edb.pgsql import params as pg_params
+from edb.sqlite import params as pg_params
 from edb.server import args as edb_args
 from edb.server import bootstrap
 from edb.server import pgcluster
@@ -754,7 +754,7 @@ class TestConnection(ClusterTestCase):
             import gc
 
             from edb.server import pgcon
-            from edb.pgsql import params
+            from edb.sqlite import params
 
             async def run():
                 con = await pgcon.pg_connect(

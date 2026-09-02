@@ -21,7 +21,7 @@ Core database cal::duration PRs:
 
 - [ ] For compound types, add a schema class in edb/schema/types.py and
 
-- [ ] Add mapping to pgsql types in edb/pgsql/types.py
+- [ ] Add mapping to pgsql types in edb/sqlite/types.py
 
 - [ ] Add implementations of any relevant functions/operations to `edb/lib`.
 

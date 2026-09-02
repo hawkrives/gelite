@@ -48,7 +48,7 @@ async def run():
             schemas_by_version,
         )
 
-    with open('./edb/pgsql/resolver/sql_introspection.py', 'w') as file:
+    with open('./edb/sqlite/resolver/sql_introspection.py', 'w') as file:
         print_header(file)
         print_schema(file, "information_schema", schemas_by_version)
         print_schema(file, "pg_catalog", schemas_by_version)

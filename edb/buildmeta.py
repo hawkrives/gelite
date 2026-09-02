@@ -55,7 +55,7 @@ from edb.common import verutils
 #
 # WARNING: DO NOT INCREMENT THIS WHEN BACKPORTING CHANGES TO A RELEASE BRANCH.
 # The merge conflict there is a nice reminder that you probably need
-# to write a patch in edb/pgsql/patches.py, and then you should preserve
+# to write a patch in edb/sqlite/patches.py, and then you should preserve
 # the old value.
 GELITE_CATALOG_VERSION = 2025_11_03_00_00
 GELITE_MAJOR_VERSION = 0
@@ -604,7 +604,7 @@ def get_cache_src_dirs():
         (edgeql / 'compiler', '.py'),
         (edgeql / 'parser', '.py'),
         (pathlib.Path(find_spec('edb.lib').origin).parent, '.edgeql'),
-        (pathlib.Path(find_spec('edb.pgsql.metaschema').origin).parent, '.py'),
+        (pathlib.Path(find_spec('edb.sqlite.metaschema').origin).parent, '.py'),
     )
 
 

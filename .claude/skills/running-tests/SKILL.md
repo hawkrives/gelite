@@ -96,13 +96,13 @@ and runs `setup.py` against that. Code that imports fine locally can fail
 there — this is how one push went red after ruff, mypy and the unit tests
 were all clean locally.
 
-If a change touches `edb/pgsql/__init__.py`, `edb/buildmeta.py`, `setup.py`
+If a change touches `edb/sqlite/__init__.py`, `edb/buildmeta.py`, `setup.py`
 or anything they import at module scope, check that path directly:
 
 ```
 uv run --no-sync python -c "
 import sys, importlib.util
-importlib.util.find_spec('edb.pgsql.metaschema')
+importlib.util.find_spec('edb.sqlite.metaschema')
 assert 'edb._edgeql_parser' not in sys.modules
 print('build path clean')
 "

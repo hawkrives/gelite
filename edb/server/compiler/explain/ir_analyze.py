@@ -27,8 +27,8 @@ from edb.edgeql import ast as qlast
 
 from edb.ir import ast as irast
 
-from edb.pgsql import ast as pgast
-from edb.pgsql.compiler import astutils
+from edb.sqlite import ast as pgast
+from edb.sqlite.compiler import astutils
 
 from edb.server.compiler import explain
 from edb.server.compiler.explain import to_json

@@ -63,9 +63,9 @@ from edb.schema import triggers as s_triggers
 from edb.schema import utils as s_utils
 from edb.schema import version as s_ver
 
-from edb.pgsql import common as pg_common
-from edb.pgsql import delta as pg_delta
-from edb.pgsql import dbops as pg_dbops
+from edb.sqlite import common as pg_common
+from edb.sqlite import delta as pg_delta
+from edb.sqlite import dbops as pg_dbops
 
 from . import dbstate
 from . import compiler
@@ -416,7 +416,7 @@ def _process_delta(
     )
 
     if not ctx.bootstrap_mode and not all_migration_tweaks:
-        from edb.pgsql import metaschema
+        from edb.sqlite import metaschema
 
         refresh = metaschema.generate_sql_information_schema_refresh(
             ctx.compiler_state.backend_runtime_params.instance_params.version
@@ -1432,7 +1432,7 @@ def administer_fixup_backend_upgrade(
             span=ql.expr.span,
         )
 
-    from edb.pgsql import metaschema
+    from edb.sqlite import metaschema
 
     block = pg_dbops.PLTopBlock()
 
@@ -1457,7 +1457,7 @@ def administer_fixup_backend_upgrade(
 def remove_pointless_triggers(
     schema: s_schema.Schema,
 ) -> pg_dbops.CommandGroup:
-    from edb.pgsql import schemamech
+    from edb.sqlite import schemamech
 
     constraints = schema.get_objects(
         exclude_stdlib=True,

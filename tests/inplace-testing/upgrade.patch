@@ -160,10 +160,10 @@ index a41bbba6e..f8f1b1ccb 100644
      CREATE PROPERTY preserves_optionality -> std::bool {
          SET default := false;
      };
-diff --git a/edb/pgsql/delta.py b/edb/pgsql/delta.py
+diff --git a/edb/sqlite/delta.py b/edb/sqlite/delta.py
 index 3a9effaa5..145a472cd 100644
---- a/edb/pgsql/delta.py
-+++ b/edb/pgsql/delta.py
+--- a/edb/sqlite/delta.py
++++ b/edb/sqlite/delta.py
 @@ -777,6 +777,38 @@ class RenamePermission(
      pass
  

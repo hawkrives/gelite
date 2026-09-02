@@ -61,11 +61,11 @@ from edb.server import instdata
 from edb.server import pgcluster
 from edb.server import pgcon
 
-from edb.pgsql import common as pg_common
-from edb.pgsql import dbops
-from edb.pgsql import patches as pg_patches
-from edb.pgsql import metaschema
-from edb.pgsql import trampoline
+from edb.sqlite import common as pg_common
+from edb.sqlite import dbops
+from edb.sqlite import patches as pg_patches
+from edb.sqlite import metaschema
+from edb.sqlite import trampoline
 
 
 logger = logging.getLogger('edb.server')
@@ -205,7 +205,7 @@ async def _collect_6x_upgrade_patches(
     ctx: bootstrap.BootstrapContext,
     schema: s_schema.Schema,
 ) -> tuple[list[qlast.Command], bool, bool]:
-    from edb.pgsql import patches_6x
+    from edb.sqlite import patches_6x
 
     cmds: list[qlast.Command] = []
 

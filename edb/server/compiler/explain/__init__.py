@@ -31,7 +31,7 @@ from edb import buildmeta
 from edb.common import debug
 from edb.edgeql import ast as qlast
 from edb.ir import ast as irast
-from edb.pgsql import ast as pgast
+from edb.sqlite import ast as pgast
 from edb.schema import schema as s_schema
 
 from . import coarse_grained

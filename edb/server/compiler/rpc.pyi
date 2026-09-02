@@ -25,7 +25,7 @@ from edb import edgeql
 from edb.server import defines, config
 from edb.server.compiler import sertypes, enums
 
-from edb.pgsql import parser as pgparser
+from edb.sqlite import parser as pgparser
 
 class SQLParamsSource:
     types_in_out: list[tuple[list[str], list[tuple[str, str]]]]

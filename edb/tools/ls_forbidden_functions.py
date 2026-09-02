@@ -51,7 +51,7 @@ async def run():
         '''
     )
 
-    import edb.pgsql.resolver.static as pg_r_static
+    import edb.sqlite.resolver.static as pg_r_static
 
     print('Forbidden pg_* functions:')
     for row in res:

@@ -24,7 +24,7 @@ import pickle
 
 import immutables
 
-from edb.pgsql import params as pgparams
+from edb.sqlite import params as pgparams
 from edb.schema import schema as s_schema
 from edb.server import compiler
 from edb.server import config

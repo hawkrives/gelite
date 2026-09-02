@@ -26,21 +26,25 @@ wrong before:
 ## Layout
 
 - `edb/edgeql/`, `edb/ir/`, `edb/schema/` — the frontend.
-- `edb/pgsql/` — the backend, to be forked to `edb/sqlite/` (issue #31).
+- `edb/sqlite/` — the backend. Forked from `edb/pgsql/` by a plain
+  `git mv`, so it is still a Postgres backend: internal module names
+  are unchanged, `git log --follow` works, and upstream fixes stay
+  findable by path. It is the only place a Postgres dependency is
+  allowed to remain.
 - `edb/server/` — server, compiler, connection handling.
 - `edb/common/` — shared infrastructure, below both layers.
 - `edb/lib/*.edgeql` — the standard library, compiled at build time.
 
 **The frontend must not import the backend.** Nothing under `edb/common`,
-`edb/edgeql`, `edb/ir` or `edb/schema` may import `edb.pgsql`, at module
+`edb/edgeql`, `edb/ir` or `edb/schema` may import `edb.sqlite`, at module
 scope or inside a function body;
 `tests/test_sourcecode.py::test_cqa_frontend_does_not_import_backend`
 fails the build if it does. When the frontend needs an answer only the
 backend has, add a hook to `edb/schema/backend.py` and register it from
-`edb/pgsql/common.py`.
+`edb/sqlite/common.py`.
 
-`edb/pgsql/__init__.py` must stay empty. `setup.py`'s cache-key step does
-`find_spec('edb.pgsql.metaschema')`, which imports the parent package
+`edb/sqlite/__init__.py` must stay empty. `setup.py`'s cache-key step does
+`find_spec('edb.sqlite.metaschema')`, which imports the parent package
 before the Rust extension exists; anything there that reaches
 `edb.schema` fails the build. `EMPTY_INIT_FILES` in
 `tests/test_sourcecode.py` enforces it.

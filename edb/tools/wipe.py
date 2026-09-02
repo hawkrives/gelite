@@ -36,8 +36,8 @@ from edb.server import compiler as edbcompiler
 from edb.server import defines as edbdef
 from edb.server import pgcluster
 
-from edb.pgsql import common as pgcommon
-from edb.pgsql.common import quote_ident as qi
+from edb.sqlite import common as pgcommon
+from edb.sqlite.common import quote_ident as qi
 
 if TYPE_CHECKING:
     from edb.server import pgcon

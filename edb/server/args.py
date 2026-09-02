@@ -44,7 +44,7 @@ from edb.common import devmode
 from edb.common import enum
 from edb.common import typeutils
 from edb.schema import defines as schema_defines
-from edb.pgsql import params as pgsql_params
+from edb.sqlite import params as pgsql_params
 
 from . import defines
 

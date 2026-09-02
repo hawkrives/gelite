@@ -54,8 +54,8 @@ from edb.common import uuidgen
 from edb.server import args as srvargs
 from edb.server import defines
 from edb.server import pgconnparams
-from edb.pgsql import common as pgcommon
-from edb.pgsql import params as pgparams
+from edb.sqlite import common as pgcommon
+from edb.sqlite import params as pgparams
 
 if TYPE_CHECKING:
     from edb.server import pgcon

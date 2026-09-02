@@ -109,7 +109,7 @@ A few pointers:
   - any of the schema objects (i.e. adding a field to `s_types.Type`) or
   - a std library object (i.e. changing implementation of `std::round`),
   - metaschema (i.e. changing a pg function `edgedb.range_to_jsonb`),
-    ... a "patch" needs to be added into `pgsql/patches.py`.
+    ... a "patch" needs to be added into `sqlite/patches.py`.
     This is needed, because minor releases don't require a "dump and restore",
     so we must apply these changes to existing user databases.
 

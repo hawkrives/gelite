@@ -39,7 +39,7 @@ from edb.schema import schema as s_schema
 from edb.schema import types as s_types
 
 # The text built here is EdgeQL, parsed by qlparser.parse_fragment below,
-# so it needs the EdgeQL quoter. This used to be edb.pgsql.common's, which
+# so it needs the EdgeQL quoter. This used to be edb.sqlite.common's, which
 # escapes a quote by doubling it - valid SQL, but not valid EdgeQL, where
 # the escape is a backslash. No input reaching ql() today contains a quote
 # or a backslash, so the two agree in practice; they stop agreeing on a

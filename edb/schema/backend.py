@@ -28,7 +28,7 @@ rules by the time it asks, and the backend can only narrow what is allowed,
 never widen it. That is why an unregistered backend is not an error - the
 frontend's own rules still hold, and the checks below degrade to permitting
 what the backend would have had the final say on. A process that can
-execute DDL has imported `edb.pgsql`, and therefore registered, long before
+execute DDL has imported `edb.sqlite`, and therefore registered, long before
 any of this runs.
 """
 
