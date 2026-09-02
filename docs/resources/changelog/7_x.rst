@@ -124,7 +124,7 @@ policies will be disable.
 Session configuration for GraphQL and EdgeQL HTTP interfaces
 ------------------------------------------------------------
 
-The :ref:`GraphQL <ref_graphql_protocol>` and :ref:`EdgeQL HTTP <ref_edgeql_protocol>` interfaces now support passing in session configuration variables.
+The GraphQL and :ref:`EdgeQL HTTP <ref_edgeql_protocol>` interfaces now support passing in session configuration variables.
 
 If you are exposing HTTP/GraphQL endpoints to users and relying on them not being able to perform configuration, you will need to instead have them use roles that have not been given permission to modify sensitive configs.
 
@@ -222,7 +222,7 @@ The feature is fully backwards compatible, with the default ``verification_metho
        verification_method := ext::auth::VerificationMethod.Code,
    };
 
-The same ``verification_method`` property is also available for ``EmailPasswordProviderConfig`` and ``WebAuthnProviderConfig``, allowing you to standardize the verification experience across all your email-based authentication methods. See `RFC 1043: Email-Based One-Time Code Authentication <https://github.com/geldata/rfcs/blob/master/text/1043-ext-auth-otc.rst>`_ for more details on the motivations, and the :ref:`Auth docs <ref_guide_auth>`.
+The same ``verification_method`` property is also available for ``EmailPasswordProviderConfig`` and ``WebAuthnProviderConfig``, allowing you to standardize the verification experience across all your email-based authentication methods. See `RFC 1043: Email-Based One-Time Code Authentication <https://github.com/geldata/rfcs/blob/master/text/1043-ext-auth-otc.rst>`_ for more details on the motivations, and the Auth docs.
 
 Other features
 --------------

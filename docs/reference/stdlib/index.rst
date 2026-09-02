@@ -29,12 +29,9 @@ Standard Library
     objects
     abstract
     constraints
-    net
     fts
     sys
     cfg
-    pgcrypto
-    pg_trgm
     pg_unaccent
     pgvector
     postgis

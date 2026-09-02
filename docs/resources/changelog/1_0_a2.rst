@@ -255,7 +255,7 @@ not just immediate properties:
 Mutations
 ---------
 
-Insert, update, and delete :ref:`mutations <ref_graphql_mutations>`
+Insert, update, and delete mutations
 are now supported.
 
 Mutations support all the same parameters as a query like ``filter``,

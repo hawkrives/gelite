@@ -82,8 +82,7 @@ building your application.
   JavaScript/TypeScript, Python, Go, and Rust. All client libraries implement
   Gel's binary protocol and provide a standard interface for executing
   queries. If you're using another language, you can execute queries
-  :ref:`over HTTP <ref_edgeql_http>`.  This section also includes
-  documentation for Gel's :ref:`GraphQL <ref_graphql_overview>` endpoint.
+  :ref:`over HTTP <ref_edgeql_http>`.
 
 - **CLI**
   Complete reference for the |gelcmd| command-line tool. The CLI is

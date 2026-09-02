@@ -12,8 +12,7 @@ search functionality in Gel.
 .. note::
 
     Since full-text search is a natural language search, it may not be ideal
-    for your use case, particularly if you want to find partial matches. In
-    that case, you may want to look instead at :ref:`ref_ext_pgtrgm`.
+    for your use case, particularly if you want to find partial matches.
 
 .. list-table::
     :class: funcoptable

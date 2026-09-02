@@ -94,18 +94,6 @@ Built-in permissions
     Required for reading status of issued HTTP requests and responses.
 
 
-Permissions for :ref:`auth <ref_guide_auth>` extension:
-
-:eql:synopsis:`ext::auth::perm::auth_read`
-
-:eql:synopsis:`ext::auth::perm::auth_write`
-
-:eql:synopsis:`ext::auth::perm::auth_read_user`
-
-
-Permissions for ``ai`` extension are described
-in :ref:`AI extension reference <ref_ai_extai_reference_permissions>`.
-
 
 Custom permissions
 ==================

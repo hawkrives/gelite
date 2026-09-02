@@ -211,8 +211,7 @@ The ``cfg`` module contains a set of types and scalars used for configuring
     - Gel binary protocol
       :ref:`tunneled over HTTP <ref_http_tunnelling>`
   * - ``cfg::ConnectionTransport.SIMPLE_HTTP``
-    - :ref:`EdgeQL over HTTP <ref_edgeql_http>`
-      and :ref:`GraphQL <ref_graphql_index>` endpoints
+    - the simple HTTP endpoint
 
 ---------
 

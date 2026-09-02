@@ -18,7 +18,6 @@ Using Gel
     Rust <https://docs.rs/gel-tokio/latest/gel_tokio/>
     sql_adapter
     http
-    graphql/index
     datetime
 
 This section covers how to connect to and interact with a running Gel instance, whether it's hosted locally or on a remote server like our Cloud service. This section covers how to establish connections, send queries to retrieve and manipulate data, and use the Gel CLI to manage your running database.

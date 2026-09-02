@@ -100,12 +100,6 @@ queries.
     filter .is_published = true
   );
 
-.. note::
-
-  All aliases are reflected in the database's built-in :ref:`GraphQL schema
-  <ref_graphql_index>`.
-
-
 .. _ref_eql_sdl_aliases:
 .. _ref_eql_sdl_aliases_syntax:
 
