@@ -238,7 +238,7 @@ GraphQL and HTTP authentication
 ..
    We'll drop the rc1 mention after the real release
 
-Starting in rc1, the :ref:`EdgeQL over HTTP <ref_edgeql_http>`
+Starting in rc1, the EdgeQL over HTTP
 and GraphQL endpoints support
 (and by default require) authentication.
 
@@ -250,8 +250,7 @@ By default,
 
 .. lint-on
 
-Full details are available in the :ref:`EdgeQL over HTTP documentation
-<ref_http_auth>`.
+Full details are available in the EdgeQL over HTTP documentation.
 
 This is a backwards-incompatible change. It is possible to opt-in to
 the old behavior, but not recommended.

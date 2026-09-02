@@ -124,7 +124,7 @@ policies will be disable.
 Session configuration for GraphQL and EdgeQL HTTP interfaces
 ------------------------------------------------------------
 
-The GraphQL and :ref:`EdgeQL HTTP <ref_edgeql_protocol>` interfaces now support passing in session configuration variables.
+The GraphQL and EdgeQL HTTP interfaces now support passing in session configuration variables.
 
 If you are exposing HTTP/GraphQL endpoints to users and relying on them not being able to perform configuration, you will need to instead have them use roles that have not been given permission to modify sensitive configs.
 

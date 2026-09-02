@@ -90,8 +90,6 @@ Create a new role:
           sys::perm::query_stats,
           cfg::perm::configure_timeouts,
           cfg::perm::configure_apply_access_policies,
-          ext::auth::perm::auth_read,
-          ext::auth::perm::auth_write,
       };
       set branches := {'main', 'staging'};
     };
