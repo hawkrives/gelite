@@ -5,40 +5,45 @@ description: Handle the test files that encode test data in docstrings, where re
 
 # Docstring test data
 
-Eight test files carry their **test data**, not just documentation, in
-docstrings. Reformatting them deletes assertions without failing
-anything.
+Three test files carry their **test data**, not just documentation, in
+docstrings, and must never be reformatted:
 
 ```
-tests/test_edgeql_ir_card_inference.py
-tests/test_edgeql_ir_mult_inference.py
-tests/test_edgeql_ir_type_inference.py
-tests/test_edgeql_ir_volatility_inference.py
 tests/test_edgeql_syntax.py
 tests/test_schema.py
 tests/test_schema_syntax.py
-tests/test_sql_parse.py
 ```
 
 They are listed under `[tool.ruff.format] exclude` in `pyproject.toml`,
 with the reasoning inline. Keep them excluded.
 
-## The mechanism
+Five more used to be on that list and no longer are: the marker-matching
+bug below was fixed in #67, which is what made them safe to format. The
+three above are excluded for a stronger reason - their docstrings contain
+whitespace that *is* the assertion.
 
-`DocTestMeta` in `edb/testbase/lang.py:104` splits each test's docstring:
+## The mechanism, and what #67 changed
 
-```python
-source, _, output = doc.partition('\n% OK %')
-```
+`DocTestMeta` in `edb/testbase/lang.py` splits each test's docstring on a
+`% OK %` (or `% ERROR %`) marker line. It used to do that with a literal
+`doc.partition('\n% OK %')`, which required the marker at **column 0**.
+`ruff format` re-indents docstring bodies, moving it to column 8.
 
-The marker must be a newline followed by `% OK %` **at column 0**.
-`ruff format` re-indents docstring bodies to match the enclosing block,
-moving the marker to column 8, where it no longer matches.
+The tests then did not fail. `partition` found nothing, `expected` became
+`None`, and each test quietly degraded into "parse this blob and assert
+nothing" — **520 of 521** expected-output assertions dropped, suite still
+green.
 
-The tests then do not fail. `partition` finds nothing, `expected` becomes
-`None`, and each test quietly degrades into "parse this blob and assert
-nothing". Measured across these files, formatting drops **520 of 521**
-expected-output assertions and leaves the suite green.
+The split now uses `^[ \t]*% OK %` in multiline mode, so indentation no
+longer matters. Note the deliberate absence of a trailing anchor: two
+tests end their docstring as `% OK %  """`, and anchoring to end-of-line
+swallows those spaces, making `output` empty — which the `if not output`
+fallthrough reads as "no marker" and parses the whole docstring, marker
+included, as source.
+
+The harness does **not** dedent, and should not start without a decision:
+110 `col=` assertions in these files sit on multi-line docstrings and
+measure columns that include the indentation.
 
 `tests/test_schema.py` is the same hazard by another route: its
 docstrings are SDL source that `BaseSchemaLoadTest.load_schema`
