@@ -42,6 +42,6 @@ futures = "0.3"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["test-util"] }
-rstest = "0.26"
+rstest = "=0.26.1"
 
 [lib]
