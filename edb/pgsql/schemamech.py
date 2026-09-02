@@ -831,8 +831,11 @@ def get_ref_storage_info(
 
     for ref, (ptr, src) in ref_ptrs.items():
         ptr_info = types.get_pointer_storage_info(
-            ptr, source=src, resolve_type=False, schema=schema
-        )  # type: ignore
+            ptr,  # type: ignore
+            source=src,  # type: ignore
+            resolve_type=False,
+            schema=schema,
+        )
 
         # See if any of the refs are hosted in pointer tables and others
         # are not...
@@ -848,7 +851,7 @@ def get_ref_storage_info(
         for ref in objtype_biased.copy():
             ptr, src = ref_ptrs[ref]
             ptr_info = types.get_pointer_storage_info(
-                ptr,
+                ptr,  # type: ignore
                 source=src,  # type: ignore
                 resolve_type=False,
                 link_bias=True,

@@ -203,8 +203,9 @@ class Operation(NamedTuple):
                 )
             else:
                 val = frozenset(
-                    coerce_single_value(setting, v) for v in self.value
-                )  # type: ignore
+                    coerce_single_value(setting, v)
+                    for v in self.value  # type: ignore
+                )
                 if len(val) > MAX_CONFIG_SET_SIZE:
                     raise errors.ConfigurationError(
                         f'invalid value for the '

@@ -2523,8 +2523,8 @@ class ObjectCollection[Object_T: "Object"](
         # performance improvement, and this is a hot path.
         return tuple(
             [
-                schema.get_by_id(iid)
-                for iid in self._ids  # type: ignore
+                schema.get_by_id(iid)  # type: ignore
+                for iid in self._ids
             ]
         )
 

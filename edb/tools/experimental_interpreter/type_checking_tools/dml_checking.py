@@ -197,8 +197,8 @@ def insert_proprerty_checking(
                 ):
                     raise ValueError("TODO")
                 all_target_names: dict[e.QualifiedName, e.Tp] = {
-                    tp.name: tp
-                    for tp in all_target_tps  # type: ignore
+                    tp.name: tp  # type: ignore
+                    for tp in all_target_tps
                 }
                 # synthesize once to get the type
                 (synthesized_tp, expr_ck) = synthesize_type(ctx, attr_expr)
@@ -238,8 +238,8 @@ def insert_proprerty_checking(
                         any(
                             tops.is_nominal_subtype_in_schema(
                                 ctx,
-                                synth_name,
-                                ck_name,  # type: ignore
+                                synth_name,  # type: ignore
+                                ck_name,
                             )
                             for ck_name in all_target_names.keys()
                         )
