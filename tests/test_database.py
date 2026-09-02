@@ -207,6 +207,11 @@ class TestDatabase(tb.ConnectedTestCase):
         finally:
             await tb.drop_db(self.con, 'databasename')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_branch_create_04(self):
         if not self.has_create_database:
             self.skipTest("create branch is not supported by the backend")
