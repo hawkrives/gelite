@@ -24,10 +24,10 @@ from typing import (
 )
 
 
-from edb.pgsql import common as pg_common
+from edb.sqlite import common as pg_common
 
 if TYPE_CHECKING:
-    from edb.pgsql import metaschema
+    from edb.sqlite import metaschema
 
 
 async def get_instdata(

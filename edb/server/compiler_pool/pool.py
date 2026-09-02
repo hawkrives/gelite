@@ -45,7 +45,7 @@ import psutil
 from edb.common import debug
 from edb.common import lru
 
-from edb.pgsql import params as pgparams
+from edb.sqlite import params as pgparams
 
 from edb.schema import reflection as s_refl
 from edb.schema import schema as s_schema

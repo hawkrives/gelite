@@ -411,8 +411,8 @@ def _patch_stdlib_testmode(
     stdlib: bootstrap.StdlibBits,
 ) -> bootstrap.StdlibBits:
     from edb import edgeql
-    from edb.pgsql import delta as delta_cmds
-    from edb.pgsql import params as pg_params
+    from edb.sqlite import delta as delta_cmds
+    from edb.sqlite import params as pg_params
     from edb.edgeql import ast as qlast
     from edb.schema import ddl as s_ddl
     from edb.schema import delta as sd

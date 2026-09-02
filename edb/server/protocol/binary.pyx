@@ -43,7 +43,7 @@ from edb import buildmeta
 from edb import edgeql
 from edb.edgeql import qltypes
 
-from edb.pgsql import parser as pgparser
+from edb.sqlite import parser as pgparser
 
 from edb.server.pgproto cimport hton
 from edb.server.pgproto.pgproto cimport (

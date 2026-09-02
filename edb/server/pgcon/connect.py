@@ -21,9 +21,9 @@ from __future__ import annotations
 import logging
 import textwrap
 
-from edb.pgsql.common import quote_ident as pg_qi
-from edb.pgsql.common import versioned_schema
-from edb.pgsql import params as pg_params
+from edb.sqlite.common import quote_ident as pg_qi
+from edb.sqlite.common import versioned_schema
+from edb.sqlite import params as pg_params
 from edb.server import pgcon
 
 from . import errors as pgerror
@@ -266,11 +266,11 @@ async def pg_connect(
             try:
                 await pgconn.sql_execute(INIT_CON_SCRIPT)
             except pgcon.BackendError:
-                from edb.pgsql import dbops, metaschema
+                from edb.sqlite import dbops, metaschema
 
                 # ClearFELocalSQLSettingsFunction is needed by the
                 # INIT_CON_SCRIPT, so we cannot simply patch it up
-                # in the regular edb/pgsql/patches.py
+                # in the regular edb/sqlite/patches.py
                 block = dbops.PLTopBlock()
                 func = metaschema.ClearFELocalSQLSettingsFunction()
                 dbops.CreateFunction(func, or_replace=True).generate(block)

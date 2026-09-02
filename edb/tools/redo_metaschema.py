@@ -34,7 +34,7 @@ def run():
 
     devmode.enable_dev_mode()
 
-    from edb.pgsql import dbops, metaschema
+    from edb.sqlite import dbops, metaschema
     from edb import buildmeta
 
     version = buildmeta.get_pg_version()

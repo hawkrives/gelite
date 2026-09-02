@@ -30,6 +30,15 @@ MAX_NAME_LENGTH = 63 - MAX_TENANT_ID_LENGTH - 1 - 1
 # Maximum number of arguments supported by SQL functions.
 MAX_FUNC_ARG_COUNT = 100
 
+# Maximum length of an enum label.
+# This is a postgres limitation.
+# Note that this can be overridden in custom builds.
+# https://www.postgresql.org/docs/current/datatype-enum.html
+# Declared here rather than in the backend because the only code that reads
+# it is schema.utils, which must not import the backend; MAX_NAME_LENGTH
+# above is a Postgres limit kept here for the same reason.
+MAX_ENUM_LABEL_LENGTH = 63
+
 GELITE_SUPERUSER = 'admin'
 GELITE_OLD_SUPERUSER = 'edgedb'
 GELITE_TEMPLATE_DB = '__edgedbtpl__'

@@ -20,7 +20,7 @@
 from edb.server.pgproto.pgproto cimport WriteBuffer
 from edb.server.protocol cimport frontend
 from edb.server.pgcon.pgcon cimport PGMessage
-cimport edb.pgsql.parser.parser as pg_parser
+cimport edb.sqlite.parser.parser as pg_parser
 
 
 cdef class PreparedStmt:

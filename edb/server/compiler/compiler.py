@@ -83,17 +83,17 @@ from edb.schema import schema as s_schema
 from edb.schema import types as s_types
 from edb.schema import version as s_ver
 
-from edb.pgsql import ast as pgast
-from edb.pgsql import compiler as pg_compiler
-from edb.pgsql import codegen as pg_codegen
-from edb.pgsql import common as pg_common
-from edb.pgsql import debug as pg_debug
-from edb.pgsql import dbops as pg_dbops
-from edb.pgsql import params as pg_params
-from edb.pgsql import parser as pg_parser
-from edb.pgsql import patches as pg_patches
-from edb.pgsql import types as pg_types
-from edb.pgsql import delta as pg_delta
+from edb.sqlite import ast as pgast
+from edb.sqlite import compiler as pg_compiler
+from edb.sqlite import codegen as pg_codegen
+from edb.sqlite import common as pg_common
+from edb.sqlite import debug as pg_debug
+from edb.sqlite import dbops as pg_dbops
+from edb.sqlite import params as pg_params
+from edb.sqlite import parser as pg_parser
+from edb.sqlite import patches as pg_patches
+from edb.sqlite import types as pg_types
+from edb.sqlite import delta as pg_delta
 
 from . import config as config_compiler
 from . import dbstate
@@ -106,7 +106,7 @@ from . import rpc
 from . import sql
 
 if TYPE_CHECKING:
-    from edb.pgsql import metaschema
+    from edb.sqlite import metaschema
 
     SQLDescriptors = list[
         tuple[

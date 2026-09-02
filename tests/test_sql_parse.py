@@ -17,7 +17,7 @@
 #
 
 
-from edb.pgsql import codegen, parser
+from edb.sqlite import codegen, parser
 from edb.testbase import lang as tb
 from edb.tools import test
 

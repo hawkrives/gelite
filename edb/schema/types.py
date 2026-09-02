@@ -3256,8 +3256,8 @@ class CreateCollectionType(
         super().validate_object(schema, context)
 
         if isinstance(self.scls, (Range, MultiRange)):
+            from . import backend as s_backend
             from . import scalars as s_scalars
-            from edb.pgsql import types as pgtypes
 
             st = self.scls.get_subtypes(schema)[0]
 
@@ -3267,11 +3267,10 @@ class CreateCollectionType(
             ) and st.is_base_type(schema)
 
             if supported:
-                # actually test that it's supported
-                try:
-                    pgtypes.pg_type_from_object(schema, self.scls)
-                except Exception:
-                    supported = False
+                # ...and then whether the backend can actually store it,
+                # which is narrower: std::duration passes every rule above
+                # and no backend has a range type for it.
+                supported = s_backend.supports_range_type(schema, self.scls)
 
             if not supported:
                 raise errors.UnsupportedFeatureError(

@@ -72,7 +72,7 @@ from .pgcon import errors as pgcon_errors
 from .compiler import enums as compiler_enums
 
 if TYPE_CHECKING:
-    from edb.pgsql import params as pgparams
+    from edb.sqlite import params as pgparams
 
     from . import pgcluster
     from . import server as edbserver
@@ -422,7 +422,7 @@ class Tenant:
     async def _check_metaschema_compatibility(
         self, con: pgcon.PGConnection
     ) -> None:
-        from edb.pgsql import patches as pg_patches
+        from edb.sqlite import patches as pg_patches
 
         # Check catalog version
         result = await instdata.get_instdata(
@@ -542,7 +542,7 @@ class Tenant:
             return
 
         async with self.use_sys_pgcon() as syscon:
-            from edb.pgsql import trampoline
+            from edb.sqlite import trampoline
 
             ext_packages_json = await syscon.sql_fetch_val(
                 trampoline.fixup_query("""
@@ -768,7 +768,7 @@ class Tenant:
         if not data:
             return b""
 
-        from edb.pgsql import common
+        from edb.sqlite import common
 
         quoted_json = common.quote_literal(json.dumps(data))
         return (
@@ -1131,7 +1131,7 @@ class Tenant:
     async def _introspect_extensions(
         self, conn: pgcon.PGConnection
     ) -> set[str]:
-        from edb.pgsql import trampoline
+        from edb.sqlite import trampoline
 
         extension_names_json = await conn.sql_fetch_val(
             trampoline.fixup_query("""
@@ -1213,7 +1213,7 @@ class Tenant:
         conn: pgcon.PGConnection,
         reintrospection: bool,
     ) -> None:
-        from edb.pgsql import trampoline
+        from edb.sqlite import trampoline
 
         logger.info("introspecting database '%s'", dbname)
 
@@ -1733,7 +1733,7 @@ class Tenant:
             return
 
         logger.info('Starting copy from %s to %s', src_dbname, tgt_dbname)
-        from edb.pgsql import common
+        from edb.sqlite import common
         from . import bootstrap  # noqa: F402
 
         real_tgt_dbname = common.get_database_backend_name(

@@ -54,7 +54,7 @@ class ExtensionPackage(
     # ExtensionPackage, like all GlobalObjects, needs to store its
     # data in globally stored JSON instead of via reflection schema.
     # When you add a field to ExtensionPackage, you must also update
-    # CreateExtensionPackage in pgsql/delta.py and
+    # CreateExtensionPackage in sqlite/delta.py and
     # _generate_extension_views in metaschema to store and retrieve
     # the data from json.
 
@@ -112,7 +112,7 @@ class ExtensionPackageMigration(
     # ExtensionPackageMigration, like all GlobalObjects, needs to store its
     # data in globally stored JSON instead of via reflection schema.
     # When you add a field to ExtensionPackageMigration, you must also update
-    # CreateExtensionPackageMigration in pgsql/delta.py and
+    # CreateExtensionPackageMigration in sqlite/delta.py and
     # _generate_extension_views in metaschema to store and retrieve
     # the data from json.
 

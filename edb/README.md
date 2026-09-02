@@ -23,11 +23,11 @@ This list is *partial*, focused on the compiler, and ordered conceptually.
    There are `TypeRef` and `PointerRef` objects that do this for types and pointers.
    - `edgeql/ir/scopetree.py` - Representation of "scope tree", which computes and tracks where sets are "bound". The IR output of the compiler consists of both an IR AST and a scope tree, needed to interpret it.
 
- - `pgsql/` - PostgreSQL backend tools - AST, codegen, second stage compiler, etc
-   - `pgsql/ast.py` - SQL AST. The AST contains both information for the actual SQL AST, along with a large collection of metadata that is used during the compilation process.
-   - `pgsql/codegen.py` - SQL codegen. Converts AST to SQL.
-   - `pgsql/compiler/` - IR to SQL compiler.
-   - `pgsql/delta.py` - Generates SQL DDL from delta trees.
+ - `sqlite/` - backend tools - AST, codegen, second stage compiler, etc. Still the PostgreSQL backend, renamed from `pgsql/` ahead of the SQLite port; internal module names are unchanged.
+   - `sqlite/ast.py` - SQL AST. The AST contains both information for the actual SQL AST, along with a large collection of metadata that is used during the compilation process.
+   - `sqlite/codegen.py` - SQL codegen. Converts AST to SQL.
+   - `sqlite/compiler/` - IR to SQL compiler.
+   - `sqlite/delta.py` - Generates SQL DDL from delta trees.
 
  - `lib/` - Definition of EdgeDB's standard library
    - `lib/schema.edgeql` - Definition of the parts of the schema that are exposed publically.

@@ -19,7 +19,7 @@
 
 import edgedb
 
-from edb.pgsql import common
+from edb.sqlite import common
 
 from edb.testbase import server as tb
 from edb.testbase import connection as tb_connection

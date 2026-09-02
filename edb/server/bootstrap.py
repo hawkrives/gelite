@@ -78,14 +78,14 @@ from edb.server import defines as edbdef
 from edb.server import pgcluster
 from edb.server import pgcon
 
-from edb.pgsql import common as pg_common
-from edb.pgsql import dbops
-from edb.pgsql import delta as delta_cmds
-from edb.pgsql import metaschema
-from edb.pgsql import params
-from edb.pgsql import patches
-from edb.pgsql import trampoline
-from edb.pgsql.common import quote_ident as qi
+from edb.sqlite import common as pg_common
+from edb.sqlite import dbops
+from edb.sqlite import delta as delta_cmds
+from edb.sqlite import metaschema
+from edb.sqlite import params
+from edb.sqlite import patches
+from edb.sqlite import trampoline
+from edb.sqlite.common import quote_ident as qi
 
 from edgedb import scram
 

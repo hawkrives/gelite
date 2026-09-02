@@ -30,7 +30,7 @@ from edb.common import value_dispatch
 from edb.common import uuidgen
 
 
-from edb.pgsql.parser import exceptions as parser_errors
+from edb.sqlite.parser import exceptions as parser_errors
 
 from edb.schema import name as sn
 from edb.schema import objtypes as s_objtypes
@@ -38,8 +38,8 @@ from edb.schema import pointers as s_pointers
 from edb.schema import schema as s_schema
 from edb.schema import constraints as s_constraints
 
-from edb.pgsql import common
-from edb.pgsql import types
+from edb.sqlite import common
+from edb.sqlite import types
 
 from edb.server.pgcon import errors as pgerrors
 

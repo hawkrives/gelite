@@ -47,9 +47,9 @@ from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, \
 
 from edb import errors
 from edb.edgeql import qltypes
-from edb.pgsql import common as pgcommon
-from edb.pgsql.common import quote_literal as pg_ql
-from edb.pgsql import codegen as pg_codegen
+from edb.sqlite import common as pgcommon
+from edb.sqlite.common import quote_literal as pg_ql
+from edb.sqlite import codegen as pg_codegen
 
 from edb.server.pgproto cimport hton
 from edb.server.pgproto cimport pgproto

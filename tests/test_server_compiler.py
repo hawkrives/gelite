@@ -37,7 +37,7 @@ from edb import errors
 from edb.ir import statypes
 from edb.testbase import lang as tb
 from edb.testbase import server as tbs
-from edb.pgsql import params as pg_params
+from edb.sqlite import params as pg_params
 from edb.server import args as edbargs
 from edb.server import compiler as edbcompiler
 from edb.server.compiler import rpc

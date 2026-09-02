@@ -77,7 +77,7 @@ from edb.server.protocol import ui_ext  # type: ignore
 from edb.server import metrics
 from edb.server import pgcon
 
-from edb.pgsql import patches as pg_patches
+from edb.sqlite import patches as pg_patches
 
 from . import compiler as edbcompiler
 from .compiler import sertypes
@@ -85,7 +85,7 @@ from .compiler import sertypes
 if TYPE_CHECKING:
     import asyncio.base_events
 
-    from edb.pgsql import params as pgparams
+    from edb.sqlite import params as pgparams
 
     from . import bootstrap
 

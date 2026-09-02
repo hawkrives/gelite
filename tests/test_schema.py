@@ -2755,6 +2755,23 @@ class TestSchema(tb.BaseSchemaLoadTest):
         }
         """
 
+    @tb.must_fail(
+        errors.UnsupportedFeatureError,
+        "unsupported range subtype: std::duration",
+    )
+    def test_schema_range_02(self):
+        """
+        type Y {
+            property span -> range<duration>
+        }
+        """
+        # std::duration extends std::anycontiguous, so every frontend rule
+        # for a range subtype accepts it. Only the backend rejects it, by
+        # having no range type to map it onto. That makes this the one case
+        # that proves the backend still gets the final say after the check
+        # was inverted through schema.backend - the rest of the range tests
+        # pass or fail identically with no backend registered at all.
+
     def test_schema_enum_01(self):
         pass
     test_schema_enum_01.__doc__ = (

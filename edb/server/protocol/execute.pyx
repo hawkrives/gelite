@@ -39,7 +39,7 @@ from edb.common import debug
 from edb import edgeql
 from edb.edgeql import qltypes
 
-from edb.pgsql.parser import exceptions as parser_errors
+from edb.sqlite.parser import exceptions as parser_errors
 
 from edb.server import compiler
 from edb.server import config

@@ -37,6 +37,7 @@ from edb.edgeql import compiler as qlcompiler
 from edb.edgeql import qltypes
 
 from . import annos as s_anno
+from . import backend as s_backend
 from . import delta as sd
 from . import expr as s_expr
 from . import functions as s_func
@@ -907,8 +908,7 @@ class IndexCommand(
                     span=set_of_op.span,
                 )
 
-            # compile the expression to sql to preempt errors downstream
-            utils.try_compile_irast_to_sql_tree(expr, self.span)
+            s_backend.try_lower_expr(expr, self.span)
 
             return expr
         elif field.name == "kwargs":
