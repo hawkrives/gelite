@@ -19,7 +19,7 @@ dependencies = [
 
     'webauthn~=2.0.0',
     'argon2-cffi~=23.1.0',
-    'aiosmtplib~=3.0',
+    'aiosmtplib~=5.1',
     'tiktoken~=0.7.0',
     'mistral_common~=1.3.0',
 
