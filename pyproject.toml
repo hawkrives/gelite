@@ -128,13 +128,6 @@ build = [
 ]
 
 
-[tool.uv]
-# sphinx pulls setuptools in transitively, and 80.9.0 breaks it. Constrain
-# resolution rather than downgrading after install, which is what the CI
-# workflows used to do.
-constraint-dependencies = ["setuptools<80.9.0"]
-
-
 [tool.setuptools]
 packages = { find = { include = ["edb", "edb.*"] } }
 zip-safe = false

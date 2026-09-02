@@ -253,3 +253,22 @@ jobs:
                               all_tests.remove(name)
 
           assert not all_tests, "Tests not run! \n" + "\n".join(all_tests)
+
+      # This job runs with `if: always()` so it can render results even when
+      # a shard fails, which means its own success says nothing about theirs.
+      # Without this, a shard that dies before uploading its artifact - a
+      # toolchain install failing, a runner lost - leaves nothing for the
+      # steps above to notice, and the workflow concludes green.
+      - name: Fail if any job it depends on did not succeed
+        if: >-
+          contains(needs.*.result, 'failure') ||
+          contains(needs.*.result, 'cancelled') ||
+          contains(needs.*.result, 'skipped')
+        run: |
+          echo "::error::A required job did not succeed:"
+          echo "  cargo-test:       ${{ needs.cargo-test.result }}"
+          echo "  rust-clippy:      ${{ needs.rust-clippy.result }}"
+          echo "  rust-rustfmt:     ${{ needs.rust-rustfmt.result }}"
+          echo "  python-test:      ${{ needs.python-test.result }}"
+          echo "  python-test-list: ${{ needs.python-test-list.result }}"
+          exit 1
