@@ -42,6 +42,16 @@ class TestBranching(tb.QueryTestCase):
     *fidelity* is what is untested, and what these cover.
     """
 
+    # CREATE BRANCH cannot run inside a transaction - the compiler rejects
+    # it with "cannot execute CREATE BRANCH in a transaction" - and the
+    # base class wraps each test in one. tests/test_database.py, the only
+    # other file that creates branches, turns it off for the same reason.
+    #
+    # Safe to retry, which is what turning this off costs: the helper
+    # drops its branch in a finally, so a second run starts from the same
+    # state as the first.
+    TRANSACTION_ISOLATION = False
+
     SETUP = '''
         create type Widget {
             create required property name: str;
