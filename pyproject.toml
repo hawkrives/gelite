@@ -52,21 +52,13 @@ test = [
     # Needed for test_docs_sphinx_ext
     'requests-xml~=0.2.3',
 
-    # For rebuilding GHA workflows
-    'Jinja2~=2.11',
-    'MarkupSafe~=1.1',
-    'PyYAML~=6.0',
-
     'mypy[faster-cache] ~= 1.13.0',
     # mypy stub packages; when updating, you can use mypy --install-types
     # to install stub packages and then pip freeze to read out the specifier
     'types-docutils~=0.17.0,<0.17.6', # incomplete nodes.document.__init__
-    'types-Jinja2~=2.11',
-    'types-MarkupSafe~=1.1',
     'types-setuptools~=71.1.0',
     'types-typed-ast~=1.4.2',
     'types-requests~=2.25.6',
-    'types-PyYAML~=6.0',
 
     'prometheus_client~=0.11.0',
 
