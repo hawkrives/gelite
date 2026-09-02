@@ -24,6 +24,11 @@ import edgedb
 class TestEdgeQLFTSSchema(tb.DDLTestCase):
     '''Tests for fts schema mutations.'''
 
+    DEFERRED = (
+        'full-text search is deferred (#75): fts.edgeql is out of the '
+        'stdlib build, so fts::index and fts::search do not resolve.'
+    )
+
     async def test_edgeql_fts_schema_language_01(self):
         await self.con.execute(
             '''

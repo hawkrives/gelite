@@ -23,6 +23,7 @@ import os.path
 import edgedb
 
 from edb.testbase import server as tb
+from edb.tools import test
 
 
 class TestEdgeQLCasts(tb.QueryTestCase):
@@ -3022,6 +3023,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             select <json>Z union <json>Z;
         ''')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_json_16(self):
         # number to range
         async with self.assertRaisesRegexTx(
@@ -3157,6 +3163,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 }');
             """)
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_json_17(self):
         # number to multirange
         async with self.assertRaisesRegexTx(
@@ -3174,6 +3185,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
                 SELECT <multirange<int64>>to_json('{"a": 1}');
             """)
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_multirange_set_01(self):
         await self.assert_query_result(
             r"""
@@ -3389,6 +3405,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
         ):
             await self.con.query("""SELECT <x>to_json('"a"')""")
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_tuple_params_01(self):
         # insert tuples into a nested array
         def nest(data):
@@ -3488,6 +3509,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             variables={'tup': (0, 1.0, "str", b"bytes")},
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_tuple_params_03(self):
         # try *doing* something with the input
         await self.con.query(
@@ -3637,6 +3663,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             variables=(None, 11111),
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_tuple_params_09(self):
         await self.con.query(
             '''
@@ -3702,6 +3733,11 @@ class TestEdgeQLCasts(tb.QueryTestCase):
             [('a',)],
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_casts_all_null(self):
         # For *every* cast, try casting a value we know
         # will be represented as NULL.

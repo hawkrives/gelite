@@ -210,6 +210,11 @@ class TestEdgeQLFor(tb.QueryTestCase):
             },
         )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_for_implicit_limit_01(self):
         await self.assert_query_result(
             r'''

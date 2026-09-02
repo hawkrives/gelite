@@ -16,18 +16,13 @@
 # limitations under the License.
 #
 
+# Upstream indexes Post with an fts::index built over
+# ext::pg_unaccent::unaccent(.body). Full-text search is deferred (#75), and
+# the index is what test_edgeql_ext_pg_unaccent_02 needs - but pg_unaccent
+# itself is a kept extension (#24), and _01 tests unaccent() directly with no
+# FTS involved. Keeping the index here would fail this schema at creation and
+# take _01 down with it, losing the only coverage the kept extension has.
 type Post {
     title: str;
     body: str;
-
-    index fts::index on ((
-        fts::with_options(
-            .title,
-            language := fts::Language.eng
-        ),
-        fts::with_options(
-            ext::pg_unaccent::unaccent(.body),
-            language := fts::Language.eng,
-        ),
-    ));
 };

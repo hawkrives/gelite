@@ -791,6 +791,12 @@ class TestSchema(tb.BaseSchemaLoadTest):
             };
         """  # fmt: skip
 
+    @test.xerror(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index does not resolve. xerror, not\n'
+        'xfail - the lookup raises InvalidReferenceError rather than\n'
+        'failing an assertion.'
+    )
     @tb.must_fail(
         errors.InvalidDefinitionError,
         "index 'fts::index' of object type 'test::Foo' was already declared",
@@ -811,6 +817,12 @@ class TestSchema(tb.BaseSchemaLoadTest):
         };
         """
 
+    @test.xerror(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index does not resolve. xerror, not\n'
+        'xfail - the lookup raises InvalidReferenceError rather than\n'
+        'failing an assertion.'
+    )
     @tb.must_fail(
         errors.InvalidDefinitionError,
         "multiple std::fts::index indexes defined for test::Foo",
@@ -8874,6 +8886,12 @@ class TestGetMigration(tb.BaseSchemaLoadTest):
             ]
         )
 
+    @test.xerror(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index does not resolve. xerror, not\n'
+        'xfail - the lookup raises InvalidReferenceError rather than\n'
+        'failing an assertion.'
+    )
     def test_schema_migrations_equivalence_index_04(self):
         self._assert_migration_equivalence(
             [

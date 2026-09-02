@@ -32,6 +32,11 @@ class TestEdgeQLFTSQuery(tb.QueryTestCase):
     various FTS schema features.
     '''
 
+    DEFERRED = (
+        'full-text search is deferred (#75): fts.edgeql is out of the '
+        'stdlib build, so fts::index and fts::search do not resolve.'
+    )
+
     SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas', 'fts.esdl')
 
     SETUP = os.path.join(

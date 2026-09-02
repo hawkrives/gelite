@@ -5313,6 +5313,11 @@ class TestEdgeQLDDL(tb.DDLTestCase):
             );
         ''')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_ddl_function_39(self):
         '''
         Creating a function operating on or returning an array of valid
@@ -12634,6 +12639,11 @@ type default::Foo {
                 """
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): 31-rangefuncs.edgeql is out of the\n'
+        'stdlib build, so range(), range_unpack(), multirange() and the\n'
+        'range casts do not resolve.'
+    )
     async def test_edgeql_ddl_alias_13(self):
         '''
         Creating an alias of an array of valid scalars should be possible.
@@ -16436,6 +16446,10 @@ type default::Foo {
             };
         """)
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_edgeql_ddl_index_fts_01(self):
         await self.con.execute('''
             CREATE ABSTRACT TYPE default::Named {

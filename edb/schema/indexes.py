@@ -1815,5 +1815,14 @@ def is_fts_index(
     schema: s_schema.Schema,
     index: Index,
 ) -> bool:
-    fts_index = schema.get(sn.QualName("std::fts", "index"), type=Index)
+    # Tolerate an absent std::fts. Full-text search is deferred (#75), so
+    # fts.edgeql is out of the stdlib build and this lookup finds nothing -
+    # in which case no index can be an fts index. Without the default this
+    # raises, and because is_object_scope_index() calls it for *every*
+    # index, every schema declaring any index at all fails to compile.
+    fts_index = schema.get(
+        sn.QualName("std::fts", "index"), type=Index, default=None
+    )
+    if fts_index is None:
+        return False
     return index.issubclass(schema, fts_index)

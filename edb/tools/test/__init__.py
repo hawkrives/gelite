@@ -33,6 +33,7 @@ import psutil
 
 import edb
 from edb.common import devmode
+from edb.testbase.server import deferred_cases
 from edb.testbase.server import get_test_cases
 from edb.tools.edb import edbcommands
 
@@ -456,6 +457,10 @@ def _run(
         for tests in cases.values():
             for test in tests:
                 click.echo(str(test))
+        # To stderr, so it stays out of the list CI redirects to
+        # all_tests.txt while remaining visible in the job log.
+        for name, reason in sorted(deferred_cases([suite]).items()):
+            click.echo(f'deferred, not listed: {name}: {reason}', err=True)
         return 0
 
     jobs = max(min(total, jobs), 1)

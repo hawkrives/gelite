@@ -8835,6 +8835,10 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
             [{'name': 'test::Base', 'indexes': [{'expr': '.name'}]}],
         )
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_edgeql_migration_eq_index_05(self):
         await self.migrate('''
             abstract type Named {
@@ -12378,6 +12382,10 @@ class TestEdgeQLDataMigration(EdgeQLDataMigrationTestCase):
             module `back``ticked` { type Test };
         """)
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_edgeql_migration_abstract_index_01(self):
         await self.migrate(
             r"""
@@ -13072,6 +13080,10 @@ class TestEdgeQLDataMigrationNonisolated(EdgeQLDataMigrationTestCase):
             ),
         )
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_edgeql_migration_schema_repair_02(self):
         await self._test_schema_repair(
             schema='''

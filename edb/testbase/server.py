@@ -113,10 +113,36 @@ def _get_test_cases(tests):
     for test in tests:
         if isinstance(test, unittest.TestSuite):
             result.update(_get_test_cases(test._tests))
-        elif not getattr(test, '__unittest_skip__', False):
+        elif getattr(test, '__unittest_skip__', False):
+            continue
+        elif getattr(test, 'DEFERRED', None) is not None:
+            # A class whose feature this fork has deferred is not part of
+            # the suite at all: it is neither assigned to a shard nor
+            # listed by `edb test --list`. Both have to agree, because CI
+            # feeds --list into all_tests.txt and test-conclusion asserts
+            # that every listed test reported a result - so enumerating a
+            # class that then never runs fails the build. deferred_cases()
+            # reports them so the exclusion is visible rather than silent.
+            continue
+        else:
             _add_test(result, (test,))
 
     return result
+
+
+def deferred_cases(tests) -> dict[str, str]:
+    """Map name -> reason for each test class deferred by this fork."""
+    found: dict[str, str] = {}
+
+    def walk(ts):
+        for test in ts:
+            if isinstance(test, unittest.TestSuite):
+                walk(test._tests)
+            elif (reason := getattr(test, 'DEFERRED', None)) is not None:
+                found[type(test).__name__] = reason
+
+    walk(tests)
+    return found
 
 
 def get_test_cases(tests):
@@ -853,6 +879,19 @@ class ClusterTestCase(TestCaseWithHttpClient):
     has_create_role: bool
     is_superuser: bool
 
+    # Set on a test class whose feature this fork has deferred, to the
+    # reason. Such a class is skipped whole, before its schema is applied.
+    #
+    # A per-test marker cannot cover these: the schema is applied in the
+    # runner's global setup pass (setup_test_cases), so a class whose
+    # SCHEMA needs a deferred feature takes the whole run down before any
+    # test method - or setUpClass - is reached, and no decorator is ever
+    # consulted. get_setup_script() therefore raises SkipTest, which
+    # get_test_cases_setup() already honours by skipping that database
+    # entirely, and setUpClass raises it again so the tests report as
+    # skipped rather than failing to connect to a database nobody made.
+    DEFERRED: Optional[str] = None
+
     # Some tests may want to manage transactions manually,
     # or affect non-transactional state, in which case
     # TRANSACTION_ISOLATION must be set to False
@@ -909,6 +948,8 @@ class ClusterTestCase(TestCaseWithHttpClient):
         cls.has_create_role = cls.cluster.has_create_role()
         cls.is_superuser = cls.has_create_database and cls.has_create_role
         cls.backend_dsn = os.environ.get('GELITE_TEST_BACKEND_DSN')
+        if cls.DEFERRED is not None:
+            raise unittest.SkipTest(cls.DEFERRED)
         if getattr(cls, 'BACKEND_SUPERUSER', False):
             if not cls.is_superuser:
                 raise unittest.SkipTest('skipped due to lack of superuser')
@@ -1610,6 +1651,9 @@ class DatabaseTestCase(ConnectedTestCase):
             script += (
                 '\nCONFIGURE SESSION SET auto_rebuild_query_cache := false;'
             )
+
+        if cls.DEFERRED is not None:
+            raise unittest.SkipTest(cls.DEFERRED)
 
         if getattr(cls, 'BACKEND_SUPERUSER', False):
             is_superuser = getattr(cls, 'is_superuser', True)

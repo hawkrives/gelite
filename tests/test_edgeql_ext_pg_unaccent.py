@@ -19,6 +19,7 @@
 import os
 
 from edb.testbase import server as tb
+from edb.tools import test
 
 
 class TestEdgeQLExtPgUnaccent(tb.QueryTestCase):
@@ -45,6 +46,13 @@ class TestEdgeQLExtPgUnaccent(tb.QueryTestCase):
             ['Pesec precka cestisce.', 'Zeleznica', 'Hotel'],
         )
 
+    @test.xerror(
+        'full-text search is deferred (#75), so fts::search does not\n'
+        'resolve. xerror, not xfail: this raises rather than failing an\n'
+        'assertion. Only this test needs FTS - _01 covers unaccent()\n'
+        'directly, which is why pg_unaccent.esdl drops the index rather\n'
+        'than the whole class being marked DEFERRED.'
+    )
     async def test_edgeql_ext_pg_unaccent_02(self):
         await self.assert_query_result(
             """
