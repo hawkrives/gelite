@@ -134,9 +134,9 @@ SET {
 
 
 # Generate some data ...
-for i in range_unpack(range(1, 10)) union (
+for i in {1, 2, 3, 4, 5, 6, 7, 8, 9} union (
   with u := (insert User { name := <str>i }),
-  for j in range_unpack(range(0, 3)) union (
+  for j in {0, 1, 2} union (
     insert Issue {
       owner := u,
       number := <str>(i*100 + j),
@@ -150,40 +150,14 @@ update User set {
 };
 
 
-for x in range_unpack(range(0, 100)) union (
-  insert RangeTest {
-    rval := range(-(x * 101419 % 307), x * 201881 % 307),
-    mval := multirange([
-      range(-155 - (x * 100267 % 151), -(x * 201791 % 151)),
-      range(-(x * 100003 % 307), x * 202001 % 307),
-    ]),
-    rdate := range(
-      <cal::local_date>'2000-01-01' +
-        cal::to_date_duration(days:=x * 300439 % 4999),
-      <cal::local_date>'2014-01-01' +
-        cal::to_date_duration(days:=x * 300277 % 4999),
-    ),
-    mdate := multirange([
-      range(
-        <cal::local_date>'2000-01-01' +
-          cal::to_date_duration(days:=x * 302507 % 4999),
-        <cal::local_date>'2014-01-01' +
-          cal::to_date_duration(days:=x * 301907 % 4999),
-      ),
-      range(
-        <cal::local_date>'2003-01-01' +
-          cal::to_date_duration(days:=x * 305933 % 4999),
-        <cal::local_date>'2017-01-01' +
-          cal::to_date_duration(days:=x * 305999 % 4999),
-      ),
-    ]),
-  }
-);
+# The RangeTest data block is gone with the type (see explain.esdl).
 
 
-for x in range_unpack(range(0, 100)) union (
+for tens in {0, 10, 20, 30, 40, 50, 60, 70, 80, 90} union (
+  for ones in {0, 1, 2, 3, 4, 5, 6, 7, 8, 9} union (
+    with x := tens + ones,
     insert JSONTest{val := <json>(a:=x, b:=x * 40123 % 10007)}
-);
+));
 
 
 administer statistics_update();

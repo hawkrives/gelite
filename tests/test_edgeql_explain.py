@@ -1567,6 +1567,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
                 f'"BitmapHeapScan", got {plan_type!r}'
             )
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_contains_01(self):
         res = await self.explain('''
             select RangeTest {id, rval}
@@ -1592,6 +1597,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_contains_02(self):
         res = await self.explain('''
             select RangeTest {id, rval}
@@ -1625,6 +1635,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_contains_03(self):
         res = await self.explain('''
             select RangeTest {id, mval}
@@ -1652,6 +1667,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_overlaps_01(self):
         # The field is the first arg in `overlaps`
         res = await self.explain('''
@@ -1686,6 +1706,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_overlaps_02(self):
         # The field is the second arg in `overlaps`
         res = await self.explain('''
@@ -1720,6 +1745,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_adjacent_01(self):
         # The field is the first arg in `adjacent`
         res = await self.explain('''
@@ -1754,6 +1784,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_adjacent_02(self):
         # The field is the second arg in `adjacent`
         res = await self.explain('''
@@ -1788,6 +1823,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_strictly_below_01(self):
         # The field is the first arg in `strictly_below`
         res = await self.explain('''
@@ -1822,6 +1862,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_strictly_below_02(self):
         # The field is the second arg in `strictly_below`
         res = await self.explain('''
@@ -1856,6 +1901,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_strictly_above_01(self):
         # The field is the first arg in `strictly_above`
         res = await self.explain('''
@@ -1890,6 +1940,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_strictly_above_02(self):
         # The field is the second arg in `strictly_above`
         res = await self.explain('''
@@ -1924,6 +1979,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_bounded_below_01(self):
         # The field is the first arg in `bounded_below`
         res = await self.explain('''
@@ -1958,6 +2018,11 @@ class TestEdgeQLExplain(tb.QueryTestCase):
         ''')
         self.assert_index_in_plan(res, 'mdate')
 
+    @test.not_implemented(
+        'ranges are deferred (#75): explain.esdl no longer declares\n'
+        'RangeTest, because 31-rangefuncs.edgeql is out of the build and\n'
+        'explain_setup.edgeql cannot populate it.'
+    )
     async def test_edgeql_explain_ranges_bounded_above_01(self):
         # The field is the first arg in `bounded_above`
         res = await self.explain('''

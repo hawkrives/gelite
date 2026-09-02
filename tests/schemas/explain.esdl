@@ -116,17 +116,13 @@ type URL extending Named {
     required address: str;
 }
 
-type RangeTest {
-    required rval: range<int64>;
-    required mval: multirange<int64>;
-    required rdate: range<cal::local_date>;
-    required mdate: multirange<cal::local_date>;
-
-    index pg::gist on (.rval);
-    index pg::gist on (.mval);
-    index pg::gist on (.rdate);
-    index pg::gist on (.mdate);
-}
+# Upstream declares a RangeTest type here, with range and multirange
+# properties over int64 and cal::local_date, each backed by a pg::gist index.
+# Ranges are deferred (#75) - the range *type* is still built in
+# (edb/schema/types.py), but the constructors in 31-rangefuncs.edgeql are out
+# of the build, so explain_setup.edgeql cannot populate it. The 13
+# test_edgeql_explain_ranges_* tests that query it are marked; the other 21
+# tests in the suite are unaffected and keep running.
 
 type JSONTest {
     required val: json;
