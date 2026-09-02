@@ -32,7 +32,6 @@ from typing import (
 
 import asyncio
 import contextlib
-import dataclasses
 import json
 import logging
 import os
@@ -79,7 +78,6 @@ if TYPE_CHECKING:
 
     from . import pgcluster
     from . import server as edbserver
-    from . import compiler_pool as edbcompiler_pool
 
 
 logger = logging.getLogger("edb.server")
@@ -156,8 +154,6 @@ class Tenant(ha_base.ClusterProtocol):
 
     _http_client: HttpClient | None
 
-    _sidechannel_email_configs: list[Any]
-
     def __init__(
         self,
         cluster: pgcluster.BaseCluster,
@@ -181,7 +177,6 @@ class Tenant(ha_base.ClusterProtocol):
         self._accept_new_tasks = False
         self._file_watch_finalizers = []
         self._introspection_locks = weakref.WeakValueDictionary()
-        self._sidechannel_email_configs = []
 
         self._extensions_dirs = extensions_dir
 
@@ -278,28 +273,6 @@ class Tenant(ha_base.ClusterProtocol):
     def set_server(self, server: edbserver.BaseServer) -> None:
         self._server = server
         self.__loop = server.get_loop()
-
-    async def load_sidechannel_configs(
-        self,
-        value: Any,
-        *,
-        compiler: (
-            edbcompiler.Compiler | edbcompiler_pool.AbstractPool | None
-        ) = None,
-    ) -> None:
-        if compiler is None:
-            compiler = self._server.get_compiler_pool()
-        objects = {"cfg::Config": {"email_providers": value}}
-        if isinstance(compiler, edbcompiler.Compiler):
-            result = compiler.compile_structured_config(
-                objects, source="magic", allow_nested=True
-            )
-        else:
-            result = await compiler.compile_structured_config(
-                objects, source="magic", allow_nested=True
-            )
-        email_providers = result["cfg::Config"]["email_providers"]
-        self._sidechannel_email_configs = list(email_providers.value)
 
     def get_http_client(self, *, originator: str) -> HttpClient:
         if self._http_client is None:
@@ -1761,13 +1734,6 @@ class Tenant(ha_base.ClusterProtocol):
         with self._config_file.open('rb') as f:
             toml_data = tomllib.load(f)
 
-        # Handle special case for `magic_smtp_config`
-        magic_smtp_config = toml_data.pop("magic_smtp_config", None)
-        if magic_smtp_config:
-            await self.load_sidechannel_configs(
-                magic_smtp_config, compiler=compiler
-            )
-
         # Parse TOML config file content into JSON
         if toml_data and toml_data.get("cfg::Config"):
             result = compiler.compile_structured_config(
@@ -2198,8 +2164,6 @@ class Tenant(ha_base.ClusterProtocol):
             self.create_task(task(), interruptable=True)
 
     def get_debug_info(self) -> dict[str, Any]:
-        from . import smtp
-
         pgaddr = self.get_pgaddr()
         pgaddr.clear_server_settings()
         pgdict = pgaddr.__dict__
@@ -2228,12 +2192,6 @@ class Tenant(ha_base.ClusterProtocol):
                 if db.name in defines.GELITE_SPECIAL_DBS:
                     continue
 
-                try:
-                    email_provider = dataclasses.asdict(
-                        smtp.get_current_email_provider(db)
-                    )
-                except errors.ConfigurationError:
-                    email_provider = None
                 dbs[db.name] = dict(
                     name=db.name,
                     dbver=db.dbver,
@@ -2254,7 +2212,6 @@ class Tenant(ha_base.ClusterProtocol):
                         )
                         for view in db.iter_views()
                     ],
-                    current_email_provider=email_provider,
                 )
 
         obj["databases"] = dbs

@@ -17,9 +17,6 @@ dependencies = [
     'psutil~=5.8',
     'setproctitle~=1.2',
 
-    # aiosmtplib stays: edb/server/tenant.py uses edb/server/smtp.py for
-    # cfg::SMTPProviderConfig, which is core config rather than ext::auth.
-    'aiosmtplib~=3.0',
 
     # pin because newer versions are either broken or require
     # us to update setuptools (in gel-pkg)

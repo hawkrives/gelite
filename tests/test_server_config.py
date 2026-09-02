@@ -2361,13 +2361,6 @@ class TestStaticServerConfig(tb.TestCase):
             durprop = "996"
             apply_access_policies = false
             multiprop = "single"
-            current_email_provider_name = "localmock"
-
-            [[magic_smtp_config]]
-            _tname = "cfg::SMTPProviderConfig"
-            name = "localmock"
-            sender = "sender@example.com"
-            timeout_per_email = "1 minute 48 seconds"
         ''')
         async with tb.temp_file_with(
             conf.encode()
@@ -2407,27 +2400,6 @@ class TestStaticServerConfig(tb.TestCase):
                     """),
                     ["single"],
                 )
-
-                dbname = await conn.query_single("""\
-                    select sys::get_current_branch()
-                """)
-                provider = sd.fetch_server_info()["databases"][dbname][
-                    "current_email_provider"
-                ]
-                self.assertEqual(provider['name'], 'localmock')
-                self.assertEqual(provider['sender'], 'sender@example.com')
-                self.assertEqual(provider['timeout_per_email'], 'PT1M48S')
-
-                await conn.query("""\
-                    configure current database
-                    set current_email_provider_name := 'non_exist';
-                """)
-                async for tr in self.try_until_succeeds(ignore=AssertionError):
-                    async with tr:
-                        provider = sd.fetch_server_info()["databases"][dbname][
-                            "current_email_provider"
-                        ]
-                        self.assertIsNone(provider)
             finally:
                 await conn.aclose()
 

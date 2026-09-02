@@ -33,7 +33,6 @@ import subprocess
 import ssl
 import sys
 import tempfile
-import textwrap
 import time
 import unittest
 import urllib.error
@@ -1556,12 +1555,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
             for i, td, rd, cf in [(1, td1, rd1, cf1), (2, td2, rd2, cf2)]:
                 rd.file.write("default:ok")
                 rd.file.flush()
-                cf.write(textwrap.dedent(f"""
-                    [[magic_smtp_config]]
-                    _tname = "cfg::SMTPProviderConfig"
-                    name = "provider:{i}"
-                    sender = "sender@host{i}.com"
-                """))
                 cf.flush()
                 fs.append(self.loop.create_task(self._init_pg_cluster(td)))
                 conf[f"{i}.localhost"] = {
@@ -1752,70 +1745,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
         await self._test_server_ops_multi_tenant_1(mtargs)
         await self._test_server_ops_multi_tenant_2(mtargs)
 
-    async def _test_server_ops_set_email_provider(
-        self, mtargs: MultiTenantArgs, ddl, i, **kwargs
-    ):
-        conn = await mtargs.sd.connect(**kwargs)
-        try:
-            await conn.execute(ddl)
-            await conn.execute(f"""
-                configure current database set
-                current_email_provider_name := 'provider:{i}';
-            """)
-        finally:
-            await conn.aclose()
-
-    async def _test_server_ops_multi_tenant_6(self, mtargs: MultiTenantArgs):
-        # Give the 2 tenants different user schemas, and point each at its own
-        # email provider, which _test_server_ops_multi_tenant_7 then reads back
-        await self._test_server_ops_set_email_provider(
-            mtargs,
-            "create type GlobalCache1 { create property name: str }",
-            1,
-            **mtargs.args1,
-        )
-        await self._test_server_ops_set_email_provider(
-            mtargs,
-            "create type GlobalCache2 { create property active: bool }",
-            2,
-            **mtargs.args2,
-        )
-
-    async def _test_server_ops_multi_tenant_7(self, mtargs: MultiTenantArgs):
-        self.assertEqual(
-            (await mtargs.current_email_provider(1))["sender"],
-            "sender@host1.com",
-        )
-        self.assertEqual(
-            (await mtargs.current_email_provider(2))["sender"],
-            "sender@host2.com",
-        )
-
-        mtargs.cf1.seek(0)
-        mtargs.cf1.truncate(0)
-        mtargs.cf1.write(textwrap.dedent("""
-            [[magic_smtp_config]]
-            _tname = "cfg::SMTPProviderConfig"
-            name = "provider:1"
-            sender = "updated@example.com"
-        """))
-        mtargs.cf1.flush()
-        assert mtargs.srv.proc is not None
-        mtargs.srv.proc.send_signal(signal.SIGHUP)
-
-        async for tr in self.try_until_succeeds(
-            ignore=AssertionError, timeout=30
-        ):
-            async with tr:
-                self.assertEqual(
-                    (await mtargs.current_email_provider(1))["sender"],
-                    "updated@example.com",
-                )
-                self.assertEqual(
-                    (await mtargs.current_email_provider(2))["sender"],
-                    "sender@host2.com",
-                )
-
     async def _test_server_ops_multi_tenant_8(self, mtargs: MultiTenantArgs):
         # Start with 2 tenants
         data = mtargs.sd.fetch_metrics()
@@ -1920,20 +1849,6 @@ class MultiTenantArgs(NamedTuple):
 
     def fetch_server_info(self, i):
         return self.sd.fetch_server_info()["tenants"][f"{i}.localhost"]
-
-    async def current_email_provider(self, i):
-        tenant_info = self.fetch_server_info(i)
-        dbname = self.dbnames[i - 1]
-        if dbname is None:
-            conn = await self.sd.connect(**getattr(self, f"args{i}"))
-            try:
-                dbname = await conn.query_single("""\
-                    select sys::get_current_branch()
-                """)
-                self.dbnames[i - 1] = dbname
-            finally:
-                await conn.aclose()
-        return tenant_info["databases"][dbname]["current_email_provider"]
 
 
 class TestPGExtensions(tb.TestCase):

@@ -33,7 +33,6 @@ early_setup()
 
 import asyncio
 import contextlib
-import json
 import logging
 import os
 import os.path
@@ -257,11 +256,6 @@ async def _run_server(
                 srvargs.ReloadTrigger.FileSystemEvent,
             ],
         )
-        magic_smtp = os.getenv('GELITE_MAGIC_SMTP_CONFIG')
-        if magic_smtp:
-            await tenant.load_sidechannel_configs(
-                json.loads(magic_smtp), compiler=compiler
-            )
         if args.config_file:
             await tenant.load_config_file(compiler)
         # This coroutine runs as long as the server,
