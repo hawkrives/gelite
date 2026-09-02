@@ -145,7 +145,8 @@ jobs:
       run: |
         mkdir -p results/
         cp shared-artifacts/time_stats.csv results/running_times_${SHARD}.csv
-        edb test --jobs 2 --verbose --shard ${SHARD}/16 \
+        echo "runner: $(nproc) cpus, $(free -g | awk '/^Mem:/{print $2}')GB ram"
+        edb test --jobs 4 --verbose --shard ${SHARD}/16 \
           --running-times-log=results/running_times_${SHARD}.csv \
           --result-log=results/result_${SHARD}.json
 
