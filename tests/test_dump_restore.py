@@ -304,6 +304,116 @@ class TestDumpRestore(tb.QueryTestCase):
         finally:
             await tb.drop_db(self.con, source)
 
+    async def _feature_round_trip(
+        self, tag: str, ddl: str, setup: str, query: str
+    ) -> None:
+        """Round-trip a branch containing exactly one schema feature.
+
+        One feature per test so a failure names it. The corpus tests
+        exercise everything at once, which told us only that *something*
+        in it does not restore.
+        """
+        db = self.get_database_name()
+        source = f'drf_{tag}_s_{db}'
+        target = f'drf_{tag}_t_{db}'
+        await self.con.execute(f'create empty branch {source}')
+        try:
+            con_src = await self.connect(database=source)
+            try:
+                await con_src.execute(ddl)
+                if setup:
+                    await con_src.execute(setup)
+                expected_sdl = await con_src.query_single(
+                    'describe schema as sdl'
+                )
+                expected_rows = await con_src.query_json(query)
+            finally:
+                await con_src.aclose()
+
+            header, blocks = await self._dump(source)
+            await self.con.execute(f'create empty branch {target}')
+            try:
+                await self._restore(target, header, blocks)
+                con2 = await self.connect(database=target)
+                try:
+                    self.assertEqual(
+                        expected_sdl,
+                        await con2.query_single('describe schema as sdl'),
+                    )
+                    self.assertEqual(
+                        expected_rows, await con2.query_json(query)
+                    )
+                finally:
+                    await con2.aclose()
+            finally:
+                await tb.drop_db(self.con, target)
+        finally:
+            await tb.drop_db(self.con, source)
+
+    async def test_dump_restore_feature_enum(self):
+        await self._feature_round_trip(
+            'enum',
+            'create scalar type Colour extending enum<Red, Green>;'
+            ' create type E { create property c -> Colour; };',
+            'insert E { c := Colour.Red };',
+            'select E { c } order by .c',
+        )
+
+    async def test_dump_restore_feature_array(self):
+        await self._feature_round_trip(
+            'arr',
+            'create type A { create property t -> array<str>; };',
+            "insert A { t := ['x', ''] };",
+            'select A { t }',
+        )
+
+    async def test_dump_restore_feature_tuple(self):
+        await self._feature_round_trip(
+            'tup',
+            'create type T { create property p -> tuple<str, int64>; };',
+            "insert T { p := ('l', 42) };",
+            'select T { p }',
+        )
+
+    async def test_dump_restore_feature_link(self):
+        await self._feature_round_trip(
+            'lnk',
+            'create type LTarget { create required property n -> str; };'
+            ' create type LSource { create link one -> LTarget; };',
+            "insert LTarget { n := 'a' };"
+            ' insert LSource { one := (select LTarget limit 1) };',
+            'select LSource { one: { n } }',
+        )
+
+    async def test_dump_restore_feature_multi_link_prop(self):
+        await self._feature_round_trip(
+            'mlp',
+            'create type MTarget { create required property n -> str; };'
+            ' create type MSource {'
+            '   create multi link many -> MTarget {'
+            '     create property q -> int64;'
+            '   };'
+            ' };',
+            "insert MTarget { n := 'a' };"
+            ' insert MSource { many := ('
+            '   select MTarget { @q := 7 } limit 1) };',
+            'select MSource { many: { n, @q } }',
+        )
+
+    async def test_dump_restore_feature_computed_index(self):
+        await self._feature_round_trip(
+            'cix',
+            'create type C {'
+            '   create required property n -> str {'
+            '     create constraint exclusive;'
+            '   };'
+            '   create property lbl := .n ++ "!";'
+            '   create index on (.n);'
+            ' };',
+            "insert C { n := 'z' };",
+            'select C { n, lbl } order by .n',
+        )
+
     async def test_dump_restore_minimal_01(self):
         # The narrowest possible round trip with user schema in it: one
         # type, one property, one row, built by DDL rather than from the
