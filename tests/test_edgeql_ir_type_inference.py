@@ -29,8 +29,9 @@ from edb.edgeql import parser as qlparser
 class TestEdgeQLTypeInference(tb.BaseEdgeQLCompilerTest):
     """Unit tests for type inference."""
 
-    SCHEMA = os.path.join(os.path.dirname(__file__), 'schemas',
-                          'cards_ir_inference.esdl')
+    SCHEMA = os.path.join(
+        os.path.dirname(__file__), 'schemas', 'cards_ir_inference.esdl'
+    )
 
     def run_test(self, *, source, spec, expected):
         qltree = qlparser.parse_query(source)
@@ -60,7 +61,8 @@ class TestEdgeQLTypeInference(tb.BaseEdgeQLCompilerTest):
             expected_type_name = exp[1].strip()
         else:
             raise ValueError(
-                f'unrecognized expected specification: {expected!r}')
+                f'unrecognized expected specification: {expected!r}'
+            )
 
         if field is not None:
             shape = ir.expr.expr.result.shape
@@ -76,47 +78,50 @@ class TestEdgeQLTypeInference(tb.BaseEdgeQLCompilerTest):
 
         typeref = typeref.real_material_type
 
-        self.assertEqual(str(typeref.name_hint), expected_type_name,
-                         'unexpected type:\n' + source)
+        self.assertEqual(
+            str(typeref.name_hint),
+            expected_type_name,
+            'unexpected type:\n' + source,
+        )
 
     def test_edgeql_ir_type_inference_00(self):
         """
-        SELECT Card { name }
-% OK %
-        default::Card
+                SELECT Card { name }
+        % OK %
+                default::Card
         """
 
     def test_edgeql_ir_type_inference_01(self):
         """
-        SELECT Card { name }
-% OK %
-        name: std::str
+                SELECT Card { name }
+        % OK %
+                name: std::str
         """
 
     def test_edgeql_ir_type_inference_02(self):
         """
-        SELECT Card UNION User
-% OK %
-        __derived__::(default:Card | default:User)
+                SELECT Card UNION User
+        % OK %
+                __derived__::(default:Card | default:User)
         """
 
     def test_edgeql_ir_type_inference_03(self):
         """
-        SELECT {Card, User}
-% OK %
-        __derived__::(default:Card | default:User)
+                SELECT {Card, User}
+        % OK %
+                __derived__::(default:Card | default:User)
         """
 
     def test_edgeql_ir_type_inference_04(self):
         """
-        SELECT Card if true else User
-% OK %
-        __derived__::(default:Card | default:User)
+                SELECT Card if true else User
+        % OK %
+                __derived__::(default:Card | default:User)
         """
 
     def test_edgeql_ir_type_inference_05(self):
         """
-        SELECT Card ?? User
-% OK %
-        __derived__::(default:Card | default:User)
+                SELECT Card ?? User
+        % OK %
+                __derived__::(default:Card | default:User)
         """

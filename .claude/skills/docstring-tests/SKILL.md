@@ -1,71 +1,111 @@
 ---
 name: docstring-tests
-description: Handle the test files that encode test data in docstrings, where reformatting silently deletes assertions. Use before editing or formatting any file in the ruff-format exclusion list.
+description: Handle the test files that encode test data in docstrings, where the formatter can rewrite an assertion out from under you. Use before editing a docstring in tests/test_edgeql_syntax.py, test_schema.py, test_schema_syntax.py, test_sql_parse.py or the test_edgeql_ir_*_inference.py files.
 ---
 
 # Docstring test data
 
 Eight test files carry their **test data**, not just documentation, in
-docstrings. Reformatting them deletes assertions without failing
-anything.
+docstrings:
 
 ```
-tests/test_edgeql_ir_card_inference.py
-tests/test_edgeql_ir_mult_inference.py
-tests/test_edgeql_ir_type_inference.py
-tests/test_edgeql_ir_volatility_inference.py
-tests/test_edgeql_syntax.py
-tests/test_schema.py
-tests/test_schema_syntax.py
-tests/test_sql_parse.py
+tests/test_edgeql_syntax.py                   tests/test_schema.py
+tests/test_schema_syntax.py                   tests/test_sql_parse.py
+tests/test_edgeql_ir_card_inference.py        tests/test_edgeql_ir_mult_inference.py
+tests/test_edgeql_ir_type_inference.py        tests/test_edgeql_ir_volatility_inference.py
 ```
 
-They are listed under `[tool.ruff.format] exclude` in `pyproject.toml`,
-with the reasoning inline. Keep them excluded.
+`ruff format` rewrites docstring bodies. In these files that can change
+what is being asserted.
 
-## The mechanism
+**None of them is excluded from the formatter any more** — that was the
+old arrangement, and it meant nothing in those files got formatted. #67
+replaced it with two narrower mechanisms.
 
-`DocTestMeta` in `edb/testbase/lang.py:104` splits each test's docstring:
+## 1. The marker tolerates indentation
+
+`DocTestMeta` in `edb/testbase/lang.py` splits each test's docstring on a
+`% OK %` (or `% ERROR %`) marker line. It used to use a literal
+`doc.partition('\n% OK %')`, which required the marker at **column 0**.
+Re-indenting moved it, `partition` found nothing, `expected` became
+`None`, and the test quietly degraded into "parse this blob and assert
+nothing" — **520 of 521** expected-output assertions dropped, suite still
+green.
+
+The split now matches `^[ \t]*% OK %` in multiline mode. Note the
+deliberate absence of a trailing anchor: two tests end their docstring as
+`% OK %  """`, and anchoring to end-of-line swallows those spaces, making
+`output` empty — which the `if not output` fallthrough reads as "no
+marker" and parses the whole docstring, marker included, as source.
+
+The harness does **not** dedent, and should not start without a decision:
+110 `col=` assertions sit on multi-line docstrings and measure columns
+that include the indentation.
+
+## 2. Whitespace-significant docstrings carry `# fmt: skip`
+
+265 docstrings across the three syntax/schema files have indentation that
+*is* the test data — tab-indented source that exercises the lexer, or
+columns a `col=` assertion measures. Each is marked:
 
 ```python
-source, _, output = doc.partition('\n% OK %')
+def test_eschema_syntax_type_08(self):
+    """
+        module test {
+            type Foo {
+    ...
+    """  # fmt: skip
 ```
 
-The marker must be a newline followed by `% OK %` **at column 0**.
-`ruff format` re-indents docstring bodies to match the enclosing block,
-moving the marker to column 8, where it no longer matches.
+**Placement matters.** Verified against ruff 0.11.2:
 
-The tests then do not fail. `partition` finds nothing, `expected` becomes
-`None`, and each test quietly degrades into "parse this blob and assert
-nothing". Measured across these files, formatting drops **520 of 521**
-expected-output assertions and leaves the suite green.
+| marker | protects the docstring? | |
+|---|---|---|
+| `# fmt: skip` after the closing `"""` | **yes** | **use this** |
+| `# fmt: off` / `# fmt: on` around the `def` | yes | don't — it suppresses the surrounding code too, which is what excluding whole files did and what this replaced |
+| `# fmt: skip` on the `def` line | **no** | silently does nothing for the docstring |
 
-`tests/test_schema.py` is the same hazard by another route: its
-docstrings are SDL source that `BaseSchemaLoadTest.load_schema`
-interpolates verbatim into `module default { ... }` with no dedent.
-Re-indenting shifts every column, and 23 `must_fail` decorators there
-assert an exact `col=`. Those fail loudly rather than quietly, but the
-"fix" would be renumbering assertions to suit a formatter.
+There is no `fmt: off` block anywhere in the tree, deliberately. The point
+of #67 was to stop protecting test data by switching the formatter off
+over large regions; a block marker reintroduces that at a smaller scale.
 
 ## Rules
 
-- **Never** run `ruff format` on these files, and never remove them from
-  the exclusion list without first making the harness tolerate
-  indentation (issue #67).
-- When editing one, keep `% OK %` at column 0 even though it looks
-  misaligned inside an indented docstring. That is correct.
-- `ruff check` is fine on them; only the formatter is excluded.
-- Adding a new file that encodes data in docstrings? Add it to the
-  exclusion list in the same commit.
+- Adding a docstring whose indentation matters? Put `# fmt: skip` after
+  its closing quotes, in the same commit.
+- Keep `% OK %` wherever it is. Indentation no longer breaks it.
+- `ruff check` was always fine on these files; only the formatter was ever
+  the hazard.
 
 ## Verifying you have not broken one
 
-Assertion loss is silent, so a green run proves nothing. Count the
-markers before and after:
+Assertion loss used to be silent, so a green run proved nothing. Count the
+markers before and after any change to these files or to the harness — it
+must be **521**:
 
 ```
-grep -c '^% OK %' tests/test_edgeql_ir_card_inference.py
+uv run --no-sync python - <<'PY'
+import ast, re, glob
+M = re.compile(r'^[ \t]*% (OK|ERROR) %', re.M)
+n = 0
+for f in glob.glob('tests/test_edgeql_syntax.py') + glob.glob(
+        'tests/test_schema_syntax.py') + glob.glob(
+        'tests/test_sql_parse.py') + glob.glob(
+        'tests/test_edgeql_ir_*_inference.py'):
+    for node in ast.walk(ast.parse(open(f).read())):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            d = ast.get_docstring(node, clean=False)
+            if d and M.search(d):
+                n += 1
+print(n)
+PY
 ```
 
-The count must not change. A drop to zero with the suite still passing is
-exactly the failure this skill exists to prevent.
+A drop with the suite still passing is exactly the failure this skill
+exists to prevent.
+
+## Cost of running these
+
+`tests/test_schema.py` is **584 tests, ~92 minutes single-threaded** — use
+`-j 4` and `-k`, and check `.github/time_stats.csv` before starting
+anything else here.
