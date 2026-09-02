@@ -113,10 +113,36 @@ def _get_test_cases(tests):
     for test in tests:
         if isinstance(test, unittest.TestSuite):
             result.update(_get_test_cases(test._tests))
-        elif not getattr(test, '__unittest_skip__', False):
+        elif getattr(test, '__unittest_skip__', False):
+            continue
+        elif getattr(test, 'DEFERRED', None) is not None:
+            # A class whose feature this fork has deferred is not part of
+            # the suite at all: it is neither assigned to a shard nor
+            # listed by `edb test --list`. Both have to agree, because CI
+            # feeds --list into all_tests.txt and test-conclusion asserts
+            # that every listed test reported a result - so enumerating a
+            # class that then never runs fails the build. deferred_cases()
+            # reports them so the exclusion is visible rather than silent.
+            continue
+        else:
             _add_test(result, (test,))
 
     return result
+
+
+def deferred_cases(tests) -> dict[str, str]:
+    """Map name -> reason for each test class deferred by this fork."""
+    found: dict[str, str] = {}
+
+    def walk(ts):
+        for test in ts:
+            if isinstance(test, unittest.TestSuite):
+                walk(test._tests)
+            elif (reason := getattr(test, 'DEFERRED', None)) is not None:
+                found[type(test).__name__] = reason
+
+    walk(tests)
+    return found
 
 
 def get_test_cases(tests):
