@@ -332,13 +332,6 @@ class Pool[C: typing.Hashable]:
         await self._prunes[id]
         del self._prunes[id]
 
-    async def prune_all_connections(self) -> None:
-        # Brutally close all connections. This is used by HA failover.
-        coros = []
-        for conn in self._conns.values():
-            coros.append(self._disconnect(conn))
-        await asyncio.gather(*coros, return_exceptions=True)
-
     @property
     def active_conns(self) -> int:
         return len(self._conns_held)

@@ -129,7 +129,6 @@ class Tenant:
     _init_con_data: list[config.ConState]
     _init_con_sql: bytes | None
 
-    _ha_master_serial: int
     _readiness_state_file: pathlib.Path | None
     _readiness: srvargs.ReadinessState
     _readiness_reason: str
@@ -181,8 +180,6 @@ class Tenant:
         self.__sys_pgcon = None
         self._sys_pgcon_last_active_time = 0
 
-        # Increase-only counter to reject outdated attempts to connect
-        self._ha_master_serial = 0
         self._readiness_state_file = None
         self._readiness = srvargs.ReadinessState.Default
         self._readiness_reason = ""
@@ -277,26 +274,6 @@ class Tenant:
                 )
             )
         return self._http_client
-
-    def on_switch_over(self):
-        # Bumping this serial counter will "cancel" all pending connections
-        # to the old master.
-        self._ha_master_serial += 1
-
-        if self._accept_new_tasks:
-            self.create_task(
-                self._pg_pool.prune_all_connections(),
-                interruptable=True,
-            )
-
-        if self.__sys_pgcon is None:
-            # Assume a reconnect task is already running, now that we know the
-            # new master is likely ready, let's just give the task a push.
-            self._sys_pgcon_reconnect_evt.set()
-        else:
-            # Brutally close the sys_pgcon to the old master - this should
-            # trigger a reconnect task.
-            self.__sys_pgcon.abort()
 
     @property
     def client_id(self) -> int:
@@ -810,7 +787,6 @@ class Tenant:
         dbname: str,
         source_description: str="pool connection"
     ) -> pgcon.PGConnection:
-        ha_serial = self._ha_master_serial
         if self.get_backend_runtime_params().has_create_database:
             pg_dbname = self.get_pg_dbname(dbname)
         else:
@@ -838,14 +814,10 @@ class Tenant:
             metrics.backend_connection_establishment_latency.observe(
                 time.monotonic() - started_at, self._instance_name
             )
-        if ha_serial == self._ha_master_serial:
-            rv.set_tenant(self)
-            metrics.total_backend_connections.inc(1.0, self._instance_name)
-            metrics.current_backend_connections.inc(1.0, self._instance_name)
-            return rv
-        else:
-            rv.terminate()
-            raise ConnectionError("connected to outdated Postgres master")
+        rv.set_tenant(self)
+        metrics.total_backend_connections.inc(1.0, self._instance_name)
+        metrics.current_backend_connections.inc(1.0, self._instance_name)
+        return rv
 
     async def _pg_disconnect(self, conn: pgcon.PGConnection) -> None:
         metrics.current_backend_connections.dec(1.0, self._instance_name)
@@ -908,38 +880,6 @@ class Tenant:
     def set_stmt_cache_size(self, size: int) -> None:
         for conn in self._pg_pool.iterate_connections():
             conn.set_stmt_cache_size(size)
-
-    def on_sys_pgcon_parameter_status_updated(
-        self,
-        name: str,
-        value: str,
-    ) -> None:
-        try:
-            if name == "in_hot_standby" and value == "on":
-                # It is a strong evidence of failover if the sys_pgcon receives
-                # a notification that in_hot_standby is turned on.
-                self.on_sys_pgcon_failover_signal()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0,
-                self._instance_name,
-                "on_sys_pgcon_parameter_status_updated"
-            )
-            raise
-
-    def on_sys_pgcon_failover_signal(self) -> None:
-        if not self._running:
-            return
-        try:
-            # Nothing coordinates a switch-over any more, so "switch over"
-            # here by disconnecting all pgcons when the failover signal
-            # arrives, letting reconnection happen sooner.
-            self.on_switch_over()
-        except Exception:
-            metrics.background_errors.inc(
-                1.0, self._instance_name, "on_sys_pgcon_failover_signal"
-            )
-            raise
 
     def on_sys_pgcon_connection_lost(self, exc: Exception | None) -> None:
         try:

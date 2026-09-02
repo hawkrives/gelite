@@ -1255,20 +1255,6 @@ class Pool[C](BasePool[C]):
                 return_exceptions=True
             )
 
-    async def prune_all_connections(self) -> None:
-        # Brutally close all connections. This is used by HA failover.
-        coros = []
-        for block in self._blocks.values():
-            block.conn_stack.clear()
-            for conn in block.conns:
-                coros.append(self._disconnect(conn, block))
-            block.conns.clear()
-            self._log_to_snapshot(
-                dbname=block.dbname, event='disconnect', value=0)
-        await asyncio.gather(*coros, return_exceptions=True)
-        # We don't have to worry about pending_conns here -
-        # Tenant._pg_connect() will honor the failover and raise an error.
-
     def iterate_connections(self) -> typing.Iterator[C]:
         for block in self._blocks.values():
             for conn in block.conns:
