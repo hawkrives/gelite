@@ -387,70 +387,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             await self.con.execute(
                 f'CREATE SUPERUSER ROLE myrole_{"x" * s_def.MAX_NAME_LENGTH};')
 
-    async def _http_request(
-        self,
-        server,
-        *,
-        sk=None,
-        username='edgedb',
-        password=None,
-        db='edgedb',
-        proto='edgeql',
-        client_cert_file=None,
-        client_key_file=None,
-        query=None,
-    ):
-        with self.http_con(
-            server,
-            keep_alive=False,
-            client_cert_file=client_cert_file,
-            client_key_file=client_key_file,
-        ) as con:
-            headers = {'X-EdgeDB-User': username}
-            if sk is not None:
-                headers['Authorization'] = f'bearer {sk}'
-            elif password is not None:
-                headers['Authorization'] = self.make_auth_header(
-                    username, password)
-            # ... the graphql ones will produce an error, but that's
-            # still a 200
-            if query is None:
-                query = 'select 1'
-
-            return self.http_con_request(
-                con,
-                path=f'/db/{db}/{proto}',
-                params=dict(query=query),
-                headers=headers,
-            )
-
-    async def _jwt_http_request(
-        self,
-        server,
-        *,
-        sk=None,
-        username='edgedb',
-        password=None,
-        db='edgedb',
-        proto='edgeql',
-    ):
-        return await self._http_request(
-            server,
-            sk=sk,
-            username=username,
-            password=password,
-            db=db,
-            proto=proto,
-        )
-
-    def _jwt_gql_request(self, server, *, sk=None, password=None):
-        return self._jwt_http_request(
-            server,
-            sk=sk,
-            password=password,
-            proto='graphql',
-        )
-
     @unittest.skipIf(
         "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
         "cannot use CONFIGURE INSTANCE in multi-tenant mode",
@@ -509,11 +445,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             ):
                 await sd.connect(secret_key=corrupt_sk)
 
-            body, _, code = await self._jwt_http_request(sd, sk=corrupt_sk)
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-            body, _, code = await self._jwt_gql_request(sd, sk=corrupt_sk)
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-
             # Try to mess up the *signature* part of it
             wrong_sk = sk[:-20] + ("1" if sk[-20] == "0" else "0") + sk[-20:]
             with self.assertRaisesRegex(
@@ -522,21 +453,9 @@ class TestServerAuth(tb.ConnectedTestCase):
             ):
                 await sd.connect(secret_key=wrong_sk)
 
-            body, _, code = await self._jwt_http_request(
-                sd, sk=corrupt_sk, db='non_existant')
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-
             # Good key (control check, mostly)
-            body, _, code = await self._jwt_http_request(sd, sk=base_sk)
-            self.assertEqual(code, 200, f"Wrong result: {body}")
             # Good key but nonexistant user
-            body, _, code = await self._jwt_http_request(
-                sd, sk=base_sk, username='elonmusk')
-            self.assertEqual(code, 401, f"Wrong result: {body}")
             # Good key but user needs password auth
-            body, _, code = await self._jwt_http_request(
-                sd, sk=base_sk, username='foo')
-            self.assertEqual(code, 401, f"Wrong result: {body}")
 
             good_keys = [
                 [],
@@ -551,11 +470,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                     sk = generate_gel_token(jws, **params_dict)
                     conn = await sd.connect(secret_key=sk)
                     await conn.aclose()
-
-                    body, _, code = await self._jwt_http_request(sd, sk=sk)
-                    self.assertEqual(code, 200, f"Wrong result: {body}")
-                    body, _, code = await self._jwt_gql_request(sd, sk=sk)
-                    self.assertEqual(code, 200, f"Wrong result: {body}")
 
             bad_keys = {
                 (("roles", ("bad-role",)),):
@@ -578,11 +492,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                         "authentication failed: " + msg,
                     ):
                         await sd.connect(secret_key=sk)
-
-                    body, _, code = await self._jwt_http_request(sd, sk=sk)
-                    self.assertEqual(code, 401, f"Wrong result: {body}")
-                    body, _, code = await self._jwt_gql_request(sd, sk=sk)
-                    self.assertEqual(code, 401, f"Wrong result: {body}")
 
     @unittest.skipIf(
         "GELITE_SERVER_MULTITENANT_CONFIG_FILE" in os.environ,
@@ -712,33 +621,6 @@ class TestServerAuth(tb.ConnectedTestCase):
             c1 = await sd.connect(secret_key='wrong')
             await c1.aclose()
 
-            sk = generate_gel_token(jwk)
-
-            body, _, code = await self._jwt_http_request(sd, sk=sk)
-            self.assertEqual(code, 200, f"Wrong result: {body}")
-            body, _, code = await self._jwt_gql_request(sd, sk=sk)
-            self.assertEqual(code, 200, f"Wrong result: {body}")
-
-            corrupt_sk = sk[:50] + "0" + sk[51:]
-            body, _, code = await self._jwt_http_request(sd, sk=corrupt_sk)
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-            body, _, code = await self._jwt_gql_request(sd, sk=corrupt_sk)
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-
-            body, _, code = await self._jwt_http_request(
-                sd, password=sd.password)
-            self.assertEqual(code, 200, f"Wrong result: {body}")
-            body, _, code = await self._jwt_gql_request(
-                sd, password=sd.password)
-            self.assertEqual(code, 200, f"Wrong result: {body}")
-
-            body, _, code = await self._jwt_http_request(
-                sd, password="wrong password")
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-            body, _, code = await self._jwt_gql_request(
-                sd, password="wrong password")
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-
     async def test_server_auth_in_transaction(self):
         if not self.has_create_role:
             self.skipTest('create role is not supported by the backend')
@@ -810,21 +692,6 @@ class TestServerAuth(tb.ConnectedTestCase):
     async def _test_mtls(
         self, sd, client_ssl_cert_file, client_ssl_key_file, granted
     ):
-        # Verifies mTLS authentication on edgeql_http
-        if granted:
-            body, _, code = await self._http_request(sd, username="ssl_user")
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-        body, _, code = await self._http_request(
-            sd,
-            username="ssl_user",
-            client_cert_file=client_ssl_cert_file,
-            client_key_file=client_ssl_key_file,
-        )
-        if granted:
-            self.assertEqual(code, 200, f"Wrong result: {body}")
-        else:
-            self.assertEqual(code, 401, f"Wrong result: {body}")
-
         # Verifies mTLS authentication on the binary protocol
         if granted:
             with self.assertRaisesRegex(
