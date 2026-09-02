@@ -88,7 +88,11 @@ class TestDumpRestore(tb.QueryTestCase):
         )
         try:
             await con.connect()
-            await con.send(messages.Dump(annotations=[], flags=0))
+            # flags is an EnumOf, whose dump() reads val.value - a bare 0
+            # raises AttributeError before anything reaches the wire.
+            await con.send(
+                messages.Dump(annotations=[], flags=messages.DumpFlag(0))
+            )
             header = await con.recv_match(messages.DumpHeader)
 
             blocks: list[messages.DumpBlock] = []
@@ -157,6 +161,25 @@ class TestDumpRestore(tb.QueryTestCase):
             self.skipTest('dump/restore needs a second branch to restore into')
         if not self.is_superuser:
             self.skipTest('restore requires superuser')
+
+    def test_dump_restore_messages_serialize(self):
+        # Every client message this suite sends, serialised. It touches no
+        # connection, so it names a malformed message directly instead of
+        # surfacing as a failure in all four round trips at once.
+        #
+        # Worth its own test because the first version of this file passed
+        # `flags=0` to Dump, and EnumOf.dump() reads `val.value` - so it
+        # raised AttributeError before a byte reached the wire, and took
+        # all four round trips down with it for a reason that had nothing
+        # to do with dump or restore.
+        for msg in (
+            messages.Dump(annotations=[], flags=messages.DumpFlag(0)),
+            messages.Restore(attributes=[], jobs=1, header_data=b'hdr'),
+            messages.RestoreBlock(block_data=b'blk'),
+            messages.RestoreEof(),
+        ):
+            with self.subTest(message=type(msg).__name__):
+                self.assertTrue(msg.dump())
 
     async def test_dump_restore_schema_01(self):
         # Schema fidelity: the restored database must describe identically.
