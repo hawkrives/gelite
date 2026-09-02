@@ -20,6 +20,7 @@
 import os.path
 
 from edb.testbase import lang as tb
+from edb.tools import test
 
 from edb.common.ast import visitor as ast_visitor
 
@@ -376,6 +377,10 @@ class TestEdgeQLSQLCodegen(tb.BaseEdgeQLCompilerTest):
             "pointless extra query outputs",
         )
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     def test_codegen_fts_search_no_score(self):
         sql = self._compile(
             '''

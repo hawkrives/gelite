@@ -16436,6 +16436,10 @@ type default::Foo {
             };
         """)
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_edgeql_ddl_index_fts_01(self):
         await self.con.execute('''
             CREATE ABSTRACT TYPE default::Named {

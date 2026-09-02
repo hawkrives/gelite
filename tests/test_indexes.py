@@ -20,6 +20,7 @@
 import edgedb
 
 from edb.testbase import server as tb
+from edb.tools import test
 
 
 class TestIndexes(tb.DDLTestCase):
@@ -238,6 +239,10 @@ class TestIndexes(tb.DDLTestCase):
                 };
             """)
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_index_07(self):
         with self.assertRaisesRegex(
             edgedb.SchemaError,
@@ -258,6 +263,10 @@ class TestIndexes(tb.DDLTestCase):
                 """
             )
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_index_08(self):
         await self.con.execute(
             r"""
@@ -301,6 +310,10 @@ class TestIndexes(tb.DDLTestCase):
             ],
         )
 
+    @test.not_implemented(
+        'full-text search is deferred (#75): fts.edgeql is out of the\n'
+        'stdlib build, so fts::index / fts::search do not resolve.'
+    )
     async def test_index_09(self):
         await self.con.execute(
             r"""
