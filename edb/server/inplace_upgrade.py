@@ -40,7 +40,6 @@ from edb.common import uuidgen
 
 from edb.schema import ddl as s_ddl
 from edb.schema import delta as sd
-from edb.schema import extensions as s_exts
 from edb.schema import functions as s_func
 from edb.schema import links as s_links
 from edb.schema import name as sn
@@ -200,58 +199,6 @@ def _compile_schema_fixup(
     return current_block
 
 
-async def _collect_6x_upgrade_patches(
-    ctx: bootstrap.BootstrapContext,
-    schema: s_schema.Schema,
-) -> tuple[list[qlast.Command], bool, bool]:
-    from edb.sqlite import patches_6x
-
-    cmds: list[qlast.Command] = []
-
-    # If that table doesn't exist, we aren't upgrading from 6.x, so
-    # don't worry. (Which means, at this point, a 7.x -> dev/nightly
-    # upgrade.)
-    try:
-        res = await ctx.conn.sql_fetch_val(
-            f"""
-            SELECT json::json FROM edgedbinstdata_v6_2f20b3fed0.instdata
-            WHERE key = 'num_patches'
-            """.encode('utf-8'),
-        )
-    except pgcon.BackendError:
-        return [], False, False
-
-    needs_config = False
-    jnum = json.loads(res)
-    for kind, patch in patches_6x.PATCHES[jnum:]:
-        if not kind.startswith('edgeql+user_ext'):
-            continue
-        # Only run a userext update if the extension we are trying to
-        # update is installed.
-        extension_name = kind.split('|')[-1]
-        extension = schema.get_global(
-            s_exts.Extension, extension_name, default=None
-        )
-        if not extension:
-            continue
-
-        if '+config' in kind:
-            needs_config |= True
-
-        for ddl_cmd in edgeql.parse_block(patch):
-            if not isinstance(ddl_cmd, qlast.DDLCommand):
-                assert isinstance(ddl_cmd, qlast.Query)
-                ddl_cmd = qlast.DDLQuery(query=ddl_cmd)
-            cmds.append(ddl_cmd)
-
-    # 6.2 introduced a change to EmbeddingModel (the addition of a new
-    # default value) that requires a repair to sync the user schema up
-    # with, since ai index annotations get copied into objects.
-    needs_repair = bool(schema.get_global(s_exts.Extension, 'ai', default=None))
-
-    return cmds, needs_repair, needs_config
-
-
 def _subcommands_preorder(cmd: sd.Command) -> Iterator[sd.Command]:
     yield cmd
     for sub in cmd.get_subcommands():
@@ -396,67 +343,6 @@ async def _upgrade_one(
         )
 
     schema_fixup = ''
-    (
-        upgrade_patches,
-        needs_repair,
-        needs_config,
-    ) = await _collect_6x_upgrade_patches(ctx, schema)
-    for ddl_cmd in upgrade_patches:
-        schema, fixup = await _apply_ddl_schema_storage(
-            ddl_cmd,
-            ctx,
-            backend_params,
-            keys,
-            compilerctx,
-            schema,
-            # Empty schema_object_ids because this isn't actually user
-            # objects anymore, and because reusing the
-            # schema_object_ids led to a subtle issue:
-            # when altering a computed Global in a patch, the underlying
-            # ObjectType got deleted and replaced with a new one with
-            # identical id, which caused the link policy to spuriously
-            # fail!
-            schema_object_ids={},
-            fake_backend_ids=True,
-        )
-        schema_fixup += fixup
-
-    if upgrade_patches:
-        sysqueries = json.loads(
-            await instdata.get_instdata(ctx.conn, 'sysqueries', 'json')
-        )
-        schema_fixup += sysqueries['backend_id_fixup']
-    if needs_config:
-        existing_view_columns = await bootstrap.get_existing_view_columns(
-            ctx.conn
-        )
-        cfg_block = dbops.PLTopBlock()
-        metaschema.get_config_views(schema, existing_view_columns).generate(
-            cfg_block
-        )
-        schema_fixup += cfg_block.to_string()
-
-    # If we need to do a schema repair... do it
-    if needs_repair:
-        # We want to do the repair against the *new* global schema
-        # (which is std_global_schema), but there might be non-std
-        # extensions installed, so we chain it with the original
-        # global_schema to get it to work.
-        confused_global_schema = s_schema.ChainedSchema(
-            global_schema,
-            std_global_schema,
-            s_schema.EMPTY_SCHEMA,
-        )
-
-        repair = bootstrap.prepare_repair_patch(
-            state.std_schema,
-            state.refl_schema,
-            schema.get_top_schema(),
-            confused_global_schema,
-            state.schema_class_layout,
-            backend_params,
-        )
-        schema_fixup += repair
 
     # Refresh the pg_catalog materialized views
     current_block = dbops.PLTopBlock()
