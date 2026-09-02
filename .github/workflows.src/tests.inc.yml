@@ -15,26 +15,15 @@
         ref: << ref >>
 <%- endif %>
 
-    - name: Set up Python
-      uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
-      id: setup-python
-      with:
-        python-version: '3.12.2'
-        cache: 'pip'
-        cache-dependency-path: |
-          pyproject.toml
-
-    # The below is technically a lie as we are technically not
-    # inside a virtual env, but there is really no reason to bother
-    # actually creating and activating one as below works just fine.
-    - name: Export $VIRTUAL_ENV
-      run: |
-        venv="$(python -c 'import sys; sys.stdout.write(sys.prefix)')"
-        echo "VIRTUAL_ENV=${venv}" >> $GITHUB_ENV
-
-    - name: Set up uv
+    # uv provisions the interpreter as well as itself, and
+    # activate-environment creates and activates a real venv - exporting
+    # VIRTUAL_ENV and putting its bin on PATH - so neither setup-python
+    # nor a hand-rolled VIRTUAL_ENV export is needed.
+    - name: Set up uv and Python
       uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d  # v10.0.1
       with:
+        python-version: '3.12.2'
+        activate-environment: true
         enable-cache: true
         cache-dependency-glob: "uv.lock"
 
@@ -243,7 +232,7 @@
       run: |
         # --no-build-isolation because we have explicitly installed all deps
         # and don't want them to be reinstalled in an "isolated env".
-        pip install --no-build-isolation --no-deps -e .[test,docs]
+        uv pip install --no-build-isolation --no-deps -e .[test,docs]
 
     # Refresh the bootstrap cache
 
@@ -390,5 +379,5 @@
       run: |
         # --no-build-isolation because we have explicitly installed all deps
         # and don't want them to be reinstalled in an "isolated env".
-        pip install --no-build-isolation --no-deps -e .[test,docs]
+        uv pip install --no-build-isolation --no-deps -e .[test,docs]
 <%- endmacro %>
