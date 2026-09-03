@@ -143,9 +143,8 @@ cdef class PGConnection:
         char *data,
         ssize_t data_len,
         ssize_t ncols,
-        tuple elide_cols,
-        dict type_id_map,
         tuple data_mending_desc,
+        dict type_id_map,
     )
 
     cdef _mend_copy_datum(

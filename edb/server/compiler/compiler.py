@@ -1049,10 +1049,6 @@ class Compiler:
                 RestoreBlockDescriptor(
                     schema_object_id=schema_object_id,
                     sql_copy_stmt=stmt,
-                    # Only the pre-1.0 shims removed above ever elided a
-                    # column, so nothing does now. pgcon still carries the
-                    # eliding branch of _rewrite_copy_data for it.
-                    compat_elided_cols=(),
                     data_mending_desc=tuple(mending_desc),
                 )
             )
@@ -3391,7 +3387,6 @@ class RestoreBlockDescriptor(NamedTuple):
     sql_copy_stmt: bytes
     #: For compatibility with old dumps, a list of column indexes
     #: that should be ignored in the COPY stream.
-    compat_elided_cols: tuple[int, ...]
     #: If the tuple requires mending of unstable Postgres OIDs in data,
     #: this will contain the recursive descriptor on which parts of
     #: each datum need mending.
