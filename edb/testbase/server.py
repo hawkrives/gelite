@@ -1786,20 +1786,115 @@ class QueryTestCase(BaseQueryTestCase):
     BASE_TEST_CLASS = True
 
 
+class SQLRow:
+    """One row of a SQL result, shaped like the mapping asyncpg returned.
+
+    `query_sql` hands back a `gel.Record`, which only offers `as_dict()`.
+    The SQL suites were written against asyncpg's `Record` — `keys()`,
+    `values()`, indexing by name or position, comparison against a plain
+    tuple — so this supplies that surface rather than rewriting several
+    hundred assertions to a different row API.
+    """
+
+    __slots__ = ('_fields',)
+
+    def __init__(self, record: Any) -> None:
+        self._fields: dict[str, Any] = dict(record.as_dict())
+
+    def keys(self) -> list[str]:
+        return list(self._fields)
+
+    def values(self) -> list[Any]:
+        return list(self._fields.values())
+
+    def items(self) -> list[tuple[str, Any]]:
+        return list(self._fields.items())
+
+    def get(self, name: str, default: Any = None) -> Any:
+        return self._fields.get(name, default)
+
+    def __getitem__(self, key: str | int) -> Any:
+        if isinstance(key, int):
+            return list(self._fields.values())[key]
+        return self._fields[key]
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._fields
+
+    def __iter__(self) -> Any:
+        return iter(self._fields.values())
+
+    def __len__(self) -> int:
+        return len(self._fields)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SQLRow):
+            return self._fields == other._fields
+        if isinstance(other, (tuple, list)):
+            return list(self._fields.values()) == list(other)
+        if isinstance(other, dict):
+            return self._fields == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(tuple(self._fields.items()))
+
+    def __repr__(self) -> str:
+        inner = ' '.join(f'{k}={v!r}' for k, v in self._fields.items())
+        return f'<SQLRow {inner}>'
+
+
+class SQLConnection:
+    """SQL over Gel's binary protocol, in the shape the SQL suites expect.
+
+    These suites used to hold an asyncpg connection, which meant every
+    substantial SQL test ran through the Postgres wire-protocol frontend
+    (#34). Both transports reach the same resolver through the same
+    `sql.compile_sql`, so the queries themselves are unchanged; what
+    differs is the transport, and this is the seam.
+
+    It deliberately does not offer the parts of asyncpg that only the
+    Postgres frontend can serve — COPY, prepared statements, session
+    settings, `SHOW server_version`. Tests needing those belong on
+    `PGWireTestCase`, and go when the frontend does.
+    """
+
+    def __init__(self, con: tconn.Connection) -> None:
+        self._con = con
+
+    async def execute(self, query: str, *args: Any) -> None:
+        await self._con.execute_sql(query, *args)
+
+    async def fetch(self, query: str, *args: Any) -> list[SQLRow]:
+        return [SQLRow(r) for r in await self._con.query_sql(query, *args)]
+
+    async def fetchrow(self, query: str, *args: Any) -> Optional[SQLRow]:
+        rows = await self.fetch(query, *args)
+        return rows[0] if rows else None
+
+    async def fetchval(self, query: str, *args: Any) -> Any:
+        row = await self.fetchrow(query, *args)
+        return None if row is None else row[0]
+
+    def transaction(self) -> Any:
+        return self._con.transaction()
+
+    def is_in_transaction(self) -> bool:
+        return self._con.is_in_transaction()
+
+
 class SQLQueryTestCase(BaseQueryTestCase):
     BASE_TEST_CLASS = True
 
-    scon: asyncpg.Connection
+    scon: SQLConnection
 
     @classmethod
     def setUpClass(cls):
-        try:
-            import asyncpg  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest('SQL tests skipped: asyncpg not installed')
-
         super().setUpClass()
-        cls.scon = cls.loop.run_until_complete(cls.create_sql_connection())
+        # The same connection the EdgeQL side uses, addressed as SQL. It
+        # needs no separate transaction: ConnectedTestCase.setUp already
+        # wraps each test in one on cls.con, and this is that connection.
+        cls.scon = SQLConnection(cls.con)
 
     @classmethod
     def create_sql_connection(
@@ -1827,31 +1922,6 @@ class SQLQueryTestCase(BaseQueryTestCase):
             ssl=tls_context,
         )
 
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            cls.loop.run_until_complete(cls.scon.close())
-            # Give event loop another iteration so that connection
-            # transport has a chance to properly close.
-            cls.loop.run_until_complete(asyncio.sleep(0))
-            cls.scon = None
-        finally:
-            super().tearDownClass()
-
-    def setUp(self):
-        if self.TRANSACTION_ISOLATION:
-            self.stran = self.scon.transaction()
-            self.loop.run_until_complete(self.stran.start())
-        super().setUp()
-
-    def tearDown(self):
-        try:
-            if self.TRANSACTION_ISOLATION:
-                self.loop.run_until_complete(self.stran.rollback())
-            self.loop.run_until_complete(self.scon.execute('RESET ALL'))
-        finally:
-            super().tearDown()
-
     async def squery_values(self, query, *args):
         res = await self.scon.fetch(query, *args)
         return [list(r.values()) for r in res]
@@ -1872,6 +1942,51 @@ class SQLQueryTestCase(BaseQueryTestCase):
                 self.assertEqual(len(res[0]), columns)
         elif isinstance(columns, list):
             self.assertListEqual(columns, list(res[0].keys()))
+
+
+def needs_pg_wire(meth):
+    """Run this test against the Postgres wire-protocol frontend.
+
+    A handful of tests in the SQL suites are about the frontend rather
+    than about the resolver underneath it: COPY, prepared statements,
+    the session settings the frontend tracks (`search_path`,
+    `client_encoding`, `work_mem`, `server_version`), and transaction
+    control sent as SQL text.
+
+    None of those has a binary-protocol equivalent. In particular
+    `compile_sql_as_unit_group` rebuilds `SQLTransactionState` from
+    `DEFAULT_SQL_FE_SETTINGS` on every compile, so a SET does not
+    outlive the statement that set it.
+
+    So these keep an asyncpg connection, and `self.scon` is that
+    connection for the duration of the test. They go when the frontend
+    goes (#34), and this decorator is how they are found.
+    """
+
+    @functools.wraps(meth)
+    async def wrapper(self, *args, **kwargs):
+        try:
+            import asyncpg  # noqa: F401
+        except ImportError:
+            raise unittest.SkipTest('SQL test skipped: asyncpg not installed')
+
+        scon = await type(self).create_sql_connection()
+        self.scon = scon
+        try:
+            if self.TRANSACTION_ISOLATION:
+                stran = scon.transaction()
+                await stran.start()
+                try:
+                    return await meth(self, *args, **kwargs)
+                finally:
+                    await stran.rollback()
+            else:
+                return await meth(self, *args, **kwargs)
+        finally:
+            del self.scon
+            await scon.close()
+
+    return wrapper
 
 
 def get_test_cases_setup(
