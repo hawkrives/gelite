@@ -1897,11 +1897,28 @@ class SQLConnection:
     def __init__(self, con: tconn.Connection) -> None:
         self._con = con
 
-    async def execute(self, query: str, *args: Any) -> None:
-        await self._con.execute_sql(query, *args)
+    @staticmethod
+    def _params(args: tuple[Any, ...]) -> dict[str, Any]:
+        """`$1`, `$2` … are named "1", "2" … on the binary protocol.
+
+        asyncpg takes them positionally; the client numbers positional
+        arguments from zero, so passing them through as-is asks for
+        argument "0" and the server, which compiled `$1` into a
+        parameter named "1", rejects it. `test_sql_native_query_02` and
+        `_17` already spell out the keyword form.
+        """
+        return {str(i): a for i, a in enumerate(args, start=1)}
+
+    async def execute(self, query: str, *args: Any) -> Optional[str]:
+        await self._con.execute_sql(query, **self._params(args))
+        # asyncpg's execute() answers with the command tag - 'INSERT 0 2',
+        # 'UPDATE 1' - and the suites assert on it to check how many rows
+        # a statement touched. CommandComplete carries the same string.
+        return self._con._get_last_status()
 
     async def fetch(self, query: str, *args: Any) -> list[SQLRow]:
-        return [SQLRow(r) for r in await self._con.query_sql(query, *args)]
+        rows = await self._con.query_sql(query, **self._params(args))
+        return [SQLRow(r) for r in rows]
 
     async def fetchrow(self, query: str, *args: Any) -> Optional[SQLRow]:
         rows = await self.fetch(query, *args)
