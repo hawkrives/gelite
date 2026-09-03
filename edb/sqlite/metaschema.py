@@ -60,7 +60,7 @@ from edb.server import compiler as edbcompiler
 from edb.server import config as edbconfig
 from edb.server import pgcon  # HM.
 
-from .resolver import sql_introspection
+from . import sql_introspection
 
 from . import codegen
 from . import common

@@ -129,13 +129,26 @@ class TestCodeQuality(unittest.TestCase):
                 if isinstance(node, ast.Import):
                     names = [a.name for a in node.names]
                 elif isinstance(node, ast.ImportFrom):
-                    if node.level != 0 or node.module is None:
-                        continue
+                    if node.level == 0:
+                        if node.module is None:
+                            continue
+                        base = node.module
+                    else:
+                        # A relative import resolves against the importing
+                        # module's package. `edb/sqlite/metaschema.py` said
+                        # `from .resolver import sql_introspection`, which an
+                        # absolute-only check does not see -- and that is
+                        # exactly how the deleted package survived the first
+                        # sweep of #88.
+                        pkg = path.relative_to(root).parent.parts
+                        if node.level > 1:
+                            pkg = pkg[: -(node.level - 1)]
+                        base = '.'.join(pkg)
+                        if node.module:
+                            base = f'{base}.{node.module}'
                     # `from edb.sqlite import parser` names the package in
                     # the alias, not the module.
-                    names = [node.module] + [
-                        f'{node.module}.{a.name}' for a in node.names
-                    ]
+                    names = [base] + [f'{base}.{a.name}' for a in node.names]
                 else:
                     continue
 
