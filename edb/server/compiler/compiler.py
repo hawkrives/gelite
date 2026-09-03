@@ -53,7 +53,6 @@ from edb.server import instdata
 
 from edb import edgeql
 from edb.common import debug
-from edb.common import turbo_uuid
 from edb.common import uuidgen
 
 from edb.edgeql import ast as qlast
@@ -89,7 +88,6 @@ from edb.sqlite import common as pg_common
 from edb.sqlite import debug as pg_debug
 from edb.sqlite import dbops as pg_dbops
 from edb.sqlite import params as pg_params
-from edb.sqlite import parser as pg_parser
 from edb.sqlite import types as pg_types
 from edb.sqlite import delta as pg_delta
 
@@ -101,16 +99,9 @@ from . import sertypes
 from . import status
 from . import ddl
 from . import rpc
-from . import sql
 
 if TYPE_CHECKING:
     from edb.sqlite import metaschema
-
-    SQLDescriptors = list[
-        tuple[
-            tuple[bytes, bytes, list[dbstate.Param], int], tuple[bytes, bytes]
-        ]
-    ]
 
 
 EMPTY_MAP: immutables.Map[Any, Any] = immutables.Map()
@@ -141,7 +132,7 @@ class CompileContext:
     schema_object_ids: Optional[
         Mapping[tuple[s_name.Name, Optional[str]], uuid.UUID]
     ] = None
-    source: Optional[edgeql.Source | pg_parser.Source] = None
+    source: Optional[edgeql.Source] = None
     backend_runtime_params: pg_params.BackendRuntimeParams = dataclasses.field(
         default_factory=pg_params.get_default_runtime_params
     )
@@ -514,53 +505,6 @@ class Compiler:
 
         return result
 
-    def compile_sql(
-        self,
-        user_schema: s_schema.Schema,
-        global_schema: s_schema.Schema,
-        reflection_cache: immutables.Map[str, tuple[str, ...]],
-        database_config: immutables.Map[str, config.SettingValue],
-        system_config: immutables.Map[str, config.SettingValue],
-        source: pg_parser.Source,
-        tx_state: dbstate.SQLTransactionState,
-        prepared_stmt_map: Mapping[str, str],
-        current_database: str,
-        current_user: str,
-    ) -> list[dbstate.SQLQueryUnit]:
-        state = dbstate.CompilerConnectionState(
-            user_schema=user_schema,
-            global_schema=global_schema,
-            modaliases=DEFAULT_MODULE_ALIASES_MAP,
-            session_config=EMPTY_MAP,
-            database_config=database_config,
-            system_config=system_config,
-            cached_reflection=reflection_cache,
-        )
-        schema = state.current_tx().get_schema(self.state.std_schema)
-
-        setting = database_config.get('allow_user_specified_id', None)
-        allow_user_specified_id = None
-        if setting and setting.value:
-            allow_user_specified_id = sql.is_setting_truthy(setting.value)
-
-        setting = database_config.get('apply_access_policies_pg', None)
-        apply_access_policies_pg = None
-        if setting is not None:
-            apply_access_policies_pg = sql.is_setting_truthy(setting.value)
-
-        return sql.compile_sql(
-            source,
-            schema=schema,
-            tx_state=tx_state,
-            prepared_stmt_map=prepared_stmt_map,
-            current_database=current_database,
-            allow_user_specified_id=allow_user_specified_id,
-            apply_access_policies=apply_access_policies_pg,
-            disambiguate_column_names=False,
-            backend_runtime_params=self.state.backend_runtime_params,
-            protocol_version=defines.POSTGRES_PROTOCOL,
-        )[0]
-
     def compile_serialized_request(
         self,
         user_schema: s_schema.Schema,
@@ -571,7 +515,7 @@ class Compiler:
         serialized_request: bytes,
         original_query: str,
     ) -> tuple[
-        dbstate.QueryUnitGroup | SQLDescriptors,
+        dbstate.QueryUnitGroup,
         Optional[dbstate.CompilerConnectionState],
     ]:
         request = rpc.CompilationRequest.deserialize(
@@ -599,24 +543,9 @@ class Compiler:
         system_config: Optional[immutables.Map[str, config.SettingValue]],
         request: rpc.CompilationRequest,
     ) -> tuple[
-        dbstate.QueryUnitGroup | SQLDescriptors,
+        dbstate.QueryUnitGroup,
         Optional[dbstate.CompilerConnectionState],
     ]:
-        if request.input_language is enums.InputLanguage.SQL_PARAMS:
-            assert isinstance(request.source, rpc.SQLParamsSource)
-            return (
-                self.compile_sql_descriptors(
-                    user_schema,
-                    global_schema,
-                    request.protocol_version,
-                    request.source.types_in_out,
-                ),
-                # state is None -- we know we're not
-                # in a transaction and compilation of params
-                # couldn't have started it.
-                None,
-            )
-
         sess_config = request.session_config
         if sess_config is None:
             sess_config = EMPTY_MAP
@@ -662,11 +591,6 @@ class Compiler:
             case enums.InputLanguage.EDGEQL:
                 assert isinstance(request.source, edgeql.Source)
                 unit_group = compile(ctx=ctx, source=request.source)
-            case enums.InputLanguage.SQL:
-                assert isinstance(request.source, pg_parser.Source)
-                unit_group = compile_sql_as_unit_group(
-                    ctx=ctx, source=request.source
-                )
             case _:
                 raise NotImplementedError(
                     f"unnsupported input language: {request.input_language}"
@@ -691,7 +615,7 @@ class Compiler:
         original_query: str,
         expect_rollback: bool = False,
     ) -> tuple[
-        dbstate.QueryUnitGroup | SQLDescriptors,
+        dbstate.QueryUnitGroup,
         Optional[dbstate.CompilerConnectionState],
     ]:
         request = rpc.CompilationRequest.deserialize(
@@ -714,23 +638,9 @@ class Compiler:
         request: rpc.CompilationRequest,
         expect_rollback: bool = False,
     ) -> tuple[
-        dbstate.QueryUnitGroup | SQLDescriptors,
+        dbstate.QueryUnitGroup,
         Optional[dbstate.CompilerConnectionState],
     ]:
-        if request.input_language is enums.InputLanguage.SQL_PARAMS:
-            tx = state.current_tx()
-            assert isinstance(request.source, rpc.SQLParamsSource)
-            return (
-                self.compile_sql_descriptors(
-                    tx.get_user_schema(),
-                    tx.get_global_schema(),
-                    request.protocol_version,
-                    request.source.types_in_out,
-                ),
-                # state is the same.
-                state,
-            )
-
         # Apply session differences if any
         if (
             request.modaliases is not None
@@ -775,94 +685,12 @@ class Compiler:
             case enums.InputLanguage.EDGEQL:
                 assert isinstance(request.source, edgeql.Source)
                 unit_group = compile(ctx=ctx, source=request.source)
-            case enums.InputLanguage.SQL:
-                assert isinstance(request.source, pg_parser.Source)
-                unit_group = compile_sql_as_unit_group(
-                    ctx=ctx, source=request.source
-                )
             case _:
                 raise NotImplementedError(
                     f"unnsupported input language: {request.input_language}"
                 )
 
         return unit_group, ctx.state
-
-    def compile_sql_descriptors(
-        self,
-        user_schema: s_schema.Schema,
-        global_schema: s_schema.Schema,
-        protocol_version: defines.ProtocolVersion,
-        types_in_out: list[tuple[list[str], list[tuple[str, str]]]],
-    ) -> SQLDescriptors:
-        schema = s_schema.ChainedSchema(
-            self.state.std_schema,
-            user_schema,
-            global_schema,
-        )
-
-        result = []
-
-        for in_out in types_in_out:
-            assert isinstance(in_out, tuple) and len(in_out) == 2
-
-            t_in = []
-            params = []
-            for idx, id in enumerate(in_out[0]):
-                param_name = str(idx + 1)
-                param_type = schema.get_by_id(turbo_uuid.UUID(id))
-                assert isinstance(param_type, s_types.Type)
-                param_required = False  # SQL arguments can always be NULL
-
-                if isinstance(param_type, s_types.Array):
-                    array_type_id = param_type.get_element_type(schema).id
-                else:
-                    array_type_id = None
-
-                t_in.append(
-                    (
-                        param_name,
-                        param_type,
-                        param_required,
-                    )
-                )
-
-                params.append(
-                    dbstate.Param(
-                        name=param_name,
-                        required=param_required,
-                        array_type_id=array_type_id,
-                        outer_idx=None,  # no script support for SQL
-                        sub_params=None,  # no tuple args support for SQL
-                        typename=str(param_type.get_name(schema)),
-                    )
-                )
-
-            input_desc, input_desc_id = sertypes.describe_params(
-                schema=schema,
-                params=t_in,
-                protocol_version=protocol_version,
-            )
-
-            t_out = {
-                name: cast(s_types.Type, schema.get_by_id(turbo_uuid.UUID(id)))
-                for name, id in in_out[1]
-            }
-            assert all(isinstance(t, s_types.Type) for t in t_out.values())
-
-            output_desc, output_desc_id = sertypes.describe_sql_result(
-                schema=schema,
-                row=t_out,
-                protocol_version=protocol_version,
-            )
-
-            result.append(
-                (
-                    (input_desc, input_desc_id.bytes, params, len(params)),
-                    (output_desc, output_desc_id.bytes),
-                )
-            )
-
-        return result
 
     def interpret_backend_error(
         self,
@@ -2579,153 +2407,6 @@ def compile(
                 )
         else:
             raise original_err
-
-
-def compile_sql_as_unit_group(
-    *,
-    ctx: CompileContext,
-    source: edgeql.Source,
-) -> dbstate.QueryUnitGroup:
-    setting = _get_config_val(ctx, 'allow_user_specified_id')
-    allow_user_specified_id = None
-    if setting:
-        allow_user_specified_id = sql.is_setting_truthy(setting)
-
-    # Note that unlike SQL over PostgreSQL protocol we use
-    # the general access policy toggle, not the SQL-specific one.
-    apply_access_policies = None
-    setting = _get_config_val(ctx, 'apply_access_policies')
-    if setting is not None:
-        apply_access_policies = sql.is_setting_truthy(setting)
-
-    tx_state = ctx.state.current_tx()
-    schema = tx_state.get_schema(ctx.compiler_state.std_schema)
-
-    settings = dbstate.DEFAULT_SQL_FE_SETTINGS
-    sql_tx_state = dbstate.SQLTransactionState(
-        in_tx=not tx_state.is_implicit(),
-        settings=settings,
-        in_tx_settings=settings,
-        in_tx_local_settings=settings,
-        savepoints=[
-            (not_none(tx.name), settings, settings)
-            for tx in tx_state._savepoints.values()
-        ],
-    )
-
-    sql_units, force_non_normalized = sql.compile_sql(
-        source,
-        schema=schema,
-        tx_state=sql_tx_state,
-        prepared_stmt_map={},
-        current_database=ctx.branch_name or "<unknown>",
-        allow_user_specified_id=allow_user_specified_id,
-        apply_access_policies=apply_access_policies,
-        include_edgeql_io_format_alternative=True,
-        allow_prepared_statements=False,
-        disambiguate_column_names=True,
-        backend_runtime_params=ctx.backend_runtime_params,
-        protocol_version=ctx.protocol_version,
-        implicit_limit=ctx.implicit_limit,
-    )
-
-    qug = dbstate.QueryUnitGroup(
-        cardinality=sql_units[-1].cardinality,
-        cacheable=True,
-        force_non_normalized=force_non_normalized,
-    )
-
-    for sql_unit in sql_units:
-        if sql_unit.eql_format_query is not None:
-            value_sql = sql_unit.eql_format_query.encode("utf-8")
-            intro_sql = sql_unit.query.encode("utf-8")
-        else:
-            value_sql = sql_unit.query.encode("utf-8")
-            intro_sql = None
-        if isinstance(sql_unit.command_complete_tag, dbstate.TagPlain):
-            status = sql_unit.command_complete_tag.tag
-        elif isinstance(
-            sql_unit.command_complete_tag,
-            (dbstate.TagCountMessages, dbstate.TagUnpackRow),
-        ):
-            status = sql_unit.command_complete_tag.prefix.encode("utf-8")
-        elif sql_unit.command_complete_tag is None:
-            status = b"SELECT"  # XXX
-        else:
-            raise AssertionError(
-                f"unexpected SQLQueryUnit.command_complete_tag type: "
-                f"{sql_unit.command_complete_tag}"
-            )
-
-        globals = []
-        permissions = []
-        for sp in sql_unit.params or ():
-            if not isinstance(sp, dbstate.SQLParamGlobal):
-                continue
-
-            if not sp.is_permission:
-                globals.append((str(sp.global_name), False))
-            else:
-                permissions.append(str(sp.global_name))
-
-        unit = dbstate.QueryUnit(
-            sql=value_sql,
-            introspection_sql=intro_sql,
-            status=status,
-            cardinality=(
-                enums.Cardinality.NO_RESULT
-                if ctx.output_format is enums.OutputFormat.NONE
-                else sql_unit.cardinality
-            ),
-            capabilities=sql_unit.capabilities,
-            globals=globals,
-            permissions=permissions,
-            output_format=(
-                enums.OutputFormat.NONE
-                if (
-                    ctx.output_format is enums.OutputFormat.NONE
-                    or sql_unit.cardinality is enums.Cardinality.NO_RESULT
-                )
-                else enums.OutputFormat.BINARY
-            ),
-            source_map=sql_unit.source_map,
-            sql_prefix_len=sql_unit.prefix_len,
-        )
-        match sql_unit.tx_action:
-            case dbstate.TxAction.START:
-                ctx.state.start_tx()
-                tx_state = ctx.state.current_tx()
-                unit.tx_id = tx_state.id
-            case dbstate.TxAction.COMMIT:
-                ctx.state.commit_tx()
-                unit.tx_commit = True
-            case dbstate.TxAction.ROLLBACK:
-                ctx.state.rollback_tx()
-                unit.tx_rollback = True
-            case dbstate.TxAction.DECLARE_SAVEPOINT:
-                assert sql_unit.sp_name is not None
-                unit.tx_savepoint_declare = True
-                unit.sp_id = tx_state.declare_savepoint(sql_unit.sp_name)
-                unit.sp_name = sql_unit.sp_name
-            case dbstate.TxAction.ROLLBACK_TO_SAVEPOINT:
-                assert sql_unit.sp_name is not None
-                tx_state.rollback_to_savepoint(sql_unit.sp_name)
-                unit.tx_savepoint_rollback = True
-                unit.sp_name = sql_unit.sp_name
-            case dbstate.TxAction.RELEASE_SAVEPOINT:
-                assert sql_unit.sp_name is not None
-                tx_state.release_savepoint(sql_unit.sp_name)
-                unit.sp_name = sql_unit.sp_name
-            case None:
-                unit.cacheable = sql_unit.cacheable
-            case _:
-                raise AssertionError(
-                    f"unexpected SQLQueryUnit.tx_action: {sql_unit.tx_action}"
-                )
-
-        qug.append(unit)
-
-    return qug
 
 
 def _try_compile(

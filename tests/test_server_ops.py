@@ -753,16 +753,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 or 0
             )
 
-        def measure_sql_compilations(
-            sd: tb._EdgeDBServerData,
-        ) -> Callable[[], float | int]:
-            return (
-                lambda: tb.parse_metrics(sd.fetch_metrics()).get(
-                    'edgedb_server_sql_compilations_total{tenant="localtest"}'
-                )
-                or 0
-            )
-
         with tempfile.TemporaryDirectory() as temp_dir:
             async with tb.start_edgedb_server(
                 data_dir=temp_dir,
@@ -776,34 +766,12 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                             enumval := <cfg::TestEnum>$0,
                         }
                     '''
-                    sql = '''
-                        SELECT
-                            n.nspname::text AS table_schema,
-                            c.relname::text AS table_name,
-                            CASE
-                                WHEN c.relkind = 'r' THEN 'table'
-                                WHEN c.relkind = 'v' THEN 'view'
-                                WHEN c.relkind = 'm' THEN 'materialized_view'
-                            END AS type,
-                            c.relrowsecurity AS rls_enabled
-                        FROM
-                            pg_catalog.pg_class c
-                        JOIN
-                            pg_catalog.pg_namespace n
-                                ON n.oid::text = c.relnamespace::text
-                        WHERE
-                            c.relkind IN ('r', 'v', 'm')
-                            AND n.nspname = 'public';
-                    '''
 
                     await con.query(qry, 'Two')
-                    await con.query_sql(sql)
 
                     # Querying a second time should hit the cache
                     with self.assertChange(measure_compilations(sd), 0):
                         await con.query(qry, 'Two')
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql(sql)
 
                     await con.query('''
                         create type X
@@ -816,14 +784,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                         await con.query(qry, 'Two')
                     with self.assertChange(measure_compilations(sd), 0):
                         await con.query(qry, 'Two')
-
-                    # The SQL cache is reset after DDL, because recompiling SQL
-                    # requires backend connection for amending in/out tids, and
-                    # we don't have the infra for that yet.
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql(sql)
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql(sql)
 
                     await con.execute(
                         'configure session set apply_access_policies := false'
@@ -861,10 +821,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                         await con.query(qry, 'Two')
                     with self.assertChange(measure_compilations(sd), 0):
                         await con.query(qry, 'Two')
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql(sql)
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql(sql)
 
                     await con.execute(
                         "configure current database "
@@ -873,32 +829,13 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
                     # Now, a similar thing for SQL queries
 
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql('select 1')
-
-                    # cache hit
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql('select 1')
-
                     # changing globals: cache hit
                     await con.execute('set global g := "hello"')
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql('select 1')
                     await con.execute('reset global g')
-
-                    # normalization: pg_query_normalize is underwhelming
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql('sElEct  1')
-
-                    # constant extraction: cache hit
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql('select 2')
 
                     await con.execute(
                         'configure session set apply_access_policies := false'
                     )
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql('select 1')
                     await con.execute(
                         'configure session reset apply_access_policies'
                     )
@@ -915,10 +852,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                         await con.query(qry, 'Two')
                     with self.assertChange(measure_compilations(sd), 0):
                         await con.query(qry, 'Two')
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await con.query_sql(sql)
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await con.query_sql(sql)
                     await con.execute(
                         "configure current database "
                         "reset auto_rebuild_query_cache"
@@ -926,47 +859,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
 
                 finally:
                     await con.aclose()
-
-                # The same cache, reached over the binary protocol: the
-                # frontend that used to carry SQL is gone (#34), and both
-                # transports compile through the same sql.compile_sql.
-                scon = await sd.connect()
-                try:
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await scon.query_sql('select 1')
-
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await scon.query_sql('select 1 + 1')
-
-                    # cache hit
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await scon.query_sql('select 1')
-
-                    # cache hit because of query normalization
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await scon.query_sql('select 2')
-
-                    # TODO: better normalization
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await scon.query_sql('sELEcT  1')
-
-                    # cache hit, even after global has been changed
-                    await scon.execute('set global g := "sql"')
-                    with self.assertChange(measure_sql_compilations(sd), 0):
-                        await scon.query_sql('select 1')
-
-                    # compiler call, because config was changed.
-                    # The frontend set apply_access_policies_pg to true
-                    # because SQL bypassed policies by default; the
-                    # general setting defaults the other way, so false is
-                    # the value that actually changes the cache key.
-                    await scon.execute(
-                        'CONFIGURE SESSION SET apply_access_policies := false'
-                    )
-                    with self.assertChange(measure_sql_compilations(sd), 1):
-                        await scon.query_sql('select 1')
-                finally:
-                    await scon.aclose()
 
             # Now restart the server to test the cache persistence.
             async with tb.start_edgedb_server(
@@ -978,10 +870,6 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     # It should hit the cache no problem.
                     with self.assertChange(measure_compilations(sd), 0):
                         await con.query(qry, 'Two')
-                    # TODO(fantix): persistent SQL cache not working?
-                    # with self.assertChange(measure_sql_compilation(sd), 0):
-                    #     await con.query_sql(sql)
-
                 finally:
                     await con.aclose()
 

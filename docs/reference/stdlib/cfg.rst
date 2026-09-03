@@ -188,8 +188,7 @@ The ``cfg`` module contains a set of types and scalars used for configuring
   * - ``cfg::ConnectionTransport.TCP``
     - Gel binary protocol
   * - ``cfg::ConnectionTransport.TCP_PG``
-    - Postgres protocol for the
-      :ref:`SQL query mode <ref_sql_adapter>`
+    - Unused. The Postgres protocol frontend it named has been removed.
   * - ``cfg::ConnectionTransport.HTTP``
     - Gel binary protocol
       :ref:`tunneled over HTTP <ref_http_tunnelling>`

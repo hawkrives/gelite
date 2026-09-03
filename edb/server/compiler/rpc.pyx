@@ -34,7 +34,6 @@ from edb.edgeql import qltypes
 from edb.edgeql import tokenizer
 from edb.server import config, defines
 from edb.server.pgproto.pgproto cimport WriteBuffer, ReadBuffer
-from edb.sqlite import parser as pgparser
 
 from . import enums, sertypes
 
@@ -108,39 +107,6 @@ cdef deserialize_input_language(char lang):
 
 
 @cython.final
-cdef class SQLParamsSource:
-
-    def __init__(
-        self,
-        types_in_out: list[tuple[list[str], list[tuple[str, str]]]]
-    ):
-        self.types_in_out = types_in_out
-        self._cached_key = None
-        self._serialized = None
-
-    def cache_key(self):
-        if self._cached_key is not None:
-            return self._cached_key
-
-        if self._serialized is None:
-            self.serialize()
-
-        self._cached_key = hashlib.blake2b(self._serialized).digest()
-        return self._cached_key
-
-    def text(self):
-        return ''
-
-    def serialize(self):
-        if self._serialized is not None:
-            return self._serialized
-        self._serialized = pickle.dumps(self.types_in_out, -1)
-        return self._serialized
-
-    @staticmethod
-    def deserialize(data: bytes):
-        types_in_out = pickle.loads(data)
-        return SQLParamsSource(types_in_out)
 
 
 @cython.final
@@ -465,10 +431,6 @@ cdef _deserialize_comp_req_v1(
 
     if input_language is enums.InputLanguage.EDGEQL:
         source = tokenizer.deserialize(serialized_source, query_text)
-    elif input_language is enums.InputLanguage.SQL:
-        source = pgparser.deserialize(serialized_source)
-    elif input_language is enums.InputLanguage.SQL_PARAMS:
-        source = SQLParamsSource.deserialize(serialized_source)
     else:
         raise AssertionError(
             f"unexpected source language in serialized "

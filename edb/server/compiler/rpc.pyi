@@ -25,19 +25,8 @@ from edb import edgeql
 from edb.server import defines, config
 from edb.server.compiler import sertypes, enums
 
-from edb.sqlite import parser as pgparser
-
-class SQLParamsSource:
-    types_in_out: list[tuple[list[str], list[tuple[str, str]]]]
-
-    def cache_key(self) -> bytes: ...
-    def serialize(self) -> bytes: ...
-    @staticmethod
-    def deserialize(data: bytes) -> SQLParamsSource: ...
-    def text(self) -> str: ...
-
 class CompilationRequest:
-    source: edgeql.Source | pgparser.Source | SQLParamsSource
+    source: edgeql.Source
     protocol_version: defines.ProtocolVersion
     input_language: enums.InputLanguage
     output_format: enums.OutputFormat
@@ -57,7 +46,7 @@ class CompilationRequest:
     def __init__(
         self,
         *,
-        source: edgeql.Source | pgparser.Source,
+        source: edgeql.Source,
         protocol_version: defines.ProtocolVersion,
         schema_version: uuid.UUID,
         compilation_config_serializer: sertypes.CompilationConfigSerializer,
