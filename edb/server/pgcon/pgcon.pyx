@@ -70,7 +70,6 @@ from edb.server import defines
 from edb.server.cache cimport stmt_cache
 from edb.server.dbview cimport dbview
 from edb.server.protocol cimport args_ser
-from edb.server.protocol cimport pg_ext
 from edb.server import metrics
 
 from edb.server.protocol cimport frontend
@@ -91,12 +90,10 @@ cdef dict POSTGRES_SHUTDOWN_ERR_CODES = {
     '57P02': 'crash_shutdown',
 }
 
-cdef object EMPTY_SQL_STATE = b"{}"
 cdef WriteBuffer NO_ARGS = args_ser.combine_raw_args()
 
 cdef object logger = logging.getLogger('edb.server')
 
-include "./pgcon_sql.pyx"
 
 
 @cython.final
@@ -209,7 +206,6 @@ cdef class PGConnection:
         self.last_state = dbview.DEFAULT_STATE
         self.state_reset_needs_commit = False
 
-        self._sql = PGSQLConnection(self)
 
     cpdef set_stmt_cache_size(self, int maxsize):
         self.prep_stmts.resize(maxsize)
@@ -449,54 +445,6 @@ cdef class PGConnection:
             buf.write_int32(len(serstate) + 1)
             buf.write_byte(1)  # jsonb format version
             buf.write_bytes(serstate)
-            buf.write_int16(0)  # number of result columns
-            out.write_buffer(buf.end_message())
-
-            buf = WriteBuffer.new_message(b'E')
-            buf.write_bytestring(b'')  # portal name
-            buf.write_int32(0)  # limit: 0 - return all rows
-            out.write_buffer(buf.end_message())
-
-    def _build_apply_sql_state_req(self, bytes state, WriteBuffer out):
-        cdef:
-            WriteBuffer buf
-
-        buf = WriteBuffer.new_message(b'B')
-        buf.write_bytestring(b'')  # portal name
-        buf.write_bytestring(b'_clear_state')  # statement name
-        buf.write_int16(0)  # number of format codes
-        buf.write_int16(0)  # number of parameters
-        buf.write_int16(0)  # number of result columns
-        out.write_buffer(buf.end_message())
-
-        buf = WriteBuffer.new_message(b'E')
-        buf.write_bytestring(b'')  # portal name
-        buf.write_int32(0)  # limit: 0 - return all rows
-        out.write_buffer(buf.end_message())
-
-        buf = WriteBuffer.new_message(b'B')
-        buf.write_bytestring(b'')  # portal name
-        buf.write_bytestring(b'_reset_session_config')  # statement name
-        buf.write_int16(0)  # number of format codes
-        buf.write_int16(0)  # number of parameters
-        buf.write_int16(0)  # number of result columns
-        out.write_buffer(buf.end_message())
-
-        buf = WriteBuffer.new_message(b'E')
-        buf.write_bytestring(b'')  # portal name
-        buf.write_int32(0)  # limit: 0 - return all rows
-        out.write_buffer(buf.end_message())
-
-        if state != EMPTY_SQL_STATE:
-            buf = WriteBuffer.new_message(b'B')
-            buf.write_bytestring(b'')  # portal name
-            buf.write_bytestring(b'_apply_sql_state')  # statement name
-            buf.write_int16(1)  # number of format codes
-            buf.write_int16(1)  # binary
-            buf.write_int16(1)  # number of parameters
-            buf.write_int32(len(state) + 1)
-            buf.write_byte(1)  # jsonb format version
-            buf.write_bytes(state)
             buf.write_int16(0)  # number of result columns
             out.write_buffer(buf.end_message())
 
@@ -1454,62 +1402,6 @@ cdef class PGConnection:
             metrics.backend_query_duration.observe(
                 time.monotonic() - started_at, self.get_tenant_label()
             )
-            await self.after_command()
-
-    async def sql_apply_state(
-        self,
-        dbv: pg_ext.ConnectionView,
-    ):
-        self.before_command()
-        try:
-            state = dbv.serialize_state()
-            if state is not None:
-                buf = WriteBuffer.new()
-                self._build_apply_sql_state_req(state, buf)
-                self.write_sync(buf)
-                self.write(buf)
-
-                await self._parse_apply_state_resp(
-                    2 if state != EMPTY_SQL_STATE else 1
-                )
-                await self.wait_for_sync()
-                self.last_state = state
-                self.state_reset_needs_commit = (
-                    dbv.needs_commit_after_state_sync())
-        finally:
-            await self.after_command()
-
-    async def sql_extended_query(
-        self,
-        actions,
-        fe_conn: frontend.AbstractFrontendConnection,
-        dbver: int,
-        dbv: pg_ext.ConnectionView,
-    ) -> tuple[bool, bool]:
-        self.before_command()
-        try:
-            state = self._sql._write_sql_extended_query(actions, dbver, dbv)
-            if state is not None:
-                await self._parse_apply_state_resp(
-                    2 if state != EMPTY_SQL_STATE else 1
-                )
-                await self.wait_for_sync()
-                self.last_state = state
-                self.state_reset_needs_commit = (
-                    dbv.needs_commit_after_state_sync())
-            try:
-                return await self._sql._parse_sql_extended_query(
-                    actions,
-                    fe_conn,
-                    dbver,
-                    dbv,
-                )
-            finally:
-                if not dbv.in_tx():
-                    self.last_state = dbv.serialize_state()
-                    self.state_reset_needs_commit = (
-                        dbv.needs_commit_after_state_sync())
-        finally:
             await self.after_command()
 
     def _write_error_position(

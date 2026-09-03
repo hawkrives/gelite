@@ -54,7 +54,6 @@ class HttpProtocol(asyncio.Protocol):
         self,
         server: server.BaseServer,
         sslctx: ssl.SSLContext,
-        sslctx_pgext: ssl.SSLContext,
         *,
         external_auth: bool = False,
         binary_endpoint_security: srvargs.ServerEndpointSecurityMode,

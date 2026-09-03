@@ -1490,17 +1490,6 @@ class ConnectedTestCase(ClusterTestCase):
                 )
 
     @contextlib.asynccontextmanager
-    async def without_access_policies_pg(self):
-        """`without_access_policies` for a @needs_pg_wire test.
-
-        The frontend keeps its own SQL session settings, so the Gel-side
-        CONFIGURE SESSION does not reach it. No reset: SET LOCAL dies
-        with the transaction the decorator rolls back.
-        """
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-        yield
-
-    @contextlib.asynccontextmanager
     async def with_user_specified_ids(self):
         """Allow INSERT to specify `id`, as the SQL frontend's
         `SET LOCAL allow_user_specified_id` did.
@@ -1996,54 +1985,6 @@ class SQLQueryTestCase(BaseQueryTestCase):
                 self.assertEqual(len(res[0]), columns)
         elif isinstance(columns, list):
             self.assertListEqual(columns, list(res[0].keys()))
-
-
-def needs_pg_wire(meth):
-    """Run this test against the Postgres wire-protocol frontend.
-
-    A handful of tests in the SQL suites are about the frontend rather
-    than about the resolver underneath it: COPY, prepared statements,
-    the session settings the frontend tracks (`search_path`,
-    `client_encoding`, `work_mem`, `server_version`), and transaction
-    control sent as SQL text.
-
-    None of those has a binary-protocol equivalent. In particular
-    `compile_sql_as_unit_group` rebuilds `SQLTransactionState` from
-    `DEFAULT_SQL_FE_SETTINGS` on every compile, so a SET does not
-    outlive the statement that set it.
-
-    So these keep an asyncpg connection, and `self.scon` is that
-    connection for the duration of the test. They go when the frontend
-    goes (#34), and this decorator is how they are found.
-    """
-
-    @functools.wraps(meth)
-    async def wrapper(self, *args, **kwargs):
-        try:
-            import asyncpg  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest('SQL test skipped: asyncpg not installed')
-
-        scon = await type(self).create_sql_connection()
-        self.scon = scon
-        try:
-            if self.TRANSACTION_ISOLATION:
-                # named on the instance: test_sql_query_client_encoding_2
-                # restarts it by hand, working around asyncpg#1215
-                self.stran = scon.transaction()
-                await self.stran.start()
-                try:
-                    return await meth(self, *args, **kwargs)
-                finally:
-                    await self.stran.rollback()
-                    del self.stran
-            else:
-                return await meth(self, *args, **kwargs)
-        finally:
-            del self.scon
-            await scon.close()
-
-    return wrapper
 
 
 def get_test_cases_setup(
