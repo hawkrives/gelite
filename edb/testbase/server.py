@@ -1489,6 +1489,41 @@ class ConnectedTestCase(ClusterTestCase):
                     'CONFIGURE SESSION RESET apply_access_policies'
                 )
 
+    @contextlib.asynccontextmanager
+    async def without_access_policies_pg(self):
+        """`without_access_policies` for a @needs_pg_wire test.
+
+        The frontend keeps its own SQL session settings, so the Gel-side
+        CONFIGURE SESSION does not reach it. No reset: SET LOCAL dies
+        with the transaction the decorator rolls back.
+        """
+        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        yield
+
+    @contextlib.asynccontextmanager
+    async def with_user_specified_ids(self):
+        """Allow INSERT to specify `id`, as the SQL frontend's
+        `SET LOCAL allow_user_specified_id` did.
+
+        `compile_sql_as_unit_group` reads this from the Gel config rather
+        than from the frontend's own session settings, so on the binary
+        protocol it is CONFIGURE SESSION.
+        """
+        await self.con.execute(
+            'CONFIGURE SESSION SET allow_user_specified_id := true'
+        )
+        raised = False
+        try:
+            yield
+        except BaseException:
+            raised = True
+            raise
+        finally:
+            if not (raised and self.con.is_in_transaction()):
+                await self.con.execute(
+                    'CONFIGURE SESSION RESET allow_user_specified_id'
+                )
+
     @classmethod
     def get_sql_proto_dsn(cls, dbname=None):
         dbname = dbname or cls.con.dbname

@@ -122,21 +122,21 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # in alphabetical order:
         # id, __type__, owner, title
 
-        await self.scon.execute("SET LOCAL allow_user_specified_id TO TRUE")
-        with self.assertRaisesRegex(
-            asyncpg.DataError,
-            "cannot assign to link '__type__': it is protected",
-            # TODO: positions are hard to recover since we don't even know which
-            # DML stmt this error is originating from
-            # position="30",
-        ):
-            await self.scon.execute(
-                '''
-                INSERT INTO "Document" VALUES (NULL, NULL, NULL, 'Report')
-                '''
-            )
-            res = await self.squery_values('SELECT title FROM "Document"')
-            self.assertEqual(res, [['Report (new)']])
+        async with self.with_user_specified_ids():
+            with self.assertRaisesRegex(
+                asyncpg.DataError,
+                "cannot assign to link '__type__': it is protected",
+                # TODO: positions are hard to recover since we don't even know which
+                # DML stmt this error is originating from
+                # position="30",
+            ):
+                await self.scon.execute(
+                    '''
+                    INSERT INTO "Document" VALUES (NULL, NULL, NULL, 'Report')
+                    '''
+                )
+                res = await self.squery_values('SELECT title FROM "Document"')
+                self.assertEqual(res, [['Report (new)']])
 
     async def test_sql_dml_insert_03(self):
         # multiple rows at once
@@ -780,37 +780,36 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         id4 = uuid.uuid4()
         id5 = uuid.uuid4()
 
-        await self.scon.execute("SET LOCAL allow_user_specified_id TO TRUE")
+        async with self.with_user_specified_ids():
+            res = await self.squery_values(
+                f'''
+                INSERT INTO "Document" (id)
+                VALUES ($1), ('{id2}')
+                RETURNING id
+                ''',
+                id1,
+            )
+            self.assertEqual(res, [[id1], [id2]])
 
-        res = await self.squery_values(
-            f'''
-            INSERT INTO "Document" (id)
-            VALUES ($1), ('{id2}')
-            RETURNING id
-            ''',
-            id1,
-        )
-        self.assertEqual(res, [[id1], [id2]])
+            res = await self.squery_values(
+                f'''
+                INSERT INTO "Document" (id)
+                SELECT id FROM (VALUES ($1::uuid), ('{id4}')) t(id)
+                RETURNING id
+                ''',
+                id3,
+            )
+            self.assertEqual(res, [[id3], [id4]])
 
-        res = await self.squery_values(
-            f'''
-            INSERT INTO "Document" (id)
-            SELECT id FROM (VALUES ($1::uuid), ('{id4}')) t(id)
-            RETURNING id
-            ''',
-            id3,
-        )
-        self.assertEqual(res, [[id3], [id4]])
-
-        res = await self.squery_values(
-            f'''
-            INSERT INTO "Document" (id)
-            VALUES ($1)
-            RETURNING id
-            ''',
-            id5,
-        )
-        self.assertEqual(res, [[id5]])
+            res = await self.squery_values(
+                f'''
+                INSERT INTO "Document" (id)
+                VALUES ($1)
+                RETURNING id
+                ''',
+                id5,
+            )
+            self.assertEqual(res, [[id5]])
 
     async def test_sql_dml_insert_35(self):
         with self.assertRaisesRegex(
@@ -824,15 +823,15 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 uuid.uuid4(),
             )
 
-        await self.scon.execute('SET LOCAL allow_user_specified_id TO TRUE')
-        id = uuid.uuid4()
-        res = await self.squery_values(
-            f'''
-            INSERT INTO "Document" (id) VALUES ($1) RETURNING id
-            ''',
-            id,
-        )
-        self.assertEqual(res, [[id]])
+        async with self.with_user_specified_ids():
+            id = uuid.uuid4()
+            res = await self.squery_values(
+                f'''
+                INSERT INTO "Document" (id) VALUES ($1) RETURNING id
+                ''',
+                id,
+            )
+            self.assertEqual(res, [[id]])
 
     async def test_sql_dml_insert_36(self):
         [user] = await self.squery_values(
@@ -950,75 +949,75 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         self.assertEqual(res, [['hello (new)']])
 
     async def test_sql_dml_insert_42(self):
-        await self.scon.execute("SET LOCAL allow_user_specified_id TO TRUE")
-
-        uuid1 = uuid.uuid4()
-        uuid2 = uuid.uuid4()
-        res = await self.scon.execute(
-            f'''
-            WITH
-            u1 as (
-                INSERT INTO "User" DEFAULT VALUES RETURNING id, 'hello' as x
-            ),
-            u2 as (
-                INSERT INTO "User" (id) VALUES ($1), ($2)
-                RETURNING id, 'world' as y
-            )
-            INSERT INTO "Document" (owner_id, title)
-            VALUES
-                ((SELECT id FROM u1), (SELECT x FROM u1)),
-                ((SELECT id FROM u2 LIMIT 1), (SELECT y FROM u2 LIMIT 1)),
-                (
-                    (SELECT id FROM u2 OFFSET 1 LIMIT 1),
-                    (SELECT y FROM u2 OFFSET 1 LIMIT 1)
+        async with self.with_user_specified_ids():
+            uuid1 = uuid.uuid4()
+            uuid2 = uuid.uuid4()
+            res = await self.scon.execute(
+                f'''
+                WITH
+                u1 as (
+                    INSERT INTO "User" DEFAULT VALUES RETURNING id, 'hello' as x
+                ),
+                u2 as (
+                    INSERT INTO "User" (id) VALUES ($1), ($2)
+                    RETURNING id, 'world' as y
                 )
-            ''',
-            uuid1,
-            uuid2,
-        )
-        self.assertEqual(res, 'INSERT 0 3')
-        res = await self.squery_values(
-            '''
-            SELECT title, owner_id FROM "Document"
-            '''
-        )
-        res[0][1] = None  # first uuid is generated and unknown at this stage
-        self.assertEqual(
-            res,
-            [
-                ['hello (new)', None],
-                ['world (new)', uuid1],
-                ['world (new)', uuid2],
-            ],
-        )
+                INSERT INTO "Document" (owner_id, title)
+                VALUES
+                    ((SELECT id FROM u1), (SELECT x FROM u1)),
+                    ((SELECT id FROM u2 LIMIT 1), (SELECT y FROM u2 LIMIT 1)),
+                    (
+                        (SELECT id FROM u2 OFFSET 1 LIMIT 1),
+                        (SELECT y FROM u2 OFFSET 1 LIMIT 1)
+                    )
+                ''',
+                uuid1,
+                uuid2,
+            )
+            self.assertEqual(res, 'INSERT 0 3')
+            res = await self.squery_values(
+                '''
+                SELECT title, owner_id FROM "Document"
+                '''
+            )
+            res[0][1] = (
+                None  # first uuid is generated and unknown at this stage
+            )
+            self.assertEqual(
+                res,
+                [
+                    ['hello (new)', None],
+                    ['world (new)', uuid1],
+                    ['world (new)', uuid2],
+                ],
+            )
 
     async def test_sql_dml_insert_43(self):
-        await self.scon.execute("SET LOCAL allow_user_specified_id TO TRUE")
+        async with self.with_user_specified_ids():
+            doc_id = uuid.uuid4()
+            user_id = uuid.uuid4()
+            res = await self.scon.execute(
+                '''
+                WITH
+                    d AS (INSERT INTO "Document" (id) VALUES ($1)),
+                    u AS (INSERT INTO "User" (id) VALUES ($2)),
+                    dsw AS (
+                        INSERT INTO "Document.shared_with" (source, target)
+                        VALUES ($1, $2)
+                    )
+                    INSERT INTO "Document.keywords" VALUES ($1, 'top-priority')
+                ''',
+                doc_id,
+                user_id,
+            )
+            self.assertEqual(res, 'INSERT 0 1')
 
-        doc_id = uuid.uuid4()
-        user_id = uuid.uuid4()
-        res = await self.scon.execute(
-            '''
-            WITH
-                d AS (INSERT INTO "Document" (id) VALUES ($1)),
-                u AS (INSERT INTO "User" (id) VALUES ($2)),
-                dsw AS (
-                    INSERT INTO "Document.shared_with" (source, target)
-                    VALUES ($1, $2)
-                )
-                INSERT INTO "Document.keywords" VALUES ($1, 'top-priority')
-            ''',
-            doc_id,
-            user_id,
-        )
-        self.assertEqual(res, 'INSERT 0 1')
-
-        res = await self.squery_values(
-            '''
-            SELECT source, target FROM "Document.shared_with"
-            '''
-        )
-        self.assertEqual(res, [[doc_id, user_id]])
+            res = await self.squery_values(
+                '''
+                SELECT source, target FROM "Document.shared_with"
+                '''
+            )
+            self.assertEqual(res, [[doc_id, user_id]])
 
     async def test_sql_dml_insert_44(self):
         # Test that RETURNING supports "Table".col format

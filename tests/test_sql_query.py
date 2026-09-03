@@ -144,10 +144,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(res, [['Forrest Gump'], ['Saving Private Ryan']])
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(res, [['Forrest Gump'], ['Saving Private Ryan']])
 
     async def test_sql_query_01(self):
         # table alias
@@ -160,10 +159,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, 3)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, 3)
 
     async def test_sql_query_02(self):
         # SELECT FROM parent type
@@ -177,10 +175,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 5, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 5, cols)
 
     async def test_sql_query_03(self):
         # SELECT FROM parent type only
@@ -194,10 +191,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 1, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 1, cols)
 
     async def test_sql_query_04(self):
         # multiple FROMs
@@ -212,10 +208,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 1, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 1, cols)
 
     async def test_sql_query_05(self):
         query = '''
@@ -228,10 +223,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 6, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 6, cols)
 
     async def test_sql_query_06(self):
         # sub relations
@@ -246,10 +240,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 6, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 6, cols)
 
     async def test_sql_query_07(self):
         # quoted case sensitive
@@ -263,10 +256,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_08(self):
         # JOIN
@@ -281,10 +273,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_09(self):
         # resolve columns without table names
@@ -299,10 +290,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_10(self):
         # wildcard SELECT
@@ -323,10 +313,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_11(self):
         # multiple wildcard SELECT
@@ -351,10 +340,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_12(self):
         # JOIN USING
@@ -368,10 +356,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 0, 8)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, 8)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, 8)
 
     async def test_sql_query_13(self):
         # CTE
@@ -385,10 +372,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 0, 8)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, 8)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, 8)
 
     async def test_sql_query_14(self):
         # CASE
@@ -403,16 +389,15 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(
-            res,
-            [
-                ['Forrest Gump', 'forest'],
-                ['Saving Private Ryan', 'the war film'],
-            ],
-        )
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(
+                res,
+                [
+                    ['Forrest Gump', 'forest'],
+                    ['Saving Private Ryan', 'the war film'],
+                ],
+            )
 
     async def test_sql_query_15(self):
         # UNION
@@ -425,10 +410,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 4, 2)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 4, 2)
 
     async def test_sql_query_16(self):
         # casting
@@ -472,10 +456,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(res, [['Forrest Gump'], ['Halo 3']])
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(res, [['Forrest Gump'], ['Halo 3']])
 
     async def test_sql_query_19(self):
         # DISTINCT
@@ -498,16 +481,18 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            res = await self.squery_values(query_1)
+            self.assertEqual(res, [['Drama'], ['Fiction']])
 
-        res = await self.squery_values(query_1)
-        self.assertEqual(res, [['Drama'], ['Fiction']])
-
-        res = await self.squery_values(query_2)
-        self.assertEqual(
-            res,
-            [['Drama', 'Forrest Gump'], ['Fiction', 'Chronicles of Narnia']],
-        )
+            res = await self.squery_values(query_2)
+            self.assertEqual(
+                res,
+                [
+                    ['Drama', 'Forrest Gump'],
+                    ['Fiction', 'Chronicles of Narnia'],
+                ],
+            )
 
     async def test_sql_query_20(self):
         # WHERE
@@ -538,13 +523,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(
-            res,
-            [[374, 580], [206, 206], [0, 0], [0, 0], [0, 0]],
-        )
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(
+                res,
+                [[374, 580], [206, 206], [0, 0], [0, 0], [0, 0]],
+            )
 
     async def test_sql_query_22(self):
         # IS NULL/true
@@ -592,13 +576,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [[None]])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            res = await self.squery_values(query_1)
+            self.assertEqual(res, [['Forrest Gump']])
 
-        res = await self.squery_values(query_1)
-        self.assertEqual(res, [['Forrest Gump']])
-
-        res = await self.squery_values(query_2)
-        self.assertEqual(res, [['Forrest Gump']])
+            res = await self.squery_values(query_2)
+            self.assertEqual(res, [['Forrest Gump']])
 
     async def test_sql_query_25(self):
         # lower case object name
@@ -649,10 +632,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, cols)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, cols)
 
     async def test_sql_query_29(self):
         # link tables
@@ -672,21 +654,20 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            # multi
+            res = await self.scon.fetch(multi_query)
+            self.assert_shape(res, 3, multi_cols)
 
-        # multi
-        res = await self.scon.fetch(multi_query)
-        self.assert_shape(res, 3, multi_cols)
+            # single with properties
+            res = await self.scon.fetch(single_with_prop_query)
+            self.assert_shape(res, 1, single_with_prop_cols)
 
-        # single with properties
-        res = await self.scon.fetch(single_with_prop_query)
-        self.assert_shape(res, 1, single_with_prop_cols)
-
-        # single without properties
-        with self.assertRaisesRegex(
-            asyncpg.UndefinedTableError, "unknown table"
-        ):
-            await self.scon.fetch('SELECT * FROM "Movie.genre"')
+            # single without properties
+            with self.assertRaisesRegex(
+                asyncpg.UndefinedTableError, "unknown table"
+            ):
+                await self.scon.fetch('SELECT * FROM "Movie.genre"')
 
     async def test_sql_query_30(self):
         # VALUES
@@ -815,24 +796,21 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            res = await self.squery_values(only_content_query)
+            # these numbers change, so let's just check that there are 6 of them
+            self.assertEqual(len(res[0]), 6)
 
-        res = await self.squery_values(only_content_query)
-        # these numbers change, so let's just check that there are 6 of them
-        self.assertEqual(len(res[0]), 6)
+            res = await self.squery_values(all_content_query)
+            self.assertEqual(len(res[0]), 6)
 
-        res = await self.squery_values(all_content_query)
-        self.assertEqual(len(res[0]), 6)
-
-        res = await self.squery_values(movie_actor_query)
-        self.assertEqual(len(res[0]), 6)
+            res = await self.squery_values(movie_actor_query)
+            self.assertEqual(len(res[0]), 6)
 
     async def test_sql_query_33a(self):
         # system columns when access policies are applied
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO true')
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Halo 3'"""
-        )
+        # (applied is the default, so there is nothing to turn on)
+        await self.con.execute("SET GLOBAL default::filter_title := 'Halo 3'")
 
         res = await self.squery_values(
             '''
@@ -870,10 +848,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(res, [["avin", 1], ["orre", 1]])
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(res, [["avin", 1], ["orre", 1]])
 
     async def test_sql_query_35(self):
         # ORDER BY original column
@@ -888,10 +865,11 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(res, [['Forrest Gump', 1], ['Saving Private Ryan', 1]])
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(
+                res, [['Forrest Gump', 1], ['Saving Private Ryan', 1]]
+            )
 
     async def test_sql_query_36(self):
         # ColumnRef to relation
@@ -950,35 +928,34 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            res = await self.squery_values(
+                '''
+                SELECT pages, __type__ FROM "Book" ORDER BY pages;
+                '''
+            )
+            self.assert_data_shape(
+                res,
+                [
+                    [206, str],
+                    [374, str],
+                ],
+            )
+            # there should be one `Book` and one `novel`
+            self.assertNotEqual(res[0][1], res[1][1])
 
-        res = await self.squery_values(
-            '''
-            SELECT pages, __type__ FROM "Book" ORDER BY pages;
-            '''
-        )
-        self.assert_data_shape(
-            res,
-            [
-                [206, str],
-                [374, str],
-            ],
-        )
-        # there should be one `Book` and one `novel`
-        self.assertNotEqual(res[0][1], res[1][1])
-
-        res2 = await self.squery_values(
-            '''
-            SELECT pages, __type__ FROM ONLY "Book" ORDER BY pages;
-            '''
-        )
-        self.assert_data_shape(
-            res2,
-            [
-                [206, str],
-            ],
-        )
-        self.assertEqual(res[0][1], res2[0][1])
+            res2 = await self.squery_values(
+                '''
+                SELECT pages, __type__ FROM ONLY "Book" ORDER BY pages;
+                '''
+            )
+            self.assert_data_shape(
+                res2,
+                [
+                    [206, str],
+                ],
+            )
+            self.assertEqual(res[0][1], res2[0][1])
 
     async def test_sql_query_40(self):
         id: uuid.UUID = uuid.uuid4()
@@ -1037,11 +1014,8 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[42, True, 'hello']])
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::filter_title"
-            TO 'Chronicles of Narnia'
-            """
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Chronicles of Narnia'"
         )
         res = await self.scon.execute(
             '''
@@ -1211,10 +1185,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 0, 6)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.scon.fetch(query)
-        self.assert_shape(res, 2, 6)
+        async with self.without_access_policies():
+            res = await self.scon.fetch(query)
+            self.assert_shape(res, 2, 6)
 
     async def test_sql_query_52(self):
         async def count_table(only: str, table_name: str) -> int:
@@ -1642,6 +1615,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ],
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_introspection_02(self):
         tables = await self.squery_values(
             '''
@@ -1802,6 +1776,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ],
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_schemas_01(self):
         await self.scon.fetch('SELECT id FROM "inventory"."Item";')
         await self.scon.fetch('SELECT id FROM "public"."Person";')
@@ -1843,6 +1818,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # HACK: Set search_path back to public
         await self.scon.execute('SET search_path TO public;')
 
+    @tb.needs_pg_wire
     async def test_sql_query_static_eval_01(self):
         res = await self.squery_values('select current_schema;')
         self.assertEqual(res, [['public']])
@@ -1977,6 +1953,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ],
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_static_eval_07(self):
         # to_regclass() is aware of search_path
         await self.scon.execute('SET search_path TO public, "Dup";')
@@ -2008,6 +1985,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res5, res1)
 
+    @tb.needs_pg_wire
     async def test_sql_query_static_eval_08(self):
         # to_regclass() is aware of implicit search_path like pg_catalog
         await self.scon.execute('SET search_path TO nonexist;')
@@ -2019,6 +1997,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res1, res2)
 
+    @tb.needs_pg_wire
     async def test_sql_query_static_eval_09(self):
         # we do no error checking on globals in SQL, but make sure
         # system ones aren't overridden
@@ -2040,6 +2019,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             [{'current_schemas': ['pg_catalog', 'public']}],
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_be_state(self):
         con = await self.connect()
         try:
@@ -2105,6 +2085,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[True]])
 
+    @tb.needs_pg_wire
     async def test_sql_query_client_encoding_1(self):
         self.assertEqual(
             self.scon.get_settings().client_encoding.lower(), "utf_8"
@@ -2117,6 +2098,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(rv1, rv2)
 
+    @tb.needs_pg_wire
     async def test_sql_query_client_encoding_2(self):
         await self.squery_values("set client_encoding to 'sql-ascii'")
         self.assertEqual(
@@ -2149,6 +2131,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             self.scon.get_settings().client_encoding.lower(), "utf8"
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_client_encoding_3(self):
         non_english = "奇奇怪怪"
         rv1 = await self.squery_values('select $1::text', non_english)
@@ -2159,6 +2142,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(rv1, rv2)
 
+    @tb.needs_pg_wire
     async def test_sql_query_server_version(self):
         version = await self.scon.fetchval("show server_version")
         self.assertEqual(
@@ -2170,6 +2154,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaises(asyncpg.CantChangeRuntimeParamError):
             await self.squery_values("reset server_version")
 
+    @tb.needs_pg_wire
     async def test_sql_query_server_version_num(self):
         await self.squery_values("show server_version_num")
         with self.assertRaises(asyncpg.CantChangeRuntimeParamError):
@@ -2182,48 +2167,50 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertTrue(version["version"].startswith("PostgreSQL "))
         self.assertIn("Gel", version["version"])
 
+    @tb.needs_pg_wire
     async def test_sql_query_copy_01(self):
         # copy without columns should select all columns
 
         # COPY does not support query parameters
         # If globals are used by access policies, this will cause an error.
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies_pg():
+            out = io.BytesIO()
+            await self.scon.copy_from_table(
+                "Movie", output=out, format="csv", delimiter="\t"
+            )
+            out = io.StringIO(out.getvalue().decode("utf-8"))
+            res = list(csv.reader(out, delimiter="\t"))
 
-        out = io.BytesIO()
-        await self.scon.copy_from_table(
-            "Movie", output=out, format="csv", delimiter="\t"
-        )
-        out = io.StringIO(out.getvalue().decode("utf-8"))
-        res = list(csv.reader(out, delimiter="\t"))
+            # should contain columns:
+            # id, __type__, director_id, genre_id, release_year, title
+            # 0,  1,        2,           3,        4,            5
 
-        # should contain columns:
-        # id, __type__, director_id, genre_id, release_year, title
-        # 0,  1,        2,           3,        4,            5
+            self.assertEqual(
+                set(row[5] for row in res),
+                {"Forrest Gump", "Saving Private Ryan"},
+            )
 
-        self.assertEqual(
-            set(row[5] for row in res), {"Forrest Gump", "Saving Private Ryan"}
-        )
-
+    @tb.needs_pg_wire
     async def test_sql_query_copy_02(self):
         # copy of a link table
 
         # COPY does not support query parameters
         # If globals are used by access policies, this will cause an error.
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies_pg():
+            out = io.BytesIO()
+            await self.scon.copy_from_table(
+                "Movie.director", output=out, format="csv", delimiter="\t"
+            )
+            out = io.StringIO(out.getvalue().decode("utf-8"))
+            res = list(csv.reader(out, delimiter="\t"))
 
-        out = io.BytesIO()
-        await self.scon.copy_from_table(
-            "Movie.director", output=out, format="csv", delimiter="\t"
-        )
-        out = io.StringIO(out.getvalue().decode("utf-8"))
-        res = list(csv.reader(out, delimiter="\t"))
+            # should contain columns:
+            # source, target, @bar
+            # 0,      1,      2
 
-        # should contain columns:
-        # source, target, @bar
-        # 0,      1,      2
+            self.assertEqual({row[2] for row in res}, {"bar"})
 
-        self.assertEqual({row[2] for row in res}, {"bar"})
-
+    @tb.needs_pg_wire
     async def test_sql_query_copy_03(self):
         # copy of query
 
@@ -2239,6 +2226,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
         self.assertEqual(res, [['1', '2'], ['3', '4']])
 
+    @tb.needs_pg_wire
     async def test_sql_query_copy_04(self):
         # copy of table with columns specified
 
@@ -2263,58 +2251,57 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ),
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_copy_05(self):
         # copy of a link table with link prop
 
         # COPY does not support query parameters
         # If globals are used by access policies, this will cause an error.
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies_pg():
+            out = io.BytesIO()
+            await self.scon.copy_from_table(
+                "Movie.actors",
+                output=out,
+                format="csv",
+                delimiter="\t",
+            )
+            out = io.StringIO(out.getvalue().decode("utf-8"))
+            res = list(csv.reader(out, delimiter="\t"))
 
-        out = io.BytesIO()
-        await self.scon.copy_from_table(
-            "Movie.actors",
-            output=out,
-            format="csv",
-            delimiter="\t",
-        )
-        out = io.StringIO(out.getvalue().decode("utf-8"))
-        res = list(csv.reader(out, delimiter="\t"))
+            # columns: 0      1      2
+            #          source target role
+            self.assertEqual({row[2] for row in res}, {"Captain Miller", ""})
 
-        # columns: 0      1      2
-        #          source target role
-        self.assertEqual({row[2] for row in res}, {"Captain Miller", ""})
-
+    @tb.needs_pg_wire
     async def test_sql_query_copy_06(self):
         # COPY does not support query parameters
         # If globals are used by access policies, this will cause an error.
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies_pg():
+            out = io.BytesIO()
+            await self.scon.copy_from_query(
+                """
+                SELECT title, pages FROM public."Book" ORDER BY pages
+                """,
+                output=out,
+                format="csv",
+                delimiter="\t",
+            )
+            out = io.StringIO(out.getvalue().decode("utf-8"))
+            res = list(csv.reader(out, delimiter="\t"))
 
-        out = io.BytesIO()
-        await self.scon.copy_from_query(
-            """
-            SELECT title, pages FROM public."Book" ORDER BY pages
-            """,
-            output=out,
-            format="csv",
-            delimiter="\t",
-        )
-        out = io.StringIO(out.getvalue().decode("utf-8"))
-        res = list(csv.reader(out, delimiter="\t"))
+            self.assertEqual(
+                res,
+                [
+                    ['Chronicles of Narnia', '206'],
+                    ['Hunger Games', '374'],
+                ],
+            )
 
-        self.assertEqual(
-            res,
-            [
-                ['Chronicles of Narnia', '206'],
-                ['Hunger Games', '374'],
-            ],
-        )
-
+    @tb.needs_pg_wire
     async def test_sql_query_copy_07(self):
         # copy using globals in a computed
 
-        await self.scon.execute(
-            'SET LOCAL "global default::username_prefix" TO user_;'
-        )
+        await self.con.execute("SET GLOBAL default::username_prefix := 'user_'")
 
         with self.assertRaisesRegex(
             asyncpg.FeatureNotSupportedError,
@@ -2344,6 +2331,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         #     ),
         # )
 
+    @tb.needs_pg_wire
     async def test_sql_query_copy_08(self):
         # copy using params
 
@@ -2456,6 +2444,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             )
 
     @unittest.skip("this test flakes: #5783")
+    @tb.needs_pg_wire
     async def test_sql_query_prepare_01(self):
         await self.scon.execute(
             """
@@ -2519,6 +2508,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             """,
         )
 
+    @tb.needs_pg_wire
     async def test_sql_query_prepare_error_01(self):
         query = "PREPARE pserr1 AS (SELECT * FROM \"Movie\" ORDER BY 1 + 'a')"
         with self.assertRaisesRegex(
@@ -2528,9 +2518,11 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         ):
             await self.scon.execute(query)
 
+    @tb.needs_pg_wire
     async def test_sql_query_empty(self):
         await self.scon.executemany('', args=[])
 
+    @tb.needs_pg_wire
     async def test_sql_query_pgadmin_hack(self):
         await self.scon.execute("SET DateStyle=ISO;")
         await self.scon.execute("SET client_min_messages=notice;")
@@ -2653,11 +2645,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_computed_10(self):
         # globals
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::username_prefix" TO user_;
-            """
-        )
+        await self.con.execute("SET GLOBAL default::username_prefix := 'user_'")
 
         res = await self.squery_values(
             """
@@ -2670,17 +2658,16 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_computed_11(self):
         # globals
 
-        await self.scon.execute(
-            f"""
-            SET LOCAL "global glob_mod::glob_str" TO hello;
-            SET LOCAL "global glob_mod::glob_uuid" TO
-                'f527c032-ad4c-461e-95e2-67c4e2b42ca7';
-            SET LOCAL "global glob_mod::glob_int64" TO 42;
-            SET LOCAL "global glob_mod::glob_int32" TO 42;
-            SET LOCAL "global glob_mod::glob_int16" TO 42;
-            SET LOCAL "global glob_mod::glob_bool" TO 1;
-            SET LOCAL "global glob_mod::glob_float64" TO 42.1;
-            SET LOCAL "global glob_mod::glob_float32" TO 42.1;
+        await self.con.execute(
+            """
+            SET GLOBAL glob_mod::glob_str := 'hello';
+            SET GLOBAL glob_mod::glob_uuid := <uuid>'f527c032-ad4c-461e-95e2-67c4e2b42ca7';
+            SET GLOBAL glob_mod::glob_int64 := 42;
+            SET GLOBAL glob_mod::glob_int32 := 42;
+            SET GLOBAL glob_mod::glob_int16 := 42;
+            SET GLOBAL glob_mod::glob_bool := true;
+            SET GLOBAL glob_mod::glob_float64 := 42.1;
+            SET GLOBAL glob_mod::glob_float32 := 42.1;
             """
         )
         await self.scon.execute('INSERT INTO glob_mod."G" DEFAULT VALUES')
@@ -2724,10 +2711,10 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[None, None]])
 
-        await self.scon.execute(
-            f"""
-            SET LOCAL "global glob_mod::a" TO hello;
-            SET LOCAL "global glob_mod::b" TO no;
+        await self.con.execute(
+            """
+            SET GLOBAL glob_mod::a := 'hello';
+            SET GLOBAL glob_mod::b := false;
             """
         )
 
@@ -2738,15 +2725,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [["hello", False]])
 
+    @tb.needs_pg_wire
     async def test_sql_query_computed_13(self):
         # globals bool values
 
         async def query_glob_bool(value: str) -> bool:
-            await self.scon.execute(
-                f"""
-                SET LOCAL "global glob_mod::b" TO {value};
-                """
-            )
+            await self.con.execute("SET GLOBAL glob_mod::b := {value}")
             res = await self.squery_values(
                 '''
                 SELECT b FROM glob_mod."Computed"
@@ -2796,11 +2780,11 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-        res = await self.squery_values(query)
-        self.assertEqual(
-            res, [["Robin", False], ["Steven", True], ["Tom", False]]
-        )
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(
+                res, [["Robin", False], ["Steven", True], ["Tom", False]]
+            )
 
     async def test_sql_query_access_policy_01(self):
         # access policies applied
@@ -2810,8 +2794,8 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # access policies use globals
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Forrest Gump'"""
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Forrest Gump'"
         )
         res = await self.squery_values(
             'SELECT title FROM "Content" ORDER BY title'
@@ -2819,21 +2803,20 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [['Forrest Gump']])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(
-            'SELECT title FROM "Content" ORDER BY title'
-        )
-        self.assertEqual(
-            res,
-            [
-                ['Chronicles of Narnia'],
-                ['Forrest Gump'],
-                ['Halo 3'],
-                ['Hunger Games'],
-                ['Saving Private Ryan'],
-            ],
-        )
+        async with self.without_access_policies():
+            res = await self.squery_values(
+                'SELECT title FROM "Content" ORDER BY title'
+            )
+            self.assertEqual(
+                res,
+                [
+                    ['Chronicles of Narnia'],
+                    ['Forrest Gump'],
+                    ['Halo 3'],
+                    ['Hunger Games'],
+                    ['Saving Private Ryan'],
+                ],
+            )
 
     async def test_sql_query_access_policy_02(self):
         # access policies from computeds
@@ -2843,33 +2826,30 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [[0]])
 
         # access policies use globals
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Forrest Gump'"""
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Forrest Gump'"
         )
         res = await self.squery_values('SELECT x FROM "ContentSummary"')
         self.assertEqual(res, [[1]])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values('SELECT x FROM "ContentSummary"')
-        self.assertEqual(res, [[5]])
+        async with self.without_access_policies():
+            res = await self.squery_values('SELECT x FROM "ContentSummary"')
+            self.assertEqual(res, [[5]])
 
     async def test_sql_query_access_policy_03a(self):
         # access policies for dml
 
         # allowed when filter_title == 'summary'
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'summary'"""
-        )
+        await self.con.execute("SET GLOBAL default::filter_title := 'summary'")
         await self.scon.execute('INSERT INTO "ContentSummary" DEFAULT VALUES')
 
     async def test_sql_query_access_policy_03b(self):
         # access policies for dml
 
         # not allowed when filter_title is something else
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'something else'"""
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'something else'"
         )
         with self.assertRaisesRegex(
             asyncpg.exceptions.InsufficientPrivilegeError,
@@ -2883,93 +2863,79 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # access policies for dml
 
         # allowed with no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        await self.scon.execute('INSERT INTO "ContentSummary" DEFAULT VALUES')
+        async with self.without_access_policies():
+            await self.scon.execute(
+                'INSERT INTO "ContentSummary" DEFAULT VALUES'
+            )
 
     async def test_sql_query_access_policy_04(self):
         # access policies without inheritance
 
         # there is only one object that is of exactly type Content
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Halo 3'"""
-        )
+        await self.con.execute("SET GLOBAL default::filter_title := 'Halo 3'")
         res = await self.squery_values('SELECT * FROM ONLY "Content"')
         self.assertEqual(len(res), 1)
 
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Forrest Gump'"""
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Forrest Gump'"
         )
         res = await self.squery_values('SELECT * FROM ONLY "Content"')
         self.assertEqual(len(res), 0)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values('SELECT * FROM ONLY "Content"')
-        self.assertEqual(len(res), 1)
+        async with self.without_access_policies():
+            res = await self.squery_values('SELECT * FROM ONLY "Content"')
+            self.assertEqual(len(res), 1)
 
     async def test_sql_query_access_policy_05(self):
         # access policies on link tables
 
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Forrest Gump'"""
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Forrest Gump'"
         )
         res = await self.squery_values('SELECT * FROM "Movie.actors"')
         self.assertEqual(len(res), 2)
 
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Halo 3'"""
-        )
+        await self.con.execute("SET GLOBAL default::filter_title := 'Halo 3'")
         res = await self.squery_values('SELECT * FROM "Movie.actors"')
         self.assertEqual(len(res), 0)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values('SELECT * FROM "Movie.actors"')
-        self.assertEqual(len(res), 3)
+        async with self.without_access_policies():
+            res = await self.squery_values('SELECT * FROM "Movie.actors"')
+            self.assertEqual(len(res), 3)
 
     async def test_sql_query_access_policy_06(self):
         # access policies on multi-property tables
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::filter_title" TO 'Chronicles of Narnia'
-            """
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Chronicles of Narnia'"
         )
         res = await self.squery_values('SELECT * FROM "Book.chapters"')
         self.assertEqual(len(res), 4)
 
-        await self.scon.execute(
-            """SET LOCAL "global default::filter_title" TO 'Halo 3'"""
-        )
+        await self.con.execute("SET GLOBAL default::filter_title := 'Halo 3'")
         res = await self.squery_values('SELECT * FROM "Book.chapters"')
         self.assertEqual(len(res), 0)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values('SELECT * FROM "Book.chapters"')
-        self.assertEqual(len(res), 7)
+        async with self.without_access_policies():
+            res = await self.squery_values('SELECT * FROM "Book.chapters"')
+            self.assertEqual(len(res), 7)
 
     async def test_sql_query_access_policy_07(self):
         # access policies on multi-property tables, without inheritance
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::filter_title" TO 'Hunger Games'
-            """
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Hunger Games'"
         )
         res = await self.squery_values('SELECT * FROM ONLY "Book.chapters"')
         self.assertEqual(len(res), 0)  # Hunger Games is a novel, does not count
         res = await self.squery_values('SELECT * FROM ONLY "novel.chapters"')
         self.assertEqual(len(res), 3)
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::filter_title" TO 'Chronicles of Narnia'
-            """
+        await self.con.execute(
+            "SET GLOBAL default::filter_title := 'Chronicles of Narnia'"
         )
         res = await self.squery_values('SELECT * FROM ONLY "Book.chapters"')
         self.assertEqual(len(res), 4)
@@ -2977,10 +2943,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(len(res), 0)
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values('SELECT * FROM ONLY "Book.chapters"')
-        self.assertEqual(len(res), 4)  # from Chronicles of Narnia
+        async with self.without_access_policies():
+            res = await self.squery_values('SELECT * FROM ONLY "Book.chapters"')
+            self.assertEqual(len(res), 4)  # from Chronicles of Narnia
 
     async def test_sql_query_subquery_splat_01(self):
         query = '''
@@ -2993,13 +2958,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [])
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        res = await self.squery_values(query)
-        self.assertEqual(
-            res,
-            [[206]],
-        )
+        async with self.without_access_policies():
+            res = await self.squery_values(query)
+            self.assertEqual(
+                res,
+                [[206]],
+            )
 
     async def test_sql_query_having_01(self):
         res = await self.squery_values(
@@ -3038,26 +3002,25 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_locking_00(self):
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            # Movie is allowed because it has no sub-types and access policies are
+            # not enabled.
+            await self.squery_values(
+                '''
+                SELECT id FROM "Movie" LIMIT 1 FOR UPDATE;
+                '''
+            )
 
-        # Movie is allowed because it has no sub-types and access policies are
-        # not enabled.
-        await self.squery_values(
-            '''
-            SELECT id FROM "Movie" LIMIT 1 FOR UPDATE;
-            '''
-        )
-
-        await self.squery_values(
-            '''
-            SELECT id FROM "Movie" LIMIT 1 FOR NO KEY UPDATE NOWAIT;
-            '''
-        )
-        await self.squery_values(
-            '''
-            SELECT id FROM "Movie" LIMIT 1 FOR KEY SHARE SKIP LOCKED;
-            '''
-        )
+            await self.squery_values(
+                '''
+                SELECT id FROM "Movie" LIMIT 1 FOR NO KEY UPDATE NOWAIT;
+                '''
+            )
+            await self.squery_values(
+                '''
+                SELECT id FROM "Movie" LIMIT 1 FOR KEY SHARE SKIP LOCKED;
+                '''
+            )
 
     async def test_sql_query_locking_01(self):
         # fail because sub-types
@@ -3076,9 +3039,6 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             asyncpg.FeatureNotSupportedError,
             "locking clause not supported",
         ):
-            await self.scon.execute(
-                'SET LOCAL apply_access_policies_pg TO TRUE'
-            )
             await self.squery_values(
                 '''
                 SELECT id FROM "Movie" LIMIT 1 FOR UPDATE;
@@ -3087,32 +3047,31 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_locking_02(self):
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        # we are locking just Movie
-        await self.squery_values(
-            '''
-            SELECT * FROM "Movie", "Content" LIMIT 1 FOR UPDATE OF "Movie";
-            '''
-        )
-
-        # we are locking just Movie
-        await self.squery_values(
-            '''
-            SELECT * FROM "Movie" m, "Content" LIMIT 1 FOR UPDATE OF m;
-            '''
-        )
-
-        # we are locking just Content
-        with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
-            "locking clause not supported",
-        ):
+        async with self.without_access_policies():
+            # we are locking just Movie
             await self.squery_values(
                 '''
-                SELECT * FROM "Movie", "Content" c LIMIT 1 FOR UPDATE OF c;
+                SELECT * FROM "Movie", "Content" LIMIT 1 FOR UPDATE OF "Movie";
                 '''
             )
+
+            # we are locking just Movie
+            await self.squery_values(
+                '''
+                SELECT * FROM "Movie" m, "Content" LIMIT 1 FOR UPDATE OF m;
+                '''
+            )
+
+            # we are locking just Content
+            with self.assertRaisesRegex(
+                asyncpg.FeatureNotSupportedError,
+                "locking clause not supported",
+            ):
+                await self.squery_values(
+                    '''
+                    SELECT * FROM "Movie", "Content" c LIMIT 1 FOR UPDATE OF c;
+                    '''
+                )
 
     async def test_sql_query_locking_03(self):
         # allowed, but this won't lock anything
@@ -3123,15 +3082,14 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
 
         # no access policies
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
-
-        # allowed, will not lock Content
-        await self.squery_values(
-            '''
-            WITH c AS (SELECT * FROM "Content")
-            SELECT * FROM "Movie" FOR UPDATE;
-            '''
-        )
+        async with self.without_access_policies():
+            # allowed, will not lock Content
+            await self.squery_values(
+                '''
+                WITH c AS (SELECT * FROM "Content")
+                SELECT * FROM "Movie" FOR UPDATE;
+                '''
+            )
 
     async def test_sql_query_reparse_01(self):
         query = '''SELECT ('literal str'::text, 42::int)'''
@@ -3139,14 +3097,13 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         res1 = await self.squery_values(query)
 
         # force a reparse
-        await self.scon.execute('SET LOCAL apply_access_policies_pg TO false')
+        async with self.without_access_policies():
+            # re-run the same query, asyncpg should just issue a BIND message
+            # of the cached prepared statement, and Gel should reparse/recompile
+            # the original query.
+            res2 = await self.squery_values(query)
 
-        # re-run the same query, asyncpg should just issue a BIND message
-        # of the cached prepared statement, and Gel should reparse/recompile
-        # the original query.
-        res2 = await self.squery_values(query)
-
-        self.assertEqual(res1, res2)
+            self.assertEqual(res1, res2)
 
     async def test_sql_native_query_00(self):
         await self.assert_sql_query_result(
@@ -3468,6 +3425,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             [{'title': 'Forrest Gump'}],
         )
 
+    @tb.needs_pg_wire
     async def test_sql_native_query_16(self):
         async with self.assertRaisesRegexTx(
             edgedb.UnsupportedFeatureError,
@@ -3721,6 +3679,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
 
     TRANSACTION_ISOLATION = False
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_01(self):
         # initial state: search_path=public
         res = await self.squery_values('SHOW search_path;')
@@ -3744,6 +3703,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         res = await self.squery_values('SHOW search_path;')
         self.assertEqual(res, [["public"]])
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_02(self):
         # initial state: search_path=public
         res = await self.squery_values('SHOW search_path;')
@@ -3772,6 +3732,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         res = await self.squery_values('SHOW search_path;')
         self.assertEqual(res, [["public"]])
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_03(self):
         # initial state: search_path=public
         res = await self.squery_values('SHOW search_path;')
@@ -3794,6 +3755,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         res = await self.squery_values('SHOW search_path;')
         self.assertEqual(res, [["public"]])
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_04(self):
         # database settings allow_user_specified_ids & apply_access_policies_pg
         # should be unified over EdgeQL and SQL adapter
@@ -3867,6 +3829,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
 
         # setting cleanup not needed, since with end with the None, None
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_05(self):
         # IntervalStyle
         await self.scon.execute('SET IntervalStyle TO ISO_8601;')
@@ -3887,6 +3850,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, '+3-3 +700 +99:00:00')
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_06(self):
         # bytea_output
 
@@ -3898,6 +3862,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         res = await self.scon.fetchval("SELECT '\\x01abcdef01'::bytea::text")
         self.assertEqual(res, r'\001\253\315\357\001')
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_07(self):
         # enable_memoize
         await self.scon.execute('SET enable_memoize TO ye')
@@ -3908,6 +3873,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         res = await self.scon.fetchval("SELECT 'hello'")
         self.assertEqual(res, 'hello')
 
+    @tb.needs_pg_wire
     async def test_sql_query_set_08(self):
         # SET work_mem
         await self.scon.execute("SET work_mem TO '32MB'")
@@ -3990,6 +3956,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
 
         await con_other.close()
 
+    @tb.needs_pg_wire
     async def test_sql_transaction_01(self):
         await self.scon.execute(
             """
@@ -3999,6 +3966,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
             """,
         )
 
+    @tb.needs_pg_wire
     async def test_sql_transaction_02(self):
         await self.scon.execute("BEGIN")
         await self.scon.execute(
@@ -4010,6 +3978,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         v2 = await self.scon.fetchval("SHOW transaction_isolation")
         self.assertNotEqual(v1, v2)
 
+    @tb.needs_pg_wire
     async def test_sql_transaction_03(self):
         self.assertEqual(
             await self.scon.execute("BEGIN"),
@@ -4017,6 +3986,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         )
         await self.scon.execute("ROLLBACK")
 
+    @tb.needs_pg_wire
     async def test_sql_transaction_04(self):
         self.assertEqual(
             await self.scon.execute("START TRANSACTION"),
