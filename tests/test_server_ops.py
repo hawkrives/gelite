@@ -955,9 +955,13 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                     with self.assertChange(measure_sql_compilations(sd), 0):
                         await scon.query_sql('select 1')
 
-                    # compiler call, because config was changed
+                    # compiler call, because config was changed.
+                    # The frontend set apply_access_policies_pg to true
+                    # because SQL bypassed policies by default; the
+                    # general setting defaults the other way, so false is
+                    # the value that actually changes the cache key.
                     await scon.execute(
-                        'CONFIGURE SESSION SET apply_access_policies := true'
+                        'CONFIGURE SESSION SET apply_access_policies := false'
                     )
                     with self.assertChange(measure_sql_compilations(sd), 1):
                         await scon.query_sql('select 1')
