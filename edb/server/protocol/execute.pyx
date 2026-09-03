@@ -216,7 +216,6 @@ async def _parse(
     output_format: compiler.OutputFormat = compiler.OutputFormat.BINARY,
     allow_capabilities: compiler.Capability = compiler.Capability.MODIFICATIONS,
     use_metrics: bool = True,
-    cached_globally: bool = False,
     query_cache_enabled: Optional[bool] = None,
 ) -> tuple[
     rpc.CompilationRequest,
@@ -245,7 +244,6 @@ async def _parse(
 
     compiled = await dbv.parse(
         query_req,
-        cached_globally=cached_globally,
         use_metrics=use_metrics,
         allow_capabilities=allow_capabilities,
     )
@@ -949,12 +947,6 @@ async def parse_execute_json(
     session_config: Optional[Mapping[str, Any]] = None,
     output_format: compiler.OutputFormat = compiler.OutputFormat.JSON,
     query_cache_enabled: Optional[bool] = None,
-    # WARNING: only set cached_globally to True when the query is
-    # strictly referring to only shared stable objects in user schema
-    # or anything from std schema, for example:
-    #     YES:  select cfg::Config { ... }
-    #     NO:   select default::User { ... }
-    cached_globally: bool = False,
     use_metrics: bool = True,
     tx_isolation: edbdef.TxIsolationLevel | None = None,
     query_tag: str | None = None,
@@ -976,7 +968,6 @@ async def parse_execute_json(
         output_format=output_format,
         allow_capabilities=compiler.Capability.MODIFICATIONS,
         use_metrics=use_metrics,
-        cached_globally=cached_globally,
     )
     if query_tag:
         compiled.tag = query_tag

@@ -1421,7 +1421,6 @@ cdef class DatabaseConnectionView:
     async def parse(
         self,
         query_req: rpc.CompilationRequest,
-        cached_globally: bint = False,
         use_metrics: bint = True,
         allow_capabilities: uint64_t = <uint64_t>compiler.Capability.ALL,
         pgcon: pgcon.PGConnection | None = None,
@@ -1430,17 +1429,7 @@ cdef class DatabaseConnectionView:
     ) -> CompiledQuery:
         query_unit_group = None
         if self._query_cache_enabled:
-            if cached_globally:
-                # WARNING: only set cached_globally to True when the query is
-                # strictly referring to only shared stable objects in user
-                # schema or anything from std schema, for example:
-                #     YES:  select cfg::Config { ... }
-                #     NO:   select default::User { ... }
-                query_unit_group = (
-                    self.server.system_compile_cache.get(query_req)
-                )
-            else:
-                query_unit_group = self.lookup_compiled_query(query_req)
+            query_unit_group = self.lookup_compiled_query(query_req)
 
             # Fast-path to skip all the locks if it's a cache HIT
             if query_unit_group is not None:
@@ -1452,10 +1441,7 @@ cdef class DatabaseConnectionView:
 
         # Lock on the query compilation to avoid other coroutines running
         # the same compile and waste computational resources
-        if cached_globally:
-            lock_table = self.server.system_compile_cache_locks
-        else:
-            lock_table = self._db._cache_locks
+        lock_table = self._db._cache_locks
         while True:
             # We need a loop here because schema_version is a part of the key,
             # there could be a DDL while we're waiting for the lock.
@@ -1477,12 +1463,7 @@ cdef class DatabaseConnectionView:
         try:
             # Check the cache again with the lock acquired
             if self._query_cache_enabled:
-                if cached_globally:
-                    query_unit_group = (
-                        self.server.system_compile_cache.get(query_req)
-                    )
-                else:
-                    query_unit_group = self.lookup_compiled_query(query_req)
+                query_unit_group = self.lookup_compiled_query(query_req)
                 if query_unit_group is not None:
                     return self.as_compiled(
                         query_req, query_unit_group, use_metrics)
@@ -1534,12 +1515,7 @@ cdef class DatabaseConnectionView:
                 )
 
             if self._query_cache_enabled and query_unit_group.cacheable:
-                if cached_globally:
-                    self.server.system_compile_cache[query_req] = (
-                        query_unit_group
-                    )
-                else:
-                    self.cache_compiled_query(query_req, query_unit_group)
+                self.cache_compiled_query(query_req, query_unit_group)
         finally:
             if lock is not None:
                 lock.release()
