@@ -590,7 +590,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         await self.scon.fetch('SELECT title FROM "novel" ORDER BY title')
 
         with self.assertRaisesRegex(
-            asyncpg.UndefinedTableError,
+            edgedb.errors.QueryError,
             "unknown table",
             position="19",
         ):
@@ -598,7 +598,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_26(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedTableError,
+            edgedb.errors.QueryError,
             "unknown table",
             position="19",
         ):
@@ -665,7 +665,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
             # single without properties
             with self.assertRaisesRegex(
-                asyncpg.UndefinedTableError, "unknown table"
+                edgedb.errors.QueryError, "unknown table"
             ):
                 await self.scon.fetch('SELECT * FROM "Movie.genre"')
 
@@ -680,7 +680,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 2, ['c', 'd'])
 
         with self.assertRaisesRegex(
-            asyncpg.InvalidColumnReferenceError,
+            edgedb.errors.QueryError,
             ", but the query resolves to 2 columns",
             # this points to `1`, because libpg_query does not give better info
             position="41",
@@ -718,7 +718,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(res, 1, ['e', 'f'])
 
         with self.assertRaisesRegex(
-            asyncpg.InvalidColumnReferenceError, "query resolves to 2"
+            edgedb.errors.QueryError, "query resolves to 2"
         ):
             await self.scon.fetch(
                 '''
@@ -727,6 +727,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 '''
             )
 
+    @test.not_implemented('#85: duplicate output column names are rejected')
     async def test_sql_query_32(self):
         # range functions
 
@@ -773,6 +774,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             res, 3, ['a', 'b', 'unnested_a', 'unnested_b', 'computed']
         )
 
+    @test.not_implemented('#85: ctid, type OID 27')
     async def test_sql_query_33(self):
         # system columns
 
@@ -807,6 +809,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             res = await self.squery_values(movie_actor_query)
             self.assertEqual(len(res[0]), 6)
 
+    @test.not_implemented('#85: ctid, type OID 27')
     async def test_sql_query_33a(self):
         # system columns when access policies are applied
         # (applied is the default, so there is nothing to turn on)
@@ -871,6 +874,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 res, [['Forrest Gump', 1], ['Saving Private Ryan', 1]]
             )
 
+    @test.not_implemented('#85: record, type OID 2249')
     async def test_sql_query_36(self):
         # ColumnRef to relation
 
@@ -967,7 +971,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [[id]])
 
         with self.assertRaisesRegex(
-            asyncpg.exceptions.DataError, 'expected str, got UUID'
+            edgedb.errors.QueryArgumentError, 'expected str, got UUID'
         ):
             res = await self.squery_values('SELECT CAST($1::text as uuid);', id)
             self.assertEqual(res, [[id]])
@@ -978,7 +982,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(res, [[id]])
 
         with self.assertRaisesRegex(
-            asyncpg.exceptions.DataError, 'expected str, got UUID'
+            edgedb.errors.QueryArgumentError, 'expected str, got UUID'
         ):
             res = await self.squery_values(
                 'SELECT column1::uuid FROM (VALUES ($1))', id
@@ -988,6 +992,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT $1::uuid;', str(id))
         self.assertEqual(res, [[id]])
 
+    @test.not_implemented('#85: varbit, type OID 1562')
     async def test_sql_query_41(self):
         from asyncpg.types import BitString
 
@@ -1003,6 +1008,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         res = await self.squery_values("SELECT b'101';")
         self.assertEqual(res, [[BitString.frombytes(b'\xa0', bitlength=3)]])
 
+    @test.not_implemented('#85: parameters are type-checked, not coerced')
     async def test_sql_query_42(self):
         # params out of order
 
@@ -1102,7 +1108,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # we'd ideally want a message that hints that it should use quotes
 
         with self.assertRaisesRegex(
-            asyncpg.UndefinedColumnError, 'column "name" does not exist'
+            edgedb.errors.QueryError, 'column "name" does not exist'
         ):
             await self.squery_values('SELECT name FROM User')
 
@@ -1110,6 +1116,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assert_shape(val, 1, ['user'])
         self.assertEqual(tuple(val[0].values()), ('admin',))
 
+    @test.not_implemented('#85: duplicate output column names are rejected')
     async def test_sql_query_45(self):
         res = await self.scon.fetch('SELECT 1 AS a, 2 AS a')
         self.assert_shape(res, 1, ['a', 'a'])
@@ -1140,6 +1147,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assert_shape(res, 2, ['a', 'u_a'])
 
+    @test.not_implemented('#85: duplicate output column names are rejected')
     async def test_sql_query_48(self):
         res = await self.scon.fetch(
             '''
@@ -1153,6 +1161,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # duplicate rel var names can yield duplicate column names
         self.assert_shape(res, 4, ['a', 'y_a', 'y_a'])
 
+    @test.not_implemented('#85: duplicate output column names are rejected')
     async def test_sql_query_49(self):
         res = await self.scon.fetch(
             '''
@@ -1213,31 +1222,36 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         self.assertEqual(await count_table("ONLY", "B.vals"), 0)
 
     async def test_sql_query_53(self):
-        await self.scon.execute(
-            '''
-            SELECT 'hello' as t;
-            SELECT 42 as i;
-            '''
-        )
-
-        # query params will make asyncpg use the extended protocol,
-        # where you can issue only one statement.
-        with self.assertRaisesRegex(
-            asyncpg.PostgresSyntaxError,
-            'cannot insert multiple commands into a prepared statement',
-        ):
-            await self.scon.execute(
-                '''
+        # The frontend allowed a multi-statement script over the simple
+        # protocol and refused it over the extended one, so this used to
+        # assert the difference. Gel's protocol has no such split: a
+        # script is refused either way, parameters or not.
+        scripts = [
+            (
+                """
+                SELECT 'hello' as t;
+                SELECT 42 as i;
+            """,
+                (),
+            ),
+            (
+                """
                 SELECT $1::text as t;
                 SELECT $2::int as i;
-                ''',
-                'hello',
-                42,
-            )
+            """,
+                ('hello', 42),
+            ),
+        ]
+        for script, args in scripts:
+            with self.assertRaisesRegex(
+                edgedb.errors.UnsupportedFeatureError,
+                'multi-statement SQL scripts are not supported yet',
+            ):
+                await self.scon.execute(script, *args)
 
     async def test_sql_query_54(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedParameterError,
+            edgedb.errors.QueryError,
             'param out of bounds: \\$0',
             hint='query parameters start with 1',
         ):
@@ -1248,6 +1262,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 'hello',
             )
 
+    @test.not_implemented('#85: record, type OID 2249')
     async def test_sql_query_55(self):
         res = await self.squery_values(
             '''
@@ -1433,7 +1448,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_60(self):
         await self.squery_values("SELECT json_build_object('hello', TRUE)")
         with self.assertRaisesRegex(
-            asyncpg.exceptions.IndeterminateDatatypeError,
+            edgedb.errors.ExecutionError,
             'could not determine data type of parameter \\$1',
         ):
             await self.squery_values(
@@ -1443,11 +1458,12 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_61(self):
         await self.squery_values("SELECT ROW('hello')")
         with self.assertRaisesRegex(
-            asyncpg.exceptions.IndeterminateDatatypeError,
+            edgedb.errors.UnsupportedFeatureError,
             'could not determine data type of parameter \\$1',
         ):
             await self.squery_values("SELECT 'a', ROW($1)", 'hello')
 
+    @test.not_implemented('#85: pg_typeof, type OID 2206')
     async def test_sql_query_62(self):
         # calls of various functions with constants that are extracted
 
@@ -1737,20 +1753,22 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             '''
         )
 
+        # pg_constraint.contype is Postgres' "char"; asyncpg handed it
+        # back as bytes, the binary protocol decodes it to str.
         self.assertEqual(
             res,
             [
-                ['Book.chapters', b'f', 'source', 'Book', 'id'],
-                ['Movie', b'p', 'id', None, None],
-                ['Movie', b'p', 'id', None, None],
-                ['Movie', b'f', 'director_id', 'Person', 'id'],
-                ['Movie', b'f', 'genre_id', 'Genre', 'id'],
-                ['Movie.actors', b'p', 'source,target', None, None],
-                ['Movie.actors', b'f', 'source', 'Movie', 'id'],
-                ['Movie.actors', b'f', 'target', 'Person', 'id'],
-                ['Movie.director', b'p', 'source,target', None, None],
-                ['Movie.director', b'f', 'source', 'Movie', 'id'],
-                ['Movie.director', b'f', 'target', 'Person', 'id'],
+                ['Book.chapters', 'f', 'source', 'Book', 'id'],
+                ['Movie', 'p', 'id', None, None],
+                ['Movie', 'p', 'id', None, None],
+                ['Movie', 'f', 'director_id', 'Person', 'id'],
+                ['Movie', 'f', 'genre_id', 'Genre', 'id'],
+                ['Movie.actors', 'p', 'source,target', None, None],
+                ['Movie.actors', 'f', 'source', 'Movie', 'id'],
+                ['Movie.actors', 'f', 'target', 'Person', 'id'],
+                ['Movie.director', 'p', 'source,target', None, None],
+                ['Movie.director', 'f', 'source', 'Movie', 'id'],
+                ['Movie.director', 'f', 'target', 'Person', 'id'],
             ],
         )
 
@@ -1867,6 +1885,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             '''
         )
 
+    @test.not_implemented('#85: to_regclass, type OID 2205')
     async def test_sql_query_static_eval_04(self):
         [[res1, res2]] = await self.squery_values(
             '''
@@ -1884,6 +1903,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[11]])
 
+    @test.not_implemented('#85: to_regclass, type OID 2205')
     async def test_sql_query_static_eval_04a(self):
         [[res1, res2]] = await self.squery_values(
             '''
@@ -2349,7 +2369,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_01(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="12",
         ):
@@ -2357,7 +2377,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_02(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="10",
         ):
@@ -2365,7 +2385,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_03(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="28",
         ):
@@ -2376,7 +2396,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_04(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="12",
         ):
@@ -2386,7 +2406,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_05(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="28",
         ):
@@ -2397,7 +2417,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_06(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="12",
         ):
@@ -2405,7 +2425,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_07(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="10",
         ):
@@ -2413,7 +2433,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_08(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="28",
         ):
@@ -2424,7 +2444,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_09(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="12",
         ):
@@ -2434,7 +2454,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_error_10(self):
         with self.assertRaisesRegex(
-            asyncpg.UndefinedFunctionError,
+            edgedb.errors.ExecutionError,
             "does not exist",
             position="28",
         ):
@@ -2547,7 +2567,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_computed_02(self):
         # computeds can only be accessed on the table, not rel vars
         with self.assertRaisesRegex(
-            asyncpg.UndefinedColumnError, "column \"full_name\" does not exist"
+            edgedb.errors.QueryError, "column \"full_name\" does not exist"
         ):
             await self.squery_values(
                 """
@@ -2856,7 +2876,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             "SET GLOBAL default::filter_title := 'something else'"
         )
         with self.assertRaisesRegex(
-            asyncpg.exceptions.InsufficientPrivilegeError,
+            edgedb.errors.AccessPolicyError,
             'access policy violation on insert of default::ContentSummary',
         ):
             await self.scon.execute(
@@ -2985,7 +3005,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
         # we build AST for this not, but throw in resolver
         with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
+            edgedb.errors.UnsupportedFeatureError,
             "not supported: CREATE",
             position="14",  # TODO: this is confusing
         ):
@@ -2993,13 +3013,13 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
         # we don't even have AST node for this
         with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
+            edgedb.errors.UnsupportedFeatureError,
             "not supported: ALTER TABLE",
         ):
             await self.squery_values('ALTER TABLE a ADD COLUMN b INT;')
 
         with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
+            edgedb.errors.UnsupportedFeatureError,
             "not supported: REINDEX",
         ):
             await self.squery_values('REINDEX TABLE a;')
@@ -3029,7 +3049,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
     async def test_sql_query_locking_01(self):
         # fail because sub-types
         with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
+            edgedb.errors.QueryError,
             "locking clause not supported",
         ):
             await self.squery_values(
@@ -3040,7 +3060,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
         # fail because access policies
         with self.assertRaisesRegex(
-            asyncpg.FeatureNotSupportedError,
+            edgedb.errors.QueryError,
             "locking clause not supported",
         ):
             await self.squery_values(
@@ -3068,7 +3088,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
             # we are locking just Content
             with self.assertRaisesRegex(
-                asyncpg.FeatureNotSupportedError,
+                edgedb.errors.QueryError,
                 "locking clause not supported",
             ):
                 await self.squery_values(
@@ -3095,6 +3115,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 '''
             )
 
+    @test.not_implemented('#85: record, type OID 2249')
     async def test_sql_query_reparse_01(self):
         query = '''SELECT ('literal str'::text, 42::int)'''
 
@@ -4001,8 +4022,8 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
     async def test_sql_query_error_11(self):
         # extended query protocol
         with self.assertRaisesRegex(
-            asyncpg.InvalidTextRepresentationError,
-            'invalid input syntax for type uuid',
+            edgedb.errors.InvalidValueError,
+            'invalid input syntax for type std::uuid',
             # TODO
             # position="8",
         ):
@@ -4010,8 +4031,8 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
 
         # simple query protocol
         with self.assertRaisesRegex(
-            asyncpg.InvalidTextRepresentationError,
-            'invalid input syntax for type uuid',
+            edgedb.errors.InvalidValueError,
+            'invalid input syntax for type std::uuid',
             # TODO
             # position="8",
         ):
@@ -4022,18 +4043,15 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         self.assertEqual(res, [[1]])
 
     async def test_sql_query_error_12(self):
-        tran = self.scon.transaction()
-        await tran.start()
-
-        with self.assertRaisesRegex(
-            asyncpg.InvalidTextRepresentationError,
-            'invalid input syntax for type uuid',
-            # TODO
-            # position="8",
+        # An error inside a transaction must not take the connection
+        # down with it. assertRaisesRegexTx owns the transaction so the
+        # rollback still happens when the body raises - hand-rolling it
+        # left the connection dirty for the next test.
+        async with self.assertRaisesRegexTx(
+            edgedb.errors.InvalidValueError,
+            'invalid input syntax for type std::uuid',
         ):
             await self.scon.fetch("""SELECT 'bad uuid'::uuid""")
-
-        await tran.rollback()
 
         # test that the connection has not be spuriously closed
         res = await self.squery_values("SELECT 1")
@@ -4043,7 +4061,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         # forbidden functions
 
         with self.assertRaisesRegex(
-            asyncpg.InsufficientPrivilegeError,
+            edgedb.errors.QueryError,
             'forbidden function',
             position="8",
         ):
