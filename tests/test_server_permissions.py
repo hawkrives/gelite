@@ -21,6 +21,7 @@ import json
 import edgedb
 
 from edb.testbase import connection as tconn
+from edb.tools import test
 from edb.testbase import server as server_tb
 from edb.testbase import http as tb
 
@@ -980,8 +981,6 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
     async def test_server_permissions_sql_dml_01(self):
         # Non-superuser cannot use INSERT statements
 
-        import asyncpg
-
         await self.con.query('''
             CREATE TYPE Widget {
                 CREATE PROPERTY n -> int64;
@@ -999,7 +998,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
 
             with self.assertRaisesRegex(
-                asyncpg.exceptions.InternalServerError,
+                edgedb.errors.DisabledCapabilityError,
                 'cannot execute data modification queries: '
                 'role foo does not have permission',
             ):
@@ -1008,7 +1007,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 """)
 
             with self.assertRaisesRegex(
-                asyncpg.exceptions.InternalServerError,
+                edgedb.errors.DisabledCapabilityError,
                 'cannot execute data modification queries: '
                 'role foo does not have permission',
             ):
@@ -1263,8 +1262,6 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
     async def test_server_permissions_sql_access_policy_02(self):
         # DML access policies using permissions
 
-        import asyncpg
-
         await self.con.query('''
             CREATE PERMISSION WidgetInserter;
             CREATE TYPE Widget {
@@ -1318,7 +1315,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 password='secret',
             )
             with self.assertRaisesRegex(
-                asyncpg.exceptions.InsufficientPrivilegeError,
+                edgedb.errors.AccessPolicyError,
                 'access policy violation on insert of default::Widget',
             ):
                 await conn_no_perm.execute(
@@ -1521,6 +1518,11 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 CONFIGURE CURRENT BRANCH RESET cfg::apply_access_policies_pg;
             ''')
 
+    @test.not_implemented(
+        '#87: apply_access_policies_pg and its per-role default belonged'
+        ' to the frontend; the binary path reads the general'
+        ' apply_access_policies instead'
+    )
     async def test_server_permissions_sql_access_policy_05(self):
         # Test the apply_access_policies_pg_default role field...
 
@@ -1590,9 +1592,12 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             ''')
 
     async def test_server_permissions_sql_config_01(self):
-        # Non-superuser cannot use SET statements
-
-        import asyncpg
+        # Non-superuser cannot use SET statements.
+        #
+        # On the binary protocol SQL `SET` is refused outright rather
+        # than by permission - compile_sql_as_unit_group rebuilds the
+        # SQL session state per compile, so there is nothing to set. The
+        # refusal still holds, for a broader reason than the permission.
 
         await self.con.query('''
             CREATE ROLE foo {
@@ -1606,23 +1611,15 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 password='secret',
             )
 
-            with self.assertRaisesRegex(
-                asyncpg.exceptions.InternalServerError,
-                'cannot execute sql session configuration commands: '
-                'role foo does not have permission',
+            for stmt in (
+                "SET LOCAL transaction_isolation TO 'serializable'",
+                "SET SESSION transaction_isolation TO 'serializable'",
             ):
-                await conn.execute("""
-                    SET LOCAL transaction_isolation TO 'serializable'
-                """)
-
-            with self.assertRaisesRegex(
-                asyncpg.exceptions.InternalServerError,
-                'cannot execute sql session configuration commands: '
-                'role foo does not have permission',
-            ):
-                await conn.execute("""
-                    SET SESSION transaction_isolation TO 'serializable'
-                """)
+                with self.assertRaisesRegex(
+                    edgedb.errors.UnsupportedFeatureError,
+                    'not supported: VARIABLE SET',
+                ):
+                    await conn.execute(stmt)
 
         finally:
             await conn.close()
@@ -1630,6 +1627,10 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
                 DROP ROLE foo;
             ''')
 
+    @test.not_implemented(
+        '#85: SQL SET is unsupported on the binary protocol, so'
+        ' sys::perm::sql_session_config cannot be exercised through it'
+    )
     async def test_server_permissions_sql_config_02(self):
         # Non-superuser can use SET statements
         # with sys::perm::sql_session_config
@@ -1735,8 +1736,6 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
     async def test_server_permissions_sql_config_05(self):
         # Non-superuser cannot use sql_config
 
-        import asyncpg
-
         await self.con.query('''
             CREATE ROLE foo {
                 SET password := 'secret';
@@ -1750,7 +1749,7 @@ class TestServerPermissionsSQL(server_tb.SQLQueryTestCase):
             )
 
             with self.assertRaisesRegex(
-                asyncpg.exceptions.InternalServerError,
+                edgedb.errors.DisabledCapabilityError,
                 'cannot execute sql session configuration commands: '
                 'role foo does not have permission',
             ):

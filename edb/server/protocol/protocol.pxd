@@ -59,7 +59,6 @@ cdef class HttpProtocol:
         object transport
         object unprocessed
         object sslctx
-        object sslctx_pgext
         bint in_response
         bint first_data_call
         bint external_auth

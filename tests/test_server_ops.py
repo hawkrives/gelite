@@ -927,45 +927,46 @@ class TestServerOps(tb.TestCaseWithHttpClient):
                 finally:
                     await con.aclose()
 
-                has_asyncpg = True
+                # The same cache, reached over the binary protocol: the
+                # frontend that used to carry SQL is gone (#34), and both
+                # transports compile through the same sql.compile_sql.
+                scon = await sd.connect()
                 try:
-                    import asyncpg  # noqa
-                except ImportError:
-                    has_asyncpg = False
+                    with self.assertChange(measure_sql_compilations(sd), 1):
+                        await scon.query_sql('select 1')
 
-                if has_asyncpg:
-                    scon = await sd.connect_pg()
-                    try:
-                        with self.assertChange(measure_sql_compilations(sd), 1):
-                            await scon.fetch('select 1')
+                    with self.assertChange(measure_sql_compilations(sd), 1):
+                        await scon.query_sql('select 1 + 1')
 
-                        with self.assertChange(measure_sql_compilations(sd), 1):
-                            await scon.fetch('select 1 + 1')
+                    # cache hit
+                    with self.assertChange(measure_sql_compilations(sd), 0):
+                        await scon.query_sql('select 1')
 
-                        # cache hit
-                        with self.assertChange(measure_sql_compilations(sd), 0):
-                            await scon.fetch('select 1')
+                    # cache hit because of query normalization
+                    with self.assertChange(measure_sql_compilations(sd), 0):
+                        await scon.query_sql('select 2')
 
-                        # cache hit because of query normalization
-                        with self.assertChange(measure_sql_compilations(sd), 0):
-                            await scon.fetch('select 2')
+                    # TODO: better normalization
+                    with self.assertChange(measure_sql_compilations(sd), 1):
+                        await scon.query_sql('sELEcT  1')
 
-                        # TODO: better normalization
-                        with self.assertChange(measure_sql_compilations(sd), 1):
-                            await scon.fetch('sELEcT  1')
+                    # cache hit, even after global has been changed
+                    await scon.execute('set global g := "sql"')
+                    with self.assertChange(measure_sql_compilations(sd), 0):
+                        await scon.query_sql('select 1')
 
-                        # cache hit, even after global has been changed
-                        await scon.execute('SET "global default::g" to 1')
-                        with self.assertChange(measure_sql_compilations(sd), 0):
-                            await scon.execute('select 1')
-
-                        # compiler call, because config was changed
-                        await scon.execute('SET apply_access_policies_pg to 1')
-
-                        with self.assertChange(measure_sql_compilations(sd), 1):
-                            await scon.execute('select 1')
-                    finally:
-                        await scon.close()
+                    # compiler call, because config was changed.
+                    # The frontend set apply_access_policies_pg to true
+                    # because SQL bypassed policies by default; the
+                    # general setting defaults the other way, so false is
+                    # the value that actually changes the cache key.
+                    await scon.execute(
+                        'CONFIGURE SESSION SET apply_access_policies := false'
+                    )
+                    with self.assertChange(measure_sql_compilations(sd), 1):
+                        await scon.query_sql('select 1')
+                finally:
+                    await scon.aclose()
 
             # Now restart the server to test the cache persistence.
             async with tb.start_edgedb_server(

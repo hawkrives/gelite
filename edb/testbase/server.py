@@ -80,8 +80,6 @@ from edb.testbase import connection as tconn
 
 
 if TYPE_CHECKING:
-    import asyncpg
-
     DatabaseName = str
     SetupScript = str
 
@@ -1489,15 +1487,29 @@ class ConnectedTestCase(ClusterTestCase):
                     'CONFIGURE SESSION RESET apply_access_policies'
                 )
 
-    @classmethod
-    def get_sql_proto_dsn(cls, dbname=None):
-        dbname = dbname or cls.con.dbname
-        conargs = cls.get_connect_args()
-        return (
-            f"postgres://{conargs['user']}:{conargs['password']}@"
-            f"{conargs['host']}:{conargs['port']}/{cls.con.dbname}?"
-            f"sslrootcert={conargs['tls_ca_file']}"
+    @contextlib.asynccontextmanager
+    async def with_user_specified_ids(self):
+        """Allow INSERT to specify `id`, as the SQL frontend's
+        `SET LOCAL allow_user_specified_id` did.
+
+        `compile_sql_as_unit_group` reads this from the Gel config rather
+        than from the frontend's own session settings, so on the binary
+        protocol it is CONFIGURE SESSION.
+        """
+        await self.con.execute(
+            'CONFIGURE SESSION SET allow_user_specified_id := true'
         )
+        raised = False
+        try:
+            yield
+        except BaseException:
+            raised = True
+            raise
+        finally:
+            if not (raised and self.con.is_in_transaction()):
+                await self.con.execute(
+                    'CONFIGURE SESSION RESET allow_user_specified_id'
+                )
 
 
 class DatabaseTestCase(ConnectedTestCase):
@@ -1786,71 +1798,160 @@ class QueryTestCase(BaseQueryTestCase):
     BASE_TEST_CLASS = True
 
 
+class SQLRow:
+    """One row of a SQL result, shaped like the mapping asyncpg returned.
+
+    `query_sql` hands back a `gel.Record`, which only offers `as_dict()`.
+    The SQL suites were written against asyncpg's `Record` — `keys()`,
+    `values()`, indexing by name or position, comparison against a plain
+    tuple — so this supplies that surface rather than rewriting several
+    hundred assertions to a different row API.
+    """
+
+    __slots__ = ('_fields',)
+
+    def __init__(self, record: Any) -> None:
+        self._fields: dict[str, Any] = dict(record.as_dict())
+
+    def keys(self) -> list[str]:
+        return list(self._fields)
+
+    def values(self) -> list[Any]:
+        return list(self._fields.values())
+
+    def items(self) -> list[tuple[str, Any]]:
+        return list(self._fields.items())
+
+    def get(self, name: str, default: Any = None) -> Any:
+        return self._fields.get(name, default)
+
+    def __getitem__(self, key: str | int) -> Any:
+        if isinstance(key, int):
+            return list(self._fields.values())[key]
+        return self._fields[key]
+
+    def __contains__(self, key: object) -> bool:
+        return key in self._fields
+
+    def __iter__(self) -> Any:
+        return iter(self._fields.values())
+
+    def __len__(self) -> int:
+        return len(self._fields)
+
+    def __eq__(self, other: object) -> bool:
+        if isinstance(other, SQLRow):
+            return self._fields == other._fields
+        if isinstance(other, (tuple, list)):
+            return list(self._fields.values()) == list(other)
+        if isinstance(other, dict):
+            return self._fields == other
+        return NotImplemented
+
+    def __hash__(self) -> int:
+        return hash(tuple(self._fields.items()))
+
+    def __repr__(self) -> str:
+        inner = ' '.join(f'{k}={v!r}' for k, v in self._fields.items())
+        return f'<SQLRow {inner}>'
+
+
+class SQLConnection:
+    """SQL over Gel's binary protocol, in the shape the SQL suites expect.
+
+    These suites used to hold an asyncpg connection, which meant every
+    substantial SQL test ran through the Postgres wire-protocol frontend
+    (#34). Both transports reach the same resolver through the same
+    `sql.compile_sql`, so the queries themselves are unchanged; what
+    differs is the transport, and this is the seam.
+
+    It deliberately does not offer the parts of asyncpg that only the
+    Postgres frontend can serve — COPY, prepared statements, session
+    settings, `SHOW server_version`. Tests needing those belong on
+    `PGWireTestCase`, and go when the frontend does.
+    """
+
+    def __init__(self, con: tconn.Connection) -> None:
+        self._con = con
+
+    @staticmethod
+    def _params(args: tuple[Any, ...]) -> dict[str, Any]:
+        """`$1`, `$2` … are named "1", "2" … on the binary protocol.
+
+        asyncpg takes them positionally; the client numbers positional
+        arguments from zero, so passing them through as-is asks for
+        argument "0" and the server, which compiled `$1` into a
+        parameter named "1", rejects it. `test_sql_native_query_02` and
+        `_17` already spell out the keyword form.
+        """
+        return {str(i): a for i, a in enumerate(args, start=1)}
+
+    async def execute(self, query: str, *args: Any) -> Optional[str]:
+        await self._con.execute_sql(query, **self._params(args))
+        # asyncpg's execute() answers with the command tag - 'INSERT 0 2',
+        # 'UPDATE 1' - and the suites assert on it to check how many rows
+        # a statement touched. CommandComplete carries the same string.
+        return self._con._get_last_status()
+
+    async def fetch(self, query: str, *args: Any) -> list[SQLRow]:
+        rows = await self._con.query_sql(query, **self._params(args))
+        return [SQLRow(r) for r in rows]
+
+    async def fetchrow(self, query: str, *args: Any) -> Optional[SQLRow]:
+        rows = await self.fetch(query, *args)
+        return rows[0] if rows else None
+
+    async def fetchval(self, query: str, *args: Any) -> Any:
+        row = await self.fetchrow(query, *args)
+        return None if row is None else row[0]
+
+    async def query_sql(self, query: str, *args: Any) -> Any:
+        return await self._con.query_sql(query, **self._params(args))
+
+    def transaction(self) -> Any:
+        return self._con.transaction()
+
+    def is_in_transaction(self) -> bool:
+        return self._con.is_in_transaction()
+
+    async def aclose(self) -> None:
+        await self._con.aclose()
+
+    async def close(self) -> None:
+        await self._con.aclose()
+
+
 class SQLQueryTestCase(BaseQueryTestCase):
     BASE_TEST_CLASS = True
 
-    scon: asyncpg.Connection
+    scon: SQLConnection
 
     @classmethod
     def setUpClass(cls):
-        try:
-            import asyncpg  # noqa: F401
-        except ImportError:
-            raise unittest.SkipTest('SQL tests skipped: asyncpg not installed')
-
         super().setUpClass()
-        cls.scon = cls.loop.run_until_complete(cls.create_sql_connection())
+        # The same connection the EdgeQL side uses, addressed as SQL. It
+        # needs no separate transaction: ConnectedTestCase.setUp already
+        # wraps each test in one on cls.con, and this is that connection.
+        cls.scon = SQLConnection(cls.con)
 
     @classmethod
-    def create_sql_connection(
+    async def create_sql_connection(
         cls,
         *,
-        user: str = None,
-        password: str = None,
-    ) -> asyncio.Future[asyncpg.Connection]:
-        import asyncpg
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> SQLConnection:
+        """A second SQL connection, optionally as another role.
 
-        conargs = cls.get_connect_args()
-
-        tls_context = ssl.create_default_context(
-            ssl.Purpose.SERVER_AUTH,
-            cafile=conargs["tls_ca_file"],
+        test_server_permissions.py uses this to check that SQL
+        authorization is enforced per role. That is the resolver's
+        behaviour rather than the frontend's, so it rides the binary
+        protocol like the rest.
+        """
+        con = await cls.connect(
+            database=cls.con.dbname, user=user, password=password
         )
-        tls_context.check_hostname = False
-
-        return asyncpg.connect(
-            host=conargs['host'],
-            port=conargs['port'],
-            user=conargs['user'] if user is None else user,
-            password=conargs['password'] if password is None else password,
-            database=cls.con.dbname,
-            ssl=tls_context,
-        )
-
-    @classmethod
-    def tearDownClass(cls):
-        try:
-            cls.loop.run_until_complete(cls.scon.close())
-            # Give event loop another iteration so that connection
-            # transport has a chance to properly close.
-            cls.loop.run_until_complete(asyncio.sleep(0))
-            cls.scon = None
-        finally:
-            super().tearDownClass()
-
-    def setUp(self):
-        if self.TRANSACTION_ISOLATION:
-            self.stran = self.scon.transaction()
-            self.loop.run_until_complete(self.stran.start())
-        super().setUp()
-
-    def tearDown(self):
-        try:
-            if self.TRANSACTION_ISOLATION:
-                self.loop.run_until_complete(self.stran.rollback())
-            self.loop.run_until_complete(self.scon.execute('RESET ALL'))
-        finally:
-            super().tearDown()
+        return SQLConnection(con)
 
     async def squery_values(self, query, *args):
         res = await self.scon.fetch(query, *args)
@@ -2067,18 +2168,6 @@ class _EdgeDBServerData(NamedTuple):
     async def connect(self, **kwargs: Any) -> tconn.Connection:
         conn_args = self.get_connect_args(**kwargs)
         return await tconn.async_connect_test_client(**conn_args)
-
-    async def connect_pg(self, **kwargs: Any) -> asyncpg.Connection:
-        import asyncpg
-
-        conn_args = self.get_connect_args(**kwargs)
-        return await asyncpg.connect(
-            host=conn_args['host'],
-            port=conn_args['port'],
-            user=conn_args['user'],
-            password=conn_args['password'],
-            ssl='require',
-        )
 
     async def connect_test_protocol(self, **kwargs):
         conn_args = self.get_connect_args(**kwargs)

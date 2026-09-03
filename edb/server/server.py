@@ -35,7 +35,6 @@ from typing import (
 import asyncio
 import collections
 import ipaddress
-import itertools
 import json
 import logging
 import os
@@ -52,7 +51,6 @@ from edb import buildmeta
 from edb import errors
 
 from edb.common import devmode
-from edb.common import lru
 from edb.common import secretkey
 from edb.common import windowedsum
 from edb.common.log import current_tenant
@@ -71,7 +69,6 @@ from edb.server import instdata
 from edb.server import protocol
 from edb.server import tenant as edbtenant
 from edb.server.protocol import binary  # type: ignore
-from edb.server.protocol import pg_ext  # type: ignore
 from edb.server.protocol import ui_ext  # type: ignore
 from edb.server import metrics
 from edb.server import pgcon
@@ -120,7 +117,6 @@ class BaseServer:
     # every open connection. Also, this way, we can react to the
     # `session_idle_timeout` config setting changed mid-flight.
     _binary_conns: collections.OrderedDict[binary.EdgeConnection, bool]
-    _pgext_conns: dict[str, pg_ext.PgConnection]
     _idle_gc_handler: asyncio.TimerHandle | None = None
     _stmt_cache_size: int | None = None
 
@@ -189,10 +185,6 @@ class BaseServer:
         self._compiler_worker_branch_limit = compiler_worker_branch_limit
         self._compiler_pool_mode = compiler_pool_mode
         self._compiler_worker_max_rss = compiler_worker_max_rss
-        self._system_compile_cache = lru.LRUMapping(
-            maxsize=defines._MAX_QUERIES_CACHE_SYSTEM
-        )
-        self._system_compile_cache_locks: dict[Any, Any] = {}
 
         self._listen_sockets = listen_sockets
         if listen_sockets:
@@ -219,7 +211,6 @@ class BaseServer:
 
         self._binary_proto_id_counter = 0
         self._binary_conns = collections.OrderedDict()
-        self._pgext_conns = {}
 
         self._servers = {}
 
@@ -234,7 +225,6 @@ class BaseServer:
         self._tls_cert_file: str | Any = None
         self._tls_cert_newly_generated = False
         self._sslctx: ssl.SSLContext | Any = None
-        self._sslctx_pgext: ssl.SSLContext | Any = None
 
         self._jws_key: auth.JWKSet | None = None
         self._jws_keys_newly_generated = False
@@ -382,18 +372,6 @@ class BaseServer:
         self._keepalive_tokens.discard(token)
         self.maybe_auto_shutdown()
 
-    def on_pgext_client_connected(self, conn):
-        self._pgext_conns[conn.get_id()] = conn
-
-    def on_pgext_client_disconnected(self, conn):
-        self._pgext_conns.pop(conn.get_id(), None)
-        self.maybe_auto_shutdown()
-
-    def cancel_pgext_connection(self, pid, secret):
-        conn = self._pgext_conns.get(pid)
-        if conn is not None:
-            conn.cancel(secret)
-
     def monitor_fs(
         self,
         file_path: str | pathlib.Path,
@@ -528,20 +506,10 @@ class BaseServer:
     def stmt_cache_size(self) -> int | None:
         return self._stmt_cache_size
 
-    @property
-    def system_compile_cache(self):
-        return self._system_compile_cache
-
     def request_stop_fe_conns(self, dbname: str) -> None:
-        for conn in itertools.chain(
-            self._binary_conns.keys(), self._pgext_conns.values()
-        ):
+        for conn in self._binary_conns:
             if conn.dbname == dbname:
                 conn.request_stop()
-
-    @property
-    def system_compile_cache_locks(self):
-        return self._system_compile_cache_locks
 
     def _idle_gc_collector(self):
         try:
@@ -731,7 +699,6 @@ class BaseServer:
         return protocol.HttpProtocol(
             self,
             self._sslctx,
-            self._sslctx_pgext,
             binary_endpoint_security=self._binary_endpoint_security,
             http_endpoint_security=self._http_endpoint_security,
         )
@@ -910,14 +877,8 @@ class BaseServer:
             return os.environ.get('GELITE_SERVER_TLS_PRIVATE_KEY_PASSWORD', '')
 
         sslctx = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-        sslctx_pgext = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
         try:
             sslctx.load_cert_chain(
-                tls_cert_file,
-                tls_key_file,
-                password=_tls_private_key_password,
-            )
-            sslctx_pgext.load_cert_chain(
                 tls_cert_file,
                 tls_key_file,
                 password=_tls_private_key_password,
@@ -960,19 +921,15 @@ class BaseServer:
         if client_ca_file is not None:
             try:
                 sslctx.load_verify_locations(client_ca_file)
-                sslctx_pgext.load_verify_locations(client_ca_file)
             except ssl.SSLError as e:
                 raise StartupError(
                     f"Cannot load client CA certificates - {e}"
                 ) from e
             sslctx.verify_mode = ssl.CERT_OPTIONAL
-            sslctx_pgext.verify_mode = ssl.CERT_OPTIONAL
 
         sslctx.set_alpn_protocols(['edgedb-binary', 'http/1.1'])
         sslctx.sni_callback = self._sni_callback
-        sslctx_pgext.sni_callback = self._sni_callback
         self._sslctx = sslctx
-        self._sslctx_pgext = sslctx_pgext
 
     def init_tls(
         self,
@@ -981,7 +938,7 @@ class BaseServer:
         tls_cert_newly_generated,
         client_ca_file,
     ):
-        assert self._sslctx is self._sslctx_pgext is None
+        assert self._sslctx is None
         self.reload_tls(tls_cert_file, tls_key_file, client_ca_file)
 
         self._tls_cert_file = str(tls_cert_file)
@@ -1149,10 +1106,6 @@ class BaseServer:
             conn.request_stop()
         self._binary_conns.clear()
 
-        for conn in self._pgext_conns.values():
-            conn.request_stop()
-        self._pgext_conns.clear()
-
     def request_frontend_stop(self, tenant: edbtenant.Tenant):
         dropped = []
         for conn in self._binary_conns:
@@ -1161,14 +1114,6 @@ class BaseServer:
                 dropped.append(conn)
         for conn in dropped:
             self._binary_conns.pop(conn, None)
-
-        dropped.clear()
-        for conn in self._pgext_conns.values():
-            if conn.tenant is tenant:
-                conn.request_stop()
-                dropped.append(conn)
-        for conn in dropped:
-            self._pgext_conns.pop(conn, None)
 
     async def serve_forever(self):
         await self._stop_evt.wait()

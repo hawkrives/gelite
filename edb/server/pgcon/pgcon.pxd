@@ -16,7 +16,6 @@
 # limitations under the License.
 #
 
-include "./pgcon_sql.pxd"
 
 cimport cython
 cimport cpython
@@ -110,7 +109,6 @@ cdef class PGConnection:
 
         str last_indirect_return
 
-        PGSQLConnection _sql
 
     cdef before_command(self)
 
