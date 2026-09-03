@@ -403,26 +403,6 @@ def _process_delta(
         ctx, pgdelta, subblock, context=context
     )
 
-    # Performance hack; we really want trivial migration commands
-    # (that only mutate the migration log) to not trigger a pg_catalog
-    # view refresh, since many get issued as part of MIGRATION
-    # REWRITEs.
-    all_migration_tweaks = all(
-        isinstance(
-            cmd, (s_ver.AlterSchemaVersion, s_migrations.MigrationCommand)
-        )
-        and not cmd.get_subcommands(type=s_delta.ObjectCommand)
-        for cmd in delta.get_subcommands()
-    )
-
-    if not ctx.bootstrap_mode and not all_migration_tweaks:
-        from edb.sqlite import metaschema
-
-        refresh = metaschema.generate_sql_information_schema_refresh(
-            ctx.compiler_state.backend_runtime_params.instance_params.version
-        )
-        refresh.generate(subblock)
-
     return block, new_types, pgdelta.config_ops
 
 
@@ -1418,38 +1398,6 @@ def administer_repair_schema(
         user_schema=current_tx.get_user_schema_if_updated(),
         global_schema=current_tx.get_global_schema_if_updated(),
         config_ops=config_ops,
-        feature_used_metrics=None,
-    )
-
-
-def administer_fixup_backend_upgrade(
-    ctx: compiler.CompileContext,
-    ql: qlast.AdministerStmt,
-) -> dbstate.BaseQuery:
-    if ql.expr.args or ql.expr.kwargs:
-        raise errors.QueryError(
-            'fixup_backend_upgrade() does not take arguments',
-            span=ql.expr.span,
-        )
-
-    from edb.sqlite import metaschema
-
-    block = pg_dbops.PLTopBlock()
-
-    cmds = metaschema._generate_sql_information_schema(
-        ctx.compiler_state.backend_runtime_params.instance_params.version
-    )
-    metaschema.generate_drop_views(cmds, block)
-
-    cmd_group = pg_dbops.CommandGroup()
-    cmd_group.add_commands(cmds)
-    cmd_group.generate(block)
-
-    assert block.is_transactional()
-
-    return dbstate.DDLQuery(
-        sql=block.to_string().encode('utf-8'),
-        user_schema=None,
         feature_used_metrics=None,
     )
 

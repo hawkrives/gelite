@@ -1456,8 +1456,6 @@ def _compile_ql_administer(
         res = ddl.administer_remove_pointless_triggers(ctx, ql)
     elif ql.expr.func == 'concurrent_index_build':
         res = ddl.administer_concurrent_index_build(ctx, ql)
-    elif ql.expr.func == 'fixup_backend_upgrade':
-        res = ddl.administer_fixup_backend_upgrade(ctx, ql)
     else:
         raise errors.QueryError(
             'Unknown ADMINISTER function',

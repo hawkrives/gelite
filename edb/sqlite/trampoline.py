@@ -20,7 +20,7 @@
 """Support for namespacing and trampolining the standard library.
 
 The idea here is that all of the functions, tables, and views in
-edgedb/edgedbstd/edgedbsql should be moved into namespaced libraries
+edgedb/edgedbstd should be moved into namespaced libraries
 of the form `edgedb_VER`, where VER will be substituted with some
 version identifier.
 

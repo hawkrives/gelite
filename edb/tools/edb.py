@@ -86,11 +86,9 @@ from . import inittestdb  # noqa
 from . import test  # noqa
 from . import test_extension  # noqa
 from . import wipe  # noqa
-from . import gen_sql_introspection  # noqa
 from . import gen_rust_ast  # noqa
 from . import ast_inheritance_graph  # noqa
 from . import parser_demo  # noqa
-from . import redo_metaschema  # noqa
 from . import ls  # noqa
 from . import railroad_diagram  # noqa
 from .profiling import cli as prof_cli  # noqa
