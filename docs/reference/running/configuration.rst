@@ -101,7 +101,7 @@ Query behavior
 --------------
 
 .. api-index:: allow_bare_ddl, cfg::AllowBareDDL, apply_access_policies,
-           apply_access_policies_pg, force_database_error
+           force_database_error
 
 :eql:synopsis:`allow_bare_ddl: cfg::AllowBareDDL`
   Allows for running bare DDL outside a migration. Possible values are ``cfg::AllowBareDDL.AlwaysAllow`` and ``cfg::AllowBareDDL.NeverAllow``.
@@ -116,9 +116,6 @@ Query behavior
   .. note::
 
     This setting can also be conveniently accessed via the "Config" dropdown menu at the top of the Gel UI (accessible by running the CLI command :gelcmd:`ui` from within a project). The setting will apply only to your UI session, so you won't have to remember to re-enable it when you're done.
-
-:eql:synopsis:`apply_access_policies_pg -> bool`
-  Determines whether access policies should be applied when running queries over SQL adapter. Defaults to ``false``.
 
 :eql:synopsis:`force_database_error -> str`
   A hook to force all queries to produce an error. Defaults to 'false'.

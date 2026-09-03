@@ -83,7 +83,6 @@ class EdgeDBMessage(Warning):
 class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
     _code: Optional[int] = None
     _attrs: dict[int, str]
-    _pgext_code: Optional[str] = None
 
     def __init__(
         self,
@@ -94,7 +93,6 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
         span: Optional[edb_span.Span] = None,
         position: Optional[tuple[int, int, int, int | None]] = None,
         filename: Optional[str] = None,
-        pgext_code: Optional[str] = None,
     ):
         if type(self) is EdgeDBError:
             raise RuntimeError(
@@ -102,7 +100,6 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
             )
 
         self._attrs = {}
-        self._pgext_code = pgext_code
 
         if span:
             self.set_span(span)
@@ -266,10 +263,6 @@ class EdgeDBError(Exception, metaclass=EdgeDBErrorMeta):
     @property
     def details(self):
         return self._attrs.get(FIELD_DETAILS)
-
-    @property
-    def pgext_code(self):
-        return self._pgext_code
 
     @property
     def filename(self):

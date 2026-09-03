@@ -45,7 +45,6 @@ class Capability(enum.IntFlag):
 
     # Internal only capability flags.
     GLOBAL_DDL = 1 << 57  # noqa
-    SQL_SESSION_CONFIG = 1 << 58  # noqa
     BRANCH_CONFIG = 1 << 59  # noqa
     INSTANCE_CONFIG = 1 << 60  # noqa
     DESCRIBE = 1 << 61  # noqa
@@ -86,7 +85,6 @@ CAPABILITY_TITLES = {
     Capability.ANALYZE: 'ANALYZE commands',
     Capability.INSTANCE_CONFIG: 'instance configuration commands',
     Capability.BRANCH_CONFIG: 'database branch configuration commands',
-    Capability.SQL_SESSION_CONFIG: 'sql session configuration commands',
     Capability.GLOBAL_DDL: 'instance-wide DDL commands',
 }
 

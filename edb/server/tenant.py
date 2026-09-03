@@ -96,7 +96,6 @@ class RoleDescriptor(TypedDict):
     password: str | None
     all_permissions: list[str] | None
     branches: list[str]
-    apply_access_policies_pg_default: bool | None
 
 
 class Tenant:
@@ -387,8 +386,6 @@ class Tenant:
                     capability |= compiler_enums.Capability.DDL
                 if 'sys::perm::branch_config' in available_permissions:
                     capability |= compiler_enums.Capability.BRANCH_CONFIG
-                if 'sys::perm::sql_session_config' in available_permissions:
-                    capability |= compiler_enums.Capability.SQL_SESSION_CONFIG
                 if 'sys::perm::analyze' in available_permissions:
                     capability |= compiler_enums.Capability.ANALYZE
 

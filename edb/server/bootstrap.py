@@ -2181,7 +2181,6 @@ def compile_sys_queries(
             password,
             branches,
             all_permissions,
-            apply_access_policies_pg_default,
         };
     '''
     _, sql = compile_bootstrap_script(
