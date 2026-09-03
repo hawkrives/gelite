@@ -215,9 +215,6 @@ class ServerConfig(NamedTuple):
     log_level: str
     log_to: str
     bootstrap_only: bool
-    inplace_upgrade_prepare: Optional[pathlib.Path]
-    inplace_upgrade_finalize: bool
-    inplace_upgrade_rollback: bool
     bootstrap_command: str
     bootstrap_command_file: pathlib.Path
     default_branch: Optional[str]
@@ -674,29 +671,6 @@ server_options = typeutils.chain_decorators(
             envvar="GELITE_SERVER_BOOTSTRAP_ONLY",
             cls=EnvvarResolver,
             help='bootstrap the database cluster and exit',
-        ),
-        click.option(
-            '--inplace-upgrade-prepare',
-            type=PathPath(),
-            envvar="GELITE_SERVER_INPLACE_UPGRADE_PREPARE",
-            cls=EnvvarResolver,
-            help='try to do an in-place upgrade with the specified dump file',
-        ),
-        click.option(
-            '--inplace-upgrade-rollback',
-            type=bool,
-            is_flag=True,
-            envvar="GELITE_SERVER_INPLACE_UPGRADE_ROLLBACK",
-            cls=EnvvarResolver,
-            help='rollback a prepared upgrade',
-        ),
-        click.option(
-            '--inplace-upgrade-finalize',
-            type=bool,
-            is_flag=True,
-            envvar="GELITE_SERVER_INPLACE_UPGRADE_FINALIZE",
-            cls=EnvvarResolver,
-            help='finalize an in-place upgrade',
         ),
         click.option(
             '--default-branch',
