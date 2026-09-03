@@ -2026,12 +2026,15 @@ def needs_pg_wire(meth):
         self.scon = scon
         try:
             if self.TRANSACTION_ISOLATION:
-                stran = scon.transaction()
-                await stran.start()
+                # named on the instance: test_sql_query_client_encoding_2
+                # restarts it by hand, working around asyncpg#1215
+                self.stran = scon.transaction()
+                await self.stran.start()
                 try:
                     return await meth(self, *args, **kwargs)
                 finally:
-                    await stran.rollback()
+                    await self.stran.rollback()
+                    del self.stran
             else:
                 return await meth(self, *args, **kwargs)
         finally:

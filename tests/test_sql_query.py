@@ -2730,7 +2730,11 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # globals bool values
 
         async def query_glob_bool(value: str) -> bool:
-            await self.con.execute("SET GLOBAL glob_mod::b := {value}")
+            await self.scon.execute(
+                f"""
+                SET LOCAL "global glob_mod::b" TO {value};
+                """
+            )
             res = await self.squery_values(
                 '''
                 SELECT b FROM glob_mod."Computed"

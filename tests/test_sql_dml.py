@@ -2477,11 +2477,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             '''
         )
 
-        await self.scon.execute(
-            """
-            SET LOCAL "global default::y" TO 'Hello world!';
-            """
-        )
+        await self.con.execute("SET GLOBAL default::y := 'Hello world!'")
 
         await self.scon.execute(
             '''
