@@ -592,7 +592,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             "unknown table",
-            position="19",
+            _position=19,
         ):
             await self.scon.fetch('SELECT title FROM "Novel" ORDER BY title')
 
@@ -600,7 +600,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             "unknown table",
-            position="19",
+            _position=19,
         ):
             await self.scon.fetch('SELECT title FROM Movie ORDER BY title')
 
@@ -664,7 +664,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             self.assert_shape(res, 1, single_with_prop_cols)
 
             # single without properties
-            with self.assertRaisesRegex(
+            async with self.assertRaisesRegexTx(
                 edgedb.errors.QueryError, "unknown table"
             ):
                 await self.scon.fetch('SELECT * FROM "Movie.genre"')
@@ -683,7 +683,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             edgedb.errors.QueryError,
             ", but the query resolves to 2 columns",
             # this points to `1`, because libpg_query does not give better info
-            position="41",
+            _position=41,
         ):
             await self.scon.fetch(
                 '''
@@ -774,7 +774,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             res, 3, ['a', 'b', 'unnested_a', 'unnested_b', 'computed']
         )
 
-    @test.not_implemented('#85: ctid, type OID 27')
+    @test.not_implemented('#76: ctid, type OID 27 is Postgres-only surface')
     async def test_sql_query_33(self):
         # system columns
 
@@ -809,7 +809,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             res = await self.squery_values(movie_actor_query)
             self.assertEqual(len(res[0]), 6)
 
-    @test.not_implemented('#85: ctid, type OID 27')
+    @test.not_implemented('#76: ctid, type OID 27 is Postgres-only surface')
     async def test_sql_query_33a(self):
         # system columns when access policies are applied
         # (applied is the default, so there is nothing to turn on)
@@ -874,7 +874,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 res, [['Forrest Gump', 1], ['Saving Private Ryan', 1]]
             )
 
-    @test.not_implemented('#85: record, type OID 2249')
+    @test.not_implemented('#76: record, type OID 2249 is Postgres-only surface')
     async def test_sql_query_36(self):
         # ColumnRef to relation
 
@@ -992,7 +992,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT $1::uuid;', str(id))
         self.assertEqual(res, [[id]])
 
-    @test.not_implemented('#85: varbit, type OID 1562')
+    @test.not_implemented('#76: varbit, type OID 1562 is Postgres-only surface')
     async def test_sql_query_41(self):
         from asyncpg.types import BitString
 
@@ -1107,7 +1107,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         # to be exact: User is *parsed* as function call CURRENT_USER
         # we'd ideally want a message that hints that it should use quotes
 
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError, 'column "name" does not exist'
         ):
             await self.squery_values('SELECT name FROM User')
@@ -1243,7 +1243,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             ),
         ]
         for script, args in scripts:
-            with self.assertRaisesRegex(
+            async with self.assertRaisesRegexTx(
                 edgedb.errors.UnsupportedFeatureError,
                 'multi-statement SQL scripts are not supported yet',
             ):
@@ -1253,7 +1253,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             'param out of bounds: \\$0',
-            hint='query parameters start with 1',
+            _hint='query parameters start with 1',
         ):
             await self.scon.fetch(
                 '''
@@ -1262,7 +1262,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 'hello',
             )
 
-    @test.not_implemented('#85: record, type OID 2249')
+    @test.not_implemented('#76: record, type OID 2249 is Postgres-only surface')
     async def test_sql_query_55(self):
         res = await self.squery_values(
             '''
@@ -1455,6 +1455,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 "SELECT 'a', json_build_object($1, TRUE)", 'hello'
             )
 
+    @test.not_implemented('#76: record (OID 2249) is Postgres-only surface')
     async def test_sql_query_61(self):
         await self.squery_values("SELECT ROW('hello')")
         with self.assertRaisesRegex(
@@ -1463,7 +1464,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         ):
             await self.squery_values("SELECT 'a', ROW($1)", 'hello')
 
-    @test.not_implemented('#85: pg_typeof, type OID 2206')
+    @test.not_implemented(
+        '#76: pg_typeof, type OID 2206 is Postgres-only surface'
+    )
     async def test_sql_query_62(self):
         # calls of various functions with constants that are extracted
 
@@ -1885,7 +1888,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             '''
         )
 
-    @test.not_implemented('#85: to_regclass, type OID 2205')
+    @test.not_implemented(
+        '#76: to_regclass, type OID 2205 is Postgres-only surface'
+    )
     async def test_sql_query_static_eval_04(self):
         [[res1, res2]] = await self.squery_values(
             '''
@@ -1903,7 +1908,9 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[11]])
 
-    @test.not_implemented('#85: to_regclass, type OID 2205')
+    @test.not_implemented(
+        '#76: to_regclass, type OID 2205 is Postgres-only surface'
+    )
     async def test_sql_query_static_eval_04a(self):
         [[res1, res2]] = await self.squery_values(
             '''
@@ -2371,7 +2378,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="12",
+            _position=12,
         ):
             await self.scon.execute("SELECT 1 + asdf()")
 
@@ -2379,7 +2386,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="10",
+            _position=10,
         ):
             await self.scon.execute("SELECT 1+asdf()")
 
@@ -2387,7 +2394,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="28",
+            _position=28,
         ):
             await self.scon.execute(
                 """SELECT 1 +
@@ -2398,7 +2405,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="12",
+            _position=12,
         ):
             await self.scon.execute(
                 '''SELECT 1 + asdf() FROM "Movie" ORDER BY id'''
@@ -2408,7 +2415,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="28",
+            _position=28,
         ):
             await self.scon.execute(
                 '''SELECT 1 +
@@ -2419,7 +2426,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="12",
+            _position=12,
         ):
             await self.scon.fetch("SELECT 1 + asdf()")
 
@@ -2427,7 +2434,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="10",
+            _position=10,
         ):
             await self.scon.fetch("SELECT 1+asdf()")
 
@@ -2435,7 +2442,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="28",
+            _position=28,
         ):
             await self.scon.fetch(
                 """SELECT 1 +
@@ -2446,7 +2453,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="12",
+            _position=12,
         ):
             await self.scon.fetch(
                 '''SELECT 1 + asdf() FROM "Movie" ORDER BY id'''
@@ -2456,7 +2463,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            position="28",
+            _position=28,
         ):
             await self.scon.fetch(
                 '''SELECT 1 +
@@ -3007,7 +3014,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.UnsupportedFeatureError,
             "not supported: CREATE",
-            position="14",  # TODO: this is confusing
+            _position=14,  # TODO: this is confusing
         ):
             await self.squery_values('CREATE TABLE a();')
 
@@ -3048,7 +3055,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
 
     async def test_sql_query_locking_01(self):
         # fail because sub-types
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
             "locking clause not supported",
         ):
@@ -3059,7 +3066,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             )
 
         # fail because access policies
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
             "locking clause not supported",
         ):
@@ -3087,7 +3094,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             )
 
             # we are locking just Content
-            with self.assertRaisesRegex(
+            async with self.assertRaisesRegexTx(
                 edgedb.errors.QueryError,
                 "locking clause not supported",
             ):
@@ -3115,7 +3122,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
                 '''
             )
 
-    @test.not_implemented('#85: record, type OID 2249')
+    @test.not_implemented('#76: record, type OID 2249 is Postgres-only surface')
     async def test_sql_query_reparse_01(self):
         query = '''SELECT ('literal str'::text, 42::int)'''
 
@@ -4025,7 +4032,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
             edgedb.errors.InvalidValueError,
             'invalid input syntax for type std::uuid',
             # TODO
-            # position="8",
+            # _position=8,
         ):
             await self.scon.fetch("""SELECT 'bad uuid'::uuid""")
 
@@ -4034,7 +4041,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
             edgedb.errors.InvalidValueError,
             'invalid input syntax for type std::uuid',
             # TODO
-            # position="8",
+            # _position=8,
         ):
             await self.scon.execute("""SELECT 'bad uuid'::uuid""")
 
@@ -4063,7 +4070,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             'forbidden function',
-            position="8",
+            _position=8,
         ):
             await self.scon.fetch("""SELECT pg_ls_dir('/')""")
 

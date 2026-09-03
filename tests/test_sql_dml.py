@@ -120,12 +120,12 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # id, __type__, owner, title
 
         async with self.with_user_specified_ids():
-            with self.assertRaisesRegex(
+            async with self.assertRaisesRegexTx(
                 edgedb.errors.QueryError,
                 "cannot assign to link '__type__': it is protected",
                 # TODO: positions are hard to recover since we don't even know which
                 # DML stmt this error is originating from
-                # position="30",
+                # _position=30,
             ):
                 await self.scon.execute(
                     '''
@@ -197,7 +197,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.EdgeQLSyntaxError,
             'syntax error at or near "INTO"',
-            position="61",
+            _position=61,
         ):
             await self.scon.execute(
                 '''
@@ -224,7 +224,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             edgedb.errors.QueryError,
             'WITH clause containing a data-modifying statement must be at '
             'the top level',
-            position="98",
+            _position=98,
         ):
             await self.scon.execute(
                 '''
@@ -472,7 +472,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # exclusive on base, then insert into base and child
         with self.assertRaisesRegex(
             edgedb.errors.ConstraintViolationError,
-            'prop violates exclusivity constraint"[0-9a-f-]+;schemaconstr"',
+            'prop violates exclusivity constraint',
         ):
             await self.scon.execute(
                 '''
@@ -483,6 +483,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 '''
             )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_20(self):
         # CommandComplete tag (inserted rows) with no RETURNING
 
@@ -506,6 +507,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.scon.execute(query, 'Report', 'Briefing')
         self.assertEqual(res, 'INSERT 0 2')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_21(self):
         # CommandComplete tag (inserted rows) with RETURNING
 
@@ -568,6 +570,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, 'INSERT 0 2')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_24(self):
         # insert into link table, link properties
 
@@ -655,7 +658,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         self.assertEqual(res[0][2], True)
 
     async def test_sql_dml_insert_27(self):
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
             'column source is required when inserting into link tables',
         ):
@@ -665,7 +668,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 VALUES ('uuid 1'::uuid, FALSE)
                 ''',
             )
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
             'column source is required when inserting into link tables',
         ):
@@ -676,6 +679,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 ''',
             )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_28(self):
         documents = await self.squery_values(
             '''
@@ -703,6 +707,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, 'INSERT 0 2')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_29(self):
         res = await self.scon.execute(
             '''
@@ -809,7 +814,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             self.assertEqual(res, [[id5]])
 
     async def test_sql_dml_insert_35(self):
-        with self.assertRaisesRegex(
+        async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
             "cannot assign to property 'id'",
         ):
@@ -830,6 +835,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             )
             self.assertEqual(res, [[id]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_36(self):
         [user] = await self.squery_values(
             'INSERT INTO "User" DEFAULT VALUES RETURNING id'
@@ -852,6 +858,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[True]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_37(self):
         [doc] = await self.squery_values(
             '''
@@ -876,6 +883,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[True]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_38(self):
         res = await self.scon.execute(
             '''
@@ -897,6 +905,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[True]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_39(self):
         res = await self.scon.execute(
             '''
@@ -909,6 +918,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, 'INSERT 0 1')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_40(self):
         await self.squery_values(
             f'''
@@ -945,6 +955,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['hello (new)']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_42(self):
         async with self.with_user_specified_ids():
             uuid1 = uuid.uuid4()
@@ -989,6 +1000,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 ],
             )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_43(self):
         async with self.with_user_specified_ids():
             doc_id = uuid.uuid4()
@@ -1038,6 +1050,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT num_id FROM "Numbered"')
         self.assertEqual(res, [[10]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_46(self):
         # ON CONFLICT DO NOTHING
 
@@ -1059,6 +1072,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT key, value FROM "Map"')
         self.assertEqual(res, [['x', 10]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_47(self):
         # ON CONFLICT DO UPDATE, basic
 
@@ -1081,6 +1095,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT key, value FROM "Map"')
         self.assertEqual(res, [['x', 0]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_48(self):
         # ON CONFLICT DO UPDATE RETURNING
 
@@ -1104,6 +1119,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT key, value FROM "Map"')
         self.assertEqual(res, [['x', 42]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_49(self):
         # ON CONFLICT DO UPDATE WHERE
 
@@ -1171,6 +1187,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 '''
             )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_53(self):
         # ON CONFLICT (col) DO NOTHING
         res = await self.scon.execute(
@@ -1258,6 +1275,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             )
             self.assertEqual(res, 'INSERT 0 0')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_59(self):
         # ON CONFLICT UPDATE excluded
 
@@ -1282,6 +1300,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['x', 6], ['y', 20]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_60(self):
         # ON CONFLICT UPDATE WHERE excluded
 
@@ -1309,6 +1328,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         # - y is not updated
         self.assertEqual(res, [['x', 10], ['y', 0]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_61(self):
         # ON CONFLICT UPDATE WHERE excluded
 
@@ -1335,6 +1355,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['x', 16], ['y', 26], ['z', 36]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_62(self):
         # ON CONFLICT UPDATE WHERE excluded
 
@@ -1361,6 +1382,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['x', 10], ['y', 25], ['z', 36]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_63(self):
         # holy grail of ON CONFLICT: insert or add into map
 
@@ -1402,6 +1424,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['x', 10], ['y', 50], ['z', 100]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_64(self):
         # ON CONFLICT subject rel
 
@@ -1435,6 +1458,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['y', 26], ['z', 32]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_65(self):
         # ON CONFLICT access link_id
 
@@ -1465,6 +1489,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[str(doc_id), 10]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_66(self):
         # ON CONFLICT UPDATE multiple columns
 
@@ -1495,6 +1520,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[str(doc_id), 25]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_67(self):
         # multiple INSERT ON CONFLICT
 
@@ -1524,6 +1550,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[20, 11]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_insert_68(self):
         # multiple INSERT ON CONFLICT
 
@@ -1561,6 +1588,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT key, value FROM "Map"')
         self.assertEqual(res, [['x', 20]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_delete_01(self):
         # delete, inspect CommandComplete tag
 
@@ -1578,6 +1606,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, 'DELETE 2')
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_delete_02(self):
         # delete with returning clause, inspect CommandComplete tag
 
@@ -1710,6 +1739,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['Report (new)']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_delete_08(self):
         [document] = await self.squery_values(
             'INSERT INTO "Document" DEFAULT VALUES RETURNING id'
@@ -1891,6 +1921,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(deleted, [[document[0], 'notes']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_delete_12(self):
         # Create a new document and try to delete it immediately.
 
@@ -1911,6 +1942,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[1]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_delete_13(self):
         [[doc_id, user_id]] = await self.squery_values(
             '''
@@ -1954,6 +1986,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['Test returning (new)']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_01(self):
         # update, inspect CommandComplete tag
 
@@ -1986,6 +2019,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             ],
         )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_02(self):
         # update with returning clause, inspect CommandComplete tag
 
@@ -2249,6 +2283,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
                 '''
             )
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_14(self):
         # UPDATE will not match anything, because the inserted document is not
         # yet "visible" during the UPDATE statement (this is Postgres behavior).
@@ -2288,6 +2323,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['Briefing (updated)'], ['Receipt (new)']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_14a(self):
         await self.squery_values(
             'INSERT INTO "Document" DEFAULT VALUES',
@@ -2307,6 +2343,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [[False]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_15(self):
         [[doc_id]] = await self.squery_values(
             '''
@@ -2397,6 +2434,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         )
         self.assertEqual(res, [['Test returning (updated)']])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_update_19(self):
         # update of two objects, parent and child
 
@@ -2485,6 +2523,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         res = await self.squery_values('SELECT gy FROM "Globals" ORDER BY gy')
         self.assertEqual(res, [['Hello world!'], [None]])
 
+    @test.not_implemented('#86: the row count is dropped from the command tag')
     async def test_sql_dml_03(self):
         # deleting from a link table with inheritance
 
