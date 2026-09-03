@@ -963,19 +963,6 @@ def prepare_patch(
 
         metadata_user_schema = cschema.get_top_schema()
 
-    elif kind == 'sql-introspection':
-        support_view_commands = dbops.CommandGroup()
-        support_view_commands.add_commands(
-            metaschema._generate_sql_information_schema(
-                backend_params.instance_params.version
-            )
-        )
-        support_view_commands.generate(subblock)
-
-        metaschema.generate_drop_views(list(support_view_commands), preblock)
-
-        metadata_user_schema = reflschema
-
     else:
         raise AssertionError(f'unknown patch type {kind}')
 
@@ -1029,11 +1016,6 @@ def prepare_patch(
                     reflschema, sn.UnqualName('sys')
                 )
             ]
-        )
-        support_view_commands.add_commands(
-            metaschema._generate_sql_information_schema(
-                backend_params.instance_params.version
-            )
         )
         wrapper_views = metaschema._get_wrapper_views()
         support_view_commands.add_commands(list(wrapper_views))
@@ -1878,7 +1860,6 @@ async def _init_stdlib(
                 include_schemas=[
                     pg_common.versioned_schema('edgedb'),
                     pg_common.versioned_schema('edgedbstd'),
-                    pg_common.versioned_schema('edgedbsql'),
                 ],
                 dump_object_owners=False,
             )
@@ -2181,7 +2162,6 @@ def compile_sys_queries(
             password,
             branches,
             all_permissions,
-            apply_access_policies_pg_default,
         };
     '''
     _, sql = compile_bootstrap_script(

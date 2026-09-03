@@ -52,7 +52,7 @@ CREATE SCALAR TYPE cfg::StoreMigrationSDL EXTENDING enum<
     AlwaysStore, NeverStore,
 >;
 CREATE SCALAR TYPE cfg::ConnectionTransport EXTENDING enum<
-    TCP, TCP_PG, HTTP, SIMPLE_HTTP, HTTP_METRICS, HTTP_HEALTH>;
+    TCP, HTTP, SIMPLE_HTTP, HTTP_METRICS, HTTP_HEALTH>;
 CREATE SCALAR TYPE cfg::QueryCacheMode EXTENDING enum<
     InMemory, RegInline, PgFunc, Default>;
 CREATE SCALAR TYPE cfg::QueryStatsOption EXTENDING enum<None, All>;
@@ -245,16 +245,6 @@ ALTER TYPE cfg::AbstractConfig {
             '"cfg::perm::configure_apply_access_policies"';
         CREATE ANNOTATION std::description :=
             'Whether access policies will be applied when running queries.';
-    };
-
-    CREATE PROPERTY apply_access_policies_pg -> std::bool {
-        SET default := true;
-        CREATE ANNOTATION cfg::affects_compilation := 'false';
-        CREATE ANNOTATION cfg::session_cfg_permissions :=
-            '"cfg::perm::configure_apply_access_policies"';
-        CREATE ANNOTATION std::description :=
-            'Whether access policies will be applied when running queries over \
-            SQL adapter.';
     };
 
     CREATE PROPERTY allow_user_specified_id -> std::bool {

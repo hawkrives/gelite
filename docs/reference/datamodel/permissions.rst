@@ -63,9 +63,6 @@ Built-in permissions
 :eql:synopsis:`sys::perm::branch_config`
     Required for issuing ``configure current branch``.
 
-:eql:synopsis:`sys::perm::sql_session_config`
-    Required for issuing ``SET`` and ``RESET`` SQL commands.
-
 :eql:synopsis:`sys::perm::analyze`
     Required for issuing ``analyze ...`` queries.
 

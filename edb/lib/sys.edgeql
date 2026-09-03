@@ -25,7 +25,6 @@ CREATE PERMISSION sys::perm::superuser;
 CREATE PERMISSION sys::perm::data_modification;
 CREATE PERMISSION sys::perm::ddl;
 CREATE PERMISSION sys::perm::branch_config;
-CREATE PERMISSION sys::perm::sql_session_config;
 CREATE PERMISSION sys::perm::analyze;
 
 CREATE PERMISSION sys::perm::query_stats_read;
@@ -131,7 +130,6 @@ CREATE TYPE sys::Role EXTENDING
     CREATE PROPERTY password -> std::str;
     CREATE MULTI PROPERTY permissions -> std::str;
     CREATE MULTI PROPERTY branches -> std::str;
-    CREATE PROPERTY apply_access_policies_pg_default -> std::bool;
 
     CREATE ACCESS POLICY ap_read deny select using (
         not global sys::perm::superuser

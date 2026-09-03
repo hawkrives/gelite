@@ -187,8 +187,6 @@ The ``cfg`` module contains a set of types and scalars used for configuring
     - **Description**
   * - ``cfg::ConnectionTransport.TCP``
     - Gel binary protocol
-  * - ``cfg::ConnectionTransport.TCP_PG``
-    - Unused. The Postgres protocol frontend it named has been removed.
   * - ``cfg::ConnectionTransport.HTTP``
     - Gel binary protocol
       :ref:`tunneled over HTTP <ref_http_tunnelling>`
@@ -233,8 +231,8 @@ The ``cfg`` module contains a set of types and scalars used for configuring
   It uses a challenge-response scheme to avoid transmitting the
   password directly.  This policy is implemented via ``SCRAM-SHA-256``
 
-  It is available for the ``TCP``, ``TCP_PG``, and ``HTTP`` transports
-  and is the default for ``TCP`` and ``TCP_PG``.
+  It is available for the ``TCP`` and ``HTTP`` transports and is the
+  default for ``TCP``.
 
   .. code-block:: edgeql-repl
 

@@ -167,7 +167,7 @@ def get_unique_random_name() -> str:
     return base64.b64encode(uuidgen.uuid1mc().bytes).rstrip(b'=').decode()
 
 
-VERSIONED_SCHEMAS = ('edgedb', 'edgedbstd', 'edgedbsql', 'edgedbinstdata')
+VERSIONED_SCHEMAS = ('edgedb', 'edgedbstd', 'edgedbinstdata')
 
 
 SCHEMA_SUFFIX: str | None = None

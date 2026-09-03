@@ -1049,10 +1049,6 @@ class Compiler:
                 RestoreBlockDescriptor(
                     schema_object_id=schema_object_id,
                     sql_copy_stmt=stmt,
-                    # Only the pre-1.0 shims removed above ever elided a
-                    # column, so nothing does now. pgcon still carries the
-                    # eliding branch of _rewrite_copy_data for it.
-                    compat_elided_cols=(),
                     data_mending_desc=tuple(mending_desc),
                 )
             )
@@ -1460,8 +1456,6 @@ def _compile_ql_administer(
         res = ddl.administer_remove_pointless_triggers(ctx, ql)
     elif ql.expr.func == 'concurrent_index_build':
         res = ddl.administer_concurrent_index_build(ctx, ql)
-    elif ql.expr.func == 'fixup_backend_upgrade':
-        res = ddl.administer_fixup_backend_upgrade(ctx, ql)
     else:
         raise errors.QueryError(
             'Unknown ADMINISTER function',
@@ -3317,9 +3311,6 @@ def _extract_roles(
             superuser=role.get_superuser(global_schema),
             password=role.get_password(global_schema),
             branches=list(sorted(role.get_branches(global_schema))),
-            apply_access_policies_pg_default=(
-                role.get_apply_access_policies_pg_default(global_schema)
-            ),
         )
 
     # To populate all_permissions, combine the permissions of each role
@@ -3391,7 +3382,6 @@ class RestoreBlockDescriptor(NamedTuple):
     sql_copy_stmt: bytes
     #: For compatibility with old dumps, a list of column indexes
     #: that should be ignored in the COPY stream.
-    compat_elided_cols: tuple[int, ...]
     #: If the tuple requires mending of unstable Postgres OIDs in data,
     #: this will contain the recursive descriptor on which parts of
     #: each datum need mending.

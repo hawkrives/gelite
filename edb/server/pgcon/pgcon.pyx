@@ -39,9 +39,8 @@ import time
 cimport cython
 cimport cpython
 
-from . cimport cpythonx
 
-from libc.stdint cimport int8_t, uint8_t, int16_t, uint16_t, \
+from libc.stdint cimport uint8_t, int16_t, uint16_t, \
                          int32_t, uint32_t, int64_t, uint64_t, \
                          UINT32_MAX
 
@@ -1590,10 +1589,7 @@ cdef class PGConnection:
 
         buf = WriteBuffer.new()
         cpython.PyBytes_AsStringAndSize(data, &cbuf, &clen)
-        if (
-            restore_block.compat_elided_cols
-            or any(desc for desc in restore_block.data_mending_desc)
-        ):
+        if any(desc for desc in restore_block.data_mending_desc):
             self._rewrite_copy_data(
                 buf,
                 cbuf,
@@ -1601,7 +1597,6 @@ cdef class PGConnection:
                 ncols,
                 restore_block.data_mending_desc,
                 type_map,
-                restore_block.compat_elided_cols,
             )
         else:
             if cbuf[0] != b'd':
@@ -1647,16 +1642,12 @@ cdef class PGConnection:
         ssize_t ncols,
         tuple data_mending_desc,
         dict type_id_map,
-        tuple elided_cols,
     ):
         """Rewrite the binary COPY stream."""
         cdef:
             FRBuffer rbuf
             FRBuffer datum_buf
             ssize_t i
-            ssize_t real_ncols
-            int8_t *elide
-            int8_t elided
             int32_t datum_len
             char copy_msg_byte
             int16_t copy_msg_ncols
@@ -1664,77 +1655,64 @@ cdef class PGConnection:
             bint first = True
             bint received_eof = False
 
-        real_ncols = ncols + len(elided_cols)
         frb_init(&rbuf, data, data_len)
 
-        elide = <int8_t*>cpythonx.PyMem_Calloc(
-            <size_t>real_ncols, sizeof(int8_t))
+        mbuf = WriteBuffer.new()
 
-        try:
-            for col in elided_cols:
-                elide[col] = 1
+        while frb_get_len(&rbuf):
+            if received_eof:
+                raise RuntimeError('received CopyData after EOF')
+            mbuf.start_message(b'd')
 
-            mbuf = WriteBuffer.new()
+            copy_msg_byte = frb_read(&rbuf, 1)[0]
+            if copy_msg_byte != b'd':
+                raise RuntimeError(
+                    'unexpected dump data message structure')
+            frb_read(&rbuf, 4)
 
-            while frb_get_len(&rbuf):
-                if received_eof:
-                    raise RuntimeError('received CopyData after EOF')
-                mbuf.start_message(b'd')
+            if first:
+                mbuf.write_bytes(COPY_SIGNATURE)
+                mbuf.write_int32(0)
+                mbuf.write_int32(0)
+                first = False
 
-                copy_msg_byte = frb_read(&rbuf, 1)[0]
-                if copy_msg_byte != b'd':
-                    raise RuntimeError(
-                        'unexpected dump data message structure')
-                frb_read(&rbuf, 4)
-
-                if first:
-                    mbuf.write_bytes(COPY_SIGNATURE)
-                    mbuf.write_int32(0)
-                    mbuf.write_int32(0)
-                    first = False
-
-                copy_msg_ncols = hton.unpack_int16(frb_read(&rbuf, 2))
-                if copy_msg_ncols == -1:
-                    # BINARY COPY EOF marker
-                    mbuf.write_int16(copy_msg_ncols)
-                    received_eof = True
-                    mbuf.end_message()
-                    wbuf.write_buffer(mbuf)
-                    mbuf.reset()
-                    continue
-                else:
-                    mbuf.write_int16(<int16_t>ncols)
-
-                # Tuple data
-                for i in range(real_ncols):
-                    datum_len = hton.unpack_int32(frb_read(&rbuf, 4))
-                    elided = elide[i]
-                    if not elided:
-                        mbuf.write_int32(datum_len)
-                    if datum_len != -1:
-                        datum = frb_read(&rbuf, datum_len)
-
-                        if not elided:
-                            datum_mending_desc = data_mending_desc[i]
-                            if (
-                                datum_mending_desc is not None
-                                and datum_mending_desc.needs_mending
-                            ):
-                                frb_init(&datum_buf, datum, datum_len)
-                                self._mend_copy_datum(
-                                    mbuf,
-                                    &datum_buf,
-                                    datum_mending_desc,
-                                    type_id_map,
-                                )
-                            else:
-                                mbuf.write_cstr(datum, datum_len)
-
+            copy_msg_ncols = hton.unpack_int16(frb_read(&rbuf, 2))
+            if copy_msg_ncols == -1:
+                # BINARY COPY EOF marker
+                mbuf.write_int16(copy_msg_ncols)
+                received_eof = True
                 mbuf.end_message()
                 wbuf.write_buffer(mbuf)
                 mbuf.reset()
-        finally:
-            cpython.PyMem_Free(elide)
+                continue
+            else:
+                mbuf.write_int16(<int16_t>ncols)
+
+            # Tuple data
+            for i in range(ncols):
+                datum_len = hton.unpack_int32(frb_read(&rbuf, 4))
+                mbuf.write_int32(datum_len)
+                if datum_len != -1:
+                    datum = frb_read(&rbuf, datum_len)
+
+                    datum_mending_desc = data_mending_desc[i]
+                    if (
+                        datum_mending_desc is not None
+                        and datum_mending_desc.needs_mending
+                    ):
+                        frb_init(&datum_buf, datum, datum_len)
+                        self._mend_copy_datum(
+                            mbuf,
+                            &datum_buf,
+                            datum_mending_desc,
+                            type_id_map,
+                        )
+                    else:
+                        mbuf.write_cstr(datum, datum_len)
+
+            mbuf.end_message()
+            wbuf.write_buffer(mbuf)
+            mbuf.reset()
 
     cdef _mend_copy_datum(
         self,
