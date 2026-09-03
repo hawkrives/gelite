@@ -108,6 +108,10 @@ class BinWrapper:
             raise BufferError(f'cannot read bytes with len={size}')
         return data
 
+    def read_rest(self) -> bytes:
+        """Everything left in the buffer, for a trailing unsized field."""
+        return self.buf.read()
+
     def read_len32_prefixed_bytes(self) -> bytes:
         size = self.read_ui32()
         return self.read_bytes(size)

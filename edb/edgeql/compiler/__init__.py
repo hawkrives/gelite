@@ -574,30 +574,6 @@ def normalize(
     )
 
 
-@compiler_entrypoint
-def renormalize_compat(
-    tree: qlast.Base_T,
-    orig_text: str,
-    *,
-    schema: s_schema.Schema,
-    localnames: AbstractSet[str] = frozenset(),
-) -> qlast.Base_T:
-    """Renormalize an expression normalized with imprint_expr_context().
-
-    This helper takes the original, unmangled expression, an EdgeQL AST
-    tree of the same expression mangled with `imprint_expr_context()`
-    (which injects extra WITH MODULE clauses), and produces a normalized
-    expression with explicitly qualified identifiers instead.  Old dumps
-    are the main user of this facility.
-    """
-    return norm_mod.renormalize_compat(
-        tree,
-        orig_text,
-        schema=schema,
-        localnames=localnames,
-    )
-
-
 def _load() -> None:
     """Load the compiler modules.  This is done once per process."""
 

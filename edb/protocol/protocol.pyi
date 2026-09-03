@@ -16,9 +16,30 @@
 # limitations under the License.
 #
 
-from typing import Any
+from typing import Any, TypeVar
 
 from . import messages
+
+_ServerMessage_co = TypeVar('_ServerMessage_co', bound=messages.ServerMessage)
+
+async def new_connection(
+    dsn: str | None = None,
+    *,
+    host: str | None = None,
+    port: int | None = None,
+    user: str | None = None,
+    password: str | None = None,
+    secret_key: str | None = None,
+    branch: str | None = None,
+    database: str | None = None,
+    timeout: float = ...,
+    tls_ca: str | None = None,
+    tls_ca_file: str | None = None,
+    tls_security: str = ...,
+    credentials: str | None = None,
+    credentials_file: str | None = None,
+    **kwargs: Any,
+) -> Connection: ...
 
 class Connection:
     async def connect(self) -> None: ...
@@ -27,11 +48,14 @@ class Connection:
     ) -> None: ...
     async def sync(self) -> bytes: ...
     async def recv(self) -> messages.ServerMessage: ...
+    # Returns an instance of the class it matched, not just the base:
+    # `recv_match(DumpHeader)` gives a DumpHeader. _ignore_msg defaults to
+    # None in protocol.pyx.
     async def recv_match(
         self,
-        msgcls: type[messages.ServerMessage],
-        _ignore_msg: type[messages.ServerMessage] | None,
+        msgcls: type[_ServerMessage_co],
+        _ignore_msg: type[messages.ServerMessage] | None = None,
         **fields: Any,
-    ) -> messages.ServerMessage: ...
+    ) -> _ServerMessage_co: ...
     async def send(self, *msgs: messages.ClientMessage) -> None: ...
     async def aclose(self) -> None: ...

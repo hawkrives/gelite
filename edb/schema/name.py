@@ -233,30 +233,6 @@ def is_fullname(name: str) -> bool:
     return is_qualified(name) and '@' in name
 
 
-def compat_get_specialized_name(basename: str, *qualifiers: str) -> str:
-    mangled_quals = '@'.join(
-        compat_mangle_name(qual) for qual in qualifiers if qual
-    )
-    return f'{compat_mangle_name(basename)}@@{mangled_quals}'
-
-
-def compat_mangle_name(name: str) -> str:
-    return name.replace('::', '|')
-
-
-def compat_name_remangle(name: str) -> Name:
-    if is_fullname(name):
-        qname = QualName.from_string(name)
-        sn = shortname_from_fullname(qname)
-        quals = list(quals_from_fullname(qname))
-        if quals and is_fullname(quals[0]):
-            quals[0] = str(compat_name_remangle(quals[0]))
-        compat_sn = compat_get_specialized_name(str(sn), *quals)
-        return QualName(name=compat_sn, module=qname.module)
-    else:
-        return name_from_string(name)
-
-
 @markup.serializer.no_ref_detect
 @markup.serializer.serializer.register(Name)
 def _serialize_to_markup(obj: Name, *, ctx: markup.Context) -> markup.Markup:

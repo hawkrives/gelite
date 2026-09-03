@@ -164,6 +164,28 @@ class UUID(Scalar):
         buffer.write_bytes(val)
 
 
+class TrailingBytes(Scalar):
+    """Bytes running to the end of the message, with no length prefix.
+
+    Distinct from Bytes, which is length-prefixed. Restore and RestoreBlock
+    embed a DumpHeader/DumpBlock packet as their last field, and the server
+    reads that packet's own fields straight out of the message buffer - a
+    length prefix in front of it shifts everything and the header parses as
+    garbage.
+    """
+
+    cname = 'bytes'
+
+    def validate(self, val: typing.Any) -> bool:
+        return isinstance(val, bytes)
+
+    def parse(self, buffer: binwrapper.BinWrapper) -> any:
+        return buffer.read_rest()
+
+    def dump(self, val: bytes, buffer: binwrapper.BinWrapper) -> None:
+        buffer.write_bytes(val)
+
+
 class ArrayOf(CType):
     def __init__(
         self,
@@ -744,7 +766,7 @@ class Restore(ClientMessage):
     message_length = MessageLength
     attributes = KeyValues
     jobs = UInt16('Number of parallel jobs for restore (only "1" is supported)')
-    header_data = Bytes(
+    header_data = TrailingBytes(
         'Original DumpHeader packet data excluding mtype and message_length'
     )
 
@@ -752,7 +774,7 @@ class Restore(ClientMessage):
 class RestoreBlock(ClientMessage):
     mtype = MessageType('=')
     message_length = MessageLength
-    block_data = Bytes(
+    block_data = TrailingBytes(
         'Original DumpBlock packet data excluding mtype and message_length'
     )
 

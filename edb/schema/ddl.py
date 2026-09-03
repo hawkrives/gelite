@@ -636,7 +636,7 @@ def apply_ddl_script_ex(
     schema_object_ids: Optional[
         Mapping[tuple[sn.Name, Optional[str]], uuid.UUID]
     ] = None,
-    compat_ver: Optional[verutils.Version] = None,
+    dump_restore_mode: bool = False,
 ) -> tuple[s_schema.Schema, sd.DeltaRoot]:
     delta = sd.DeltaRoot()
 
@@ -655,7 +655,7 @@ def apply_ddl_script_ex(
             testmode=testmode,
             store_migration_sdl=store_migration_sdl,
             schema_object_ids=schema_object_ids,
-            compat_ver=compat_ver,
+            dump_restore_mode=dump_restore_mode,
         )
 
         delta.add(cmd)
@@ -674,7 +674,7 @@ def delta_from_ddl(
     schema_object_ids: Optional[
         Mapping[tuple[sn.Name, Optional[str]], uuid.UUID]
     ] = None,
-    compat_ver: Optional[verutils.Version] = None,
+    dump_restore_mode: bool = False,
 ) -> sd.DeltaRoot:
     _, cmd = delta_and_schema_from_ddl(
         ddl_stmt,
@@ -684,7 +684,7 @@ def delta_from_ddl(
         testmode=testmode,
         store_migration_sdl=store_migration_sdl,
         schema_object_ids=schema_object_ids,
-        compat_ver=compat_ver,
+        dump_restore_mode=dump_restore_mode,
     )
     return cmd
 
@@ -701,7 +701,7 @@ def delta_and_schema_from_ddl(
     schema_object_ids: Optional[
         Mapping[tuple[sn.Name, Optional[str]], uuid.UUID]
     ] = None,
-    compat_ver: Optional[verutils.Version] = None,
+    dump_restore_mode: bool = False,
 ) -> tuple[s_schema.Schema, sd.DeltaRoot]:
     delta = sd.DeltaRoot()
     context = sd.CommandContext(
@@ -712,7 +712,7 @@ def delta_and_schema_from_ddl(
         testmode=testmode,
         store_migration_sdl=store_migration_sdl,
         schema_object_ids=schema_object_ids,
-        compat_ver=compat_ver,
+        dump_restore_mode=dump_restore_mode,
     )
 
     with context(sd.DeltaRootContext(schema=schema, op=delta)):

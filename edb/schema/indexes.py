@@ -31,7 +31,6 @@ from typing import (
 from edb import edgeql
 from edb import errors
 from edb.common import parsing
-from edb.common import verutils
 from edb.edgeql import ast as qlast
 from edb.edgeql import compiler as qlcompiler
 from edb.edgeql import qltypes
@@ -1038,22 +1037,7 @@ class CreateIndex(
                     cmd.set_attribute_value('kwargs', kwargs)
 
         elif isinstance(astnode, qlast.CreateConcreteIndex):
-            orig_text = cls.get_orig_expr_text(schema, astnode, 'expr')
-
-            if orig_text is not None and context.compat_ver_is_before(
-                (1, 0, verutils.VersionStage.ALPHA, 6)
-            ):
-                # Versions prior to a6 used a different expression
-                # normalization strategy, so we must renormalize the
-                # expression.
-                expr_ql = qlcompiler.renormalize_compat(
-                    astnode.expr,
-                    orig_text,
-                    schema=schema,
-                    localnames=context.localnames,
-                )
-            else:
-                expr_ql = astnode.expr
+            expr_ql = astnode.expr
 
             kwargs = cls._index_kwargs_from_ast(schema, astnode, context)
             if kwargs:
