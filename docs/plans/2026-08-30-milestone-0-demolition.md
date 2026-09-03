@@ -479,9 +479,11 @@ is generated — see *Before you start*.
 
 Two follow-ups that belong to this task and are **not** done:
 
-- **`tests.yml` still builds Postgres and `libpg_query`.** It must keep doing
-  so until the fork actually runs on SQLite; removing it is Milestone 5 work,
-  not Milestone 0.
+- **`tests.yml` still builds Postgres.** It must keep doing so until the fork
+  actually runs on SQLite; removing it is Milestone 5 work, not Milestone 0.
+  The `libpg_query` build went with the SQL input language (#88):
+  it existed only to parse SQL that arrived from clients, so nothing waits
+  on Milestone 5 for it.
 - **Dump and restore have no CI coverage at all.** `test_pg_dump.py` and all
   19 dump fixtures were deleted with the Postgres-protocol frontend. The
   replacement is new work rather than a port; tracked separately.
