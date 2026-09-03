@@ -24,7 +24,6 @@ from typing import (
     Any,
     Iterable,
     Optional,
-    Literal,
     Sequence,
     NamedTuple,
     TYPE_CHECKING,
@@ -1304,12 +1303,11 @@ class ConnectedTestCase(ClusterTestCase):
         binary_only=False,
         rel_tol=None,
         abs_tol=None,
-        language: Literal["sql", "edgeql"] = "edgeql",
     ):
         fetch_args = variables if isinstance(variables, tuple) else ()
         fetch_kw = variables if isinstance(variables, dict) else {}
 
-        if not binary_only and language != "sql":
+        if not binary_only:
             try:
                 tx = self.con.transaction()
                 await tx.start()
@@ -1354,11 +1352,7 @@ class ConnectedTestCase(ClusterTestCase):
                 __typenames__=typenames,
                 __typeids__=typeids,
                 __limit__=implicit_limit,
-                __language__=(
-                    tconn.InputLanguage.SQL
-                    if language == "sql"
-                    else tconn.InputLanguage.EDGEQL
-                ),
+                __language__=tconn.InputLanguage.EDGEQL,
                 **fetch_kw,
             )
             res = serutils.serialize(res)
@@ -1381,36 +1375,6 @@ class ConnectedTestCase(ClusterTestCase):
             if msg:
                 self.add_fail_notes(msg=msg)
             raise
-
-    async def assert_sql_query_result(
-        self,
-        query,
-        exp_result,
-        *,
-        implicit_limit=0,
-        msg=None,
-        sort=None,
-        variables=None,
-        rel_tol=None,
-        abs_tol=None,
-        apply_access_policies=True,
-    ):
-        if not apply_access_policies:
-            ctx = self.without_access_policies()
-        else:
-            ctx = contextlib.nullcontext()
-        async with ctx:
-            await self.assert_query_result(
-                query,
-                exp_result,
-                implicit_limit=implicit_limit,
-                msg=msg,
-                sort=sort,
-                variables=variables,
-                rel_tol=rel_tol,
-                abs_tol=abs_tol,
-                language="sql",
-            )
 
     async def assert_index_use(self, query, *args, index_type):
         def look(obj):
@@ -1796,183 +1760,6 @@ class DDLTestCase(BaseQueryTestCase):
 
 class QueryTestCase(BaseQueryTestCase):
     BASE_TEST_CLASS = True
-
-
-class SQLRow:
-    """One row of a SQL result, shaped like the mapping asyncpg returned.
-
-    `query_sql` hands back a `gel.Record`, which only offers `as_dict()`.
-    The SQL suites were written against asyncpg's `Record` — `keys()`,
-    `values()`, indexing by name or position, comparison against a plain
-    tuple — so this supplies that surface rather than rewriting several
-    hundred assertions to a different row API.
-    """
-
-    __slots__ = ('_fields',)
-
-    def __init__(self, record: Any) -> None:
-        self._fields: dict[str, Any] = dict(record.as_dict())
-
-    def keys(self) -> list[str]:
-        return list(self._fields)
-
-    def values(self) -> list[Any]:
-        return list(self._fields.values())
-
-    def items(self) -> list[tuple[str, Any]]:
-        return list(self._fields.items())
-
-    def get(self, name: str, default: Any = None) -> Any:
-        return self._fields.get(name, default)
-
-    def __getitem__(self, key: str | int) -> Any:
-        if isinstance(key, int):
-            return list(self._fields.values())[key]
-        return self._fields[key]
-
-    def __contains__(self, key: object) -> bool:
-        return key in self._fields
-
-    def __iter__(self) -> Any:
-        return iter(self._fields.values())
-
-    def __len__(self) -> int:
-        return len(self._fields)
-
-    def __eq__(self, other: object) -> bool:
-        if isinstance(other, SQLRow):
-            return self._fields == other._fields
-        if isinstance(other, (tuple, list)):
-            return list(self._fields.values()) == list(other)
-        if isinstance(other, dict):
-            return self._fields == other
-        return NotImplemented
-
-    def __hash__(self) -> int:
-        return hash(tuple(self._fields.items()))
-
-    def __repr__(self) -> str:
-        inner = ' '.join(f'{k}={v!r}' for k, v in self._fields.items())
-        return f'<SQLRow {inner}>'
-
-
-class SQLConnection:
-    """SQL over Gel's binary protocol, in the shape the SQL suites expect.
-
-    These suites used to hold an asyncpg connection, which meant every
-    substantial SQL test ran through the Postgres wire-protocol frontend
-    (#34). Both transports reach the same resolver through the same
-    `sql.compile_sql`, so the queries themselves are unchanged; what
-    differs is the transport, and this is the seam.
-
-    It deliberately does not offer the parts of asyncpg that only the
-    Postgres frontend can serve — COPY, prepared statements, session
-    settings, `SHOW server_version`. Tests needing those belong on
-    `PGWireTestCase`, and go when the frontend does.
-    """
-
-    def __init__(self, con: tconn.Connection) -> None:
-        self._con = con
-
-    @staticmethod
-    def _params(args: tuple[Any, ...]) -> dict[str, Any]:
-        """`$1`, `$2` … are named "1", "2" … on the binary protocol.
-
-        asyncpg takes them positionally; the client numbers positional
-        arguments from zero, so passing them through as-is asks for
-        argument "0" and the server, which compiled `$1` into a
-        parameter named "1", rejects it. `test_sql_native_query_02` and
-        `_17` already spell out the keyword form.
-        """
-        return {str(i): a for i, a in enumerate(args, start=1)}
-
-    async def execute(self, query: str, *args: Any) -> Optional[str]:
-        await self._con.execute_sql(query, **self._params(args))
-        # asyncpg's execute() answers with the command tag - 'INSERT 0 2',
-        # 'UPDATE 1' - and the suites assert on it to check how many rows
-        # a statement touched. CommandComplete carries the same string.
-        return self._con._get_last_status()
-
-    async def fetch(self, query: str, *args: Any) -> list[SQLRow]:
-        rows = await self._con.query_sql(query, **self._params(args))
-        return [SQLRow(r) for r in rows]
-
-    async def fetchrow(self, query: str, *args: Any) -> Optional[SQLRow]:
-        rows = await self.fetch(query, *args)
-        return rows[0] if rows else None
-
-    async def fetchval(self, query: str, *args: Any) -> Any:
-        row = await self.fetchrow(query, *args)
-        return None if row is None else row[0]
-
-    async def query_sql(self, query: str, *args: Any) -> Any:
-        return await self._con.query_sql(query, **self._params(args))
-
-    def transaction(self) -> Any:
-        return self._con.transaction()
-
-    def is_in_transaction(self) -> bool:
-        return self._con.is_in_transaction()
-
-    async def aclose(self) -> None:
-        await self._con.aclose()
-
-    async def close(self) -> None:
-        await self._con.aclose()
-
-
-class SQLQueryTestCase(BaseQueryTestCase):
-    BASE_TEST_CLASS = True
-
-    scon: SQLConnection
-
-    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        # The same connection the EdgeQL side uses, addressed as SQL. It
-        # needs no separate transaction: ConnectedTestCase.setUp already
-        # wraps each test in one on cls.con, and this is that connection.
-        cls.scon = SQLConnection(cls.con)
-
-    @classmethod
-    async def create_sql_connection(
-        cls,
-        *,
-        user: Optional[str] = None,
-        password: Optional[str] = None,
-    ) -> SQLConnection:
-        """A second SQL connection, optionally as another role.
-
-        test_server_permissions.py uses this to check that SQL
-        authorization is enforced per role. That is the resolver's
-        behaviour rather than the frontend's, so it rides the binary
-        protocol like the rest.
-        """
-        con = await cls.connect(
-            database=cls.con.dbname, user=user, password=password
-        )
-        return SQLConnection(con)
-
-    async def squery_values(self, query, *args):
-        res = await self.scon.fetch(query, *args)
-        return [list(r.values()) for r in res]
-
-    def assert_shape(self, res: Any, rows: int, columns: int | list[str]):
-        """
-        Fail if query result does not confront the specified shape, defined in
-        terms of:
-        - number of rows,
-        - number of columns (not checked if there are not rows)
-        - column names.
-        """
-
-        self.assertEqual(len(res), rows)
-
-        if isinstance(columns, int):
-            if rows > 0:
-                self.assertEqual(len(res[0]), columns)
-        elif isinstance(columns, list):
-            self.assertListEqual(columns, list(res[0].keys()))
 
 
 def get_test_cases_setup(

@@ -44,6 +44,17 @@ BACKEND_FREE_DIRS = ('edb/common', 'edb/edgeql', 'edb/ir', 'edb/schema')
 # itself there on import, rather than the frontend reaching for it.
 BACKEND_PACKAGE = 'edb.sqlite'
 
+# Raw SQL as an input language is gone (#88): it existed to serve Postgres
+# clients over the wire, and #34 removed the protocol they arrive on. These
+# packages carried it. Nothing may import them again -- reinstating SQL
+# input is a design decision, not something a stray import should smuggle
+# back in.
+DELETED_SQL_PACKAGES = (
+    'edb.sqlite.parser',
+    'edb.sqlite.resolver',
+    'edb.server.compiler.sql',
+)
+
 
 def find_edgedb_root():
     return os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -102,4 +113,54 @@ class TestCodeQuality(unittest.TestCase):
                 f'these do:\n  {listing}\n'
                 f'Add a hook to edb/schema/backend.py and register it from '
                 f'the backend instead.'
+            )
+
+    def test_cqa_no_sql_input_language(self):
+        # A grep would flag prose and the surviving `sql` attribute on
+        # QueryUnit, so walk the imports instead -- both module-scope and
+        # the deferred ones inside function bodies, which is how
+        # `edb/server/compiler/sql.py` reached the resolver.
+        root = pathlib.Path(find_edgedb_root())
+        offenders = []
+
+        for path in sorted(root.glob('edb/**/*.py')):
+            tree = ast.parse(path.read_text(), filename=str(path))
+            for node in ast.walk(tree):
+                if isinstance(node, ast.Import):
+                    names = [a.name for a in node.names]
+                elif isinstance(node, ast.ImportFrom):
+                    if node.level == 0:
+                        if node.module is None:
+                            continue
+                        base = node.module
+                    else:
+                        # A relative import resolves against the importing
+                        # module's package. `edb/sqlite/metaschema.py` said
+                        # `from .resolver import sql_introspection`, which an
+                        # absolute-only check does not see -- and that is
+                        # exactly how the deleted package survived the first
+                        # sweep of #88.
+                        pkg = path.relative_to(root).parent.parts
+                        if node.level > 1:
+                            pkg = pkg[: -(node.level - 1)]
+                        base = '.'.join(pkg)
+                        if node.module:
+                            base = f'{base}.{node.module}'
+                    # `from edb.sqlite import parser` names the package in
+                    # the alias, not the module.
+                    names = [base] + [f'{base}.{a.name}' for a in node.names]
+                else:
+                    continue
+
+                for name in names:
+                    for pkg in DELETED_SQL_PACKAGES:
+                        if name == pkg or name.startswith(pkg + '.'):
+                            rel = path.relative_to(root)
+                            offenders.append(f'{rel}:{node.lineno}: {name}')
+
+        if offenders:
+            listing = '\n  '.join(offenders)
+            self.fail(
+                f'raw SQL input was removed in #88, but these import it '
+                f'again:\n  {listing}'
             )

@@ -79,10 +79,8 @@ jobs:
         python setup.py -q ci_helper --type ext >shared-artifacts/ext_cache_key.txt
         python setup.py -q ci_helper --type parsers >shared-artifacts/parsers_cache_key.txt
         python setup.py -q ci_helper --type postgres >shared-artifacts/postgres_git_rev.txt
-        python setup.py -q ci_helper --type libpg_query >shared-artifacts/libpg_query_git_rev.txt
         python setup.py -q ci_helper --type bootstrap >shared-artifacts/bootstrap_cache_key.txt
         echo POSTGRES_GIT_REV=$(cat shared-artifacts/postgres_git_rev.txt) >> $GITHUB_ENV
-        echo LIBPG_QUERY_GIT_REV=$(cat shared-artifacts/libpg_query_git_rev.txt) >> $GITHUB_ENV
         echo BUILD_LIB=$(python setup.py -q ci_helper --type build_lib) >> $GITHUB_ENV
         echo BUILD_TEMP=$(python setup.py -q ci_helper --type build_temp) >> $GITHUB_ENV
 
@@ -120,13 +118,6 @@ jobs:
         path: build/postgres/install
         key: edb-postgres-v3-${{ env.POSTGRES_GIT_REV }}-${{ hashFiles('shared-artifacts/lib_cache_key.txt') }}
 
-    - name: Handle cached libpg_query build
-      uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9  # v6.1.0
-      id: libpg-query-cache
-      with:
-        path: edb/sqlite/parser/libpg_query/libpg_query.a
-        key: edb-libpg_query-v1-${{ env.LIBPG_QUERY_GIT_REV }}
-
     # Install system dependencies for building
 
     - name: Install system deps
@@ -136,7 +127,7 @@ jobs:
         steps.postgres-cache.outputs.cache-hit != 'true'
       run: |
         sudo apt-get update
-        sudo apt-get install -y uuid-dev libreadline-dev bison flex libprotobuf-c-dev
+        sudo apt-get install -y uuid-dev libreadline-dev bison flex
 
     - name: Install Rust toolchain
       if: steps.rust-cache.outputs.cache-hit != 'true'
@@ -162,9 +153,8 @@ jobs:
         RUST_HIT: ${{ steps.rust-cache.outputs.cache-hit }}
         EXT_HIT: ${{ steps.ext-cache.outputs.cache-hit }}
         POSTGRES_HIT: ${{ steps.postgres-cache.outputs.cache-hit }}
-        LIBPG_QUERY_HIT: ${{ steps.libpg-query-cache.outputs.cache-hit }}
       run: |
-        for name in RUST EXT POSTGRES LIBPG_QUERY; do
+        for name in RUST EXT POSTGRES; do
           eval "hit=\${${name}_HIT}"
           if [[ "$hit" == "true" ]]; then
             echo "$name cache: exact hit, build skipped"
@@ -191,15 +181,6 @@ jobs:
     - name: Install Rust extensions
       run: |
         rsync -av ./build/rust_extensions/edb/ ./edb/
-
-    # Build libpg_query
-
-    - name: Build libpg_query
-      if: |
-        steps.libpg-query-cache.outputs.cache-hit != 'true' &&
-        steps.ext-cache.outputs.cache-hit != 'true'
-      run: |
-        python setup.py build_libpg_query
 
     # Build extensions
 

@@ -22,7 +22,6 @@ import os
 import os.path
 import pathlib
 import platform
-import shlex
 import shutil
 import subprocess
 import textwrap
@@ -61,11 +60,6 @@ ROOT_PATH = pathlib.Path(__file__).parent.resolve()
 
 EXT_INC_DIRS = [
     (ROOT_PATH / 'edb' / 'server' / 'pgproto').as_posix(),
-    (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').as_posix()
-]
-
-EXT_LIB_DIRS = [
-    (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').as_posix()
 ]
 EDBSS_DIR = ROOT_PATH / 'edb_stat_statements'
 
@@ -392,83 +386,6 @@ def _compile_edb_stat_statements(pg_config, build_temp):
     )
 
 
-def _get_env_with_protobuf_c_flags():
-    env = dict(os.environ)
-    cflags = env.get('GELITE_BUILD_PROTOBUFC_CFLAGS')
-    ldflags = env.get('GELITE_BUILD_PROTOBUFC_LDFLAGS')
-
-    if not (cflags or ldflags) and platform.system() == 'Darwin':
-        try:
-            prefix = pathlib.Path(subprocess.check_output(
-                ['brew', '--prefix', 'protobuf-c'], text=True
-            ).strip())
-        except (FileNotFoundError, subprocess.CalledProcessError):
-            prefix = None
-        else:
-            pc_path = str(prefix / 'lib' / 'pkgconfig')
-            if 'PKG_CONFIG_PATH' in env:
-                env['PKG_CONFIG_PATH'] += f':{pc_path}'
-            else:
-                env['PKG_CONFIG_PATH'] = pc_path
-        try:
-            cflags = subprocess.check_output(
-                ['pkg-config', '--cflags', 'protobuf-c'], text=True, env=env
-            ).strip()
-            ldflags = subprocess.check_output(
-                ['pkg-config', '--libs', 'protobuf-c'], text=True, env=env
-            ).strip()
-        except (FileNotFoundError, subprocess.CalledProcessError):
-            # pkg-config is not installed or cannot find flags with pkg-config
-            if not prefix:
-                prefix = pathlib.Path("/opt/local")
-            cflags = f'-I{prefix / "include"!s}'
-            ldflags = f'-L{prefix / "lib"!s}'
-
-    if cflags:
-        if 'CPPFLAGS' in env:
-            env['CPPFLAGS'] += f' {cflags}'
-        elif 'CFLAGS' in env:
-            env['CFLAGS'] += f' {cflags}'
-        else:
-            env['CPPFLAGS'] = cflags
-    if ldflags:
-        if 'LDFLAGS' in env:
-            env['LDFLAGS'] += f' {ldflags}'
-        else:
-            env['LDFLAGS'] = ldflags
-    return env
-
-
-def _compile_libpg_query():
-    dir = (ROOT_PATH / 'edb' / 'sqlite' / 'parser' / 'libpg_query').resolve()
-
-    if not (dir / 'README.md').exists():
-        print('libpg_query submodule has not been initialized, '
-              'run `git submodule update --init --recursive`')
-        exit(1)
-
-    cflags = os.environ.get("CFLAGS", "")
-    cflags = f"{cflags} {' '.join(SAFE_EXT_CFLAGS)} -std=gnu99"
-
-    env = _get_env_with_protobuf_c_flags()
-    if "CFLAGS" in env:
-        env["CFLAGS"] += f' {cflags}'
-    else:
-        env["CFLAGS"] = cflags
-
-    subprocess.run(
-        [
-            'make',
-            'build',
-            '-j',
-            str(max(os.cpu_count() - 1, 1)),
-        ],
-        cwd=str(dir),
-        env=env,
-        check=True,
-    )
-
-
 def _get_git_rev(repo, ref):
     output = subprocess.check_output(
         ['git', 'ls-remote', repo, ref],
@@ -512,17 +429,6 @@ def _get_pg_source_stamp():
     return source_stamp.strip()
 
 
-def _get_libpg_query_source_stamp():
-    output = subprocess.check_output(
-        ['git', 'submodule', 'status', '--cached',
-         'edb/sqlite/parser/libpg_query'],
-        universal_newlines=True,
-        cwd=ROOT_PATH,
-    )
-    revision, _, _ = output[1:].partition(' ')
-    return revision.strip()
-
-
 _PYTHON_ONLY = os.environ.get("BUILD_EXT_MODE", "both") == "skip"
 
 
@@ -531,7 +437,6 @@ class build(setuptools_build.build):
     user_options = setuptools_build.build.user_options
 
     sub_commands = setuptools_build.build.sub_commands if _PYTHON_ONLY else [
-        ("build_libpg_query", lambda self: True),
         *setuptools_build.build.sub_commands,
         ("build_metadata", lambda self: True),
         ("build_parsers", lambda self: True),
@@ -603,7 +508,7 @@ class ci_helper(setuptools.Command):
     description = "echo specified hash or build info for CI"
     user_options = [
         ('type=', None,
-         'one of: cli, rust, ext, parsers, postgres, libpg_query, bootstrap, '
+         'one of: cli, rust, ext, parsers, postgres, bootstrap, '
          'build_temp, build_lib'),
     ]
 
@@ -626,9 +531,6 @@ class ci_helper(setuptools.Command):
 
         elif self.type == 'postgres':
             print(_get_pg_source_stamp())
-
-        elif self.type == 'libpg_query':
-            print(_get_libpg_query_source_stamp())
 
         elif self.type == 'bootstrap':
             bootstrap_hash = hash_dirs(
@@ -672,10 +574,7 @@ class ci_helper(setuptools.Command):
                 # protocol.pyx for tests links to edgedb-python binary
                 extra_data=gel.__version__.encode(),
             )
-            print(
-                binascii.hexlify(ext_hash).decode() + '-'
-                + _get_libpg_query_source_stamp()
-            )
+            print(binascii.hexlify(ext_hash).decode())
 
         elif self.type == 'ui':
             print(_get_git_rev(EDGEDBGUI_REPO, EDGEDBGUI_COMMIT))
@@ -689,7 +588,7 @@ class ci_helper(setuptools.Command):
         else:
             raise RuntimeError(
                 f'Illegal --type={self.type}; can only be: '
-                'cli, rust, ext, postgres, libpg_query, bootstrap, parsers,'
+                'cli, rust, ext, postgres, bootstrap, parsers,'
                 'build_temp or build_lib'
             )
 
@@ -739,24 +638,6 @@ class build_postgres(setuptools.Command):
             produce_compile_commands_json=self.compile_commands,
             run_tests=self.run_tests,
         )
-
-
-class build_libpg_query(setuptools.Command):
-
-    description = "build libpg_query"
-
-    user_options: list[str] = []
-
-    editable_mode: bool
-
-    def initialize_options(self):
-        self.editable_mode = False
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        _compile_libpg_query()
 
 
 class build_ext(setuptools_build_ext.build_ext):
@@ -1009,10 +890,6 @@ def _version():
     return buildmeta.get_version_from_scm(ROOT_PATH)
 
 
-_protobuf_c_flags = _get_env_with_protobuf_c_flags()
-_protobuf_c_cflags = shlex.split(_protobuf_c_flags.get("CPPFLAGS", ""))
-
-
 setuptools.setup(
     version=_version(),
     cmdclass={
@@ -1023,7 +900,6 @@ setuptools.setup(
         'build_postgres': build_postgres,
         'build_parsers': build_parsers,
         'build_ui': build_ui,
-        'build_libpg_query': build_libpg_query,
         'ci_helper': ci_helper,
     },
     ext_modules=[
@@ -1128,16 +1004,6 @@ setuptools.setup(
             extra_compile_args=EXT_CFLAGS,
             extra_link_args=EXT_LDFLAGS,
             include_dirs=EXT_INC_DIRS,
-        ),
-
-        setuptools_extension.Extension(
-            "edb.sqlite.parser.parser",
-            ["edb/sqlite/parser/parser.pyx"],
-            extra_compile_args=EXT_CFLAGS + _protobuf_c_cflags,
-            extra_link_args=EXT_LDFLAGS,
-            include_dirs=EXT_INC_DIRS,
-            library_dirs=EXT_LIB_DIRS,
-            libraries=['pg_query']
         ),
 
         setuptools_extension.Extension(

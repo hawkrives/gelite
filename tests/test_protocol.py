@@ -173,28 +173,17 @@ class TestProtocol(ProtocolTestCase):
         )
 
     async def test_proto_execute_04(self):
-        # Same as test_proto_execute_03 but for SQL
+        # SQL as an input language is gone (#88). The wire code b'S' is
+        # still a language the protocol knows, so asking for it is an
+        # unsupported feature rather than a malformed message.
 
         await self.con.connect()
 
-        await self._execute('SELECT 1', data=True, sql=True)
-
-        await self.con.recv_match(
-            protocol.CommandDataDescription,
-            result_cardinality=compiler.Cardinality.MANY,
-        )
-        await self.con.recv_match(
-            protocol.Data,
-        )
-        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
-        await self.con.recv_match(
-            protocol.ReadyForCommand,
-            transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,
-        )
-
         await self._execute('SELECT 1', sql=True)
 
-        await self.con.recv_match(protocol.CommandComplete, status='SELECT')
+        await self.con.recv_match(
+            protocol.ErrorResponse, message='unsupported input language'
+        )
         await self.con.recv_match(
             protocol.ReadyForCommand,
             transaction_state=protocol.TransactionState.NOT_IN_TRANSACTION,

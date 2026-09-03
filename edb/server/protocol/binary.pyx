@@ -43,7 +43,6 @@ from edb import buildmeta
 from edb import edgeql
 from edb.edgeql import qltypes
 
-from edb.sqlite import parser as pgparser
 
 from edb.server.pgproto cimport hton
 from edb.server.pgproto.pgproto cimport (
@@ -98,10 +97,8 @@ cdef object CARD_AT_MOST_ONE = compiler.Cardinality.AT_MOST_ONE
 cdef object CARD_MANY = compiler.Cardinality.MANY
 
 cdef object FMT_NONE = compiler.OutputFormat.NONE
-cdef object FMT_BINARY = compiler.OutputFormat.BINARY
 
 cdef object LANG_EDGEQL = compiler.InputLanguage.EDGEQL
-cdef object LANG_SQL = compiler.InputLanguage.SQL
 
 cdef tuple DUMP_VER_MIN = (0, 7)
 cdef tuple DUMP_VER_MAX = edbdef.CURRENT_PROTOCOL
@@ -487,11 +484,6 @@ cdef class EdgeConnection(frontend.FrontendConnection):
                 return edgeql.Source.from_string(text)
             else:
                 return edgeql.NormalizedSource.from_string(text)
-        elif lang is LANG_SQL:
-            if debug.flags.edgeql_disable_normalization:
-                return pgparser.Source.from_string(text)
-            else:
-                return pgparser.NormalizedSource.from_string(text)
         else:
             raise errors.UnsupportedFeatureError(
                 f"unsupported input language: {lang}")
@@ -521,7 +513,6 @@ cdef class EdgeConnection(frontend.FrontendConnection):
         self,
         rpc.CompilationRequest query_req,
         uint64_t allow_capabilities,
-        tag=None,
     ) -> dbview.CompiledQuery:
         cdef dbview.DatabaseConnectionView dbv
         dbv = self.get_dbview()
@@ -555,42 +546,20 @@ cdef class EdgeConnection(frontend.FrontendConnection):
             if suppress_timeout:
                 await self._suppress_tx_timeout()
             try:
-                if query_req.input_language is LANG_SQL:
-                    async with self.with_pgcon() as pg_conn:
-                        return await dbv.parse(
-                            query_req,
-                            allow_capabilities=allow_capabilities,
-                            pgcon=pg_conn,
-                            tag=tag,
-                        )
-                else:
-                    return await dbv.parse(
-                        query_req,
-                        allow_capabilities=allow_capabilities,
-                        send_log_message=(
-                            lambda code, s: self.write_log(
-                                EdgeSeverity.EDGE_SEVERITY_NOTICE,
-                                code,
-                                s,
-                            )
+                return await dbv.parse(
+                    query_req,
+                    allow_capabilities=allow_capabilities,
+                    send_log_message=(
+                        lambda code, s: self.write_log(
+                            EdgeSeverity.EDGE_SEVERITY_NOTICE,
+                            code,
+                            s,
                         )
                     )
+                )
             finally:
                 if suppress_timeout:
-                    try:
-                        await self._restore_tx_timeout(dbv)
-                    except pgerror.BackendError as ex:
-                        # dbv.parse() for LANG_SQL can send a SQL
-                        # query, which can put the transaction in a
-                        # bad state if it fails. If we fail because of
-                        # that, swallow it.
-                        if (
-                            query_req.input_language is not LANG_SQL
-                            or not ex.code_is(
-                                pgerror.ERRCODE_IN_FAILED_SQL_TRANSACTION
-                            )
-                        ):
-                            raise
+                    await self._restore_tx_timeout(dbv)
         else:
             return dbv.as_compiled(query_req, query_unit_group)
 
@@ -857,24 +826,20 @@ cdef class EdgeConnection(frontend.FrontendConnection):
         else:
             lang = LANG_EDGEQL
 
-        output_format = rpc.deserialize_output_format(self.buffer.read_byte())
-        if (
-            lang is LANG_SQL
-            and output_format is not FMT_NONE
-            and output_format is not FMT_BINARY
-        ):
+        # SQL as an input language is gone (#88). It existed to serve
+        # Postgres clients, and #34 removed the protocol they arrive on.
+        # The wire code stays a language the protocol knows, so asking
+        # for it reads as an unsupported feature rather than a malformed
+        # message.
+        if lang is not LANG_EDGEQL:
             raise errors.UnsupportedFeatureError(
-                "non-binary output format is not supported with "
-                "SQL as the input language"
+                f"unsupported input language: {lang}"
             )
+
+        output_format = rpc.deserialize_output_format(self.buffer.read_byte())
 
         cardinality = self.parse_cardinality(self.buffer.read_byte())
         expect_one = cardinality is CARD_AT_MOST_ONE
-        if lang is LANG_SQL and cardinality is not CARD_MANY:
-            raise errors.UnsupportedFeatureError(
-                "output cardinality assertions are not supported with "
-                "SQL as the input language"
-            )
 
         query = self.buffer.read_len_prefixed_bytes()
         if not query:
@@ -999,7 +964,7 @@ cdef class EdgeConnection(frontend.FrontendConnection):
             if self.debug:
                 self.debug_print('EXECUTE /CACHE MISS', query_req.source.text())
 
-            compiled = await self._parse(query_req, allow_capabilities, tag)
+            compiled = await self._parse(query_req, allow_capabilities)
             query_unit_group = compiled.query_unit_group
 
         if not compiled:

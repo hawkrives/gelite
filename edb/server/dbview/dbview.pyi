@@ -20,7 +20,6 @@ from typing import (
     Any,
     Awaitable,
     Callable,
-    Hashable,
     Iterator,
     Mapping,
     Optional,
@@ -66,16 +65,6 @@ class Database:
     async def cache_worker(self) -> None: ...
     async def cache_notifier(self) -> None: ...
     def start_stop_extensions(self) -> None: ...
-    def cache_compiled_sql(
-        self,
-        key: Hashable,
-        compiled: list[dbstate.SQLQueryUnit],
-        schema_version: uuid.UUID,
-    ) -> None: ...
-    def lookup_compiled_sql(
-        self,
-        key: Hashable,
-    ) -> Optional[list[dbstate.SQLQueryUnit]]: ...
     def set_state_serializer(
         self,
         protocol_version: tuple[int, int],

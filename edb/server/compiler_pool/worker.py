@@ -254,38 +254,6 @@ def compile_notebook(
     )
 
 
-def compile_sql(
-    dbname: str,
-    evicted_dbs: list[str],
-    user_schema: Optional[bytes],
-    reflection_cache: Optional[bytes],
-    global_schema: Optional[bytes],
-    database_config: Optional[bytes],
-    system_config: Optional[bytes],
-    *compile_args: Any,
-    **compile_kwargs: Any,
-):
-    db = __sync__(
-        dbname,
-        evicted_dbs,
-        user_schema,
-        reflection_cache,
-        global_schema,
-        database_config,
-        system_config,
-    )
-
-    return COMPILER.compile_sql(
-        db.user_schema,
-        GLOBAL_SCHEMA,
-        db.reflection_cache,
-        db.database_config,
-        INSTANCE_CONFIG,
-        *compile_args,
-        **compile_kwargs,
-    )
-
-
 def get_handler(methname):
     if methname == "__init_worker__":
         meth = __init_worker__
@@ -298,8 +266,6 @@ def get_handler(methname):
             meth = compile_in_tx
         elif methname == "compile_notebook":
             meth = compile_notebook
-        elif methname == "compile_sql":
-            meth = compile_sql
         else:
             meth = getattr(COMPILER, methname)
     return meth

@@ -30,8 +30,6 @@ from edb.common import value_dispatch
 from edb.common import uuidgen
 
 
-from edb.sqlite.parser import exceptions as parser_errors
-
 from edb.schema import name as sn
 from edb.schema import objtypes as s_objtypes
 from edb.schema import pointers as s_pointers
@@ -723,21 +721,3 @@ def _interpret_wrong_object_type(
         )
 
     return errors.InternalServerError(err_details.message)
-
-
-def static_interpret_psql_parse_error(
-    exc: parser_errors.PSqlParseError,
-) -> errors.EdgeDBError:
-    res: errors.EdgeDBError
-    if isinstance(exc, parser_errors.PSqlSyntaxError):
-        res = errors.EdgeQLSyntaxError(str(exc))
-        res.set_position(exc.cursor_pos - 1, None)
-        res.compute_line_col(exc.query_source)
-    elif isinstance(exc, parser_errors.PSqlUnsupportedError):
-        res = errors.UnsupportedFeatureError(str(exc))
-        if exc.location is not None:
-            res.set_position(exc.location, None)
-    else:
-        res = errors.InternalServerError(str(exc))
-
-    return res

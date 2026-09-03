@@ -134,7 +134,6 @@ cdef class CompiledQuery:
         data = {}
         if self.tag:
             data['tag'] = self.tag
-        # maintenance reminder: please also update _amend_typedesc_in_sql()
         if data:
             data_bytes = json.dumps(data).encode(defines.GELITE_ENCODING)
             return b''.join([b'-- ', data_bytes, b'\n'])
@@ -176,10 +175,6 @@ cdef class Database:
             maxsize=self.lookup_config('query_cache_size')
         )
         self._cache_locks = {}
-        self._sql_to_compiled = lru.LRUMapping(
-            maxsize=self.lookup_config('query_cache_size')
-        )
-
         # Tracks the active transactions and their creation sequence. The
         # sequence ID is incremental-only. ID 0 is reserved as a non-exist ID.
         self._tx_seq = 0  # most-recently used transaction sequence ID
@@ -438,7 +433,6 @@ cdef class Database:
         })
 
     cdef _invalidate_caches(self):
-        self._sql_to_compiled.clear()
         self._index.invalidate_caches()
 
     cdef _cache_compiled_query(self, key, compiled: dbstate.QueryUnitGroup):
@@ -453,23 +447,6 @@ cdef class Database:
 
         if self._cache_queue is not None:
             self._cache_queue.put_nowait((key, compiled))
-
-    def cache_compiled_sql(self, key, compiled: list[str], schema_version):
-        existing, ver = self._sql_to_compiled.get(key, DICTDEFAULT)
-        if existing is not None and ver == self.schema_version:
-            # We already have a cached query for a more recent DB version.
-            return
-        if not all(unit.cacheable for unit in compiled):
-            return
-
-        # Store the matching schema version, see also the comments at origin
-        self._sql_to_compiled[key] = compiled, schema_version
-
-    def lookup_compiled_sql(self, key):
-        rv, cached_ver = self._sql_to_compiled.get(key, DICTDEFAULT)
-        if rv is not None and cached_ver != self.schema_version:
-            rv = None
-        return rv
 
     cdef _new_view(self, query_cache, protocol_version, role_name):
         view = DatabaseConnectionView(
@@ -554,7 +531,7 @@ cdef class Database:
         yield from self._views
 
     def get_query_cache_size(self):
-        return len(self._eql_to_compiled) + len(self._sql_to_compiled)
+        return len(self._eql_to_compiled)
 
     async def introspection(self):
         if self.user_schema_pickle is None:
@@ -1375,9 +1352,6 @@ cdef class DatabaseConnectionView:
                     # Only recompile queries from the *latest* version,
                     # to avoid quadratic slowdown problems.
                     and req.schema_version == self.schema_version
-                    # SQL queries require _amend_typedesc_in_sql() with a
-                    # backend connection, which is not available here.
-                    and req.input_language != enums.InputLanguage.SQL
                 ):
                     cnt += 1
                     g.create_task(recompile_request(req))
@@ -1423,8 +1397,6 @@ cdef class DatabaseConnectionView:
         query_req: rpc.CompilationRequest,
         use_metrics: bint = True,
         allow_capabilities: uint64_t = <uint64_t>compiler.Capability.ALL,
-        pgcon: pgcon.PGConnection | None = None,
-        tag: str | None = None,
         send_log_message: typing.Callable[[int, str], None] | None = None,
     ) -> CompiledQuery:
         query_unit_group = None
@@ -1496,24 +1468,6 @@ cdef class DatabaseConnectionView:
             )
             self._check_in_tx_error(query_unit_group)
 
-            if query_req.input_language is enums.InputLanguage.SQL:
-                if len(query_unit_group) > 1:
-                    raise errors.UnsupportedFeatureError(
-                        "multi-statement SQL scripts are not supported yet"
-                    )
-
-                if pgcon is None:
-                    raise errors.InternalServerError(
-                        "a valid backend connection is required to fully "
-                        "compile a query in SQL mode",
-                    )
-                await self._amend_typedesc_in_sql(
-                    query_req,
-                    query_unit_group,
-                    pgcon,
-                    tag,
-                )
-
             if self._query_cache_enabled and query_unit_group.cacheable:
                 self.cache_compiled_query(query_req, query_unit_group)
         finally:
@@ -1580,123 +1534,6 @@ cdef class DatabaseConnectionView:
             recompiled_cache=recompiled_cache,
         )
 
-    async def _amend_typedesc_in_sql(
-        self,
-        query_req: rpc.CompilationRequest,
-        qug: dbstate.QueryUnitGroup,
-        pgcon: pgcon.PGConnection,
-        tag: str | None,
-    ) -> None:
-        # The SQL QueryUnitGroup as initially returned from the compiler
-        # is missing the input/output type descriptors because we currently
-        # don't run static SQL type inference.  To mend that we ask Postgres
-        # to infer the the result types (as an OID tuple) and then use
-        # our OID -> scalar type mapping to construct an EdgeQL free shape with
-        # corresponding properties which we then send to the compiler to
-        # compute the type descriptors.
-        to_describe = []
-
-        desc_map = {}
-        source = query_req.source
-        if qug.force_non_normalized:
-            source = source.denormalized()
-
-        first_extra = source.first_extra()
-        num_injected_params = 0
-        if qug.globals is not None:
-            num_injected_params += len(qug.globals)
-        if qug.permissions is not None:
-            num_injected_params += len(qug.permissions)
-        if first_extra is not None:
-            extra_type_oids = source.extra_type_oids()
-            all_type_oids = [0] * first_extra + extra_type_oids
-            num_injected_params += len(extra_type_oids)
-        else:
-            all_type_oids = []
-
-        for i, query_unit in enumerate(qug):
-            intro_sql = query_unit.introspection_sql
-            if intro_sql is None:
-                intro_sql = query_unit.sql
-            if tag is not None:
-                # maintenance reminder: please also update make_query_prefix()
-                tag_json = json.dumps({"tag": tag})
-                intro_sql = b''.join([
-                    b'-- ',
-                    tag_json.encode(defines.GELITE_ENCODING),
-                    b'\n',
-                    intro_sql,
-                ])
-            try:
-                param_desc, result_desc = await pgcon.sql_describe(
-                    intro_sql, all_type_oids)
-            except pgerror.BackendError as ex:
-                ex._from_sql = True
-                if 'P' in ex.fields:
-                    ex.fields['P'] = str(
-                        int(ex.fields['P']) - query_unit.sql_prefix_len
-                    )
-                if query_unit.source_map:
-                    ex._source_map = query_unit.source_map
-
-                raise
-
-            result_types = []
-            for col, toid in result_desc:
-                edb_type_id = self._db.backend_oid_to_id.get(toid)
-                if edb_type_id is None:
-                    raise errors.UnsupportedFeatureError(
-                        f"unsupported SQL type in column \"{col}\" "
-                        f"with type OID {toid}"
-                    )
-
-                result_types.append((col, edb_type_id))
-            params = []
-            if num_injected_params:
-                param_desc = param_desc[:-num_injected_params]
-            for pi, toid in enumerate(param_desc):
-                edb_type_id = self._db.backend_oid_to_id.get(toid)
-                if edb_type_id is None:
-                    raise errors.UnsupportedFeatureError(
-                        f"unsupported type in SQL parameter ${pi} "
-                        f"with type OID {toid}"
-                    )
-
-                params.append(edb_type_id)
-
-            to_describe.append((params, result_types))
-            desc_map[len(to_describe) - 1] = i
-
-        if to_describe:
-            desc_qug = await self._compile_sql_descriptors(
-                query_req, to_describe)
-
-            for i, desc_qu in enumerate(desc_qug):
-                qu_i = desc_map[i]
-
-                if query_req.output_format is not enums.OutputFormat.NONE:
-                    qug[qu_i].out_type_data = desc_qu[1][0]
-                    qug[qu_i].out_type_id = desc_qu[1][1]
-
-                qug[qu_i].in_type_data = desc_qu[0][0]
-                qug[qu_i].in_type_id = desc_qu[0][1]
-                qug[qu_i].in_type_args = desc_qu[0][2]
-                qug[qu_i].in_type_args_real_count = desc_qu[0][3]
-
-            # XXX We don't support SQL scripts just yet, so for now
-            # we can just copy the last QU's descriptors and
-            # apply them to the whole group (IOW a group is really
-            # a group of ONE now.)
-            # In near future we'll need to properly implement arg
-            # remap.
-            if query_req.output_format is not enums.OutputFormat.NONE:
-                qug.out_type_data = desc_qug[-1][1][0]
-                qug.out_type_id = desc_qug[-1][1][1]
-
-            qug.in_type_data = desc_qug[-1][0][0]
-            qug.in_type_id = desc_qug[-1][0][1]
-            qug.in_type_args = desc_qug[-1][0][2]
-            qug.in_type_args_real_count = desc_qug[-1][0][3]
 
     cdef inline _check_in_tx_error(self, query_unit_group):
         if self.in_tx_error():
@@ -1786,23 +1623,6 @@ cdef class DatabaseConnectionView:
 
         return unit_group
 
-    async def _compile_sql_descriptors(
-        self,
-        query_req: rpc.CompilationRequest,
-        types_in_out: defines.ProtocolVersion,
-    ) -> dbstate.QueryUnitGroup:
-        compiler_pool = self._db._index._server.get_compiler_pool()
-
-        cfg_ser = self.server.compilation_config_serializer
-        req = rpc.CompilationRequest(
-            source=rpc.SQLParamsSource(types_in_out),
-            protocol_version=query_req.protocol_version,
-            schema_version=query_req.schema_version,
-            input_language=enums.InputLanguage.SQL_PARAMS,
-            compilation_config_serializer=cfg_ser,
-        )
-
-        return await self._compile(req)
 
     cdef check_capabilities(
         self,

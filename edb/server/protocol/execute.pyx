@@ -39,7 +39,6 @@ from edb.common import debug
 from edb import edgeql
 from edb.edgeql import qltypes
 
-from edb.sqlite.parser import exceptions as parser_errors
 
 from edb.server import compiler
 from edb.server import config
@@ -1248,8 +1247,6 @@ async def interpret_error(
                 'unhandled error while calling interpret_backend_error(); '
                 'run with GELITE_DEBUG_SERVER to debug.')
 
-    elif isinstance(exc, parser_errors.PSqlParseError):
-        exc = errormech.static_interpret_psql_parse_error(exc)
 
     return _check_for_ise(exc)
 

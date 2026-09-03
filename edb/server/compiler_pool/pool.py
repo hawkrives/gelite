@@ -701,40 +701,6 @@ class AbstractPool[
             fini()
             self._release_worker(worker)
 
-    async def compile_sql(
-        self,
-        dbname: str,
-        user_schema_pickle: bytes,
-        global_schema_pickle: bytes,
-        reflection_cache: state.ReflectionCache,
-        database_config: Config,
-        system_config: Config,
-        *compile_args: Any,
-        **compiler_args: Any,
-    ) -> list[dbstate.SQLQueryUnit]:
-        fini = lambda: None
-        worker = await self._acquire_worker(**compiler_args)
-        try:
-            preargs, sync_state, fini = await self._compute_compile_preargs(
-                "compile_sql",
-                worker,
-                dbname,
-                user_schema_pickle,
-                global_schema_pickle,
-                reflection_cache,
-                database_config,
-                system_config,
-            )
-
-            return await worker.call(
-                *preargs, *compile_args, sync_state=sync_state
-            )
-        finally:
-            fini()
-            self._release_worker(worker)
-
-    # We use a helper function instead of just fully generating the
-    # functions in order to make the backtraces a little better.
     async def _simple_call(self, name: str, *args: Any, **kwargs: Any) -> Any:
         worker = await self._acquire_worker()
         try:
