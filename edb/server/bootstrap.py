@@ -825,12 +825,6 @@ class StdlibBits(NamedTuple):
     global_schema: s_schema.Schema
     #: SQL text of the procedure to initialize `std` in Postgres.
     sqltext: str
-    #: SQL text of the procedure to create all `std` scalars for inplace
-    #: upgrades
-    inplace_upgrade_scalar_text: str
-    #: SQL text of the procedure to recreate all extension packages
-    #: for inplace upgrades.
-    inplace_upgrade_extension_packages_text: str
     #: Descriptors of all the needed trampolines
     trampolines: list[trampoline.Trampoline]
     #: A set of ids of all types in std.
@@ -1027,10 +1021,6 @@ def _make_stdlib(
         reflschema=reflschema.get_top_schema(),
         global_schema=schema.get_global_schema(),
         sqltext=sqltext,
-        inplace_upgrade_scalar_text=scalar_block.to_string(),
-        inplace_upgrade_extension_packages_text=(
-            extension_package_block.to_string()
-        ),
         trampolines=trampolines,
         types=types,
         classlayout=reflection.class_layout,
@@ -1244,7 +1234,6 @@ async def _init_stdlib(
     in_dev_mode = devmode.is_in_dev_mode()
     conn = ctx.conn
     cluster = ctx.cluster
-    args = ctx.args
 
     tpldbdump_cache = 'backend-tpldbdump.sql'
     src_hash = _calculate_src_hash()
@@ -1263,13 +1252,7 @@ async def _init_stdlib(
         cache_dir=cache_dir,
     )
 
-    tpldbdump, tpldbdump_inplace = None, None
-    if tpldbdump_package:
-        tpldbdump, tpldbdump_inplace = tpldbdump_package
-    else:
-        assert not args.inplace_upgrade_prepare, (
-            "Gel must have a valid bootstrap cache to use inplace upgrade"
-        )
+    tpldbdump = tpldbdump_package
 
     stdlib_was_none = stdlib is None
     if stdlib is None:
@@ -1304,16 +1287,12 @@ async def _init_stdlib(
     await _populate_misc_instance_data(ctx)
 
     backend_params = cluster.get_runtime_params()
-    if not args.inplace_upgrade_prepare:
-        logger.info('Creating the necessary PostgreSQL extensions...')
-        await metaschema.create_pg_extensions(conn, backend_params)
+    logger.info('Creating the necessary PostgreSQL extensions...')
+    await metaschema.create_pg_extensions(conn, backend_params)
 
     trampolines.extend(stdlib.trampolines)
 
-    eff_tpldbdump = (
-        tpldbdump_inplace if args.inplace_upgrade_prepare else tpldbdump
-    )
-    if eff_tpldbdump is None:
+    if tpldbdump is None:
         logger.info('Populating internal SQL structures...')
         assert bootstrap_commands is not None
         block = dbops.PLTopBlock()
@@ -1380,20 +1359,8 @@ async def _init_stdlib(
 
             tpldbdump += b'\n' + text.encode('utf-8')
 
-            tpldbdump_inplace = await cluster.dump_database(
-                tpl_pg_db_name,
-                include_schemas=[
-                    pg_common.versioned_schema('edgedb'),
-                    pg_common.versioned_schema('edgedbstd'),
-                ],
-                dump_object_owners=False,
-            )
-            tpldbdump_inplace = stdlib.inplace_upgrade_scalar_text.encode(
-                'utf-8'
-            ) + cleanup_tpldbdump(tpldbdump_inplace)
-
             buildmeta.write_data_cache(
-                (tpldbdump, tpldbdump_inplace),
+                tpldbdump,
                 src_hash,
                 tpldbdump_cache,
                 pickled=True,
@@ -1408,7 +1375,7 @@ async def _init_stdlib(
             )
     else:
         logger.info('Initializing the standard library...')
-        await _execute(conn, eff_tpldbdump.decode('utf-8'))
+        await _execute(conn, tpldbdump.decode('utf-8'))
         # Restore the search_path as the dump might have altered it.
         await conn.sql_execute(
             b"SELECT pg_catalog.set_config('search_path', 'edgedb', false)"
@@ -1542,20 +1509,7 @@ async def _init_stdlib(
     block = dbops.PLTopBlock()
     tramps.generate(block)
 
-    if args.inplace_upgrade_prepare:
-        trampoline_text = block.to_string()
-        await _store_static_text_cache(
-            ctx,
-            f'trampoline_pivot_query',
-            trampoline_text,
-        )
-        await _store_static_text_cache(
-            ctx,
-            f'global_schema_update_query',
-            stdlib.inplace_upgrade_extension_packages_text,
-        )
-    else:
-        await _execute_block(conn, block)
+    await _execute_block(conn, block)
 
     return stdlib, config_spec, compiler
 
@@ -2076,8 +2030,8 @@ async def _check_catalog_compatibility(
                     f'{expected_ver.major}'
                 ),
                 hint=(
-                    f'You need to either recreate the instance and upgrade '
-                    f'using dump/restore, or do an inplace upgrade.'
+                    f'You need to recreate the instance and upgrade '
+                    f'using dump/restore.'
                 ),
             )
 
@@ -2093,8 +2047,8 @@ async def _check_catalog_compatibility(
                     f'format version {expected_catver}'
                 ),
                 hint=(
-                    f'You need to either recreate the instance and upgrade '
-                    f'using dump/restore, or do an inplace upgrade.'
+                    f'You need to recreate the instance and upgrade '
+                    f'using dump/restore.'
                 ),
             )
     except Exception:
@@ -2205,11 +2159,7 @@ async def _bootstrap(
     using_template = backend_params.has_create_database and not no_template
 
     if using_template:
-        if not args.inplace_upgrade_prepare:
-            new_template_db_id = await _create_edgedb_template_database(ctx)
-        # XXX: THIS IS WRONG, RIGHT?
-        else:
-            new_template_db_id = uuidgen.uuid1mc()
+        new_template_db_id = await _create_edgedb_template_database(ctx)
         tpl_db = cluster.get_db_name(edbdef.GELITE_TEMPLATE_DB)
         conn = PGConnectionProxy(
             cluster, source_description="_bootstrap", dbname=tpl_db
@@ -2324,9 +2274,7 @@ async def _bootstrap(
                 async with iteration:
                     await _pg_ensure_database_not_connected(ctx.conn, tpl_db)
 
-    if args.inplace_upgrade_prepare:
-        pass
-    elif backend_params.has_create_database:
+    if backend_params.has_create_database:
         await _create_edgedb_database(
             ctx,
             edbdef.GELITE_SYSTEM_DB,
@@ -2357,9 +2305,7 @@ async def _bootstrap(
             compiler=compiler,
         )
 
-    if args.inplace_upgrade_prepare:
-        pass
-    elif backend_params.has_create_database:
+    if backend_params.has_create_database:
         await _create_edgedb_database(
             ctx,
             default_branch,
