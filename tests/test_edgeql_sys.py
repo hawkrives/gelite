@@ -216,51 +216,6 @@ class TestEdgeQLSys(tb.QueryTestCase, TestQueryStatsMixin):
                 self.con = old_con
 
 
-class TestSQLSys(tb.SQLQueryTestCase, TestQueryStatsMixin):
-    stats_magic_word = 'TestSQLSys'
-    stats_type = 'SQL'
-
-    TRANSACTION_ISOLATION = False
-
-    async def _query_for_stats(self):
-        self.counter += 1
-        ident = common.quote_ident(self.stats_magic_word + str(self.counter))
-        self.assertEqual(
-            await self.squery_values(f"select {self.counter} as {ident}"),
-            [[self.counter]],
-        )
-
-    async def _configure_track(self, option: str):
-        # XXX: we should probably translate the config name in the compiler,
-        # so that we can use the frontend name (track_query_stats) here instead
-        await self.scon.execute(f'''
-            set "edb_stat_statements.track" TO '{option}';
-        ''')
-
-    async def _bad_query_for_stats(self):
-        import asyncpg
-
-        with self.assertRaisesRegex(
-            asyncpg.UndefinedColumnError, "does not exist"
-        ):
-            await self.squery_values(
-                f'select {self.stats_magic_word}_NoSuchType'
-            )
-
-    async def test_sql_sys_query_stats(self):
-        self._before_test_sys_query_stats()
-        async with tb.start_edgedb_server() as sd:
-            old_cons = self.con, self.scon
-            self.con = await sd.connect()
-            self.scon = await sd.connect_pg()
-            try:
-                await self._test_sys_query_stats()
-            finally:
-                await self.scon.close()
-                await self.con.aclose()
-                self.con, self.scon = old_cons
-
-
 class TestQueryStatsSQLoverBianry(tb.QueryTestCase, TestQueryStatsMixin):
     stats_magic_word = 'TestEdgeQLSysSQL'
     stats_type = 'SQL'

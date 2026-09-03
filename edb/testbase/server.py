@@ -80,8 +80,6 @@ from edb.testbase import connection as tconn
 
 
 if TYPE_CHECKING:
-    import asyncpg
-
     DatabaseName = str
     SetupScript = str
 
@@ -1513,16 +1511,6 @@ class ConnectedTestCase(ClusterTestCase):
                     'CONFIGURE SESSION RESET allow_user_specified_id'
                 )
 
-    @classmethod
-    def get_sql_proto_dsn(cls, dbname=None):
-        dbname = dbname or cls.con.dbname
-        conargs = cls.get_connect_args()
-        return (
-            f"postgres://{conargs['user']}:{conargs['password']}@"
-            f"{conargs['host']}:{conargs['port']}/{cls.con.dbname}?"
-            f"sslrootcert={conargs['tls_ca_file']}"
-        )
-
 
 class DatabaseTestCase(ConnectedTestCase):
     SETUP: Optional[str | pathlib.Path | list[str] | list[pathlib.Path]] = None
@@ -2180,18 +2168,6 @@ class _EdgeDBServerData(NamedTuple):
     async def connect(self, **kwargs: Any) -> tconn.Connection:
         conn_args = self.get_connect_args(**kwargs)
         return await tconn.async_connect_test_client(**conn_args)
-
-    async def connect_pg(self, **kwargs: Any) -> asyncpg.Connection:
-        import asyncpg
-
-        conn_args = self.get_connect_args(**kwargs)
-        return await asyncpg.connect(
-            host=conn_args['host'],
-            port=conn_args['port'],
-            user=conn_args['user'],
-            password=conn_args['password'],
-            ssl='require',
-        )
 
     async def connect_test_protocol(self, **kwargs):
         conn_args = self.get_connect_args(**kwargs)

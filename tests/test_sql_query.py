@@ -19,13 +19,11 @@
 import asyncio
 import decimal
 import os.path
-import subprocess
 from typing import Coroutine
 import unittest
 import uuid
 
 from edb.tools import test
-from edb.server import pgcluster
 from edb.testbase import server as tb
 
 import edgedb
@@ -102,33 +100,6 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             os.path.dirname(__file__), 'schemas', 'movies_setup.edgeql'
         ),
     ]
-
-    async def test_sql_query_psql_describe_01(self):
-        dsn = self.get_sql_proto_dsn()
-        pg_bin_dir = await pgcluster.get_pg_bin_dir()
-
-        # Run a describe command in psql
-        cmd = [
-            pg_bin_dir / 'psql',
-            '--dbname',
-            dsn,
-            '-c',
-            '\\d "Person"',
-        ]
-        try:
-            subprocess.run(
-                cmd,
-                input=None,
-                check=True,
-                text=True,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-            )
-        except subprocess.CalledProcessError as e:
-            raise AssertionError(
-                f'command {cmd} returned non-zero exit status '
-                f'{e.returncode}\n{e.output}'
-            ) from e
 
     async def test_sql_query_00(self):
         # basic

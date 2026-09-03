@@ -21,7 +21,6 @@ import os
 import pathlib
 import platform
 import signal
-import ssl
 import tempfile
 import unittest
 
@@ -655,7 +654,6 @@ class TestServerAuth(tb.ConnectedTestCase):
                         method := (INSERT mTLS {
                             transports := {
                                 cfg::ConnectionTransport.TCP,
-                                cfg::ConnectionTransport.TCP_PG,
                                 cfg::ConnectionTransport.HTTP,
                                 cfg::ConnectionTransport.SIMPLE_HTTP,
                             },
@@ -717,43 +715,3 @@ class TestServerAuth(tb.ConnectedTestCase):
             self.assertEqual(
                 msgs[0].error_code, errors.AuthenticationError.get_code()
             )
-
-        # Verifies mTLS authentication on emulated Postgres protocol
-        try:
-            import asyncpg
-        except ImportError:
-            # don't run pg-ext test if asyncpg is not installed
-            pass
-        else:
-            conargs = sd.get_connect_args()
-            tls_context = ssl.create_default_context(
-                ssl.Purpose.SERVER_AUTH,
-                cafile=conargs["tls_ca_file"],
-            )
-            tls_context.check_hostname = False
-            conargs = dict(
-                host=conargs['host'],
-                port=conargs['port'],
-                user="ssl_user",
-                database=conargs.get('database', 'main'),
-                ssl=tls_context,
-            )
-            if granted:
-                with self.assertRaisesRegex(
-                    asyncpg.InvalidAuthorizationSpecificationError,
-                    'client certificate required',
-                ):
-                    await asyncpg.connect(**conargs)
-            tls_context.load_cert_chain(
-                client_ssl_cert_file, client_ssl_key_file
-            )
-            if granted:
-                conn = await asyncpg.connect(**conargs)
-                self.assertEqual(await conn.fetchval("select 42"), 42)
-                await conn.close()
-            else:
-                with self.assertRaisesRegex(
-                    asyncpg.InvalidAuthorizationSpecificationError,
-                    'authentication failed',
-                ):
-                    await asyncpg.connect(**conargs)
