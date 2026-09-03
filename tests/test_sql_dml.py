@@ -197,7 +197,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.EdgeQLSyntaxError,
             'syntax error at or near "INTO"',
-            _position=61,
+            _position=60,
         ):
             await self.scon.execute(
                 '''
@@ -224,7 +224,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             edgedb.errors.QueryError,
             'WITH clause containing a data-modifying statement must be at '
             'the top level',
-            _position=98,
+            _position=97,
         ):
             await self.scon.execute(
                 '''
@@ -670,7 +670,7 @@ class TestSQLDataModificationLanguage(tb.SQLQueryTestCase):
             )
         async with self.assertRaisesRegexTx(
             edgedb.errors.QueryError,
-            'column source is required when inserting into link tables',
+            'column target is required when inserting into link tables',
         ):
             await self.squery_values(
                 '''

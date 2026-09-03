@@ -592,7 +592,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             "unknown table",
-            _position=19,
+            _position=18,
         ):
             await self.scon.fetch('SELECT title FROM "Novel" ORDER BY title')
 
@@ -600,7 +600,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             "unknown table",
-            _position=19,
+            _position=18,
         ):
             await self.scon.fetch('SELECT title FROM Movie ORDER BY title')
 
@@ -683,7 +683,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
             edgedb.errors.QueryError,
             ", but the query resolves to 2 columns",
             # this points to `1`, because libpg_query does not give better info
-            _position=41,
+            _position=40,
         ):
             await self.scon.fetch(
                 '''
@@ -2378,7 +2378,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=12,
+            _position=11,
         ):
             await self.scon.execute("SELECT 1 + asdf()")
 
@@ -2386,7 +2386,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=10,
+            _position=9,
         ):
             await self.scon.execute("SELECT 1+asdf()")
 
@@ -2394,7 +2394,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=28,
+            _position=27,
         ):
             await self.scon.execute(
                 """SELECT 1 +
@@ -2405,7 +2405,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=12,
+            _position=11,
         ):
             await self.scon.execute(
                 '''SELECT 1 + asdf() FROM "Movie" ORDER BY id'''
@@ -2415,7 +2415,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=28,
+            _position=27,
         ):
             await self.scon.execute(
                 '''SELECT 1 +
@@ -2426,7 +2426,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=12,
+            _position=11,
         ):
             await self.scon.fetch("SELECT 1 + asdf()")
 
@@ -2434,7 +2434,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=10,
+            _position=9,
         ):
             await self.scon.fetch("SELECT 1+asdf()")
 
@@ -2442,7 +2442,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=28,
+            _position=27,
         ):
             await self.scon.fetch(
                 """SELECT 1 +
@@ -2453,7 +2453,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=12,
+            _position=11,
         ):
             await self.scon.fetch(
                 '''SELECT 1 + asdf() FROM "Movie" ORDER BY id'''
@@ -2463,7 +2463,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.ExecutionError,
             "does not exist",
-            _position=28,
+            _position=27,
         ):
             await self.scon.fetch(
                 '''SELECT 1 +
@@ -3014,7 +3014,7 @@ class TestSQLQuery(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.UnsupportedFeatureError,
             "not supported: CREATE",
-            _position=14,  # TODO: this is confusing
+            _position=13,  # TODO: this is confusing
         ):
             await self.squery_values('CREATE TABLE a();')
 
@@ -4070,7 +4070,7 @@ class TestSQLQueryNonTransactional(tb.SQLQueryTestCase):
         with self.assertRaisesRegex(
             edgedb.errors.QueryError,
             'forbidden function',
-            _position=8,
+            _position=7,
         ):
             await self.scon.fetch("""SELECT pg_ls_dir('/')""")
 
