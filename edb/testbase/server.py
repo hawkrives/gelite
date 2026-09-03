@@ -1928,11 +1928,20 @@ class SQLConnection:
         row = await self.fetchrow(query, *args)
         return None if row is None else row[0]
 
+    async def query_sql(self, query: str, *args: Any) -> Any:
+        return await self._con.query_sql(query, **self._params(args))
+
     def transaction(self) -> Any:
         return self._con.transaction()
 
     def is_in_transaction(self) -> bool:
         return self._con.is_in_transaction()
+
+    async def aclose(self) -> None:
+        await self._con.aclose()
+
+    async def close(self) -> None:
+        await self._con.aclose()
 
 
 class SQLQueryTestCase(BaseQueryTestCase):
@@ -1949,30 +1958,23 @@ class SQLQueryTestCase(BaseQueryTestCase):
         cls.scon = SQLConnection(cls.con)
 
     @classmethod
-    def create_sql_connection(
+    async def create_sql_connection(
         cls,
         *,
-        user: str = None,
-        password: str = None,
-    ) -> asyncio.Future[asyncpg.Connection]:
-        import asyncpg
+        user: Optional[str] = None,
+        password: Optional[str] = None,
+    ) -> SQLConnection:
+        """A second SQL connection, optionally as another role.
 
-        conargs = cls.get_connect_args()
-
-        tls_context = ssl.create_default_context(
-            ssl.Purpose.SERVER_AUTH,
-            cafile=conargs["tls_ca_file"],
+        test_server_permissions.py uses this to check that SQL
+        authorization is enforced per role. That is the resolver's
+        behaviour rather than the frontend's, so it rides the binary
+        protocol like the rest.
+        """
+        con = await cls.connect(
+            database=cls.con.dbname, user=user, password=password
         )
-        tls_context.check_hostname = False
-
-        return asyncpg.connect(
-            host=conargs['host'],
-            port=conargs['port'],
-            user=conargs['user'] if user is None else user,
-            password=conargs['password'] if password is None else password,
-            database=cls.con.dbname,
-            ssl=tls_context,
-        )
+        return SQLConnection(con)
 
     async def squery_values(self, query, *args):
         res = await self.scon.fetch(query, *args)
